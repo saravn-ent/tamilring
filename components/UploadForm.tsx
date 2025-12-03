@@ -114,6 +114,10 @@ export default function UploadForm() {
 
     try {
       // 1. Upload to Cloudinary
+      if (!process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET) {
+        throw new Error('Missing Cloudinary Upload Preset');
+      }
+
       const formData = new FormData();
       formData.append('file', file);
       formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!);
@@ -124,7 +128,12 @@ export default function UploadForm() {
       });
       const cloudinaryData = await cloudinaryRes.json();
       
-      if (!cloudinaryData.secure_url) throw new Error('Upload failed');
+      if (cloudinaryData.error) {
+        throw new Error(`Cloudinary Error: ${cloudinaryData.error.message}`);
+      }
+      if (!cloudinaryData.secure_url) {
+         throw new Error('Cloudinary upload failed: No secure_url returned');
+      }
 
       // 2. Insert into Supabase
       const { error } = await supabase.from('ringtones').insert({
@@ -136,7 +145,7 @@ export default function UploadForm() {
         poster_url: selectedMovie ? getImageUrl(selectedMovie.poster_path) : '',
         backdrop_url: selectedMovie ? getImageUrl(selectedMovie.backdrop_path, 'original') : '',
         audio_url: cloudinaryData.secure_url,
-        waveform_url: cloudinaryData.secure_url.replace('.mp3', '.png').replace('/upload/', '/upload/fl_waveform,co_white,b_transparent/'),
+        waveform_url: cloudinaryData.secure_url.replace(/\.[^/.]+$/, ".png").replace('/upload/', '/upload/fl_waveform,co_white,b_transparent/'),
         mood,
       });
 
@@ -151,9 +160,9 @@ export default function UploadForm() {
       setSelectedMovie(null);
       setSingers('');
       setMood('');
-    } catch (error) {
-      console.error(error);
-      alert('Error uploading ringtone');
+    } catch (error: any) {
+      console.error('Upload Error:', error);
+      alert(`Error uploading ringtone: ${error.message || JSON.stringify(error)}`);
     } finally {
       setLoading(false);
     }
