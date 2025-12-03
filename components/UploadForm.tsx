@@ -18,9 +18,24 @@ export default function UploadForm() {
   const [movies, setMovies] = useState<MovieResult[]>([]);
   const [selectedMovie, setSelectedMovie] = useState<MovieResult | null>(null);
   const [singers, setSingers] = useState('');
-  const [mood, setMood] = useState('');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [slug, setSlug] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+
+  const TAG_CATEGORIES = {
+    "Moods": ["Love", "Sad", "Mass", "BGM", "Motivational", "Devotional", "Funny"],
+    "Types": ["Instrumental", "Interlude", "Humming", "Dialogue", "Remix", "8D Audio"],
+    "Vocals": ["Male", "Female", "Duet"],
+    "Instruments": ["Flute", "Violin", "Guitar", "Piano"]
+  };
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags(prev => 
+      prev.includes(tag) 
+        ? prev.filter(t => t !== tag)
+        : [...prev, tag]
+    );
+  };
 
   // Manual Override State
   const [manualMovieName, setManualMovieName] = useState('');
@@ -146,7 +161,7 @@ export default function UploadForm() {
         backdrop_url: selectedMovie ? getImageUrl(selectedMovie.backdrop_path, 'original') : '',
         audio_url: cloudinaryData.secure_url,
         waveform_url: cloudinaryData.secure_url.replace(/\.[^/.]+$/, ".png").replace('/upload/', '/upload/fl_waveform,co_white,b_transparent/'),
-        mood,
+        tags: selectedTags,
       });
 
       if (error) throw error;
@@ -159,7 +174,7 @@ export default function UploadForm() {
       setMovieQuery('');
       setSelectedMovie(null);
       setSingers('');
-      setMood('');
+      setSelectedTags([]);
     } catch (error: any) {
       console.error('Upload Error:', error);
       alert(`Error uploading ringtone: ${error.message || JSON.stringify(error)}`);
@@ -366,19 +381,29 @@ export default function UploadForm() {
           </div>
 
           <div>
-            <label className="block text-xs text-zinc-500 mb-1">Mood</label>
-            <select
-              value={mood}
-              onChange={(e) => setMood(e.target.value)}
-              className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3 text-zinc-100 focus:outline-none focus:border-emerald-500"
-            >
-              <option value="">Select Mood</option>
-              <option value="Mass">Mass</option>
-              <option value="Love">Love</option>
-              <option value="Sad">Sad</option>
-              <option value="BGM">BGM</option>
-              <option value="Melody">Melody</option>
-            </select>
+            <label className="block text-xs text-zinc-500 mb-2">Tags (Select all that apply)</label>
+            <div className="space-y-4 bg-neutral-800/30 p-4 rounded-xl border border-neutral-800">
+              {Object.entries(TAG_CATEGORIES).map(([category, tags]) => (
+                <div key={category}>
+                  <p className="text-[10px] text-zinc-500 uppercase font-bold mb-2 tracking-wider">{category}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {tags.map(tag => (
+                      <button
+                        key={tag}
+                        onClick={() => toggleTag(tag)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                          selectedTags.includes(tag)
+                            ? 'bg-emerald-500 border-emerald-500 text-neutral-900 shadow-[0_0_10px_rgba(16,185,129,0.3)]'
+                            : 'bg-transparent border-neutral-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
+                        }`}
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           <div>
