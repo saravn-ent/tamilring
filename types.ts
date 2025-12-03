@@ -5,11 +5,15 @@ export interface Ringtone {
   movie_name: string;
   movie_year: string;
   singers: string;
+  music_director?: string;
+  movie_director?: string;
   poster_url: string;
   backdrop_url: string;
   audio_url: string;
   waveform_url: string;
-  mood: string;
+  tags?: string[];
+  mood?: string;
   downloads: number;
+  likes: number;
   created_at: string;
 }

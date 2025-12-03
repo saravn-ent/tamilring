@@ -18,6 +18,8 @@ export default function UploadForm() {
   const [movies, setMovies] = useState<MovieResult[]>([]);
   const [selectedMovie, setSelectedMovie] = useState<MovieResult | null>(null);
   const [singers, setSingers] = useState('');
+  const [musicDirector, setMusicDirector] = useState('');
+  const [movieDirector, setMovieDirector] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [slug, setSlug] = useState('');
   const [isSearching, setIsSearching] = useState(false);
@@ -157,6 +159,8 @@ export default function UploadForm() {
         movie_name: manualMovieName,
         movie_year: manualMovieYear,
         singers,
+        music_director: musicDirector,
+        movie_director: movieDirector,
         poster_url: selectedMovie ? getImageUrl(selectedMovie.poster_path) : '',
         backdrop_url: selectedMovie ? getImageUrl(selectedMovie.backdrop_path, 'original') : '',
         audio_url: cloudinaryData.secure_url,
@@ -174,6 +178,8 @@ export default function UploadForm() {
       setMovieQuery('');
       setSelectedMovie(null);
       setSingers('');
+      setMusicDirector('');
+      setMovieDirector('');
       setSelectedTags([]);
     } catch (error: any) {
       console.error('Upload Error:', error);
@@ -376,6 +382,28 @@ export default function UploadForm() {
               value={singers}
               onChange={(e) => setSingers(e.target.value)}
               placeholder="e.g. Anirudh Ravichander"
+              className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3 text-zinc-100 focus:outline-none focus:border-emerald-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs text-zinc-500 mb-1">Music Director</label>
+            <input
+              type="text"
+              value={musicDirector}
+              onChange={(e) => setMusicDirector(e.target.value)}
+              placeholder="e.g. A.R. Rahman"
+              className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3 text-zinc-100 focus:outline-none focus:border-emerald-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs text-zinc-500 mb-1">Movie Director</label>
+            <input
+              type="text"
+              value={movieDirector}
+              onChange={(e) => setMovieDirector(e.target.value)}
+              placeholder="e.g. Mari Selvaraj"
               className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3 text-zinc-100 focus:outline-none focus:border-emerald-500"
             />
           </div>

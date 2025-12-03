@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { PlayerProvider } from "@/context/PlayerContext";
-import StickyPlayer from "@/components/StickyPlayer";
+import BottomNav from "@/components/BottomNav";
+import TopBar from "@/components/TopBar";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,12 +19,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.className} bg-neutral-900 text-zinc-100 antialiased pb-24`}>
+      <body className={`${inter.className} bg-neutral-900 text-zinc-100 antialiased`}>
         <PlayerProvider>
-          <main className="min-h-screen">
+          <TopBar />
+          <main className="min-h-screen pt-14 pb-32">
             {children}
           </main>
-          <StickyPlayer />
+          <BottomNav />
         </PlayerProvider>
       </body>
     </html>
