@@ -13,6 +13,7 @@ export interface Ringtone {
   waveform_url: string;
   tags?: string[];
   mood?: string;
+  cast?: string;
   downloads: number;
   likes: number;
   created_at: string;

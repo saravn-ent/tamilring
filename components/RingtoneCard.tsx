@@ -3,9 +3,10 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Play, Pause, Music, Mic, Download, Disc, Clapperboard, Heart } from 'lucide-react';
+import { Play, Pause, Music, Download, Heart } from 'lucide-react';
 import { Ringtone } from '@/types';
 import { usePlayer } from '@/context/PlayerContext';
+import RippleWrapper from './Ripple';
 
 interface RingtoneCardProps {
   ringtone: Ringtone;
@@ -17,11 +18,13 @@ export default function RingtoneCard({ ringtone }: RingtoneCardProps) {
   const [isDownloading, setIsDownloading] = useState(false);
   const [isLiked, setIsLiked] = useState(false); // Local state for immediate feedback
   const [likesCount, setLikesCount] = useState(ringtone.likes || 0);
+  const [animateLike, setAnimateLike] = useState(false);
 
   const isCurrent = currentRingtone?.id === ringtone.id;
   const isActive = isCurrent && isPlaying;
 
-  const handlePlay = () => {
+  const handlePlay = (e: React.MouseEvent) => {
+    e.preventDefault();
     if (isCurrent) {
       togglePlay();
     } else {
@@ -29,7 +32,8 @@ export default function RingtoneCard({ ringtone }: RingtoneCardProps) {
     }
   };
 
-  const handleDownload = async () => {
+  const handleDownload = async (e: React.MouseEvent) => {
+    e.preventDefault();
     try {
       setIsDownloading(true);
       const response = await fetch(ringtone.audio_url);
@@ -53,8 +57,13 @@ export default function RingtoneCard({ ringtone }: RingtoneCardProps) {
     }
   };
 
-  const handleLike = () => {
+  const handleLike = (e: React.MouseEvent) => {
+    e.preventDefault();
     // TODO: Implement actual API call to toggle like
+    if (!isLiked) {
+      setAnimateLike(true);
+      setTimeout(() => setAnimateLike(false), 300);
+    }
     setIsLiked(!isLiked);
     setLikesCount(prev => isLiked ? prev - 1 : prev + 1);
   };
@@ -71,155 +80,106 @@ export default function RingtoneCard({ ringtone }: RingtoneCardProps) {
   };
 
   return (
-    <div className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden shadow-sm hover:border-emerald-500/30 transition-all group relative">
+    <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-3 flex items-center gap-4 hover:bg-white/10 transition-colors group relative shadow-lg shadow-black/20">
       
-      {/* Progress Bar (Only visible when playing) */}
-      {isCurrent && (
-        <div className="absolute top-0 left-0 right-0 h-1 bg-neutral-800 z-20">
-          <div 
-            className="h-full bg-emerald-500 transition-all duration-100 ease-linear"
-            style={{ width: `${progress}%` }}
+      {/* Left: Thumbnail & Play Interaction */}
+      <div className="relative shrink-0 w-20 h-28 rounded-lg overflow-hidden bg-neutral-800 shadow-md group-poster">
+        {!imgError && ringtone.poster_url ? (
+          <Image
+            src={ringtone.poster_url}
+            alt={ringtone.movie_name}
+            fill
+            className="object-cover"
+            sizes="80px"
+            onError={() => setImgError(true)}
           />
-        </div>
-      )}
-
-      {/* Top Section: Metadata */}
-      <div className="flex gap-3 p-3">
-        {/* Poster & Play Button */}
-        <div className="shrink-0 relative w-16 h-20">
-           <Link href={`/movie/${encodeURIComponent(ringtone.movie_name)}`} className="block w-full h-full">
-            <div className="relative w-full h-full rounded-lg overflow-hidden bg-neutral-800 shadow-md">
-              {!imgError && ringtone.poster_url ? (
-                <Image
-                  src={ringtone.poster_url}
-                  alt={ringtone.movie_name}
-                  fill
-                  className="object-cover"
-                  sizes="64px"
-                  onError={() => setImgError(true)}
-                />
-              ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-emerald-900 to-neutral-900">
-                  <Music size={16} className="text-emerald-500/50 mb-1" />
-                  <span className="text-[10px] font-bold text-emerald-500/50">{getInitials(ringtone.movie_name)}</span>
-                </div>
-              )}
-            </div>
-          </Link>
-          
-          {/* Play Overlay Button */}
-          <button
-            onClick={handlePlay}
-            className={`absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
-          >
-             <div className={`w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-sm ${isActive ? 'bg-emerald-500 text-neutral-900' : 'bg-neutral-900/80 text-white'}`}>
-                {isActive ? <Pause size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" className="ml-0.5" />}
-             </div>
-          </button>
-        </div>
-
-        {/* Info */}
-        <div className="flex-1 min-w-0 flex flex-col justify-center">
-          <Link href={`/ringtone/${ringtone.slug}`}>
-            <h3 className={`font-bold text-base truncate leading-tight mb-1 ${isCurrent ? 'text-emerald-400' : 'text-zinc-100'}`}>
-              {ringtone.title}
-            </h3>
-          </Link>
-          
-          <Link href={`/movie/${encodeURIComponent(ringtone.movie_name)}`} className="text-xs text-zinc-400 truncate hover:text-emerald-500 transition-colors w-fit mb-1.5">
-            {ringtone.movie_name} <span className="text-zinc-600">({ringtone.movie_year})</span>
-          </Link>
-
-          <div className="flex flex-col gap-0.5">
-            {ringtone.music_director && (
-              <div className="flex items-center gap-1.5 text-[10px] text-zinc-500">
-                <Disc size={10} className="text-zinc-600 shrink-0" />
-                <Link 
-                  href={`/artist/${encodeURIComponent(ringtone.music_director)}`}
-                  className="truncate hover:text-emerald-500 transition-colors"
-                >
-                  {ringtone.music_director}
-                </Link>
-              </div>
-            )}
-            {ringtone.movie_director && (
-              <div className="flex items-center gap-1.5 text-[10px] text-zinc-500">
-                <Clapperboard size={10} className="text-zinc-600 shrink-0" />
-                <Link 
-                  href={`/director/${encodeURIComponent(ringtone.movie_director)}`}
-                  className="truncate hover:text-emerald-500 transition-colors"
-                >
-                  {ringtone.movie_director}
-                </Link>
-              </div>
-            )}
-            {ringtone.singers && (
-              <div className="flex items-center gap-1.5 text-[10px] text-zinc-500">
-                <Mic size={10} className="text-zinc-600 shrink-0" />
-                <div className="flex flex-wrap gap-1 truncate">
-                  {ringtone.singers.split(',').map((singer, idx) => (
-                    <span key={idx} className="flex items-center">
-                      <Link 
-                        href={`/artist/${encodeURIComponent(singer.trim())}`}
-                        className="hover:text-emerald-500 transition-colors"
-                      >
-                        {singer.trim()}
-                      </Link>
-                      {idx < ringtone.singers.split(',').length - 1 && <span className="mr-1">,</span>}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
+        ) : (
+          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-emerald-900 to-neutral-900">
+            <Music size={20} className="text-emerald-500/50 mb-1" />
+            <span className="text-[10px] font-bold text-emerald-500/50">{getInitials(ringtone.movie_name)}</span>
           </div>
-        </div>
+        )}
+
+        {/* Play Overlay Button */}
+        <RippleWrapper 
+          onClick={handlePlay} 
+          className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/40 transition-colors z-10 cursor-pointer"
+          aria-label={isActive ? "Pause" : "Play"}
+        >
+          <div className={`w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-sm shadow-lg transition-transform active:scale-95 ${isActive ? 'bg-emerald-500 text-white' : 'bg-black/60 text-white'}`}>
+            {isActive ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" className="ml-1" />}
+          </div>
+        </RippleWrapper>
       </div>
 
-      {/* Bottom Section: Actions */}
-      <div className="flex items-center justify-between px-3 py-2 bg-neutral-900 border-t border-neutral-800/50">
-        {/* Tags (Scrollable) */}
-        <div className="flex gap-1.5 overflow-x-auto scrollbar-hide px-1 max-w-[50%]">
-          {ringtone.tags && ringtone.tags.length > 0 ? (
-            ringtone.tags.map((tag, idx) => (
-              <Link 
-                key={idx} 
-                href={`/mood/${tag}`}
-                className="shrink-0 text-[10px] font-medium px-2 py-0.5 rounded-full bg-neutral-800 text-zinc-400 border border-neutral-700 hover:border-emerald-500/50 hover:text-emerald-500 transition-colors whitespace-nowrap"
-              >
-                {tag}
-              </Link>
-            ))
+      {/* Middle: Info */}
+      <div className="flex-1 min-w-0 flex flex-col gap-1 self-center">
+        <Link href={`/ringtone/${ringtone.slug}`} className="block group-hover:text-emerald-400 transition-colors">
+          <h3 className={`font-bold text-lg truncate leading-tight ${isCurrent ? 'text-emerald-400' : 'text-zinc-100'}`}>
+            {ringtone.title}
+          </h3>
+        </Link>
+        
+        <Link href={`/movie/${encodeURIComponent(ringtone.movie_name)}`} className="text-sm text-zinc-400 truncate hover:text-emerald-500 transition-colors w-fit">
+          {ringtone.movie_name}
+        </Link>
+
+        {/* Singers - High Visibility */}
+        {ringtone.singers && (
+          <div className="flex flex-wrap gap-1 text-xs mt-0.5">
+            {ringtone.singers.split(',').map((singer, idx) => (
+              <span key={idx} className="flex items-center text-emerald-500/90 font-medium">
+                <Link 
+                  href={`/artist/${encodeURIComponent(singer.trim())}`}
+                  className="hover:text-emerald-400 hover:underline decoration-emerald-500/50"
+                >
+                  {singer.trim()}
+                </Link>
+                {idx < ringtone.singers.split(',').length - 1 && <span className="text-zinc-600 mr-1">,</span>}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* Progress Bar (Only visible when playing) */}
+        {isCurrent && (
+          <div className="h-1 bg-neutral-800 rounded-full overflow-hidden mt-2 w-full">
+            <div 
+              className="h-full bg-emerald-500 transition-all duration-100 ease-linear"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+        )}
+      </div>
+
+      {/* Right: Actions (Vertical Stack) */}
+      <div className="flex flex-col items-center gap-2 shrink-0 border-l border-white/10 pl-3 py-1">
+        {/* Like Button */}
+        <RippleWrapper 
+          onClick={handleLike}
+          className="flex flex-col items-center justify-center w-12 h-12 rounded-full hover:bg-neutral-800/80 active:bg-neutral-800 transition-colors cursor-pointer"
+          aria-label="Like"
+        >
+          <Heart size={24} className={`transition-colors ${isLiked ? "fill-red-500 text-red-500" : "text-zinc-400"} ${animateLike ? 'animate-like' : ''}`} />
+          <span className="text-[10px] font-bold text-zinc-500 mt-0.5">{formatCount(likesCount)}</span>
+        </RippleWrapper>
+
+        {/* Download Button */}
+        <RippleWrapper 
+          onClick={handleDownload}
+          disabled={isDownloading}
+          className="flex flex-col items-center justify-center w-12 h-12 rounded-full hover:bg-neutral-800/80 active:bg-neutral-800 transition-colors cursor-pointer"
+          aria-label="Download"
+        >
+          {isDownloading ? (
+            <div className="w-5 h-5 border-2 border-zinc-500 border-t-emerald-500 rounded-full animate-spin" />
           ) : (
-             <span className="text-[10px] text-zinc-600 italic px-2">No tags</span>
+            <Download size={24} className="text-zinc-400" />
           )}
-        </div>
-
-        {/* Actions: Like & Download */}
-        <div className="flex items-center gap-2">
-           <button 
-             onClick={handleLike}
-             className={`flex items-center gap-1 px-2 py-1 rounded-lg transition-colors ${isLiked ? 'text-red-500' : 'text-zinc-400 hover:text-red-500'}`}
-           >
-             <Heart size={14} fill={isLiked ? "currentColor" : "none"} />
-             <span className="text-[10px] font-bold">{formatCount(likesCount)}</span>
-           </button>
-
-           <button 
-            onClick={handleDownload}
-            disabled={isDownloading}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-neutral-800 hover:bg-emerald-500/10 text-zinc-300 hover:text-emerald-500 border border-neutral-700 hover:border-emerald-500/50 transition-all text-[10px] font-bold uppercase tracking-wide"
-          >
-            {isDownloading ? (
-              <span className="animate-pulse">...</span>
-            ) : (
-              <>
-                <Download size={12} />
-                {formatCount(ringtone.downloads)}
-              </>
-            )}
-          </button>
-        </div>
+          <span className="text-[10px] font-bold text-zinc-500 mt-0.5">{formatCount(ringtone.downloads)}</span>
+        </RippleWrapper>
       </div>
+
     </div>
   );
 }

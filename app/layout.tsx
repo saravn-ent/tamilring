@@ -1,16 +1,23 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Hind_Madurai } from "next/font/google";
 import "./globals.css";
 import { PlayerProvider } from "@/context/PlayerContext";
 import BottomNav from "@/components/BottomNav";
 import TopBar from "@/components/TopBar";
 
-const inter = Inter({ subsets: ["latin"] });
+const inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
+const hindMadurai = Hind_Madurai({ 
+  weight: ['400', '500', '600', '700'],
+  subsets: ['tamil', 'latin'],
+  variable: '--font-hind'
+});
 
 export const metadata: Metadata = {
   title: "TamilRing - Mobile First Ringtones",
   description: "Download high quality ringtones.",
 };
+
+import Background from "@/components/Background";
 
 export default function RootLayout({
   children,
@@ -19,10 +26,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.className} bg-neutral-900 text-zinc-100 antialiased`}>
+      <body className={`${inter.variable} ${hindMadurai.variable} font-sans text-zinc-100 antialiased scrollbar-hide bg-black`}>
+        {/* Aurora Background */}
+        <Background />
+
         <PlayerProvider>
           <TopBar />
-          <main className="min-h-screen pt-14 pb-32">
+          <main className="min-h-screen pt-14 pb-32 relative z-0">
             {children}
           </main>
           <BottomNav />

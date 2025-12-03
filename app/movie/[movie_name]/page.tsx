@@ -1,16 +1,43 @@
 import { supabase } from '@/lib/supabaseClient';
 import RingtoneCard from '@/components/RingtoneCard';
+import SortControl from '@/components/SortControl';
 import Image from 'next/image';
 
-export default async function MoviePage({ params }: { params: Promise<{ movie_name: string }> }) {
+export default async function MoviePage({ 
+  params,
+  searchParams 
+}: { 
+  params: Promise<{ movie_name: string }>,
+  searchParams: Promise<{ sort?: string }>
+}) {
   const { movie_name } = await params;
+  const { sort } = await searchParams;
   const movieName = decodeURIComponent(movie_name);
   
-  const { data: ringtones } = await supabase
+  let query = supabase
     .from('ringtones')
     .select('*')
-    .eq('movie_name', movieName)
-    .order('created_at', { ascending: false });
+    .eq('movie_name', movieName);
+
+  // Apply Sorting
+  switch (sort) {
+    case 'downloads':
+      query = query.order('downloads', { ascending: false });
+      break;
+    case 'likes':
+      query = query.order('likes', { ascending: false });
+      break;
+    case 'year_desc':
+      query = query.order('movie_year', { ascending: false });
+      break;
+    case 'year_asc':
+      query = query.order('movie_year', { ascending: true });
+      break;
+    default: // recent
+      query = query.order('created_at', { ascending: false });
+  }
+
+  const { data: ringtones } = await query;
 
   const movie = ringtones?.[0];
 
@@ -44,7 +71,10 @@ export default async function MoviePage({ params }: { params: Promise<{ movie_na
       </div>
       
       <div className="px-4 py-6">
-        <h2 className="text-lg font-bold mb-4">All Ringtones</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold">All Ringtones</h2>
+          <SortControl />
+        </div>
         {ringtones && ringtones.length > 0 ? (
           <div className="space-y-4">
             {ringtones.map((ringtone) => (

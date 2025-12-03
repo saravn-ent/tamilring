@@ -1,14 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { Search, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import RingtoneCard from '@/components/RingtoneCard';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
 
-export default function SearchPage() {
-  const [query, setQuery] = useState('');
+function SearchContent() {
+  const searchParams = useSearchParams();
+  const [query, setQuery] = useState(searchParams.get('q') || '');
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'ringtones' | 'movies' | 'artists'>('ringtones');
@@ -142,5 +144,13 @@ export default function SearchPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function SearchPage() {
+  return (
+    <Suspense fallback={<div className="p-4 text-center text-zinc-500">Loading search...</div>}>
+      <SearchContent />
+    </Suspense>
   );
 }

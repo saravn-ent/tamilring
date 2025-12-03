@@ -2,23 +2,23 @@ import { supabase } from '@/lib/supabaseClient';
 import RingtoneCard from '@/components/RingtoneCard';
 import ProfileHeader from '@/components/ProfileHeader';
 import SortControl from '@/components/SortControl';
-import { TOP_SINGERS, MUSIC_DIRECTORS } from '@/lib/constants';
+import { POPULAR_ACTORS } from '@/lib/constants';
 
-export default async function ArtistPage({ 
+export default async function ActorPage({ 
   params,
   searchParams 
 }: { 
-  params: Promise<{ artist_name: string }>,
+  params: Promise<{ actor_name: string }>,
   searchParams: Promise<{ sort?: string }>
 }) {
-  const { artist_name } = await params;
+  const { actor_name } = await params;
   const { sort } = await searchParams;
-  const artistName = decodeURIComponent(artist_name);
+  const actorName = decodeURIComponent(actor_name);
   
   let query = supabase
     .from('ringtones')
     .select('*')
-    .or(`singers.ilike.%${artistName}%,music_director.ilike.%${artistName}%`);
+    .ilike('cast', `%${actorName}%`);
 
   // Apply Sorting
   switch (sort) {
@@ -41,30 +41,27 @@ export default async function ArtistPage({
   const { data: ringtones } = await query;
 
   // Try to find image from constants
-  const artistImage = TOP_SINGERS.find(s => s.name === artistName)?.img || 
-                      MUSIC_DIRECTORS.find(m => m.name === artistName)?.img;
+  const actorImage = POPULAR_ACTORS.find(a => a.name === actorName)?.img;
 
   return (
     <div className="max-w-md mx-auto pb-24">
       <ProfileHeader 
-        name={artistName} 
-        type="Singer" 
+        name={actorName} 
+        type="Actor" 
         ringtoneCount={ringtones?.length || 0} 
-        imageUrl={artistImage}
+        imageUrl={actorImage}
       />
-      
+
       <SortControl />
-      
-      <div className="px-4 py-6">
+
+      <div className="p-4 space-y-4">
         {ringtones && ringtones.length > 0 ? (
-          <div className="space-y-4">
-            {ringtones.map((ringtone) => (
-              <RingtoneCard key={ringtone.id} ringtone={ringtone} />
-            ))}
-          </div>
+          ringtones.map(ringtone => (
+            <RingtoneCard key={ringtone.id} ringtone={ringtone} />
+          ))
         ) : (
-          <div className="text-center py-20 text-zinc-500">
-            No ringtones found for this artist.
+          <div className="text-center py-12 text-zinc-500">
+            <p>No ringtones found for this actor.</p>
           </div>
         )}
       </div>

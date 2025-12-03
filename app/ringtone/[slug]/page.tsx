@@ -2,19 +2,20 @@ import { supabase } from '@/lib/supabaseClient';
 import { Ringtone } from '@/types';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowLeft, Download } from 'lucide-react';
+import { ArrowLeft, Download, Music } from 'lucide-react';
 import { Metadata } from 'next';
 import PlayButton from './PlayButton';
 
 interface Props {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
   const { data: ringtone } = await supabase
     .from('ringtones')
     .select('*')
-    .eq('slug', params.slug)
+    .eq('slug', slug)
     .single();
 
   if (!ringtone) return { title: 'Ringtone Not Found' };
@@ -26,10 +27,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function RingtonePage({ params }: Props) {
+  const { slug } = await params;
   const { data: ringtone } = await supabase
     .from('ringtones')
     .select('*')
-    .eq('slug', params.slug)
+    .eq('slug', slug)
     .single();
 
   if (!ringtone) return <div className="text-center py-20 text-zinc-500">Ringtone not found</div>;
@@ -48,12 +50,14 @@ export default async function RingtonePage({ params }: Props) {
     <div className="max-w-md mx-auto min-h-screen bg-neutral-900 relative">
       {/* Backdrop */}
       <div className="absolute top-0 left-0 right-0 h-96 opacity-30 z-0">
-        <Image
-          src={ringtone.backdrop_url || ringtone.poster_url}
-          alt={ringtone.movie_name}
-          fill
-          className="object-cover mask-image-gradient"
-        />
+        {(ringtone.backdrop_url || ringtone.poster_url) && (
+          <Image
+            src={ringtone.backdrop_url || ringtone.poster_url}
+            alt={ringtone.movie_name}
+            fill
+            className="object-cover mask-image-gradient"
+          />
+        )}
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-neutral-900" />
       </div>
 
@@ -64,21 +68,44 @@ export default async function RingtonePage({ params }: Props) {
         </Link>
 
         <div className="flex flex-col items-center text-center space-y-6 mt-4">
-          <div className="relative w-48 h-72 rounded-xl overflow-hidden shadow-2xl shadow-black/50">
-            <Image
-              src={ringtone.poster_url}
-              alt={ringtone.movie_name}
-              fill
-              className="object-cover"
-            />
+          <div className="relative w-48 h-72 rounded-xl overflow-hidden shadow-2xl shadow-black/50 bg-neutral-800 flex items-center justify-center">
+            {ringtone.poster_url ? (
+              <Image
+                src={ringtone.poster_url}
+                alt={ringtone.movie_name}
+                fill
+                className="object-cover"
+              />
+            ) : (
+              <Music size={48} className="text-zinc-600" />
+            )}
           </div>
 
           <div className="space-y-2">
             <h1 className="text-3xl font-bold text-zinc-100">{ringtone.title}</h1>
-            <p className="text-zinc-400 text-lg">
+            <Link href={`/movie/${encodeURIComponent(ringtone.movie_name)}`} className="text-zinc-400 text-lg hover:text-emerald-500 transition-colors block">
               {ringtone.movie_name} <span className="text-zinc-600">({ringtone.movie_year})</span>
-            </p>
-            <p className="text-emerald-500 font-medium">{ringtone.singers}</p>
+            </Link>
+            
+            <div className="flex flex-wrap justify-center gap-1 text-emerald-500 font-medium">
+              {ringtone.singers.split(',').map((singer: string, idx: number) => (
+                <span key={idx} className="flex items-center">
+                  <Link 
+                    href={`/artist/${encodeURIComponent(singer.trim())}`}
+                    className="hover:underline"
+                  >
+                    {singer.trim()}
+                  </Link>
+                  {idx < ringtone.singers.split(',').length - 1 && <span className="mr-1">,</span>}
+                </span>
+              ))}
+            </div>
+
+            {ringtone.music_director && (
+               <div className="text-zinc-500 text-sm mt-1">
+                 Music: <Link href={`/artist/${encodeURIComponent(ringtone.music_director)}`} className="text-zinc-300 hover:text-emerald-500 transition-colors">{ringtone.music_director}</Link>
+               </div>
+            )}
           </div>
 
           <div className="flex gap-4 w-full max-w-xs">

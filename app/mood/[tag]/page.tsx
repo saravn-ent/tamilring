@@ -1,16 +1,43 @@
 import { supabase } from '@/lib/supabaseClient';
 import RingtoneCard from '@/components/RingtoneCard';
 import SectionHeader from '@/components/SectionHeader';
+import SortControl from '@/components/SortControl';
 
-export default async function MoodPage({ params }: { params: Promise<{ tag: string }> }) {
+export default async function MoodPage({ 
+  params,
+  searchParams 
+}: { 
+  params: Promise<{ tag: string }>,
+  searchParams: Promise<{ sort?: string }>
+}) {
   const { tag: paramTag } = await params;
+  const { sort } = await searchParams;
   const tag = decodeURIComponent(paramTag);
   
-  const { data: ringtones } = await supabase
+  let query = supabase
     .from('ringtones')
     .select('*')
-    .contains('tags', [tag]) // Assumes 'tags' is an array column
-    .order('created_at', { ascending: false });
+    .contains('tags', [tag]);
+
+  // Apply Sorting
+  switch (sort) {
+    case 'downloads':
+      query = query.order('downloads', { ascending: false });
+      break;
+    case 'likes':
+      query = query.order('likes', { ascending: false });
+      break;
+    case 'year_desc':
+      query = query.order('movie_year', { ascending: false });
+      break;
+    case 'year_asc':
+      query = query.order('movie_year', { ascending: true });
+      break;
+    default: // recent
+      query = query.order('created_at', { ascending: false });
+  }
+
+  const { data: ringtones } = await query;
 
   return (
     <div className="max-w-md mx-auto">
@@ -20,6 +47,9 @@ export default async function MoodPage({ params }: { params: Promise<{ tag: stri
       </div>
       
       <div className="px-4 -mt-4">
+        <div className="flex justify-end mb-4">
+          <SortControl />
+        </div>
         {ringtones && ringtones.length > 0 ? (
           <div className="space-y-4">
             {ringtones.map((ringtone) => (
