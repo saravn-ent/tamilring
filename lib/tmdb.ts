@@ -12,7 +12,7 @@ export interface MovieResult {
 export const searchMovies = async (query: string): Promise<MovieResult[]> => {
   if (!query) return [];
   try {
-    const res = await fetch(`${BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}`);
+    const res = await fetch(`${BASE_URL}/search/movie?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&language=en-US&page=1&include_adult=false`);
     if (!res.ok) throw new Error('Failed to fetch movies');
     const data = await res.json();
     return data.results || [];
