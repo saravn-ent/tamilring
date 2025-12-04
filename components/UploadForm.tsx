@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Upload, Search, Music, Check, Loader2, X } from 'lucide-react';
-import { searchMovies, MovieResult, getImageUrl } from '@/lib/tmdb';
+import { searchMovies, MovieResult, getImageUrl, getMovieCredits } from '@/lib/tmdb';
 import { searchSongs, iTunesSong } from '@/lib/itunes';
 import { supabase } from '@/lib/supabaseClient';
 import Image from 'next/image';
@@ -75,12 +75,24 @@ export default function UploadForm() {
     }
   };
 
-  const selectMovie = (movie: MovieResult) => {
+  const selectMovie = async (movie: MovieResult) => {
     setSelectedMovie(movie);
     setManualMovieName(movie.title);
     setManualMovieYear(movie.release_date?.split('-')[0] || '');
     setMovieQuery(movie.title);
     setMovies([]);
+
+    // Fetch credits
+    const credits = await getMovieCredits(movie.id);
+    if (credits) {
+      const directors = credits.crew.filter(c => c.job === 'Director').map(c => c.name).join(', ');
+      // TMDB uses 'Original Music Composer' or 'Music' for music directors
+      const musicDirectors = credits.crew.filter(c => c.job === 'Original Music Composer' || c.job === 'Music').map(c => c.name).join(', ');
+      
+      setMovieDirector(directors);
+      setMusicDirector(musicDirectors);
+    }
+
     setStep(3);
   };
 
@@ -154,6 +166,7 @@ export default function UploadForm() {
           movie_year: manualMovieYear ? parseInt(manualMovieYear) : null,
           singers,
           music_director: musicDirector,
+          movie_director: movieDirector,
           poster_url: selectedMovie ? getImageUrl(selectedMovie.poster_path) : null,
           audio_url: publicUrl,
           tags: selectedTags,
@@ -193,7 +206,7 @@ export default function UploadForm() {
       {/* Step 1: File */}
       {step === 1 && (
         <div className="border-2 border-dashed border-neutral-700 rounded-xl p-10 text-center hover:border-emerald-500 transition-colors">
-          <input type="file" accept="audio/*" onChange={handleFileChange} className="hidden" id="audio-upload" />
+          <input type="file" accept="audio/*,.mp3,.wav,.m4a,.aac" onChange={handleFileChange} className="hidden" id="audio-upload" />
           <label htmlFor="audio-upload" className="cursor-pointer flex flex-col items-center gap-4">
             <div className="w-16 h-16 bg-neutral-800 rounded-full flex items-center justify-center text-emerald-500">
               <Upload size={32} />

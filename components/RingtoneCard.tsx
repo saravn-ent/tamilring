@@ -8,6 +8,7 @@ import { Ringtone } from '@/types';
 import { usePlayer } from '@/context/PlayerContext';
 import RippleWrapper from './Ripple';
 import { splitArtists, formatCount, getInitials } from '@/lib/utils';
+import { incrementLikes, incrementDownloads } from '@/app/actions';
 
 interface RingtoneCardProps {
   ringtone: Ringtone;
@@ -37,6 +38,10 @@ export default function RingtoneCard({ ringtone }: RingtoneCardProps) {
     e.preventDefault();
     try {
       setIsDownloading(true);
+      
+      // Increment download count
+      incrementDownloads(ringtone.id);
+
       const response = await fetch(ringtone.audio_url);
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -58,15 +63,25 @@ export default function RingtoneCard({ ringtone }: RingtoneCardProps) {
     }
   };
 
-  const handleLike = (e: React.MouseEvent) => {
+  const handleLike = async (e: React.MouseEvent) => {
     e.preventDefault();
-    // TODO: Implement actual API call to toggle like
+    
     if (!isLiked) {
       setAnimateLike(true);
       setTimeout(() => setAnimateLike(false), 300);
+      
+      // Optimistic update
+      setLikesCount(prev => prev + 1);
+      setIsLiked(true);
+
+      // Server update
+      await incrementLikes(ringtone.id);
+    } else {
+      // If unliking, we just update UI for this session
+      // We don't decrement on server to prevent abuse/confusion without user tracking
+      setLikesCount(prev => prev - 1);
+      setIsLiked(false);
     }
-    setIsLiked(!isLiked);
-    setLikesCount(prev => isLiked ? prev - 1 : prev + 1);
   };
 
   return (

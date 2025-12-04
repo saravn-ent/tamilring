@@ -26,3 +26,21 @@ export const getImageUrl = (path: string | null, size: 'w500' | 'original' = 'w5
   if (!path) return '';
   return `https://image.tmdb.org/t/p/${size}${path}`;
 };
+
+export interface MovieCredits {
+  crew: {
+    job: string;
+    name: string;
+  }[];
+}
+
+export const getMovieCredits = async (movieId: number): Promise<MovieCredits | null> => {
+  try {
+    const res = await fetch(`${BASE_URL}/movie/${movieId}/credits?api_key=${TMDB_API_KEY}&language=en-US`);
+    if (!res.ok) throw new Error('Failed to fetch credits');
+    return await res.json();
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+};
