@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, User, Plus, Compass } from 'lucide-react';
+import { Home, User, Compass } from 'lucide-react';
 
 export default function BottomNav() {
   const pathname = usePathname();
@@ -22,14 +22,6 @@ export default function BottomNav() {
         <Link href="/categories" className={`flex flex-col items-center gap-1 transition-colors ${isActive('/categories') ? 'text-emerald-500' : 'text-zinc-500 hover:text-zinc-300'}`}>
           <Compass size={24} strokeWidth={isActive('/categories') ? 2.5 : 2} />
           <span className="text-[10px] font-medium">Browse</span>
-        </Link>
-
-        {/* Upload - Prominent Center Button */}
-        <Link
-          href="/upload"
-          className="flex items-center justify-center w-14 h-14 bg-emerald-500 rounded-full text-black shadow-lg shadow-emerald-500/25 -mt-8 border-4 border-black transition-transform active:scale-95"
-        >
-          <Plus size={28} strokeWidth={2.5} />
         </Link>
 
         {/* Profile */}

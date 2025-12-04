@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { Search } from 'lucide-react';
-import LoginButton from './LoginButton';
 
 export default function TopBar() {
   return (
@@ -13,7 +12,6 @@ export default function TopBar() {
           <Link href="/search" className="p-2 text-zinc-400 hover:text-white transition-colors">
             <Search size={20} />
           </Link>
-          <LoginButton />
         </div>
       </div>
     </div>
