@@ -10,6 +10,9 @@ interface ImageWithFallbackProps {
   className?: string;
   fallbackClassName?: string;
   showIcon?: boolean;
+  fill?: boolean;
+  fallbackText?: string;
+  sizes?: string;
 }
 
 export default function ImageWithFallback({ 
@@ -17,7 +20,10 @@ export default function ImageWithFallback({
   alt, 
   className = "object-cover", 
   fallbackClassName = "bg-neutral-800 text-zinc-400",
-  showIcon = false 
+  showIcon = false,
+  fill = true,
+  fallbackText,
+  sizes
 }: ImageWithFallbackProps) {
   const [error, setError] = useState(false);
 
@@ -36,7 +42,7 @@ export default function ImageWithFallback({
     return (
       <div className={`w-full h-full flex flex-col items-center justify-center ${fallbackClassName}`}>
         {showIcon && <Music size={20} className="mb-1 opacity-50" />}
-        <span className="font-bold text-xs opacity-70">{getInitials(alt)}</span>
+        <span className="font-bold text-xs opacity-70">{fallbackText || getInitials(alt)}</span>
       </div>
     );
   }
@@ -45,7 +51,8 @@ export default function ImageWithFallback({
     <Image
       src={src}
       alt={alt}
-      fill
+      fill={fill}
+      sizes={sizes}
       className={className}
       onError={() => setError(true)}
       unoptimized
