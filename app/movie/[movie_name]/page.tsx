@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabaseClient';
 import RingtoneCard from '@/components/RingtoneCard';
 import SortControl from '@/components/SortControl';
 import Image from 'next/image';
+import FavoriteButton from '@/components/FavoriteButton';
 
 export default async function MoviePage({
   params,
@@ -56,6 +57,20 @@ export default async function MoviePage({
           <div className="w-full h-full bg-neutral-800" />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 via-neutral-900/60 to-transparent" />
+
+        {/* Favorite Button */}
+        <div className="absolute top-4 right-4 z-10">
+             <FavoriteButton 
+                item={{ 
+                    id: movieName, 
+                    name: movieName, 
+                    type: 'Movie', 
+                    imageUrl: movie?.poster_url, 
+                    href: `/movie/${encodeURIComponent(movieName)}` 
+                }} 
+                className="w-10 h-10 bg-black/20 backdrop-blur-md hover:bg-black/40"
+            />
+        </div>
 
         <div className="absolute bottom-0 left-0 p-6 flex items-end gap-4">
           {movie?.poster_url && (

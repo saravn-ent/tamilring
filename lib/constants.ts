@@ -1,18 +1,8 @@
 export const TOP_SINGERS = [
   {
-    name: "Anirudh",
-    img: "https://i.scdn.co/image/ab6761610000e5eb006ff3c0136a71bfb9928d34",
-    bio: "Anirudh Ravichander is an Indian music composer and playback singer who works primarily in Tamil cinema. Known for his energetic and youthful compositions."
-  },
-  {
     name: "Sid Sriram",
     img: "https://i.scdn.co/image/ab6761610000e5ebcb6926f44f620555ba444fca",
     bio: "Sid Sriram is an Indian-American Carnatic musician, music producer, playback singer, and songwriter. Known for his soulful voice and emotional renditions."
-  },
-  {
-    name: "A.R. Rahman",
-    img: "https://i.scdn.co/image/ab6761610000e5ebb19af0ea736c6228d6eb539c",
-    bio: "A.R. Rahman is an Indian music composer, record producer, singer and songwriter. Winner of multiple Academy Awards and one of the world's best-selling music artists."
   },
   {
     name: "Shreya Ghoshal",
@@ -20,9 +10,19 @@ export const TOP_SINGERS = [
     bio: "Shreya Ghoshal is an Indian playback singer. Noted for her wide vocal range and versatility, she is one of the most popular singers in India."
   },
   {
-    name: "Yuvan",
-    img: "https://i.scdn.co/image/ab6761610000e5eb9e528993949127542c35effc",
-    bio: "Yuvan Shankar Raja is an Indian composer and playback singer. Known for his innovative use of Western music elements in Tamil film music."
+    name: "S. P. Balasubrahmanyam",
+    img: "",
+    bio: "S. P. Balasubrahmanyam was an Indian playback singer, television presenter, music director, actor and dubbing artist who worked predominantly in Telugu, Tamil, Kannada, Hindi and Malayalam films."
+  },
+  {
+    name: "K. S. Chithra",
+    img: "",
+    bio: "K. S. Chithra is an Indian playback singer and Carnatic musician. She has recorded more than 25,000 songs in various Indian languages."
+  },
+  {
+    name: "Hariharan",
+    img: "",
+    bio: "Hariharan is an Indian playback singer who has sung for Tamil, Hindi, Malayalam, Kannada, Marathi, Bhojpuri and Telugu films, an established ghazal singer, and one of the pioneers of Indian fusion music."
   },
 ];
 
@@ -83,6 +83,34 @@ export const MUSIC_DIRECTORS = [
 ];
 
 export const MOODS = ["Love", "Mass", "Sad", "BGM", "Funny", "Melody", "Remix", "Devotional"];
+
+export const TOP_CONTRIBUTORS = [
+  {
+    name: "RingtoneKing",
+    uploads: 124,
+    img: ""
+  },
+  {
+    name: "TamilBeats",
+    uploads: 89,
+    img: ""
+  },
+  {
+    name: "MelodyLover",
+    uploads: 65,
+    img: ""
+  },
+  {
+    name: "BGMAddict",
+    uploads: 42,
+    img: ""
+  },
+  {
+    name: "CinemaFan",
+    uploads: 38,
+    img: ""
+  }
+];
 
 // Helper function to get artist bio
 export function getArtistBio(artistName: string): string | undefined {

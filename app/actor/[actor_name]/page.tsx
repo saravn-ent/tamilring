@@ -7,6 +7,39 @@ import { POPULAR_ACTORS, getArtistBio } from '@/lib/constants';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Ringtone } from '@/types';
+import { unstable_cache } from 'next/cache';
+
+const getActorRingtones = unstable_cache(
+  async (actorName: string, sort: string = 'recent') => {
+    let query = supabase
+      .from('ringtones')
+      .select('*')
+      .ilike('cast', `%${actorName}%`);
+
+    // Apply Sorting
+    switch (sort) {
+      case 'downloads':
+        query = query.order('downloads', { ascending: false });
+        break;
+      case 'likes':
+        query = query.order('likes', { ascending: false });
+        break;
+      case 'year_desc':
+        query = query.order('movie_year', { ascending: false });
+        break;
+      case 'year_asc':
+        query = query.order('movie_year', { ascending: true });
+        break;
+      default: // recent
+        query = query.order('created_at', { ascending: false });
+    }
+
+    const { data } = await query;
+    return data;
+  },
+  ['actor-ringtones'],
+  { revalidate: 60 }
+);
 
 export default async function ActorPage({
   params,
@@ -20,30 +53,7 @@ export default async function ActorPage({
   const actorName = decodeURIComponent(actor_name);
   const currentView = view || 'movies'; // Default to movies
 
-  let query = supabase
-    .from('ringtones')
-    .select('*')
-    .ilike('cast', `%${actorName}%`);
-
-  // Apply Sorting
-  switch (sort) {
-    case 'downloads':
-      query = query.order('downloads', { ascending: false });
-      break;
-    case 'likes':
-      query = query.order('likes', { ascending: false });
-      break;
-    case 'year_desc':
-      query = query.order('movie_year', { ascending: false });
-      break;
-    case 'year_asc':
-      query = query.order('movie_year', { ascending: true });
-      break;
-    default: // recent
-      query = query.order('created_at', { ascending: false });
-  }
-
-  const { data: ringtones } = await query;
+  const ringtones = await getActorRingtones(actorName, sort);
 
   // Calculate Total Likes
   const totalLikes = ringtones?.reduce((sum, ringtone) => sum + (ringtone.likes || 0), 0) || 0;

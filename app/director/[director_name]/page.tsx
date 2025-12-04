@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabaseClient';
 import RingtoneCard from '@/components/RingtoneCard';
 import { Clapperboard } from 'lucide-react';
+import FavoriteButton from '@/components/FavoriteButton';
 
 export default async function DirectorPage({ params }: { params: Promise<{ director_name: string }> }) {
   const { director_name } = await params;
@@ -14,7 +15,20 @@ export default async function DirectorPage({ params }: { params: Promise<{ direc
 
   return (
     <div className="max-w-md mx-auto">
-      <div className="p-8 flex flex-col items-center justify-center bg-neutral-800/30 border-b border-neutral-800">
+      <div className="relative p-8 flex flex-col items-center justify-center bg-neutral-800/30 border-b border-neutral-800">
+        {/* Favorite Button */}
+        <div className="absolute top-4 right-4">
+             <FavoriteButton 
+                item={{ 
+                    id: directorName, 
+                    name: directorName, 
+                    type: 'Director', 
+                    href: `/director/${encodeURIComponent(directorName)}` 
+                }} 
+                className="w-10 h-10 bg-neutral-800 hover:bg-neutral-700"
+            />
+        </div>
+
         <div className="w-24 h-24 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500 mb-4">
           <Clapperboard size={40} />
         </div>

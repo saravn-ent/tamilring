@@ -7,6 +7,39 @@ import { TOP_SINGERS, MUSIC_DIRECTORS, getArtistBio } from '@/lib/constants';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Ringtone } from '@/types';
+import { unstable_cache } from 'next/cache';
+
+const getArtistRingtones = unstable_cache(
+  async (artistName: string, sort: string = 'recent') => {
+    let query = supabase
+      .from('ringtones')
+      .select('*')
+      .or(`singers.ilike.%${artistName}%,music_director.ilike.%${artistName}%`);
+
+    // Apply Sorting
+    switch (sort) {
+      case 'downloads':
+        query = query.order('downloads', { ascending: false });
+        break;
+      case 'likes':
+        query = query.order('likes', { ascending: false });
+        break;
+      case 'year_desc':
+        query = query.order('movie_year', { ascending: false });
+        break;
+      case 'year_asc':
+        query = query.order('movie_year', { ascending: true });
+        break;
+      default: // recent
+        query = query.order('created_at', { ascending: false });
+    }
+
+    const { data } = await query;
+    return data;
+  },
+  ['artist-ringtones'],
+  { revalidate: 60 }
+);
 
 export default async function ArtistPage({
   params,
@@ -20,30 +53,7 @@ export default async function ArtistPage({
   const artistName = decodeURIComponent(artist_name);
   const currentView = view || 'movies'; // Default to movies
 
-  let query = supabase
-    .from('ringtones')
-    .select('*')
-    .or(`singers.ilike.%${artistName}%,music_director.ilike.%${artistName}%`);
-
-  // Apply Sorting
-  switch (sort) {
-    case 'downloads':
-      query = query.order('downloads', { ascending: false });
-      break;
-    case 'likes':
-      query = query.order('likes', { ascending: false });
-      break;
-    case 'year_desc':
-      query = query.order('movie_year', { ascending: false });
-      break;
-    case 'year_asc':
-      query = query.order('movie_year', { ascending: true });
-      break;
-    default: // recent
-      query = query.order('created_at', { ascending: false });
-  }
-
-  const { data: ringtones } = await query;
+  const ringtones = await getArtistRingtones(artistName, sort);
 
   // Calculate Total Likes
   const totalLikes = ringtones?.reduce((sum, ringtone) => sum + (ringtone.likes || 0), 0) || 0;

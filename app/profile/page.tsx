@@ -1,5 +1,6 @@
 import UploadForm from '@/components/UploadForm';
-import { User, Settings, LogOut } from 'lucide-react';
+import FavoritesList from '@/components/FavoritesList';
+import { User, Settings, LogOut, Heart } from 'lucide-react';
 
 export default function ProfilePage() {
   return (
@@ -15,6 +16,15 @@ export default function ProfilePage() {
       </header>
 
       <div className="space-y-6">
+        {/* Favorites Section */}
+        <section>
+          <h2 className="text-lg font-bold text-zinc-100 mb-4 flex items-center gap-2">
+            <Heart size={20} className="text-emerald-500" />
+            My Favorites
+          </h2>
+          <FavoritesList />
+        </section>
+
         {/* Upload Section */}
         <section className="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
           <h2 className="text-lg font-bold text-zinc-100 mb-4 flex items-center gap-2">

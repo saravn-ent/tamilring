@@ -4,6 +4,7 @@ import SectionHeader from '@/components/SectionHeader';
 import HeroCard from '@/components/HeroCard';
 import HeroSlider from '@/components/HeroSlider';
 import ImageWithFallback from '@/components/ImageWithFallback';
+import TopContributors from '@/components/TopContributors';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Mic, Clapperboard, User } from 'lucide-react';
@@ -181,6 +182,12 @@ export default async function Home() {
         >
           View All New Ringtones
         </Link>
+      </div>
+
+      {/* Top Contributors */}
+      <div className="mt-10 px-4">
+        <SectionHeader title="Top Contributors" />
+        <TopContributors />
       </div>
 
     </div>

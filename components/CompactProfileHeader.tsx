@@ -4,6 +4,7 @@ import { ArrowLeft, Heart } from 'lucide-react';
 import Link from 'next/link';
 import ImageWithFallback from './ImageWithFallback';
 import { formatCount } from '@/lib/utils';
+import FavoriteButton from './FavoriteButton';
 
 interface CompactProfileHeaderProps {
     name: string;
@@ -31,6 +32,20 @@ export default function CompactProfileHeader({
             >
                 <ArrowLeft size={18} />
             </Link>
+
+            {/* Favorite Button - Absolute positioned */}
+            <div className="absolute top-3 right-3 z-50">
+                <FavoriteButton 
+                    item={{ 
+                        id: name, 
+                        name, 
+                        type, 
+                        imageUrl, 
+                        href: type === 'Actor' ? `/actor/${encodeURIComponent(name)}` : `/artist/${encodeURIComponent(name)}` 
+                    }} 
+                    className="w-9 h-9 bg-black/40 backdrop-blur-md hover:bg-black/60"
+                />
+            </div>
 
             <div className="max-w-md mx-auto px-4 py-3">
                 <div className="flex items-center gap-3">

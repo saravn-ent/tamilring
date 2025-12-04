@@ -6,6 +6,7 @@ import Link from 'next/link';
 import ImageWithFallback from './ImageWithFallback';
 import RippleWrapper from './Ripple';
 import confetti from 'canvas-confetti';
+import FavoriteButton from './FavoriteButton';
 
 interface ProfileHeaderProps {
   name: string;
@@ -46,12 +47,24 @@ export default function ProfileHeader({ name, type, ringtoneCount, imageUrl }: P
     return (count / 1000000).toFixed(1) + 'M';
   };
 
+  const href = type === 'Actor' 
+    ? `/actor/${encodeURIComponent(name)}` 
+    : `/artist/${encodeURIComponent(name)}`;
+
   return (
     <div className="relative bg-neutral-900 border-b border-neutral-800 pb-6">
       {/* Back Button */}
       <Link href="/" className="absolute top-4 left-4 z-10 p-2 bg-black/20 backdrop-blur-md rounded-full text-zinc-100 hover:bg-black/40 transition-colors">
         <ArrowLeft size={20} />
       </Link>
+
+      {/* Favorite Button */}
+      <div className="absolute top-4 right-4 z-10">
+        <FavoriteButton 
+          item={{ id: name, name, type, imageUrl, href }} 
+          className="w-10 h-10 bg-black/20 backdrop-blur-md hover:bg-black/40"
+        />
+      </div>
 
       {/* Banner / Background (Optional - using gradient for now) */}
       <div className="h-32 w-full bg-gradient-to-b from-emerald-900/20 to-neutral-900" />
