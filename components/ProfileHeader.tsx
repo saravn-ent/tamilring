@@ -16,16 +16,12 @@ interface ProfileHeaderProps {
 }
 
 export default function ProfileHeader({ name, type, ringtoneCount, imageUrl }: ProfileHeaderProps) {
-  // Mock Fan Count (Randomish based on name length for consistency demo)
-  const initialFanCount = (name.length * 123456) % 5000000 + 500000;
   
   const [isFan, setIsFan] = useState(false);
-  const [fanCount, setFanCount] = useState(initialFanCount);
 
   const handleJoinFanClub = () => {
     if (!isFan) {
       // Becoming a fan
-      setFanCount(prev => prev + 1);
       setIsFan(true);
       
       // Trigger Confetti
@@ -37,14 +33,8 @@ export default function ProfileHeader({ name, type, ringtoneCount, imageUrl }: P
       });
     } else {
       // Leaving fan club
-      setFanCount(prev => prev - 1);
       setIsFan(false);
     }
-  };
-
-  // Format helper
-  const formatFans = (count: number) => {
-    return (count / 1000000).toFixed(1) + 'M';
   };
 
   const href = type === 'Actor' 
@@ -84,12 +74,6 @@ export default function ProfileHeader({ name, type, ringtoneCount, imageUrl }: P
         <div className="w-full max-w-xs bg-neutral-800/30 backdrop-blur-md border border-white/5 rounded-2xl p-4 mb-6 flex flex-col items-center shadow-xl shadow-black/20">
           <h1 className="text-2xl font-bold text-white text-center mb-1 drop-shadow-md">{name}</h1>
           <p className="text-zinc-400 text-xs uppercase tracking-wider font-bold mb-3">{type} • {ringtoneCount} Ringtones</p>
-
-          {/* Fan Count Badge */}
-          <div className="flex items-center gap-1.5 bg-black/40 px-3 py-1 rounded-full border border-white/5">
-            <Flame size={14} className="text-orange-500 fill-orange-500" />
-            <span className="text-sm font-bold text-zinc-200">{formatFans(fanCount)} Fans</span>
-          </div>
         </div>
 
         {/* Join Fan Club Button */}

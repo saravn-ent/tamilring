@@ -8,7 +8,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { splitArtists } from '@/lib/utils';
-import { MOODS, TOP_SINGERS, POPULAR_ACTORS, MUSIC_DIRECTORS } from '@/lib/constants';
+import { MOODS } from '@/lib/constants';
 import ImageWithFallback from '@/components/ImageWithFallback';
 
 function SearchContent() {
@@ -163,51 +163,6 @@ function SearchContent() {
                   className="px-4 py-2 bg-neutral-800 border border-white/5 rounded-full text-sm text-zinc-300 hover:bg-emerald-500 hover:text-black hover:border-emerald-500 transition-all"
                 >
                   {mood}
-                </Link>
-              ))}
-            </div>
-          </section>
-
-          {/* Top Singers */}
-          <section>
-            <h2 className="text-lg font-bold text-white mb-3">Top Singers</h2>
-            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4">
-              {TOP_SINGERS.map((singer) => (
-                <Link key={singer.name} href={`/artist/${encodeURIComponent(singer.name)}`} className="flex flex-col items-center gap-2 shrink-0 w-20">
-                  <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-neutral-800 shadow-lg">
-                    <ImageWithFallback src={singer.img} alt={singer.name} className="object-cover" fallbackClassName="bg-neutral-800" />
-                  </div>
-                  <span className="text-xs text-center text-zinc-300 font-medium truncate w-full">{singer.name}</span>
-                </Link>
-              ))}
-            </div>
-          </section>
-
-          {/* Popular Actors */}
-          <section>
-            <h2 className="text-lg font-bold text-white mb-3">Popular Actors</h2>
-            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4">
-              {POPULAR_ACTORS.map((actor) => (
-                <Link key={actor.name} href={`/actor/${encodeURIComponent(actor.name)}`} className="flex flex-col items-center gap-2 shrink-0 w-20">
-                  <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-neutral-800 shadow-lg">
-                    <ImageWithFallback src={actor.img} alt={actor.name} className="object-cover" fallbackClassName="bg-neutral-800" />
-                  </div>
-                  <span className="text-xs text-center text-zinc-300 font-medium truncate w-full">{actor.name}</span>
-                </Link>
-              ))}
-            </div>
-          </section>
-
-          {/* Music Directors */}
-          <section>
-            <h2 className="text-lg font-bold text-white mb-3">Music Directors</h2>
-            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4">
-              {MUSIC_DIRECTORS.map((md) => (
-                <Link key={md.name} href={`/artist/${encodeURIComponent(md.name)}`} className="flex flex-col items-center gap-2 shrink-0 w-20">
-                  <div className="relative w-20 h-20 rounded-full overflow-hidden border-2 border-neutral-800 shadow-lg">
-                    <ImageWithFallback src={md.img} alt={md.name} className="object-cover" fallbackClassName="bg-neutral-800" />
-                  </div>
-                  <span className="text-xs text-center text-zinc-300 font-medium truncate w-full">{md.name}</span>
                 </Link>
               ))}
             </div>

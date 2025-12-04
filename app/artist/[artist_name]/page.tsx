@@ -3,7 +3,7 @@ import RingtoneCard from '@/components/RingtoneCard';
 import CompactProfileHeader from '@/components/CompactProfileHeader';
 import SortControl from '@/components/SortControl';
 import ViewToggle from '@/components/ViewToggle';
-import { TOP_SINGERS, MUSIC_DIRECTORS, getArtistBio } from '@/lib/constants';
+import { getArtistBio } from '@/lib/constants';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Ringtone } from '@/types';
@@ -58,9 +58,8 @@ export default async function ArtistPage({
   // Calculate Total Likes
   const totalLikes = ringtones?.reduce((sum, ringtone) => sum + (ringtone.likes || 0), 0) || 0;
 
-  // Try to find image from constants
-  const artistImage = TOP_SINGERS.find(s => s.name === artistName)?.img ||
-    MUSIC_DIRECTORS.find(m => m.name === artistName)?.img;
+  // Try to find image from ringtones (use first available poster)
+  const artistImage = ringtones?.find(r => r.poster_url)?.poster_url;
 
   // Get artist bio
   const artistBio = getArtistBio(artistName);

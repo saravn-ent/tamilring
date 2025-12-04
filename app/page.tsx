@@ -4,14 +4,55 @@ import SectionHeader from '@/components/SectionHeader';
 import HeroCard from '@/components/HeroCard';
 import HeroSlider from '@/components/HeroSlider';
 import ImageWithFallback from '@/components/ImageWithFallback';
-import TopContributors from '@/components/TopContributors';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Mic, Clapperboard, User } from 'lucide-react';
-import { TOP_SINGERS, POPULAR_ACTORS, MUSIC_DIRECTORS, MOODS } from '@/lib/constants';
+import { MOODS } from '@/lib/constants';
 import { Ringtone } from '@/types';
+import { unstable_cache } from 'next/cache';
 
 export const revalidate = 0; // Disable caching for real-time updates
+
+const getTopArtists = unstable_cache(
+  async () => {
+    const { data } = await supabase
+      .from('ringtones')
+      .select('singers, music_director');
+
+    if (!data) return { singers: [], musicDirectors: [] };
+
+    const singerCounts = new Map<string, number>();
+    const mdCounts = new Map<string, number>();
+
+    data.forEach(row => {
+      // Count Singers
+      if (row.singers) {
+        row.singers.split(/,|&/).map(s => s.trim()).forEach(s => {
+          if (s) singerCounts.set(s, (singerCounts.get(s) || 0) + 1);
+        });
+      }
+      // Count Music Directors
+      if (row.music_director) {
+        const md = row.music_director.trim();
+        if (md) mdCounts.set(md, (mdCounts.get(md) || 0) + 1);
+      }
+    });
+
+    const topSingers = Array.from(singerCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([name, count]) => ({ name, count }));
+
+    const topMDs = Array.from(mdCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([name, count]) => ({ name, count }));
+
+    return { topSingers, topMDs };
+  },
+  ['top-artists-home'],
+  { revalidate: 3600 }
+);
 
 export default async function Home() {
   // 1. Fetch all ringtones to calculate most liked movie of the week
@@ -36,13 +77,20 @@ export default async function Home() {
     movieData.ringtones.push(ringtone);
   });
 
-  // Find the movie with the most likes
-  let mostLikedMovie = { name: '', likes: 0, ringtones: [] as Ringtone[] };
-  movieLikes.forEach((data, movieName) => {
-    if (data.likes > mostLikedMovie.likes) {
-      mostLikedMovie = { name: movieName, likes: data.likes, ringtones: data.ringtones };
-    }
+  // Find the movie with the most likes (or most ringtones if likes are 0)
+  const moviesArray = Array.from(movieLikes.entries()).map(([name, data]) => ({
+    name,
+    likes: data.likes,
+    ringtones: data.ringtones
+  }));
+
+  // Sort by likes (desc), then by number of ringtones (desc)
+  moviesArray.sort((a, b) => {
+    if (b.likes !== a.likes) return b.likes - a.likes;
+    return b.ringtones.length - a.ringtones.length;
   });
+
+  const mostLikedMovie = moviesArray[0] || { name: '', likes: 0, ringtones: [] as Ringtone[] };
 
   // Sort the most liked movie's ringtones by likes (descending) and take top 5
   const heroRingtones = mostLikedMovie.ringtones
@@ -62,6 +110,9 @@ export default async function Home() {
     .select('*')
     .order('created_at', { ascending: false })
     .limit(5);
+
+  // 4. Fetch Top Artists (Cached)
+  const { topSingers, topMDs } = await getTopArtists();
 
   return (
     <div className="max-w-md mx-auto pb-20">
@@ -87,62 +138,47 @@ export default async function Home() {
         </div>
       </div>
 
-      {/* Top Singers (Limelight) */}
-      <div className="mb-10">
-        <div className="px-4">
-          <SectionHeader title="Top Singers" />
+      {/* Top Singers (Real Data) */}
+      {topSingers.length > 0 && (
+        <div className="mb-10">
+          <div className="px-4">
+            <SectionHeader title="Top Singers" />
+          </div>
+          <div className="flex overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-6">
+            {topSingers.map((singer, idx) => (
+              <HeroCard
+                key={idx}
+                index={idx}
+                name={singer.name}
+                image="" // No image in DB yet
+                href={`/artist/${encodeURIComponent(singer.name)}`}
+                subtitle={`${singer.count} Songs`}
+              />
+            ))}
+          </div>
         </div>
-        <div className="flex overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-6">
-          {TOP_SINGERS.map((singer, idx) => (
-            <HeroCard
-              key={idx}
-              index={idx}
-              name={singer.name}
-              image={singer.img}
-              href={`/artist/${encodeURIComponent(singer.name)}`}
-              subtitle={`${((singer.name.length * 0.3) + 0.5).toFixed(1)}M Fans`}
-            />
-          ))}
-        </div>
-      </div>
+      )}
 
-      {/* Music Directors */}
-      <div className="mb-10">
-        <div className="px-4">
-          <SectionHeader title="Music Directors" />
+      {/* Music Directors (Real Data) */}
+      {topMDs.length > 0 && (
+        <div className="mb-10">
+          <div className="px-4">
+            <SectionHeader title="Music Directors" />
+          </div>
+          <div className="flex overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-6">
+            {topMDs.map((md, idx) => (
+              <HeroCard
+                key={idx}
+                index={idx}
+                name={md.name}
+                image="" // No image in DB yet
+                href={`/artist/${encodeURIComponent(md.name)}`}
+                subtitle={`${md.count} Songs`}
+              />
+            ))}
+          </div>
         </div>
-        <div className="flex overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-6">
-          {MUSIC_DIRECTORS.map((md, idx) => (
-            <HeroCard
-              key={idx}
-              index={idx}
-              name={md.name}
-              image={md.img}
-              href={`/artist/${encodeURIComponent(md.name)}`}
-              subtitle={`${((md.name.length * 0.2) + 0.8).toFixed(1)}M Fans`}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Popular Actors */}
-      <div className="mb-10">
-        <div className="px-4">
-          <SectionHeader title="Popular Actors" />
-        </div>
-        <div className="flex overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-6">
-          {POPULAR_ACTORS.map((actor, idx) => (
-            <HeroCard
-              key={idx}
-              index={idx}
-              name={actor.name}
-              image={actor.img}
-              href={`/actor/${encodeURIComponent(actor.name)}`}
-              subtitle={`${((actor.name.length * 0.4) + 2).toFixed(1)}M Fans`}
-            />
-          ))}
-        </div>
-      </div>
+      )}
 
       {/* Trending Section (Horizontal) */}
       <div className="mb-10">
@@ -182,12 +218,6 @@ export default async function Home() {
         >
           View All New Ringtones
         </Link>
-      </div>
-
-      {/* Top Contributors */}
-      <div className="mt-10 px-4">
-        <SectionHeader title="Top Contributors" />
-        <TopContributors />
       </div>
 
     </div>

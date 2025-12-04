@@ -3,7 +3,7 @@ import RingtoneCard from '@/components/RingtoneCard';
 import CompactProfileHeader from '@/components/CompactProfileHeader';
 import SortControl from '@/components/SortControl';
 import ViewToggle from '@/components/ViewToggle';
-import { POPULAR_ACTORS, getArtistBio } from '@/lib/constants';
+import { getArtistBio } from '@/lib/constants';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Ringtone } from '@/types';
@@ -11,6 +11,9 @@ import { unstable_cache } from 'next/cache';
 
 const getActorRingtones = unstable_cache(
   async (actorName: string, sort: string = 'recent') => {
+    // TODO: 'cast' column is missing in the database. Returning empty for now.
+    // Once 'cast' column is added, uncomment the query below.
+    /*
     let query = supabase
       .from('ringtones')
       .select('*')
@@ -36,6 +39,8 @@ const getActorRingtones = unstable_cache(
 
     const { data } = await query;
     return data;
+    */
+   return [] as Ringtone[];
   },
   ['actor-ringtones'],
   { revalidate: 60 }
@@ -58,8 +63,8 @@ export default async function ActorPage({
   // Calculate Total Likes
   const totalLikes = ringtones?.reduce((sum, ringtone) => sum + (ringtone.likes || 0), 0) || 0;
 
-  // Try to find image from constants
-  const actorImage = POPULAR_ACTORS.find(a => a.name === actorName)?.img;
+  // Try to find image from ringtones (use first available poster)
+  const actorImage = ringtones?.find(r => r.poster_url)?.poster_url;
 
   // Get actor bio
   const actorBio = getArtistBio(actorName);
