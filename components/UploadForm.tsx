@@ -130,45 +130,36 @@ export default function UploadForm() {
     setLoading(true);
 
     try {
-      // 1. Upload to Cloudinary
-      if (!process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET) {
-        throw new Error('Missing Cloudinary Upload Preset');
-      }
+      // 1. Upload File to Supabase Storage
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${slug}-${Date.now()}.${fileExt}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('ringtone-files')
+        .upload(fileName, file);
 
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET!);
-      
-      const cloudinaryRes = await fetch(`https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/video/upload`, {
-        method: 'POST',
-        body: formData
-      });
-      const cloudinaryData = await cloudinaryRes.json();
-      
-      if (cloudinaryData.error) {
-        throw new Error(`Cloudinary Error: ${cloudinaryData.error.message}`);
-      }
-      if (!cloudinaryData.secure_url) {
-         throw new Error('Cloudinary upload failed: No secure_url returned');
-      }
+      if (uploadError) throw uploadError;
 
-      // 2. Insert into Supabase
-      const { error } = await supabase.from('ringtones').insert({
-        title,
-        slug,
-        movie_name: manualMovieName,
-        movie_year: manualMovieYear,
-        singers,
-        music_director: musicDirector,
-        movie_director: movieDirector,
-        poster_url: selectedMovie ? getImageUrl(selectedMovie.poster_path) : '',
-        backdrop_url: selectedMovie ? getImageUrl(selectedMovie.backdrop_path, 'original') : '',
-        audio_url: cloudinaryData.secure_url,
-        waveform_url: cloudinaryData.secure_url.replace(/\.[^/.]+$/, ".png").replace('/upload/', '/upload/fl_waveform,co_white,b_transparent/'),
-        tags: selectedTags,
-      });
+      // 2. Get Public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('ringtone-files')
+        .getPublicUrl(fileName);
 
-      if (error) throw error;
+      // 3. Insert into Database
+      const { error: dbError } = await supabase
+        .from('ringtones')
+        .insert({
+          title,
+          slug,
+          movie_name: manualMovieName,
+          movie_year: manualMovieYear ? parseInt(manualMovieYear) : null,
+          singers,
+          music_director: musicDirector,
+          poster_url: selectedMovie ? getImageUrl(selectedMovie.poster_path) : null,
+          audio_url: publicUrl,
+          tags: selectedTags,
+        });
+
+      if (dbError) throw dbError;
 
       alert('Ringtone uploaded successfully!');
       // Reset form
@@ -181,9 +172,10 @@ export default function UploadForm() {
       setMusicDirector('');
       setMovieDirector('');
       setSelectedTags([]);
+
     } catch (error: any) {
-      console.error('Upload Error:', error);
-      alert(`Error uploading ringtone: ${error.message || JSON.stringify(error)}`);
+      console.error('Upload failed:', error);
+      alert(`Upload failed: ${error.message}`);
     } finally {
       setLoading(false);
     }

@@ -19,7 +19,7 @@ const getTopArtists = unstable_cache(
       .from('ringtones')
       .select('singers, music_director');
 
-    if (!data) return { singers: [], musicDirectors: [] };
+    if (!data) return { topSingers: [], topMDs: [] };
 
     const singerCounts = new Map<string, number>();
     const mdCounts = new Map<string, number>();
@@ -122,8 +122,9 @@ export default async function Home() {
 
       {/* Browse by Mood (Filter Chips) */}
       <div className="mb-8">
-        <div className="px-4 mb-3">
+        <div className="px-4 mb-3 flex justify-between items-end">
           <h2 className="text-lg font-bold text-zinc-100">Browse by Mood</h2>
+          <Link href="/categories" className="text-xs text-emerald-500 font-medium hover:text-emerald-400">View All</Link>
         </div>
         <div className="flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide snap-x">
           {MOODS.map((mood, idx) => (

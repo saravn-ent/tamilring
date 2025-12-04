@@ -1,20 +1,59 @@
-'use client';
-
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import DiscoverySearch from '@/components/DiscoverySearch';
 import Link from 'next/link';
-import { Search, Heart, Zap, Frown, Music, Mic2, Disc, Guitar, Wind, Moon, Dumbbell, Plane, Sparkles, Flame, Smile, Clock } from 'lucide-react';
+import { Heart, Zap, Frown, Music, Mic2, Disc, Guitar, Wind, Moon, Dumbbell, Plane, Sparkles, Flame, Smile, Clock, Clapperboard, User } from 'lucide-react';
+import { supabase } from '@/lib/supabaseClient';
+import { unstable_cache } from 'next/cache';
+import ImageWithFallback from '@/components/ImageWithFallback';
 
-export default function DiscoveryHub() {
-  const router = useRouter();
-  const [searchQuery, setSearchQuery] = useState('');
+const getFeaturedArtists = unstable_cache(
+  async () => {
+    const { data } = await supabase
+      .from('ringtones')
+      .select('singers, music_director, poster_url')
+      .limit(100);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
+    if (!data) return [];
+
+    const artistsMap = new Map<string, { type: string, image: string }>();
+
+    data.forEach(row => {
+        // Music Directors
+        if (row.music_director) {
+            const md = row.music_director.trim();
+            if (md && !artistsMap.has(md)) {
+                artistsMap.set(md, { type: 'Director', image: row.poster_url || '' });
+            }
+        }
+        // Singers
+        if (row.singers) {
+             row.singers.split(/,|&/).map(s => s.trim()).forEach(s => {
+                if (s && !artistsMap.has(s)) {
+                    artistsMap.set(s, { type: 'Singer', image: row.poster_url || '' });
+                }
+             });
+        }
+    });
+
+    // Convert to array and shuffle
+    const allArtists = Array.from(artistsMap.entries()).map(([name, info]) => ({
+        name,
+        ...info
+    }));
+    
+    // Simple shuffle
+    for (let i = allArtists.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [allArtists[i], allArtists[j]] = [allArtists[j], allArtists[i]];
     }
-  };
+
+    return allArtists.slice(0, 9); // Return top 9 random
+  },
+  ['featured-artists-discovery'],
+  { revalidate: 60 }
+);
+
+export default async function DiscoveryHub() {
+  const featuredArtists = await getFeaturedArtists();
 
   const MOODS = [
     { name: "Love", icon: Heart, color: "text-rose-400" },
@@ -39,12 +78,6 @@ export default function DiscoveryHub() {
     { label: "Piano", icon: Disc, query: "piano" }
   ];
 
-  const COLLECTIONS = [
-    { label: "Sleep", icon: Moon, query: "sleep", desc: "Calming tunes", color: "bg-indigo-500/10 text-indigo-400" },
-    { label: "Workout", icon: Dumbbell, query: "workout", desc: "High energy", color: "bg-rose-500/10 text-rose-400" },
-    { label: "Travel", icon: Plane, query: "travel", desc: "Road trip vibes", color: "bg-sky-500/10 text-sky-400" }
-  ];
-
   return (
     <div className="max-w-md mx-auto p-4 pb-24 min-h-screen">
       
@@ -55,18 +88,7 @@ export default function DiscoveryHub() {
       </div>
 
       {/* Search Bar */}
-      <form onSubmit={handleSearch} className="relative mb-8 group">
-        <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-          <Search className="h-5 w-5 text-zinc-400 group-focus-within:text-emerald-500 transition-colors" />
-        </div>
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Find songs, artists, or bgm..."
-          className="w-full bg-neutral-800/50 backdrop-blur-md border border-white/10 text-white text-sm rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all shadow-lg shadow-black/20 placeholder:text-zinc-500"
-        />
-      </form>
+      <DiscoverySearch />
 
       {/* By Mood */}
       <section className="mb-8">
@@ -130,31 +152,50 @@ export default function DiscoveryHub() {
         </div>
       </section>
 
-      {/* Collections */}
+      {/* Featured Artists (Bubbles) */}
       <section className="mb-8">
         <div className="flex items-center gap-2 mb-4">
           <Flame size={16} className="text-emerald-500" />
-          <h2 className="text-lg font-bold text-white">Collections</h2>
+          <h2 className="text-lg font-bold text-white">Featured Artists</h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {COLLECTIONS.map((col) => (
+        <div className="flex flex-wrap justify-center gap-6 py-4">
+          {featuredArtists.map((artist, idx) => {
+            // Generate random gradient for each artist bubble
+            const gradients = [
+                "from-blue-500 to-cyan-400",
+                "from-purple-500 to-pink-400",
+                "from-rose-500 to-orange-400",
+                "from-emerald-500 to-teal-400",
+                "from-amber-500 to-yellow-400"
+            ];
+            const color = gradients[idx % gradients.length];
+
+            return (
             <Link 
-              key={col.label}
-              href={`/search?q=${col.query}`}
-              className="flex items-center gap-4 p-4 rounded-2xl bg-neutral-800/30 border border-white/5 hover:bg-neutral-800 transition-all group"
+              key={artist.name}
+              href={`/artist/${encodeURIComponent(artist.name)}`}
+              className="group relative flex flex-col items-center justify-center w-28 h-28"
             >
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${col.color}`}>
-                <col.icon size={24} />
+              {/* Bubble Effect */}
+              <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${color} opacity-20 blur-xl group-hover:opacity-40 transition-opacity duration-500 animate-pulse`} />
+              
+              <div className={`relative w-20 h-20 rounded-full bg-gradient-to-br ${color} p-0.5 shadow-lg shadow-black/50 group-hover:scale-110 transition-transform duration-300`}>
+                <div className="w-full h-full rounded-full bg-neutral-900/90 backdrop-blur-sm flex items-center justify-center border border-white/10 overflow-hidden relative">
+                   <ImageWithFallback 
+                        src={artist.image} 
+                        alt={artist.name} 
+                        className="object-cover opacity-90 group-hover:opacity-100 transition-opacity"
+                        fallbackClassName="bg-neutral-800 text-zinc-500"
+                   />
+                </div>
+                
+                {/* Shine */}
+                <div className="absolute top-2 left-4 w-4 h-2 bg-white/20 rounded-full blur-[1px] rotate-[-45deg] z-10" />
               </div>
-              <div className="flex-1">
-                <h3 className="text-base font-bold text-white group-hover:text-emerald-400 transition-colors">{col.label}</h3>
-                <p className="text-xs text-zinc-500">{col.desc}</p>
-              </div>
-              <div className="w-8 h-8 rounded-full bg-neutral-900 flex items-center justify-center text-zinc-600 group-hover:text-emerald-500 transition-colors">
-                <Search size={14} />
-              </div>
+
+              <span className="mt-3 text-xs font-bold text-zinc-300 text-center line-clamp-1 w-full px-1 group-hover:text-white transition-colors">{artist.name}</span>
             </Link>
-          ))}
+          )})}
         </div>
       </section>
 

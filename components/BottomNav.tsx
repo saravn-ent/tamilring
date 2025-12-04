@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, User, Plus } from 'lucide-react';
+import { Home, User, Plus, Compass } from 'lucide-react';
 
 export default function BottomNav() {
   const pathname = usePathname();
@@ -16,6 +16,12 @@ export default function BottomNav() {
         <Link href="/" className={`flex flex-col items-center gap-1 transition-colors ${isActive('/') ? 'text-emerald-500' : 'text-zinc-500 hover:text-zinc-300'}`}>
           <Home size={24} strokeWidth={isActive('/') ? 2.5 : 2} />
           <span className="text-[10px] font-medium">Home</span>
+        </Link>
+
+        {/* Browse */}
+        <Link href="/categories" className={`flex flex-col items-center gap-1 transition-colors ${isActive('/categories') ? 'text-emerald-500' : 'text-zinc-500 hover:text-zinc-300'}`}>
+          <Compass size={24} strokeWidth={isActive('/categories') ? 2.5 : 2} />
+          <span className="text-[10px] font-medium">Browse</span>
         </Link>
 
         {/* Upload - Prominent Center Button */}

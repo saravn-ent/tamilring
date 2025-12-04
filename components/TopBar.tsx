@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Search } from 'lucide-react';
+import LoginButton from './LoginButton';
 
 export default function TopBar() {
   return (
@@ -8,9 +9,12 @@ export default function TopBar() {
         <Link href="/" className="text-xl font-bold tracking-tighter text-emerald-500">
           Tamil<span className="text-white">Ring</span>
         </Link>
-        <Link href="/search" className="p-2 text-zinc-400 hover:text-white transition-colors">
-          <Search size={20} />
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link href="/search" className="p-2 text-zinc-400 hover:text-white transition-colors">
+            <Search size={20} />
+          </Link>
+          <LoginButton />
+        </div>
       </div>
     </div>
   );

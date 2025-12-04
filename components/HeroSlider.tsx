@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Play } from 'lucide-react';
 import { Ringtone } from '@/types';
 
 interface HeroSliderProps {
@@ -112,18 +111,11 @@ export default function HeroSlider({ ringtones, movieName, totalLikes }: HeroSli
 
                     <div className="flex gap-2">
                       <Link
-                        href={`/ringtone/${ringtone.slug}`}
+                        href={`/movie/${encodeURIComponent(ringtone.movie_name)}`}
                         className="flex-1 bg-white text-black py-2 rounded-lg font-bold text-xs flex items-center justify-center gap-1 hover:bg-zinc-200 transition-colors shadow-lg"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <Play size={12} fill="currentColor" /> Play
-                      </Link>
-                      <Link
-                        href={`/movie/${encodeURIComponent(ringtone.movie_name)}`}
-                        className="px-3 py-2 rounded-lg bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs font-bold hover:bg-white/20 transition-colors"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        Album
+                        View Ringtones
                       </Link>
                     </div>
                   </div>
