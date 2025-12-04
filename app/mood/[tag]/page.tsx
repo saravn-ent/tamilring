@@ -3,17 +3,17 @@ import RingtoneCard from '@/components/RingtoneCard';
 import SectionHeader from '@/components/SectionHeader';
 import SortControl from '@/components/SortControl';
 
-export default async function MoodPage({ 
+export default async function MoodPage({
   params,
-  searchParams 
-}: { 
+  searchParams
+}: {
   params: Promise<{ tag: string }>,
   searchParams: Promise<{ sort?: string }>
 }) {
   const { tag: paramTag } = await params;
   const { sort } = await searchParams;
   const tag = decodeURIComponent(paramTag);
-  
+
   let query = supabase
     .from('ringtones')
     .select('*')
@@ -45,9 +45,9 @@ export default async function MoodPage({
         <h1 className="text-3xl font-bold text-white capitalize">{tag}</h1>
         <p className="text-zinc-400 text-sm mt-1">Best {tag} Ringtones</p>
       </div>
-      
+
       <div className="px-4 -mt-4">
-        <div className="flex justify-end mb-4">
+        <div className="flex justify-end mb-4 sticky top-0 z-30 bg-neutral-900/95 backdrop-blur-md py-2 -mx-4 px-4 border-b border-white/5">
           <SortControl />
         </div>
         {ringtones && ringtones.length > 0 ? (

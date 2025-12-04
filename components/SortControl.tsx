@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ChevronDown, Check, X } from 'lucide-react';
+import { ChevronDown, Check } from 'lucide-react';
 
 const SORT_OPTIONS = [
   { label: 'Recently Added', value: 'recent' },
@@ -17,6 +17,7 @@ export default function SortControl() {
   const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
   const [currentSort, setCurrentSort] = useState('recent');
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const sort = searchParams.get('sort');
@@ -24,6 +25,23 @@ export default function SortControl() {
       setCurrentSort(sort);
     }
   }, [searchParams]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
 
   const handleSort = (value: string) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -35,60 +53,44 @@ export default function SortControl() {
   const currentLabel = SORT_OPTIONS.find(opt => opt.value === currentSort)?.label || 'Recently Added';
 
   return (
-    <>
-      {/* Trigger Button - Sticky Header */}
-      <div className="sticky top-14 z-30 flex justify-end px-4 py-2 bg-neutral-900/80 backdrop-blur-md border-b border-white/5 -mx-4 mb-4 transition-all">
+    <div className="flex justify-end px-4 py-2 bg-neutral-900/95 backdrop-blur-md border-b border-white/5 transition-all">
+      <div className="relative" ref={dropdownRef}>
+        {/* Trigger Button */}
         <button
-          onClick={() => setIsOpen(true)}
+          onClick={() => setIsOpen(!isOpen)}
           className="flex items-center gap-2 px-4 py-2 rounded-full bg-neutral-800/50 border border-white/10 backdrop-blur-md text-xs font-bold text-zinc-300 hover:bg-neutral-700 hover:text-white transition-all shadow-lg shadow-black/20"
         >
           Sort: <span className="text-emerald-400">{currentLabel}</span>
-          <ChevronDown size={14} />
-        </button>
-      </div>
-
-      {/* Bottom Sheet Overlay */}
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center">
-          {/* Backdrop */}
-          <div 
-            className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
-            onClick={() => setIsOpen(false)}
+          <ChevronDown
+            size={14}
+            className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
           />
+        </button>
 
-          {/* Sheet */}
-          <div className="relative w-full max-w-md bg-neutral-900 border-t border-white/10 rounded-t-3xl p-6 shadow-2xl animate-in slide-in-from-bottom duration-300">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-lg font-bold text-white">Sort Ringtones</h3>
-              <button 
-                onClick={() => setIsOpen(false)}
-                className="p-2 rounded-full bg-neutral-800 text-zinc-400 hover:text-white transition-colors"
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <div className="space-y-2">
-              {SORT_OPTIONS.map((option) => (
+        {/* Compact Dropdown */}
+        {isOpen && (
+          <div className="absolute right-0 mt-2 w-56 bg-neutral-900 border border-white/10 rounded-xl shadow-2xl shadow-black/40 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+            {/* Scrollable Container */}
+            <div className="max-h-[200px] overflow-y-auto scrollbar-thin">
+              {SORT_OPTIONS.map((option, idx) => (
                 <button
                   key={option.value}
                   onClick={() => handleSort(option.value)}
-                  className={`w-full flex items-center justify-between p-4 rounded-xl transition-all ${
-                    currentSort === option.value 
-                      ? 'bg-emerald-500/10 border border-emerald-500/50 text-emerald-400' 
-                      : 'bg-neutral-800/50 border border-white/5 text-zinc-300 hover:bg-neutral-800'
-                  }`}
+                  className={`w-full flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors ${currentSort === option.value
+                    ? 'bg-emerald-500/10 text-emerald-400'
+                    : 'text-zinc-300 hover:bg-neutral-800'
+                    } ${idx !== SORT_OPTIONS.length - 1 ? 'border-b border-white/5' : ''}`}
                 >
-                  <span className="font-medium">{option.label}</span>
+                  <span>{option.label}</span>
                   {currentSort === option.value && (
-                    <Check size={18} className="text-emerald-500" />
+                    <Check size={16} className="text-emerald-500" />
                   )}
                 </button>
               ))}
             </div>
           </div>
-        </div>
-      )}
-    </>
+        )}
+      </div>
+    </div>
   );
 }

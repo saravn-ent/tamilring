@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, Download, Music } from 'lucide-react';
 import { Metadata } from 'next';
 import PlayButton from './PlayButton';
+import { splitArtists } from '@/lib/utils';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -86,25 +87,25 @@ export default async function RingtonePage({ params }: Props) {
             <Link href={`/movie/${encodeURIComponent(ringtone.movie_name)}`} className="text-zinc-400 text-lg hover:text-emerald-500 transition-colors block">
               {ringtone.movie_name} <span className="text-zinc-600">({ringtone.movie_year})</span>
             </Link>
-            
+
             <div className="flex flex-wrap justify-center gap-1 text-emerald-500 font-medium">
-              {ringtone.singers.split(',').map((singer: string, idx: number) => (
+              {splitArtists(ringtone.singers).map((singer: string, idx: number, arr: string[]) => (
                 <span key={idx} className="flex items-center">
-                  <Link 
-                    href={`/artist/${encodeURIComponent(singer.trim())}`}
+                  <Link
+                    href={`/artist/${encodeURIComponent(singer)}`}
                     className="hover:underline"
                   >
-                    {singer.trim()}
+                    {singer}
                   </Link>
-                  {idx < ringtone.singers.split(',').length - 1 && <span className="mr-1">,</span>}
+                  {idx < arr.length - 1 && <span className="mr-1">,</span>}
                 </span>
               ))}
             </div>
 
             {ringtone.music_director && (
-               <div className="text-zinc-500 text-sm mt-1">
-                 Music: <Link href={`/artist/${encodeURIComponent(ringtone.music_director)}`} className="text-zinc-300 hover:text-emerald-500 transition-colors">{ringtone.music_director}</Link>
-               </div>
+              <div className="text-zinc-500 text-sm mt-1">
+                Music: <Link href={`/artist/${encodeURIComponent(ringtone.music_director)}`} className="text-zinc-300 hover:text-emerald-500 transition-colors">{ringtone.music_director}</Link>
+              </div>
             )}
           </div>
 

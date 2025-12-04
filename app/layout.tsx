@@ -6,7 +6,7 @@ import BottomNav from "@/components/BottomNav";
 import TopBar from "@/components/TopBar";
 
 const inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
-const hindMadurai = Hind_Madurai({ 
+const hindMadurai = Hind_Madurai({
   weight: ['400', '500', '600', '700'],
   subsets: ['tamil', 'latin'],
   variable: '--font-hind'
@@ -25,7 +25,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark" suppressHydrationWarning>
       <body className={`${inter.variable} ${hindMadurai.variable} font-sans text-zinc-100 antialiased scrollbar-hide bg-black`}>
         {/* Aurora Background */}
         <Background />
