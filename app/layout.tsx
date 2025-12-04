@@ -20,6 +20,8 @@ export const metadata: Metadata = {
 };
 
 import Background from "@/components/Background";
+import AuthCodeRedirect from "@/components/AuthCodeRedirect";
+import { Suspense } from "react";
 
 export default function RootLayout({
   children,
@@ -35,6 +37,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <Suspense fallback={null}>
+            <AuthCodeRedirect />
+          </Suspense>
           {/* Aurora Background - Only visible in dark mode or adapted */}
           <div className="dark:block hidden">
              <Background />
