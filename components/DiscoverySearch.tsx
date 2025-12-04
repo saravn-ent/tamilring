@@ -25,7 +25,7 @@ export default function DiscoverySearch() {
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         placeholder="Find songs, artists, or bgm..."
-        className="w-full bg-neutral-800/50 backdrop-blur-md border border-white/10 text-white text-sm rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all shadow-lg shadow-black/20 placeholder:text-zinc-500"
+        className="w-full bg-white dark:bg-neutral-800/50 backdrop-blur-md border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white text-sm rounded-2xl py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all shadow-lg shadow-black/5 dark:shadow-black/20 placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
       />
     </form>
   );

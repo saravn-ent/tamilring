@@ -70,10 +70,10 @@ export default function RingtoneCard({ ringtone }: RingtoneCardProps) {
   };
 
   return (
-    <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-3 flex items-center gap-3 hover:bg-white/10 transition-colors group relative shadow-lg shadow-black/20">
+    <div className="bg-white dark:bg-white/5 backdrop-blur-md border border-zinc-200 dark:border-white/10 rounded-xl p-3 flex items-center gap-3 hover:bg-zinc-50 dark:hover:bg-white/10 transition-colors group relative shadow-lg shadow-black/5 dark:shadow-black/20">
 
       {/* Left: Compact Thumbnail & Play Interaction */}
-      <div className="relative shrink-0 w-[70px] h-[70px] rounded-lg overflow-hidden bg-neutral-800 shadow-md group-poster">
+      <div className="relative shrink-0 w-[70px] h-[70px] rounded-lg overflow-hidden bg-zinc-200 dark:bg-neutral-800 shadow-md group-poster">
         {!imgError && ringtone.poster_url ? (
           <Image
             src={ringtone.poster_url}
@@ -84,7 +84,7 @@ export default function RingtoneCard({ ringtone }: RingtoneCardProps) {
             onError={() => setImgError(true)}
           />
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-emerald-900 to-neutral-900">
+          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-emerald-100 to-zinc-100 dark:from-emerald-900 dark:to-neutral-900">
             <Music size={18} className="text-emerald-500/50 mb-1" />
             <span className="text-[10px] font-bold text-emerald-500/50">{getInitials(ringtone.movie_name)}</span>
           </div>
@@ -96,7 +96,7 @@ export default function RingtoneCard({ ringtone }: RingtoneCardProps) {
           className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/40 transition-colors z-10 cursor-pointer"
           aria-label={isActive ? "Pause" : "Play"}
         >
-          <div className={`w-9 h-9 rounded-full flex items-center justify-center backdrop-blur-sm shadow-lg transition-transform active:scale-95 ${isActive ? 'bg-emerald-500 text-white' : 'bg-black/60 text-white'}`}>
+          <div className={`w-9 h-9 rounded-full flex items-center justify-center backdrop-blur-sm shadow-lg transition-transform active:scale-95 ${isActive ? 'bg-emerald-500 text-white' : 'bg-white/90 dark:bg-black/60 text-zinc-900 dark:text-white'}`}>
             {isActive ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" className="ml-0.5" />}
           </div>
         </RippleWrapper>
@@ -104,13 +104,13 @@ export default function RingtoneCard({ ringtone }: RingtoneCardProps) {
 
       {/* Middle: Info (Expanded Width) */}
       <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
-        <Link href={`/ringtone/${ringtone.slug}`} className="block group-hover:text-emerald-400 transition-colors">
-          <h3 className={`font-bold text-base leading-tight line-clamp-2 ${isCurrent ? 'text-emerald-400' : 'text-zinc-100'}`}>
+        <Link href={`/ringtone/${ringtone.slug}`} className="block group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors">
+          <h3 className={`font-bold text-base leading-tight line-clamp-2 ${isCurrent ? 'text-emerald-500 dark:text-emerald-400' : 'text-zinc-900 dark:text-zinc-100'}`}>
             {ringtone.title}
           </h3>
         </Link>
 
-        <Link href={`/movie/${encodeURIComponent(ringtone.movie_name)}`} className="text-xs text-zinc-400 hover:text-emerald-500 transition-colors w-fit line-clamp-1">
+        <Link href={`/movie/${encodeURIComponent(ringtone.movie_name)}`} className="text-xs text-zinc-500 dark:text-zinc-400 hover:text-emerald-500 transition-colors w-fit line-clamp-1">
           {ringtone.movie_name}
         </Link>
 
@@ -118,14 +118,14 @@ export default function RingtoneCard({ ringtone }: RingtoneCardProps) {
         {ringtone.singers && (
           <div className="flex flex-wrap gap-1 text-[11px] mt-0.5 leading-tight">
             {splitArtists(ringtone.singers).map((singer, idx, arr) => (
-              <span key={idx} className="flex items-center text-emerald-500/90 font-medium">
+              <span key={idx} className="flex items-center text-emerald-600 dark:text-emerald-500/90 font-medium">
                 <Link
                   href={`/artist/${encodeURIComponent(singer)}`}
-                  className="hover:text-emerald-400 hover:underline decoration-emerald-500/50"
+                  className="hover:text-emerald-500 dark:hover:text-emerald-400 hover:underline decoration-emerald-500/50"
                 >
                   {singer}
                 </Link>
-                {idx < arr.length - 1 && <span className="text-zinc-600 mr-1">,</span>}
+                {idx < arr.length - 1 && <span className="text-zinc-400 dark:text-zinc-600 mr-1">,</span>}
               </span>
             ))}
           </div>
@@ -133,7 +133,7 @@ export default function RingtoneCard({ ringtone }: RingtoneCardProps) {
 
         {/* Progress Bar (Only visible when playing) */}
         {isCurrent && (
-          <div className="h-0.5 bg-neutral-800 rounded-full overflow-hidden mt-1.5 w-full">
+          <div className="h-0.5 bg-zinc-200 dark:bg-neutral-800 rounded-full overflow-hidden mt-1.5 w-full">
             <div
               className="h-full bg-emerald-500 transition-all duration-100 ease-linear"
               style={{ width: `${progress}%` }}
@@ -143,14 +143,14 @@ export default function RingtoneCard({ ringtone }: RingtoneCardProps) {
       </div>
 
       {/* Right: Actions (Compact Vertical Stack) */}
-      <div className="flex flex-col items-center gap-1 shrink-0 border-l border-white/5 pl-2">
+      <div className="flex flex-col items-center gap-1 shrink-0 border-l border-zinc-200 dark:border-white/5 pl-2">
         {/* Like Button */}
         <RippleWrapper
           onClick={handleLike}
-          className="flex flex-col items-center justify-center w-10 h-10 rounded-full hover:bg-neutral-800/80 active:bg-neutral-800 transition-colors cursor-pointer"
+          className="flex flex-col items-center justify-center w-10 h-10 rounded-full hover:bg-zinc-100 dark:hover:bg-neutral-800/80 active:bg-zinc-200 dark:active:bg-neutral-800 transition-colors cursor-pointer"
           aria-label="Like"
         >
-          <Heart size={20} className={`transition-colors ${isLiked ? "fill-red-500 text-red-500" : "text-zinc-400"} ${animateLike ? 'animate-like' : ''}`} />
+          <Heart size={20} className={`transition-colors ${isLiked ? "fill-red-500 text-red-500" : "text-zinc-400 dark:text-zinc-400"} ${animateLike ? 'animate-like' : ''}`} />
           <span className="text-[9px] font-bold text-zinc-500 mt-0.5">{formatCount(likesCount)}</span>
         </RippleWrapper>
 
@@ -158,13 +158,13 @@ export default function RingtoneCard({ ringtone }: RingtoneCardProps) {
         <RippleWrapper
           onClick={handleDownload}
           disabled={isDownloading}
-          className="flex flex-col items-center justify-center w-10 h-10 rounded-full hover:bg-neutral-800/80 active:bg-neutral-800 transition-colors cursor-pointer"
+          className="flex flex-col items-center justify-center w-10 h-10 rounded-full hover:bg-zinc-100 dark:hover:bg-neutral-800/80 active:bg-zinc-200 dark:active:bg-neutral-800 transition-colors cursor-pointer"
           aria-label="Download"
         >
           {isDownloading ? (
             <div className="w-4 h-4 border-2 border-zinc-500 border-t-emerald-500 rounded-full animate-spin" />
           ) : (
-            <Download size={20} className="text-zinc-400" />
+            <Download size={20} className="text-zinc-400 dark:text-zinc-400" />
           )}
           <span className="text-[9px] font-bold text-zinc-500 mt-0.5">{formatCount(ringtone.downloads)}</span>
         </RippleWrapper>

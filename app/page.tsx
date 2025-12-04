@@ -27,7 +27,7 @@ const getTopArtists = unstable_cache(
     data.forEach(row => {
       // Count Singers
       if (row.singers) {
-        row.singers.split(/,|&/).map(s => s.trim()).forEach(s => {
+        row.singers.split(/,|&/).map((s: string) => s.trim()).forEach((s: string) => {
           if (s) singerCounts.set(s, (singerCounts.get(s) || 0) + 1);
         });
       }
@@ -123,7 +123,7 @@ export default async function Home() {
       {/* Browse by Mood (Filter Chips) */}
       <div className="mb-8">
         <div className="px-4 mb-3 flex justify-between items-end">
-          <h2 className="text-lg font-bold text-zinc-100">Browse by Mood</h2>
+          <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Browse by Mood</h2>
           <Link href="/categories" className="text-xs text-emerald-500 font-medium hover:text-emerald-400">View All</Link>
         </div>
         <div className="flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide snap-x">
@@ -131,7 +131,7 @@ export default async function Home() {
             <Link
               key={idx}
               href={`/mood/${mood}`}
-              className="snap-start shrink-0 px-5 py-2 rounded-full border border-neutral-700 bg-neutral-900/80 text-zinc-300 text-sm font-medium hover:bg-emerald-500 hover:text-neutral-900 hover:border-emerald-500 transition-all shadow-sm whitespace-nowrap"
+              className="snap-start shrink-0 px-5 py-2 rounded-full border border-zinc-200 dark:border-neutral-700 bg-zinc-100 dark:bg-neutral-900/80 text-zinc-600 dark:text-zinc-300 text-sm font-medium hover:bg-emerald-500 hover:text-white dark:hover:text-neutral-900 hover:border-emerald-500 transition-all shadow-sm whitespace-nowrap"
             >
               {mood}
             </Link>
@@ -189,15 +189,15 @@ export default async function Home() {
         <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide snap-x">
           {trending?.map(ringtone => (
             <Link key={ringtone.id} href={`/ringtone/${ringtone.slug}`} className="snap-start shrink-0 w-32 group">
-              <div className="relative w-32 h-40 rounded-xl overflow-hidden mb-2 bg-neutral-800 shadow-lg group-hover:shadow-emerald-500/10 transition-all">
+              <div className="relative w-32 h-40 rounded-xl overflow-hidden mb-2 bg-zinc-200 dark:bg-neutral-800 shadow-lg group-hover:shadow-emerald-500/10 transition-all">
                 {ringtone.poster_url ? (
                   <Image src={ringtone.poster_url} alt={ringtone.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-zinc-600 text-xs">No Img</div>
+                  <div className="w-full h-full flex items-center justify-center text-zinc-400 dark:text-zinc-600 text-xs">No Img</div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
               </div>
-              <p className="text-xs font-bold text-zinc-200 truncate group-hover:text-emerald-400 transition-colors">{ringtone.title}</p>
+              <p className="text-xs font-bold text-zinc-800 dark:text-zinc-200 truncate group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors">{ringtone.title}</p>
               <p className="text-[10px] text-zinc-500 truncate">{ringtone.movie_name}</p>
             </Link>
           ))}
@@ -215,7 +215,7 @@ export default async function Home() {
 
         <Link
           href="/recent"
-          className="block w-full py-3 rounded-xl bg-neutral-800 text-zinc-300 text-center text-sm font-bold hover:bg-neutral-700 transition-colors border border-neutral-700"
+          className="block w-full py-3 rounded-xl bg-zinc-100 dark:bg-neutral-800 text-zinc-600 dark:text-zinc-300 text-center text-sm font-bold hover:bg-zinc-200 dark:hover:bg-neutral-700 transition-colors border border-zinc-200 dark:border-neutral-700"
         >
           View All New Ringtones
         </Link>

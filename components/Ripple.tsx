@@ -77,10 +77,11 @@ const Ripple: React.FC<RippleProps> = ({ color = 'rgba(255, 255, 255, 0.3)', dur
 // Helper hook or wrapper might be better, but for now let's just make a component that attaches to parent
 // Actually, a better way for React is a wrapper component.
 
-export const RippleWrapper = ({ children, className = "", onClick, ...props }: any) => {
+export const RippleWrapper = ({ children, className = "", onClick, disabled, ...props }: any) => {
     const [ripples, setRipples] = useState<{x: number, y: number, size: number, id: number}[]>([]);
 
     const addRipple = (event: React.MouseEvent) => {
+        if (disabled) return;
         const container = event.currentTarget;
         const rect = container.getBoundingClientRect();
         const size = Math.max(rect.width, rect.height);
@@ -93,17 +94,34 @@ export const RippleWrapper = ({ children, className = "", onClick, ...props }: a
         if (onClick) onClick(event);
     };
 
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (disabled) return;
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            if (onClick) onClick(e as any);
+            // Simulate ripple center
+            const container = e.currentTarget;
+            const rect = container.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const newRipple = { x: rect.width/2 - size/2, y: rect.height/2 - size/2, size, id: Date.now() };
+            setRipples(prev => [...prev, newRipple]);
+        }
+    };
+
     return (
-        <div 
-            className={`ripple-container relative overflow-hidden ${className}`} 
+        <button 
+            className={`ripple-container relative overflow-hidden ${className} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`} 
             onMouseDown={addRipple}
+            onKeyDown={handleKeyDown}
+            disabled={disabled}
+            type="button"
             {...props}
         >
             {children}
             {ripples.map(ripple => (
                 <span
                     key={ripple.id}
-                    className="absolute rounded-full bg-white/20 pointer-events-none animate-ripple"
+                    className="absolute rounded-full bg-black/10 dark:bg-white/20 pointer-events-none animate-ripple"
                     style={{
                         top: ripple.y,
                         left: ripple.x,
@@ -115,7 +133,7 @@ export const RippleWrapper = ({ children, className = "", onClick, ...props }: a
                     onAnimationEnd={() => setRipples(prev => prev.filter(r => r.id !== ripple.id))}
                 />
             ))}
-        </div>
+        </button>
     );
 };
 

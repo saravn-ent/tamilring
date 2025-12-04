@@ -8,8 +8,8 @@ interface SectionHeaderProps {
 
 export default function SectionHeader({ title, href }: SectionHeaderProps) {
   return (
-    <div className="flex items-center justify-between px-4 mb-3 mt-6">
-      <h2 className="text-lg font-bold text-white">{title}</h2>
+    <div className="flex items-center justify-between mb-3 mt-6">
+      <h2 className="text-lg font-bold text-zinc-900 dark:text-white">{title}</h2>
       {href && (
         <Link href={href} className="text-xs text-emerald-500 flex items-center hover:underline">
           See All <ChevronRight size={14} />

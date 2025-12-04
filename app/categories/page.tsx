@@ -26,7 +26,7 @@ const getFeaturedArtists = unstable_cache(
         }
         // Singers
         if (row.singers) {
-             row.singers.split(/,|&/).map(s => s.trim()).forEach(s => {
+             row.singers.split(/,|&/).map((s: string) => s.trim()).forEach((s: string) => {
                 if (s && !artistsMap.has(s)) {
                     artistsMap.set(s, { type: 'Singer', image: row.poster_url || '' });
                 }
@@ -83,8 +83,8 @@ export default async function DiscoveryHub() {
       
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-white mb-1">Discover</h1>
-        <p className="text-zinc-400 text-sm">Find your perfect ringtone</p>
+        <h1 className="text-3xl font-bold text-zinc-900 dark:text-white mb-1">Discover</h1>
+        <p className="text-zinc-500 dark:text-zinc-400 text-sm">Find your perfect ringtone</p>
       </div>
 
       {/* Search Bar */}
@@ -94,17 +94,17 @@ export default async function DiscoveryHub() {
       <section className="mb-8">
         <div className="flex items-center gap-2 mb-4">
           <Sparkles size={16} className="text-emerald-500" />
-          <h2 className="text-lg font-bold text-white">By Mood</h2>
+          <h2 className="text-lg font-bold text-zinc-900 dark:text-white">By Mood</h2>
         </div>
         <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4">
           {MOODS.map((mood) => (
             <Link 
               key={mood.name} 
               href={`/mood/${mood.name}`}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-neutral-800/50 border border-white/5 hover:bg-neutral-700 hover:border-emerald-500/30 transition-all shrink-0 group"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-zinc-100 dark:bg-neutral-800/50 border border-zinc-200 dark:border-white/5 hover:bg-zinc-200 dark:hover:bg-neutral-700 hover:border-emerald-500/30 transition-all shrink-0 group"
             >
               <mood.icon size={16} className={`${mood.color} group-hover:scale-110 transition-transform`} />
-              <span className="text-sm font-medium text-zinc-200 group-hover:text-white">{mood.name}</span>
+              <span className="text-sm font-medium text-zinc-800 dark:text-zinc-200 group-hover:text-zinc-900 dark:group-hover:text-white">{mood.name}</span>
             </Link>
           ))}
         </div>
@@ -114,17 +114,17 @@ export default async function DiscoveryHub() {
       <section className="mb-8">
         <div className="flex items-center gap-2 mb-4">
           <Clock size={16} className="text-emerald-500" />
-          <h2 className="text-lg font-bold text-white">By Era</h2>
+          <h2 className="text-lg font-bold text-zinc-900 dark:text-white">By Era</h2>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {ERAS.map((era) => (
             <Link 
               key={era.label}
               href={`/search?q=${era.query}`}
-              className={`relative h-24 rounded-2xl overflow-hidden flex items-center justify-center bg-gradient-to-br ${era.color} border border-white/5 hover:scale-[1.02] transition-transform group`}
+              className={`relative h-24 rounded-2xl overflow-hidden flex items-center justify-center bg-gradient-to-br ${era.color} border border-zinc-200 dark:border-white/5 hover:scale-[1.02] transition-transform group`}
             >
-              <div className="absolute inset-0 bg-neutral-900/20 group-hover:bg-transparent transition-colors" />
-              <span className="relative text-xl font-bold text-white tracking-wider drop-shadow-lg">{era.label}</span>
+              <div className="absolute inset-0 bg-white/40 dark:bg-neutral-900/20 group-hover:bg-transparent transition-colors" />
+              <span className="relative text-xl font-bold text-zinc-900 dark:text-white tracking-wider drop-shadow-lg">{era.label}</span>
             </Link>
           ))}
         </div>
@@ -134,19 +134,19 @@ export default async function DiscoveryHub() {
       <section className="mb-8">
         <div className="flex items-center gap-2 mb-4">
           <Music size={16} className="text-emerald-500" />
-          <h2 className="text-lg font-bold text-white">Instruments</h2>
+          <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Instruments</h2>
         </div>
         <div className="grid grid-cols-4 md:grid-cols-8 gap-3">
           {INSTRUMENTS.map((inst) => (
             <Link 
               key={inst.label}
               href={`/search?q=${inst.query}`}
-              className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-neutral-800/30 border border-white/5 hover:bg-neutral-800 hover:border-emerald-500/30 transition-all"
+              className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-zinc-50 dark:bg-neutral-800/30 border border-zinc-200 dark:border-white/5 hover:bg-zinc-100 dark:hover:bg-neutral-800 hover:border-emerald-500/30 transition-all"
             >
-              <div className="w-10 h-10 rounded-full bg-neutral-700/50 flex items-center justify-center text-zinc-300">
+              <div className="w-10 h-10 rounded-full bg-zinc-200 dark:bg-neutral-700/50 flex items-center justify-center text-zinc-600 dark:text-zinc-300">
                 <inst.icon size={18} />
               </div>
-              <span className="text-[10px] font-medium text-zinc-400 uppercase tracking-wide">{inst.label}</span>
+              <span className="text-[10px] font-medium text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">{inst.label}</span>
             </Link>
           ))}
         </div>
@@ -156,7 +156,7 @@ export default async function DiscoveryHub() {
       <section className="mb-8">
         <div className="flex items-center gap-2 mb-4">
           <Flame size={16} className="text-emerald-500" />
-          <h2 className="text-lg font-bold text-white">Featured Artists</h2>
+          <h2 className="text-lg font-bold text-zinc-900 dark:text-white">Featured Artists</h2>
         </div>
         <div className="flex flex-wrap justify-center gap-6 py-4">
           {featuredArtists.map((artist, idx) => {
@@ -179,21 +179,21 @@ export default async function DiscoveryHub() {
               {/* Bubble Effect */}
               <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${color} opacity-20 blur-xl group-hover:opacity-40 transition-opacity duration-500 animate-pulse`} />
               
-              <div className={`relative w-20 h-20 rounded-full bg-gradient-to-br ${color} p-0.5 shadow-lg shadow-black/50 group-hover:scale-110 transition-transform duration-300`}>
-                <div className="w-full h-full rounded-full bg-neutral-900/90 backdrop-blur-sm flex items-center justify-center border border-white/10 overflow-hidden relative">
+              <div className={`relative w-20 h-20 rounded-full bg-gradient-to-br ${color} p-0.5 shadow-lg shadow-black/10 dark:shadow-black/50 group-hover:scale-110 transition-transform duration-300`}>
+                <div className="w-full h-full rounded-full bg-white/90 dark:bg-neutral-900/90 backdrop-blur-sm flex items-center justify-center border border-zinc-200 dark:border-white/10 overflow-hidden relative">
                    <ImageWithFallback 
                         src={artist.image} 
                         alt={artist.name} 
                         className="object-cover opacity-90 group-hover:opacity-100 transition-opacity"
-                        fallbackClassName="bg-neutral-800 text-zinc-500"
+                        fallbackClassName="bg-zinc-200 dark:bg-neutral-800 text-zinc-500"
                    />
                 </div>
                 
                 {/* Shine */}
-                <div className="absolute top-2 left-4 w-4 h-2 bg-white/20 rounded-full blur-[1px] rotate-[-45deg] z-10" />
+                <div className="absolute top-2 left-4 w-4 h-2 bg-white/40 dark:bg-white/20 rounded-full blur-[1px] rotate-[-45deg] z-10" />
               </div>
 
-              <span className="mt-3 text-xs font-bold text-zinc-300 text-center line-clamp-1 w-full px-1 group-hover:text-white transition-colors">{artist.name}</span>
+              <span className="mt-3 text-xs font-bold text-zinc-700 dark:text-zinc-300 text-center line-clamp-1 w-full px-1 group-hover:text-zinc-900 dark:group-hover:text-white transition-colors">{artist.name}</span>
             </Link>
           )})}
         </div>
