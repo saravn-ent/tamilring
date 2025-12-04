@@ -199,7 +199,7 @@ export default function UploadForm() {
   };
 
   return (
-    <div className="max-w-md mx-auto bg-neutral-900 p-6 rounded-2xl border border-neutral-800">
+    <div className="max-w-md mx-auto bg-neutral-900 p-6 rounded-2xl border border-neutral-800 pb-32">
       {/* Progress */}
       <div className="flex justify-between mb-8 text-sm font-medium text-zinc-500">
         <span className={step >= 1 ? 'text-emerald-500' : ''}>1. File</span>
@@ -244,7 +244,7 @@ export default function UploadForm() {
 
               {/* Dropdown Results */}
               {movies.length > 0 && (
-                <div className="absolute z-20 w-full mt-2 bg-neutral-800 border border-neutral-700 rounded-lg shadow-xl max-h-60 overflow-y-auto">
+                <div className="absolute z-50 w-full mt-2 bg-neutral-800 border border-neutral-700 rounded-lg shadow-xl max-h-60 overflow-y-auto">
                   {movies.map((movie) => (
                     <button
                       key={movie.id}
@@ -360,7 +360,7 @@ export default function UploadForm() {
 
               {/* Song Results Dropdown */}
               {songResults.length > 0 && (
-                <div className="absolute z-20 w-full mt-2 bg-neutral-800 border border-neutral-700 rounded-lg shadow-xl max-h-60 overflow-y-auto">
+                <div className="absolute z-50 w-full mt-2 bg-neutral-800 border border-neutral-700 rounded-lg shadow-xl max-h-60 overflow-y-auto">
                   <div className="flex justify-between items-center p-2 border-b border-neutral-700 bg-neutral-900/50 sticky top-0">
                     <span className="text-xs text-zinc-400 px-2">Select a song</span>
                     <button onClick={() => setSongResults([])}><X size={14} className="text-zinc-500 hover:text-zinc-300"/></button>
