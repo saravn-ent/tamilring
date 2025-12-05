@@ -44,3 +44,22 @@ export const getMovieCredits = async (movieId: number): Promise<MovieCredits | n
     return null;
   }
 };
+export interface PersonResult {
+  id: number;
+  name: string;
+  profile_path: string | null;
+  known_for_department: string;
+}
+
+export const searchPerson = async (query: string): Promise<PersonResult | null> => {
+  if (!query) return null;
+  try {
+    const res = await fetch(`${BASE_URL}/search/person?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&language=en-US&page=1&include_adult=false`);
+    if (!res.ok) throw new Error('Failed to fetch person');
+    const data = await res.json();
+    return data.results?.[0] || null; // Return the first match
+  } catch (error) {
+    console.error(`Error searching person ${query}:`, error);
+    return null;
+  }
+};

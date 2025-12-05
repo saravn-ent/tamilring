@@ -128,7 +128,7 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
           {!assignTo && (
             <button
               onClick={handleOpenAssignModal}
-              className="absolute top-2 right-2 z-10 flex items-center justify-center w-8 h-8 rounded-full bg-white/20 backdrop-blur-md border border-white/20 text-zinc-600 dark:text-zinc-300 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all duration-200 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0"
+              className="absolute top-2 right-2 z-10 flex items-center justify-center w-8 h-8 rounded-full bg-white/20 backdrop-blur-md border border-white/20 text-zinc-600 dark:text-zinc-300 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all duration-200"
               title="Set Ringtone For..."
             >
               <Plus size={16} />

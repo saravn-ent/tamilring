@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabaseClient';
+import { searchPerson, getImageUrl } from '@/lib/tmdb';
 import RingtoneCard from '@/components/RingtoneCard';
 import CompactProfileHeader from '@/components/CompactProfileHeader';
 import SortControl from '@/components/SortControl';
@@ -58,8 +59,11 @@ export default async function ArtistPage({
   // Calculate Total Likes
   const totalLikes = ringtones?.reduce((sum, ringtone) => sum + (ringtone.likes || 0), 0) || 0;
 
-  // Try to find image from ringtones (use first available poster)
-  const artistImage = ringtones?.find(r => r.poster_url)?.poster_url;
+  // Fetch artist image from TMDB
+  const person = await searchPerson(artistName);
+  const artistImage = person?.profile_path
+    ? getImageUrl(person.profile_path, 'w500')
+    : ringtones?.find(r => r.poster_url)?.poster_url;
 
   // Get artist bio
   const artistBio = getArtistBio(artistName);

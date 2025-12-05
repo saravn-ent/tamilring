@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabaseClient';
+import { searchPerson, getImageUrl } from '@/lib/tmdb';
 import RingtoneCard from '@/components/RingtoneCard';
 import SectionHeader from '@/components/SectionHeader';
 import HeroCard from '@/components/HeroCard';
@@ -40,15 +41,33 @@ const getTopArtists = unstable_cache(
       }
     });
 
-    const topSingers = Array.from(singerCounts.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10)
-      .map(([name, count]) => ({ name, count }));
+    const topSingers = await Promise.all(
+      Array.from(singerCounts.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(async ([name, count]) => {
+          const person = await searchPerson(name);
+          return {
+            name,
+            count,
+            image: person?.profile_path ? getImageUrl(person.profile_path, 'w500') : null
+          };
+        })
+    );
 
-    const topMDs = Array.from(mdCounts.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10)
-      .map(([name, count]) => ({ name, count }));
+    const topMDs = await Promise.all(
+      Array.from(mdCounts.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(async ([name, count]) => {
+          const person = await searchPerson(name);
+          return {
+            name,
+            count,
+            image: person?.profile_path ? getImageUrl(person.profile_path, 'w500') : null
+          };
+        })
+    );
 
     return { topSingers, topMDs };
   },
@@ -145,7 +164,7 @@ export default async function Home() {
                 key={idx}
                 index={idx}
                 name={singer.name}
-                image="" // No image in DB yet
+                image={singer.image || ''}
                 href={`/artist/${encodeURIComponent(singer.name)}`}
                 subtitle={`${singer.count} Songs`}
               />
@@ -231,7 +250,7 @@ export default async function Home() {
                 key={idx}
                 index={idx}
                 name={md.name}
-                image="" // No image in DB yet
+                image={md.image || ''}
                 href={`/artist/${encodeURIComponent(md.name)}`}
                 subtitle={`${md.count} Songs`}
               />
