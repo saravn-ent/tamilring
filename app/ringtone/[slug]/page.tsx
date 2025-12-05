@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeft, Download, Music } from 'lucide-react';
 import { Metadata } from 'next';
-import InteractivePlayerBar from './InteractivePlayerBar';
+import PlayButton from './PlayButton';
 import StreamButtons from '@/components/StreamButtons';
 import { splitArtists } from '@/lib/utils';
 import LegalFooter from '@/components/LegalFooter';
@@ -50,7 +50,7 @@ export default async function RingtonePage({ params }: Props) {
   };
 
   return (
-    <div className="max-w-md mx-auto min-h-screen bg-neutral-900 relative">
+    <div className="max-w-md mx-auto min-h-screen bg-neutral-900 relative flex flex-col">
       {/* Backdrop */}
       <div className="absolute top-0 left-0 right-0 h-96 opacity-30 z-0">
         {(ringtone.backdrop_url || ringtone.poster_url) && (
@@ -64,14 +64,14 @@ export default async function RingtonePage({ params }: Props) {
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-neutral-900" />
       </div>
 
-      <div className="relative z-10 p-4 pt-6">
-        <Link href="/" className="inline-flex items-center gap-2 text-zinc-400 hover:text-zinc-100 mb-8 bg-neutral-900/50 p-2 rounded-full backdrop-blur-sm">
-          <ArrowLeft size={20} />
-          <span className="text-sm font-medium">Back</span>
+      <div className="relative z-10 p-4 pt-4 flex-1 pb-32">
+        <Link href="/" className="inline-flex items-center gap-2 text-zinc-100 hover:text-emerald-500 mb-6 bg-neutral-800 px-4 py-3 rounded-xl shadow-lg transition-all active:scale-95">
+          <ArrowLeft size={24} strokeWidth={2.5} />
+          <span className="text-base font-semibold">Back</span>
         </Link>
 
-        <div className="flex flex-col items-center text-center space-y-6 mt-4">
-          <div className="relative w-48 h-72 rounded-xl overflow-hidden shadow-2xl shadow-black/50 bg-neutral-800 flex items-center justify-center">
+        <div className="flex flex-col items-center text-center space-y-4 mt-2">
+          <div className="relative w-32 h-48 rounded-xl overflow-hidden shadow-2xl shadow-black/50 bg-neutral-800 flex items-center justify-center">
             {ringtone.poster_url ? (
               <Image
                 src={ringtone.poster_url}
@@ -80,17 +80,17 @@ export default async function RingtonePage({ params }: Props) {
                 className="object-cover"
               />
             ) : (
-              <Music size={48} className="text-zinc-600" />
+              <Music size={32} className="text-zinc-600" />
             )}
           </div>
 
-          <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-zinc-100">{ringtone.title}</h1>
-            <Link href={`/movie/${encodeURIComponent(ringtone.movie_name)}`} className="text-zinc-400 text-lg hover:text-emerald-500 transition-colors block">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold text-zinc-100">{ringtone.title}</h1>
+            <Link href={`/movie/${encodeURIComponent(ringtone.movie_name)}`} className="text-zinc-400 text-base hover:text-emerald-500 transition-colors block">
               {ringtone.movie_name} <span className="text-zinc-600">({ringtone.movie_year})</span>
             </Link>
 
-            <div className="flex flex-wrap justify-center gap-1 text-emerald-500 font-medium">
+            <div className="flex flex-wrap justify-center gap-1 text-emerald-500 font-medium text-sm">
               {splitArtists(ringtone.singers).map((singer: string, idx: number, arr: string[]) => (
                 <span key={idx} className="flex items-center">
                   <Link
@@ -105,30 +105,28 @@ export default async function RingtonePage({ params }: Props) {
             </div>
 
             {ringtone.music_director && (
-              <div className="text-zinc-500 text-sm mt-1">
+              <div className="text-zinc-500 text-xs mt-1">
                 Music: <Link href={`/artist/${encodeURIComponent(ringtone.music_director)}`} className="text-zinc-300 hover:text-emerald-500 transition-colors">{ringtone.music_director}</Link>
               </div>
             )}
           </div>
 
-          {/* Interactive Player Bar */}
-          <div className="w-full max-w-xs">
-            <InteractivePlayerBar ringtone={ringtone} />
+          {/* Play and Download Buttons */}
+          <div className="flex gap-4 w-full max-w-xs">
+            <PlayButton ringtone={ringtone} />
+            <a
+              href={ringtone.audio_url}
+              download
+              className="flex-1 bg-neutral-800 text-zinc-100 font-bold py-4 rounded-xl hover:bg-neutral-700 transition-all flex items-center justify-center gap-2"
+            >
+              <Download size={20} />
+              Download
+            </a>
           </div>
 
-          {/* Download Button */}
-          <a
-            href={ringtone.audio_url}
-            download
-            className="w-full max-w-xs bg-neutral-800 text-zinc-100 font-bold py-4 rounded-xl hover:bg-neutral-700 transition-all flex items-center justify-center gap-2 shadow-lg"
-          >
-            <Download size={20} />
-            Download Ringtone
-          </a>
-
           {/* Streaming Section */}
-          <div className="w-full max-w-sm mt-4 space-y-4">
-            <h3 className="text-zinc-400 text-sm font-semibold text-center tracking-wide uppercase">
+          <div className="w-full max-w-sm space-y-2">
+            <h3 className="text-zinc-400 text-xs font-semibold text-center tracking-wide uppercase">
               Stream Full Song
             </h3>
             <StreamButtons
@@ -163,8 +161,12 @@ export default async function RingtonePage({ params }: Props) {
         </div>
       </div>
 
-      <hr className="border-neutral-800 my-8" />
-      <LegalFooter />
+      {/* Legal Footer Section - Fixed to bottom */}
+      <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-neutral-800 bg-neutral-900 max-w-md mx-auto">
+        <div className="p-4 pb-24">
+          <LegalFooter />
+        </div>
+      </div>
 
       <script
         type="application/ld+json"

@@ -104,7 +104,7 @@ export default function HeroSlider({ ringtones, movieName, totalLikes }: HeroSli
                 <div className={`absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent transition-opacity duration-300 ${idx === currentIndex ? 'opacity-100' : 'opacity-60'}`}>
                   <div className={`absolute bottom-0 left-0 right-0 p-4 transition-all duration-300 ${idx === currentIndex ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
                     <span className="inline-block px-2 py-0.5 bg-emerald-500 text-black text-[10px] font-bold rounded mb-2 shadow-lg shadow-emerald-500/20">
-                      {movieName ? `MOST LIKED MOVIE • ${totalLikes?.toLocaleString()} ❤️` : `TOP RINGTONE #${idx + 1}`}
+                      TOP ALBUM #{idx + 1}
                     </span>
                     <h2 className="text-xl font-bold text-white leading-none mb-1 drop-shadow-md">{ringtone.movie_name}</h2>
                     <p className="text-zinc-300 text-xs mb-3 line-clamp-1 drop-shadow-sm">{ringtone.title}</p>

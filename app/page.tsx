@@ -12,33 +12,26 @@ import { MOODS, COLLECTIONS } from '@/lib/constants';
 import { Ringtone } from '@/types';
 import { unstable_cache } from 'next/cache';
 import { splitArtists } from '@/lib/utils';
-
-export const revalidate = 0; // Disable caching for real-time updates
-
 const getTopArtists = unstable_cache(
   async () => {
     const { data } = await supabase
       .from('ringtones')
-      .select('singers, music_director, movie_director')
-      .eq('status', 'approved');
+      .select('singers, music_director, movie_director, likes');
 
-    if (!data) return { topSingers: [], topMDs: [] };
+    if (!data) return { topSingers: [], topMusicDirectors: [], topMovieDirectors: [] };
 
-    const singerCounts = new Map<string, number>();
-    const mdCounts = new Map<string, number>();
-
-    // Build a set of normalized director names (music + movie) to exclude from singer counts
-    const directorSet = new Set<string>();
     const normalize = (n: string) =>
       n
         .replace(/\(.*?\)/g, '') // remove parenthetical notes
         .replace(/\./g, '') // remove dots
         .replace(/[^a-z0-9\s]/gi, '') // remove punctuation
-        .replace(/\b(music|director|composer|singer)\b/gi, '') // remove role words
+        .replace(/\b(music|director|composer|singer|vocals|vocal|feat|ft)\b/gi, '') // remove role words
         .replace(/\s+/g, ' ') // collapse spaces
         .trim()
         .toLowerCase();
 
+    // Build a set of normalized director names (music + movie) to exclude from singer aggregation
+    const directorSet = new Set<string>();
     data.forEach((row: any) => {
       if (row.music_director) {
         splitArtists(row.music_director).forEach((d: string) => {
@@ -54,77 +47,169 @@ const getTopArtists = unstable_cache(
       }
     });
 
-    // Use normalized keys for singers to avoid duplicates and to exclude directors reliably
-    const singerMap = new Map<string, { name: string; count: number }>();
+    // Manual exclude for known directors/composers that TMDB might miss
+    const knownMusicDirectors = ['Ilaiyaraaja', 'Nivas K Prasanna'];
+    const knownMovieDirectors = ['Mari Selvaraj', 'Raju Murugan'];
+    const knownDirectors = new Set([...knownMusicDirectors, ...knownMovieDirectors].map(n => normalize(n)));
+
+    // Aggregate likes for singers and directors
+    const singerMap = new Map<string, { name: string; likes: number }>();
+    const musicDirectorMap = new Map<string, { name: string; likes: number }>();
+    const movieDirectorMap = new Map<string, { name: string; likes: number }>();
+
     data.forEach((row: any) => {
-      // Count Singers, excluding any directors
+      const likes = Number(row.likes || 0);
+
+      // Singers (exclude directors)
       if (row.singers) {
         splitArtists(row.singers).forEach((s: string) => {
           if (!s) return;
           const n = normalize(s);
           if (!n) return;
-          if (directorSet.has(n)) return; // exclude music/movie directors
-          if (singerMap.has(n)) {
-            singerMap.get(n)!.count += 1;
-          } else {
-            singerMap.set(n, { name: s.trim(), count: 1 });
-          }
+          if (directorSet.has(n)) return; // strictly exclude any director
+          if (knownDirectors.has(n)) return; // manual exclude for known directors
+          const existing = singerMap.get(n);
+          if (existing) existing.likes += likes;
+          else singerMap.set(n, { name: s.trim(), likes });
         });
       }
-      // Count Music Directors (keep original casing)
+
+      // Music Directors
       if (row.music_director) {
-        const md = row.music_director.trim();
-        if (md) mdCounts.set(md, (mdCounts.get(md) || 0) + 1);
+        splitArtists(row.music_director).forEach((d: string) => {
+          if (!d) return;
+          const n = normalize(d);
+          if (!n) return;
+          const existing = musicDirectorMap.get(n);
+          if (existing) existing.likes += likes;
+          else musicDirectorMap.set(n, { name: d.trim(), likes });
+        });
+      }
+
+      // Movie Directors
+      if (row.movie_director) {
+        splitArtists(row.movie_director).forEach((d: string) => {
+          if (!d) return;
+          const n = normalize(d);
+          if (!n) return;
+          const existing = movieDirectorMap.get(n);
+          if (existing) existing.likes += likes;
+          else movieDirectorMap.set(n, { name: d.trim(), likes });
+        });
       }
     });
 
-    const topSingers = await Promise.all(
-      Array.from(singerMap.entries())
-        .map(([_, v]) => [v.name, v.count] as [string, number])
+    // Build top singers but skip results that are actually directors according to TMDB
+    const sortedSingers = Array.from(singerMap.entries())
+      .map(([_, v]) => [v.name, v.likes] as [string, number])
+      .sort((a, b) => b[1] - a[1]);
+    // Debug info for why some singer candidates were skipped
+    const debugSkipped: { name: string; likes: number; reason: string; norm: string; tmdbDept?: string | null }[] = [];
+
+    const topSingers: { name: string; likes: number; image: string | null }[] = [];
+    for (const [name, likes] of sortedSingers) {
+      if (topSingers.length >= 10) break;
+      const norm = normalize(name);
+      if (!norm) continue;
+      // Exclude if this normalized singer name appears in known director sets/maps
+      if (directorSet.has(norm) || musicDirectorMap.has(norm) || movieDirectorMap.has(norm)) {
+        debugSkipped.push({ name, likes, reason: 'normalized-matches-director', norm });
+        continue;
+      }
+      const person = await searchPerson(name);
+      // If TMDB says this person is primarily in Directing or Music (i.e., directors/composers), skip them from singer list
+      if (person?.known_for_department) {
+        const dept = person.known_for_department.toLowerCase();
+        if (dept === 'directing' || dept === 'music') {
+          debugSkipped.push({ name, likes, reason: 'tmdb-dept', norm, tmdbDept: dept });
+          continue;
+        }
+      }
+      topSingers.push({
+        name,
+        likes,
+        image: person?.profile_path ? getImageUrl(person.profile_path, 'w500') : null
+      });
+    }
+
+    const topMusicDirectors = await Promise.all(
+      Array.from(musicDirectorMap.entries())
+        .map(([_, v]) => [v.name, v.likes] as [string, number])
         .sort((a, b) => b[1] - a[1])
         .slice(0, 10)
-        .map(async ([name, count]) => {
+        .map(async ([name, likes]) => {
           const person = await searchPerson(name);
           return {
             name,
-            count,
+            likes,
             image: person?.profile_path ? getImageUrl(person.profile_path, 'w500') : null
           };
         })
     );
 
-    const topMDs = await Promise.all(
-      Array.from(mdCounts.entries())
+    // Include known music directors if not already present
+    for (const name of knownMusicDirectors) {
+      const norm = normalize(name);
+      if (!topMusicDirectors.some(d => normalize(d.name) === norm)) {
+        const likes = musicDirectorMap.get(norm)?.likes || 0;
+        const person = await searchPerson(name);
+        topMusicDirectors.push({
+          name,
+          likes,
+          image: person?.profile_path ? getImageUrl(person.profile_path, 'w500') : null
+        });
+      }
+    }
+
+    // Sort by likes descending
+    topMusicDirectors.sort((a, b) => b.likes - a.likes);
+
+    const topMovieDirectors = await Promise.all(
+      Array.from(movieDirectorMap.entries())
+        .map(([_, v]) => [v.name, v.likes] as [string, number])
         .sort((a, b) => b[1] - a[1])
         .slice(0, 10)
-        .map(async ([name, count]) => {
+        .map(async ([name, likes]) => {
           const person = await searchPerson(name);
           return {
             name,
-            count,
+            likes,
             image: person?.profile_path ? getImageUrl(person.profile_path, 'w500') : null
           };
         })
     );
 
-    return { topSingers, topMDs };
+    // Include known directors if not already present
+    for (const name of knownMovieDirectors) {
+      const norm = normalize(name);
+      if (!topMovieDirectors.some(d => normalize(d.name) === norm)) {
+        const likes = movieDirectorMap.get(norm)?.likes || 0;
+        const person = await searchPerson(name);
+        topMovieDirectors.push({
+          name,
+          likes,
+          image: person?.profile_path ? getImageUrl(person.profile_path, 'w500') : null
+        });
+      }
+    }
+
+    // Sort by likes descending
+    topMovieDirectors.sort((a, b) => b.likes - a.likes);
+
+    return { topSingers, topMusicDirectors, topMovieDirectors, debugSkipped } as any;
   },
-  ['top-artists-home'],
+  ['top-artists-home-v4'],
   { revalidate: 3600 }
 );
 
 export default async function Home() {
-  // 1. Fetch all ringtones to calculate most liked movie of the week
-  const oneWeekAgo = new Date();
-  oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-
+  // 1. Fetch all approved ringtones to calculate top movies by total likes
   const { data: allRingtones } = await supabase
     .from('ringtones')
     .select('*')
-    .eq('status', 'approved')
-    .gte('created_at', oneWeekAgo.toISOString());
+    .eq('status', 'approved');
 
-  // Calculate movie with highest aggregate likes
+  // Calculate movies with highest aggregate likes
   const movieLikes = new Map<string, { likes: number; ringtones: Ringtone[] }>();
 
   allRingtones?.forEach(ringtone => {
@@ -137,25 +222,26 @@ export default async function Home() {
     movieData.ringtones.push(ringtone);
   });
 
-  // Find the movie with the most likes (or most ringtones if likes are 0)
-  const moviesArray = Array.from(movieLikes.entries()).map(([name, data]) => ({
-    name,
-    likes: data.likes,
-    ringtones: data.ringtones
-  }));
+  // Get top 10 movies by total likes
+  const topMovies = Array.from(movieLikes.entries())
+    .map(([name, data]) => ({
+      name,
+      likes: data.likes,
+      ringtones: data.ringtones
+    }))
+    .sort((a, b) => {
+      if (b.likes !== a.likes) return b.likes - a.likes;
+      return b.ringtones.length - a.ringtones.length;
+    })
+    .slice(0, 10);
 
-  // Sort by likes (desc), then by number of ringtones (desc)
-  moviesArray.sort((a, b) => {
-    if (b.likes !== a.likes) return b.likes - a.likes;
-    return b.ringtones.length - a.ringtones.length;
-  });
-
-  const mostLikedMovie = moviesArray[0] || { name: '', likes: 0, ringtones: [] as Ringtone[] };
-
-  // Sort the most liked movie's ringtones by likes (descending) and take top 5
-  const heroRingtones = mostLikedMovie.ringtones
-    .sort((a, b) => (b.likes || 0) - (a.likes || 0))
-    .slice(0, 5);
+  // For each top movie, get its most liked ringtone for the hero slider
+  const heroRingtones = topMovies.map(movie => {
+    // Sort ringtones by likes and take the top one
+    const topRingtone = movie.ringtones
+      .sort((a, b) => (b.likes || 0) - (a.likes || 0))[0];
+    return topRingtone;
+  }).filter(Boolean);
 
   // 2. Fetch Trending (Top 5 by downloads - mocked for now as downloads col might be empty, using created_at)
   const { data: trending } = await supabase
@@ -183,7 +269,13 @@ export default async function Home() {
     .limit(10);
 
   // 4. Fetch Top Artists (Cached)
-  const { topSingers, topMDs } = await getTopArtists();
+  const { topSingers, topMusicDirectors, topMovieDirectors, debugSkipped } =
+    (await getTopArtists()) as {
+      topSingers: { name: string; likes: number; image: string | null }[];
+      topMusicDirectors: { name: string; likes: number; image: string | null }[];
+      topMovieDirectors: { name: string; likes: number; image: string | null }[];
+      debugSkipped: { name: string; likes: number; reason: string; norm: string; tmdbDept?: string | null }[];
+    };
 
   // 5. Compute Top Contributors (by uploads)
   const { data: uploads } = await supabase
@@ -222,8 +314,8 @@ export default async function Home() {
   return (
     <div className="max-w-md mx-auto pb-20">
 
-      {/* Hero Section - Most Liked Movie of the Week */}
-      <HeroSlider ringtones={heroRingtones || []} movieName={mostLikedMovie.name} totalLikes={mostLikedMovie.likes} />
+      {/* Hero Section - Top 10 Movies by Total Likes */}
+      <HeroSlider ringtones={heroRingtones || []} />
 
 
 
@@ -241,12 +333,22 @@ export default async function Home() {
                 name={singer.name}
                 image={singer.image || ''}
                 href={`/artist/${encodeURIComponent(singer.name)}`}
-                subtitle={`${singer.count} Rings`}
+                subtitle={`${singer.likes} Likes`}
               />
             ))}
           </div>
         </div>
       )}
+
+        {/* Debug: show skipped singer candidates and reasons (dev only) */}
+        {process.env.NODE_ENV !== 'production' && debugSkipped && debugSkipped.length > 0 && (
+          <div className="px-4 mb-6">
+            <SectionHeader title="DEBUG: Skipped Singer Candidates" />
+            <pre className="text-xs text-red-600 dark:text-red-400 whitespace-pre-wrap max-h-48 overflow-auto bg-zinc-50 dark:bg-neutral-900 p-3 rounded">
+              {JSON.stringify(debugSkipped.slice(0, 50), null, 2)}
+            </pre>
+          </div>
+        )}
 
       {/* Nostalgia (Rewind: Memories) */}
       {nostalgia && nostalgia.length > 0 && (
@@ -335,20 +437,41 @@ export default async function Home() {
       )}
 
       {/* Music Directors (Real Data) - Moved Down */}
-      {topMDs.length > 0 && (
+      {topMusicDirectors.length > 0 && (
         <div className="mb-10">
           <div className="px-4">
             <SectionHeader title="Music Directors" />
           </div>
           <div className="flex overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-6">
-            {topMDs.map((md, idx) => (
+            {topMusicDirectors.map((md, idx) => (
               <HeroCard
                 key={idx}
                 index={idx}
                 name={md.name}
                 image={md.image || ''}
                 href={`/artist/${encodeURIComponent(md.name)}`}
-                subtitle={`${md.count} Rings`}
+                subtitle={`${md.likes} Likes`}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Movie Directors */}
+      {topMovieDirectors.length > 0 && (
+        <div className="mb-10">
+          <div className="px-4">
+            <SectionHeader title="Movie Directors" />
+          </div>
+          <div className="flex overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-6">
+            {topMovieDirectors.map((md, idx) => (
+              <HeroCard
+                key={idx}
+                index={idx}
+                name={md.name}
+                image={md.image || ''}
+                href={`/artist/${encodeURIComponent(md.name)}`}
+                subtitle={`${md.likes} Likes`}
               />
             ))}
           </div>
