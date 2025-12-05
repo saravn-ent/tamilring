@@ -7,7 +7,7 @@ import ImageWithFallback from '@/components/ImageWithFallback';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Mic, Clapperboard, User } from 'lucide-react';
-import { MOODS } from '@/lib/constants';
+import { MOODS, COLLECTIONS } from '@/lib/constants';
 import { Ringtone } from '@/types';
 import { unstable_cache } from 'next/cache';
 
@@ -106,12 +106,21 @@ export default async function Home() {
     .order('created_at', { ascending: false }) // TODO: Change to downloads when available
     .limit(5);
 
+
   // 3. Fetch Recent (Limit to 5)
   const { data: recent } = await supabase
     .from('ringtones')
     .select('*')
     .order('created_at', { ascending: false })
     .limit(5);
+
+  // 4. Fetch Nostalgia (Movies before 2015) - Random sample or sorted by likes
+  const { data: nostalgia } = await supabase
+    .from('ringtones')
+    .select('*')
+    .lt('movie_year', '2015')
+    .order('likes', { ascending: false })
+    .limit(10);
 
   // 4. Fetch Top Artists (Cached)
   const { topSingers, topMDs } = await getTopArtists();
@@ -121,6 +130,58 @@ export default async function Home() {
 
       {/* Hero Section - Most Liked Movie of the Week */}
       <HeroSlider ringtones={heroRingtones || []} movieName={mostLikedMovie.name} totalLikes={mostLikedMovie.likes} />
+
+
+
+      {/* Top Singers (The Voices You Love) */}
+      {topSingers.length > 0 && (
+        <div className="mb-10">
+          <div className="px-4">
+            <SectionHeader title="The Voices You Love" />
+          </div>
+          <div className="flex overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-6">
+            {topSingers.map((singer, idx) => (
+              <HeroCard
+                key={idx}
+                index={idx}
+                name={singer.name}
+                image="" // No image in DB yet
+                href={`/artist/${encodeURIComponent(singer.name)}`}
+                subtitle={`${singer.count} Songs`}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Nostalgia (Rewind: Memories) */}
+      {nostalgia && nostalgia.length > 0 && (
+        <div className="mb-10">
+          <div className="px-4">
+            <SectionHeader title="Rewind: Memories" />
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-3 -mt-2">Songs that bring back the good times</p>
+          </div>
+          <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide snap-x">
+            {nostalgia.map(ringtone => (
+              <Link key={ringtone.id} href={`/ringtone/${ringtone.slug}`} className="snap-start shrink-0 w-32 group">
+                <div className="relative w-32 h-40 rounded-xl overflow-hidden mb-2 bg-zinc-200 dark:bg-neutral-800 shadow-lg group-hover:shadow-emerald-500/10 transition-all">
+                  {ringtone.poster_url ? (
+                    <Image src={ringtone.poster_url} alt={ringtone.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-zinc-400 dark:text-zinc-600 text-xs">No Img</div>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
+                  <div className="absolute bottom-2 right-2 bg-black/60 px-1.5 py-0.5 rounded text-[10px] text-white font-medium backdrop-blur-sm">
+                    {ringtone.movie_year}
+                  </div>
+                </div>
+                <p className="text-xs font-bold text-zinc-800 dark:text-zinc-200 truncate group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors">{ringtone.title}</p>
+                <p className="text-[10px] text-zinc-500 truncate">{ringtone.movie_name}</p>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Browse by Mood (Filter Chips) */}
       <div className="mb-8">
@@ -141,28 +202,24 @@ export default async function Home() {
         </div>
       </div>
 
-      {/* Top Singers (Real Data) */}
-      {topSingers.length > 0 && (
-        <div className="mb-10">
-          <div className="px-4">
-            <SectionHeader title="Top Singers" />
-          </div>
-          <div className="flex overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-6">
-            {topSingers.map((singer, idx) => (
-              <HeroCard
-                key={idx}
-                index={idx}
-                name={singer.name}
-                image="" // No image in DB yet
-                href={`/artist/${encodeURIComponent(singer.name)}`}
-                subtitle={`${singer.count} Songs`}
-              />
-            ))}
-          </div>
+      {/* Just Added (Vertical - Fixed 5) */}
+      <div className="px-4 mb-10">
+        <SectionHeader title="Just Added" />
+        <div className="space-y-3 mb-6">
+          {recent?.map(ringtone => (
+            <RingtoneCard key={ringtone.id} ringtone={ringtone} />
+          ))}
         </div>
-      )}
 
-      {/* Music Directors (Real Data) */}
+        <Link
+          href="/recent"
+          className="block w-full py-3 rounded-xl bg-zinc-100 dark:bg-neutral-800 text-zinc-600 dark:text-zinc-300 text-center text-sm font-bold hover:bg-zinc-200 dark:hover:bg-neutral-700 transition-colors border border-zinc-200 dark:border-neutral-700"
+        >
+          View All New Ringtones
+        </Link>
+      </div>
+
+      {/* Music Directors (Real Data) - Moved Down */}
       {topMDs.length > 0 && (
         <div className="mb-10">
           <div className="px-4">
@@ -183,7 +240,7 @@ export default async function Home() {
         </div>
       )}
 
-      {/* Trending Section (Horizontal) */}
+      {/* Trending Section (Horizontal) - Moved Down */}
       <div className="mb-10">
         <div className="px-4">
           <SectionHeader title="Trending Ringtones" />
@@ -204,23 +261,6 @@ export default async function Home() {
             </Link>
           ))}
         </div>
-      </div>
-
-      {/* Just Added (Vertical - Fixed 5) */}
-      <div className="px-4">
-        <SectionHeader title="Just Added" />
-        <div className="space-y-3 mb-6">
-          {recent?.map(ringtone => (
-            <RingtoneCard key={ringtone.id} ringtone={ringtone} />
-          ))}
-        </div>
-
-        <Link
-          href="/recent"
-          className="block w-full py-3 rounded-xl bg-zinc-100 dark:bg-neutral-800 text-zinc-600 dark:text-zinc-300 text-center text-sm font-bold hover:bg-zinc-200 dark:hover:bg-neutral-700 transition-colors border border-zinc-200 dark:border-neutral-700"
-        >
-          View All New Ringtones
-        </Link>
       </div>
 
     </div>

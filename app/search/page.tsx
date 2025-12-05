@@ -101,8 +101,8 @@ function SearchContent() {
                 key={tab}
                 onClick={() => setActiveTab(tab as any)}
                 className={`px-4 py-2 rounded-full text-sm font-medium capitalize whitespace-nowrap transition-colors ${activeTab === tab
-                    ? 'bg-emerald-500 text-neutral-900'
-                    : 'bg-neutral-800 text-zinc-400 border border-neutral-700'
+                  ? 'bg-emerald-500 text-neutral-900'
+                  : 'bg-neutral-800 text-zinc-400 border border-neutral-700'
                   }`}
               >
                 {tab}
@@ -115,7 +115,7 @@ function SearchContent() {
             {results.length > 0 ? (
               <>
                 {activeTab === 'ringtones' && results.map((item) => (
-                  <RingtoneCard key={item.id} ringtone={item} />
+                  <RingtoneCard key={item.id} ringtone={item} assignTo={searchParams.get('assignTo') || undefined} />
                 ))}
 
                 {activeTab === 'movies' && results.map((item, idx) => (
