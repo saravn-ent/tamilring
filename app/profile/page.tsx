@@ -1,5 +1,5 @@
 'use client';
-
+// Updated layout - removed Settings, adjusted footer spacing
 import { useEffect, useState } from 'react';
 import { createBrowserClient } from '@supabase/auth-helpers-nextjs';
 import UploadForm from '@/components/UploadForm';

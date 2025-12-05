@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeft, Download, Music } from 'lucide-react';
 import { Metadata } from 'next';
-import PlayButton from './PlayButton';
+import InteractivePlayerBar from './InteractivePlayerBar';
 import StreamButtons from '@/components/StreamButtons';
 import { splitArtists } from '@/lib/utils';
 import LegalFooter from '@/components/LegalFooter';
@@ -111,25 +111,33 @@ export default async function RingtonePage({ params }: Props) {
             )}
           </div>
 
-          <div className="flex gap-4 w-full max-w-xs">
-            <PlayButton ringtone={ringtone} />
-            <a
-              href={ringtone.audio_url}
-              download
-              className="flex-1 bg-neutral-800 text-zinc-100 font-bold py-4 rounded-xl hover:bg-neutral-700 transition-all flex items-center justify-center gap-2"
-            >
-              <Download size={20} />
-              Download
-            </a>
+          {/* Interactive Player Bar */}
+          <div className="w-full max-w-xs">
+            <InteractivePlayerBar ringtone={ringtone} />
           </div>
 
-          {/* Smart Streaming Links */}
-          <StreamButtons
-            songTitle={ringtone.title}
-            artistName={ringtone.singers}
-            appleMusicLink={ringtone.apple_music_link}
-            spotifyLink={ringtone.spotify_link}
-          />
+          {/* Download Button */}
+          <a
+            href={ringtone.audio_url}
+            download
+            className="w-full max-w-xs bg-neutral-800 text-zinc-100 font-bold py-4 rounded-xl hover:bg-neutral-700 transition-all flex items-center justify-center gap-2 shadow-lg"
+          >
+            <Download size={20} />
+            Download Ringtone
+          </a>
+
+          {/* Streaming Section */}
+          <div className="w-full max-w-sm mt-4 space-y-4">
+            <h3 className="text-zinc-400 text-sm font-semibold text-center tracking-wide uppercase">
+              Stream Full Song
+            </h3>
+            <StreamButtons
+              songTitle={ringtone.title}
+              artistName={ringtone.singers}
+              appleMusicLink={ringtone.apple_music_link}
+              spotifyLink={ringtone.spotify_link}
+            />
+          </div>
 
           <div className="w-full bg-neutral-800/50 p-6 rounded-2xl mt-8 text-left space-y-4">
             <h3 className="text-zinc-100 font-bold">Details</h3>

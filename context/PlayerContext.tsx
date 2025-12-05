@@ -7,9 +7,11 @@ interface PlayerContextType {
   currentRingtone: Ringtone | null;
   isPlaying: boolean;
   progress: number;
+  duration: number;
   playRingtone: (ringtone: Ringtone) => void;
   togglePlay: () => void;
   setProgress: (progress: number) => void;
+  seek: (time: number) => void;
 }
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -18,6 +20,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const [currentRingtone, setCurrentRingtone] = useState<Ringtone | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [duration, setDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
@@ -37,9 +40,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   const handleTimeUpdate = () => {
     if (audioRef.current) {
-      const { currentTime, duration } = audioRef.current;
-      if (duration) {
-        setProgress((currentTime / duration) * 100);
+      const { currentTime, duration: audioDuration } = audioRef.current;
+      if (audioDuration) {
+        setDuration(audioDuration);
+        setProgress((currentTime / audioDuration) * 100);
       }
     }
   };
@@ -63,14 +67,21 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     setIsPlaying(!isPlaying);
   };
 
+  const seek = (time: number) => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = time;
+      setProgress((time / duration) * 100);
+    }
+  };
+
   return (
-    <PlayerContext.Provider value={{ currentRingtone, isPlaying, progress, playRingtone, togglePlay, setProgress }}>
+    <PlayerContext.Provider value={{ currentRingtone, isPlaying, progress, duration, playRingtone, togglePlay, setProgress, seek }}>
       {children}
-      <audio 
-        ref={audioRef} 
-        onEnded={handleEnded} 
+      <audio
+        ref={audioRef}
+        onEnded={handleEnded}
         onTimeUpdate={handleTimeUpdate}
-        className="hidden" 
+        className="hidden"
       />
     </PlayerContext.Provider>
   );

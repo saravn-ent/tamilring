@@ -2,26 +2,31 @@ import Link from 'next/link';
 
 export default function LegalFooter() {
     return (
-        <footer className="py-8 pb-24 text-center">
-            <div className="max-w-xs mx-auto">
-                <div className="grid grid-cols-2 gap-y-3 gap-x-4 mb-6">
-                    <Link href="/legal/dmca" className="text-zinc-500 text-xs hover:text-zinc-300 transition-colors">
-                        ⚖️ DMCA / Copyright
-                    </Link>
-                    <Link href="/legal/terms" className="text-zinc-500 text-xs hover:text-zinc-300 transition-colors">
-                        📄 Terms of Service
-                    </Link>
-                    <Link href="/privacy" className="text-zinc-500 text-xs hover:text-zinc-300 transition-colors">
-                        🛡️ Privacy Policy
-                    </Link>
-                    <Link href="/contact" className="text-zinc-500 text-xs hover:text-zinc-300 transition-colors">
-                        💬 Help & Support
-                    </Link>
-                </div>
-                <p className="text-[11px] text-zinc-600">
-                    TamilRing © 2025 • User Generated Content
-                </p>
+        <footer className="text-center space-y-4">
+            <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs">
+                <Link href="/legal/dmca" className="text-zinc-500 hover:text-emerald-500 transition-colors flex items-center gap-1.5">
+                    <span className="text-base">⚖️</span>
+                    <span>DMCA</span>
+                </Link>
+                <span className="text-zinc-700">•</span>
+                <Link href="/legal/terms" className="text-zinc-500 hover:text-emerald-500 transition-colors flex items-center gap-1.5">
+                    <span className="text-base">📄</span>
+                    <span>Terms</span>
+                </Link>
+                <span className="text-zinc-700">•</span>
+                <Link href="/privacy" className="text-zinc-500 hover:text-emerald-500 transition-colors flex items-center gap-1.5">
+                    <span className="text-base">🛡️</span>
+                    <span>Privacy</span>
+                </Link>
+                <span className="text-zinc-700">•</span>
+                <Link href="/contact" className="text-zinc-500 hover:text-emerald-500 transition-colors flex items-center gap-1.5">
+                    <span className="text-base">💬</span>
+                    <span>Support</span>
+                </Link>
             </div>
+            <p className="text-[11px] text-zinc-600">
+                TamilRing © 2025 • User Generated Content
+            </p>
         </footer>
     );
 }
