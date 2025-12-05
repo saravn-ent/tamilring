@@ -7,7 +7,7 @@ import FavoritesList from '@/components/FavoritesList';
 import RingtoneCard from '@/components/RingtoneCard';
 import LoginButton from '@/components/LoginButton';
 import PersonalCollections from '@/components/PersonalCollections';
-import { User, Settings, LogOut, Heart, Music } from 'lucide-react';
+import { User, LogOut, Heart, Music } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Ringtone } from '@/types';
@@ -94,7 +94,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="max-w-md mx-auto p-4 pb-24">
+    <div className="max-w-md mx-auto p-4 pb-24 min-h-screen flex flex-col">
       <header className="flex items-center gap-4 py-4 mb-6">
         <div className="w-16 h-16 rounded-full bg-neutral-800 overflow-hidden relative border-2 border-neutral-700">
           {profile?.avatar_url ? (
@@ -111,7 +111,7 @@ export default function ProfilePage() {
         </div>
       </header>
 
-      <div className="space-y-8">
+      <div className="space-y-8 flex-1">
 
         {/* Personal Collections Section */}
         <PersonalCollections />
@@ -152,14 +152,8 @@ export default function ProfilePage() {
           <UploadForm />
         </section>
 
-        {/* Settings Section */}
+        {/* Sign Out Section */}
         <section className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden">
-          <div className="p-4 border-b border-neutral-800 flex items-center justify-between hover:bg-neutral-800/50 transition-colors cursor-pointer">
-            <div className="flex items-center gap-3">
-              <Settings size={20} className="text-zinc-400" />
-              <span className="text-zinc-200">Settings</span>
-            </div>
-          </div>
           <div
             onClick={handleSignOut}
             className="p-4 flex items-center justify-between hover:bg-neutral-800/50 transition-colors cursor-pointer text-red-400"
@@ -170,8 +164,10 @@ export default function ProfilePage() {
             </div>
           </div>
         </section>
+      </div>
 
-        <hr className="border-neutral-800 my-8" />
+      <div className="mt-8">
+        <hr className="border-neutral-800 mb-8" />
         <LegalFooter />
       </div>
     </div>
