@@ -9,7 +9,9 @@ import LoginButton from '@/components/LoginButton';
 import PersonalCollections from '@/components/PersonalCollections';
 import { User, Settings, LogOut, Heart, Music } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Ringtone } from '@/types';
+import LegalFooter from '@/components/LegalFooter';
 
 export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
@@ -69,13 +71,24 @@ export default function ProfilePage() {
 
   if (!user) {
     return (
-      <div className="max-w-md mx-auto p-8 text-center flex flex-col items-center justify-center min-h-[50vh]">
-        <div className="w-20 h-20 bg-neutral-800 rounded-full flex items-center justify-center text-zinc-500 mb-6">
-          <User size={40} />
+      <div className="max-w-md mx-auto p-4 flex flex-col min-h-[calc(100vh-120px)]">
+        <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
+          <div className="w-24 h-24 bg-neutral-800 rounded-full flex items-center justify-center text-zinc-500 shadow-xl shadow-black/20">
+            <User size={48} />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-zinc-100 mb-2">Guest User</h1>
+            <p className="text-zinc-400 max-w-xs mx-auto">
+              Sign in to view your profile, upload ringtones, and manage your favorites.
+            </p>
+          </div>
+          <LoginButton />
         </div>
-        <h1 className="text-2xl font-bold text-zinc-100 mb-2">Guest User</h1>
-        <p className="text-zinc-400 mb-8">Sign in to view your profile, upload ringtones, and manage your favorites.</p>
-        <LoginButton />
+
+        <div className="w-full mt-8">
+          <hr className="border-neutral-800 mb-8" />
+          <LegalFooter />
+        </div>
       </div>
     );
   }
@@ -157,6 +170,9 @@ export default function ProfilePage() {
             </div>
           </div>
         </section>
+
+        <hr className="border-neutral-800 my-8" />
+        <LegalFooter />
       </div>
     </div>
   );

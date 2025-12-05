@@ -7,6 +7,7 @@ import { Metadata } from 'next';
 import PlayButton from './PlayButton';
 import StreamButtons from '@/components/StreamButtons';
 import { splitArtists } from '@/lib/utils';
+import LegalFooter from '@/components/LegalFooter';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -123,9 +124,9 @@ export default async function RingtonePage({ params }: Props) {
           </div>
 
           {/* Smart Streaming Links */}
-          <StreamButtons 
-            songTitle={ringtone.title} 
-            artistName={ringtone.singers} 
+          <StreamButtons
+            songTitle={ringtone.title}
+            artistName={ringtone.singers}
             appleMusicLink={ringtone.apple_music_link}
             spotifyLink={ringtone.spotify_link}
           />
@@ -153,6 +154,9 @@ export default async function RingtonePage({ params }: Props) {
           </div>
         </div>
       </div>
+
+      <hr className="border-neutral-800 my-8" />
+      <LegalFooter />
 
       <script
         type="application/ld+json"
