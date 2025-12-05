@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, Download, Music } from 'lucide-react';
 import { Metadata } from 'next';
 import PlayButton from './PlayButton';
+import StreamButtons from '@/components/StreamButtons';
 import { splitArtists } from '@/lib/utils';
 
 interface Props {
@@ -120,6 +121,14 @@ export default async function RingtonePage({ params }: Props) {
               Download
             </a>
           </div>
+
+          {/* Smart Streaming Links */}
+          <StreamButtons 
+            songTitle={ringtone.title} 
+            artistName={ringtone.singers} 
+            appleMusicLink={ringtone.apple_music_link}
+            spotifyLink={ringtone.spotify_link}
+          />
 
           <div className="w-full bg-neutral-800/50 p-6 rounded-2xl mt-8 text-left space-y-4">
             <h3 className="text-zinc-100 font-bold">Details</h3>

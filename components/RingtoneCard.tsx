@@ -3,12 +3,10 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Play, Pause, Music, Download, Heart } from 'lucide-react';
+import { Play, Pause, Heart, ArrowRight, Share2 } from 'lucide-react';
 import { Ringtone } from '@/types';
 import { usePlayer } from '@/context/PlayerContext';
-import RippleWrapper from './Ripple';
-import { splitArtists, formatCount, getInitials } from '@/lib/utils';
-import { incrementLikes, incrementDownloads } from '@/app/actions';
+import { incrementLikes } from '@/app/actions';
 
 interface RingtoneCardProps {
   ringtone: Ringtone;
@@ -16,175 +14,151 @@ interface RingtoneCardProps {
 
 export default function RingtoneCard({ ringtone }: RingtoneCardProps) {
   const { currentRingtone, isPlaying, playRingtone, togglePlay, progress } = usePlayer();
-  const [imgError, setImgError] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
-  const [isLiked, setIsLiked] = useState(false); // Local state for immediate feedback
+  const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(ringtone.likes || 0);
-  const [animateLike, setAnimateLike] = useState(false);
 
   const isCurrent = currentRingtone?.id === ringtone.id;
   const isActive = isCurrent && isPlaying;
 
   const handlePlay = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (isCurrent) {
+    e.stopPropagation();
+    if (isActive) {
       togglePlay();
     } else {
       playRingtone(ringtone);
     }
   };
 
-  const handleDownload = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    try {
-      setIsDownloading(true);
-      
-      // Increment download count
-      incrementDownloads(ringtone.id);
 
-      const response = await fetch(ringtone.audio_url);
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      // Filename: Movie - Song.mp3
-      a.download = `${ringtone.movie_name} - ${ringtone.title}.mp3`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (error) {
-      console.error('Download failed:', error);
-      // Fallback to direct link
-      window.open(ringtone.audio_url, '_blank');
-    } finally {
-      setIsDownloading(false);
-    }
-  };
 
   const handleLike = async (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     
     if (!isLiked) {
-      setAnimateLike(true);
-      setTimeout(() => setAnimateLike(false), 300);
-      
-      // Optimistic update
       setLikesCount(prev => prev + 1);
       setIsLiked(true);
-
-      // Server update
       await incrementLikes(ringtone.id);
     } else {
-      // If unliking, we just update UI for this session
-      // We don't decrement on server to prevent abuse/confusion without user tracking
       setLikesCount(prev => prev - 1);
       setIsLiked(false);
     }
   };
 
+  const handleShare = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const shareUrl = `${window.location.origin}/ringtone/${ringtone.slug}`;
+    const shareData = {
+        title: `${ringtone.title} Ringtone`,
+        text: `Listen to ${ringtone.title} on TamilRing`,
+        url: shareUrl,
+    };
+
+    try {
+        if (navigator.share) {
+            await navigator.share(shareData);
+        } else {
+            await navigator.clipboard.writeText(shareUrl);
+            // Optional: You could add a toast notification here
+        }
+    } catch (err) {
+        console.error('Error sharing:', err);
+    }
+  };
+
   return (
-    <div className="bg-white dark:bg-white/5 backdrop-blur-md border border-zinc-200 dark:border-white/10 rounded-xl p-3 flex items-center gap-3 hover:bg-zinc-50 dark:hover:bg-white/10 transition-colors group relative shadow-lg shadow-black/5 dark:shadow-black/20">
+    <Link href={`/ringtone/${ringtone.slug}`} className="group block h-full">
+      <div className="relative h-full bg-white/80 dark:bg-neutral-900/40 backdrop-blur-md border border-zinc-200 dark:border-white/5 rounded-3xl p-3 transition-all duration-300 hover:bg-white dark:hover:bg-neutral-800/60 hover:scale-[1.02] hover:shadow-xl hover:shadow-black/5 dark:hover:shadow-black/20 overflow-hidden">
+        
+        {/* Glass Reflection Effect */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent dark:from-white/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-      {/* Left: Compact Thumbnail & Play Interaction */}
-      <div className="relative shrink-0 w-[70px] h-[70px] rounded-lg overflow-hidden bg-zinc-200 dark:bg-neutral-800 shadow-md group-poster">
-        {!imgError && ringtone.poster_url ? (
-          <Image
-            src={ringtone.poster_url}
-            alt={ringtone.movie_name}
-            fill
-            className="object-cover"
-            sizes="70px"
-            onError={() => setImgError(true)}
-          />
-        ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-emerald-100 to-zinc-100 dark:from-emerald-900 dark:to-neutral-900">
-            <Music size={18} className="text-emerald-500/50 mb-1" />
-            <span className="text-[10px] font-bold text-emerald-500/50">{getInitials(ringtone.movie_name)}</span>
-          </div>
-        )}
-
-        {/* Play Overlay Button */}
-        <RippleWrapper
-          onClick={handlePlay}
-          className="absolute inset-0 flex items-center justify-center bg-black/20 hover:bg-black/40 transition-colors z-10 cursor-pointer"
-          aria-label={isActive ? "Pause" : "Play"}
-        >
-          <div className={`w-9 h-9 rounded-full flex items-center justify-center backdrop-blur-sm shadow-lg transition-transform active:scale-95 ${isActive ? 'bg-emerald-500 text-white' : 'bg-white/90 dark:bg-black/60 text-zinc-900 dark:text-white'}`}>
-            {isActive ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" className="ml-0.5" />}
-          </div>
-        </RippleWrapper>
-      </div>
-
-      {/* Middle: Info (Expanded Width) */}
-      <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
-        <Link href={`/ringtone/${ringtone.slug}`} className="block group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors">
-          <h3 className={`font-bold text-base leading-tight line-clamp-2 ${isCurrent ? 'text-emerald-500 dark:text-emerald-400' : 'text-zinc-900 dark:text-zinc-100'}`}>
-            {ringtone.title}
-          </h3>
-        </Link>
-
-        <Link href={`/movie/${encodeURIComponent(ringtone.movie_name)}`} className="text-xs text-zinc-500 dark:text-zinc-400 hover:text-emerald-500 transition-colors w-fit line-clamp-1">
-          {ringtone.movie_name}
-        </Link>
-
-        {/* Singers - High Visibility & Expanded */}
-        {ringtone.singers && (
-          <div className="flex flex-wrap gap-1 text-[11px] mt-0.5 leading-tight">
-            {splitArtists(ringtone.singers).map((singer, idx, arr) => (
-              <span key={idx} className="flex items-center text-emerald-600 dark:text-emerald-500/90 font-medium">
-                <Link
-                  href={`/artist/${encodeURIComponent(singer)}`}
-                  className="hover:text-emerald-500 dark:hover:text-emerald-400 hover:underline decoration-emerald-500/50"
+        <div className="flex items-center gap-4">
+            {/* Album Art */}
+            <div className="relative w-20 h-20 flex-shrink-0 rounded-2xl overflow-hidden shadow-lg bg-zinc-200 dark:bg-neutral-800">
+                <Image
+                    src={ringtone.poster_url || '/placeholder-cover.jpg'}
+                    alt={ringtone.title}
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+                {/* Play Button Overlay */}
+                <button
+                  onClick={handlePlay}
+                  className="absolute inset-0 flex items-center justify-center bg-black/8 transition-all duration-300"
+                  aria-label={isActive ? 'Pause' : 'Play'}
                 >
-                  {singer}
-                </Link>
-                {idx < arr.length - 1 && <span className="text-zinc-400 dark:text-zinc-600 mr-1">,</span>}
-              </span>
-            ))}
-          </div>
-        )}
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-xl border border-white/20 shadow-lg transition-all duration-300 ${isActive ? 'bg-rose-500 text-white scale-110' : 'bg-white/30 text-white hover:bg-white/50 hover:scale-105'}`}>
+                    {isActive ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" className="ml-1" />}
+                  </div>
+                </button>
+            </div>
 
-        {/* Progress Bar (Only visible when playing) */}
-        {isCurrent && (
-          <div className="h-0.5 bg-zinc-200 dark:bg-neutral-800 rounded-full overflow-hidden mt-1.5 w-full">
-            <div
-              className="h-full bg-emerald-500 transition-all duration-100 ease-linear"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-        )}
+            {/* Info & Actions */}
+            <div className="flex-1 min-w-0 flex flex-col justify-center gap-2">
+                <div>
+                    <h3 className="text-base font-semibold text-zinc-900 dark:text-white truncate leading-tight">
+                        {ringtone.title}
+                    </h3>
+                    <p className="text-xs text-zinc-500 dark:text-neutral-400 truncate mt-0.5">
+                        {ringtone.movie_name}
+                    </p>
+                </div>
+
+                {/* Progress Bar */}
+                {isActive && (
+                  <div className="w-full h-1 bg-zinc-200 dark:bg-white/10 rounded-full overflow-hidden">
+                    <div 
+                      className="h-full bg-rose-500 transition-all duration-100 ease-linear"
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                )}
+
+                {/* Tags + Action Buttons Row */}
+                <div className="flex items-start justify-between w-full mt-2">
+                    <div className="flex-1 flex flex-wrap gap-2"> 
+                      {ringtone.tags && ringtone.tags.length > 0 ? (
+                        ringtone.tags.slice(0, 5).map((tag: string) => (
+                          <span
+                            key={tag}
+                            className="text-[11px] px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-white/5 text-zinc-700 dark:text-neutral-300 truncate"
+                          >
+                            {tag}
+                          </span>
+                        ))
+                      ) : (
+                        <div className="text-xs text-zinc-400 dark:text-neutral-500">&nbsp;</div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2 ml-3">
+                      <button
+                          onClick={handleLike}
+                          className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border ${
+                            isLiked
+                              ? 'bg-rose-500/10 border-rose-500/20 text-rose-500'
+                              : 'bg-zinc-100 dark:bg-white/5 border-zinc-200 dark:border-white/5 text-zinc-500 dark:text-neutral-400 hover:bg-zinc-200 dark:hover:bg-white/10 hover:text-zinc-900 dark:hover:text-white hover:border-zinc-300 dark:hover:border-white/10'
+                          }`}
+                        >
+                          <Heart size={12} className={isLiked ? 'fill-current' : ''} />
+                          <span>{likesCount}</span>
+                        </button>
+
+                        <div
+                          className="flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/5 text-zinc-500 dark:text-neutral-400 hover:bg-zinc-200 dark:hover:bg-white/10 hover:text-zinc-900 dark:hover:text-white hover:border-zinc-300 dark:hover:border-white/10 transition-all duration-200"
+                        >
+                          <ArrowRight size={14} />
+                          <span>{ringtone.downloads || 0}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
       </div>
-
-      {/* Right: Actions (Compact Vertical Stack) */}
-      <div className="flex flex-col items-center gap-1 shrink-0 border-l border-zinc-200 dark:border-white/5 pl-2">
-        {/* Like Button */}
-        <RippleWrapper
-          onClick={handleLike}
-          className="flex flex-col items-center justify-center w-10 h-10 rounded-full hover:bg-zinc-100 dark:hover:bg-neutral-800/80 active:bg-zinc-200 dark:active:bg-neutral-800 transition-colors cursor-pointer"
-          aria-label="Like"
-        >
-          <Heart size={20} className={`transition-colors ${isLiked ? "fill-red-500 text-red-500" : "text-zinc-400 dark:text-zinc-400"} ${animateLike ? 'animate-like' : ''}`} />
-          <span className="text-[9px] font-bold text-zinc-500 mt-0.5">{formatCount(likesCount)}</span>
-        </RippleWrapper>
-
-        {/* Download Button */}
-        <RippleWrapper
-          onClick={handleDownload}
-          disabled={isDownloading}
-          className="flex flex-col items-center justify-center w-10 h-10 rounded-full hover:bg-zinc-100 dark:hover:bg-neutral-800/80 active:bg-zinc-200 dark:active:bg-neutral-800 transition-colors cursor-pointer"
-          aria-label="Download"
-        >
-          {isDownloading ? (
-            <div className="w-4 h-4 border-2 border-zinc-500 border-t-emerald-500 rounded-full animate-spin" />
-          ) : (
-            <Download size={20} className="text-zinc-400 dark:text-zinc-400" />
-          )}
-          <span className="text-[9px] font-bold text-zinc-500 mt-0.5">{formatCount(ringtone.downloads)}</span>
-        </RippleWrapper>
-      </div>
-
-    </div>
+    </Link>
   );
 }

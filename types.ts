@@ -16,5 +16,7 @@ export interface Ringtone {
   cast?: string;
   downloads: number;
   likes: number;
+  apple_music_link?: string;
+  spotify_link?: string;
   created_at: string;
 }

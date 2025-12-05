@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Inter, Hind_Madurai } from "next/font/google";
 import "./globals.css";
 import { PlayerProvider } from "@/context/PlayerContext";
 import { FavoritesProvider } from "@/context/FavoritesContext";
@@ -7,11 +6,13 @@ import BottomNav from "@/components/BottomNav";
 import TopBar from "@/components/TopBar";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
-const inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
-const hindMadurai = Hind_Madurai({
-  weight: ['400', '500', '600', '700'],
-  subsets: ['tamil', 'latin'],
-  variable: '--font-hind'
+
+import { Figtree } from "next/font/google";
+
+const figtree = Figtree({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-figtree',
 });
 
 export const metadata: Metadata = {
@@ -30,7 +31,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${hindMadurai.variable} font-sans antialiased scrollbar-hide bg-background text-foreground transition-colors duration-300`}>
+      <body className={`${figtree.variable} font-figtree antialiased scrollbar-hide bg-background text-foreground transition-colors duration-300`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

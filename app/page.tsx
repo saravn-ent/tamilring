@@ -24,10 +24,12 @@ const getTopArtists = unstable_cache(
     const singerCounts = new Map<string, number>();
     const mdCounts = new Map<string, number>();
 
+    const EXCLUDED_ARTISTS = ["nivas k prasanna", "ilaiyaraja", "mari selvaraj"];
+
     data.forEach(row => {
       // Count Singers
       if (row.singers) {
-        row.singers.split(/,|&/).map((s: string) => s.trim()).forEach((s: string) => {
+        row.singers.split(/,|&/).map((s: string) => s.trim().toLowerCase()).filter((s: string) => s && !EXCLUDED_ARTISTS.includes(s)).forEach((s: string) => {
           if (s) singerCounts.set(s, (singerCounts.get(s) || 0) + 1);
         });
       }
