@@ -15,7 +15,7 @@ export default function UploadForm() {
   const [step, setStep] = useState(1);
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-  
+
   // Form Data
   const [title, setTitle] = useState('');
   const [movieQuery, setMovieQuery] = useState('');
@@ -36,8 +36,8 @@ export default function UploadForm() {
   };
 
   const toggleTag = (tag: string) => {
-    setSelectedTags(prev => 
-      prev.includes(tag) 
+    setSelectedTags(prev =>
+      prev.includes(tag)
         ? prev.filter(t => t !== tag)
         : [...prev, tag]
     );
@@ -92,7 +92,7 @@ export default function UploadForm() {
       const directors = credits.crew.filter(c => c.job === 'Director').map(c => c.name).join(', ');
       // TMDB uses 'Original Music Composer' or 'Music' for music directors
       const musicDirectors = credits.crew.filter(c => c.job === 'Original Music Composer' || c.job === 'Music').map(c => c.name).join(', ');
-      
+
       setMovieDirector(directors);
       setMusicDirector(musicDirectors);
     }
@@ -112,8 +112,8 @@ export default function UploadForm() {
 
     // If title is empty, search for the MOVIE name to get all rings from album
     // If title exists, search for MOVIE + RING TITLE
-    const searchTerm = title 
-      ? `${manualMovieName} ${title}` 
+    const searchTerm = title
+      ? `${manualMovieName} ${title}`
       : manualMovieName;
 
     const rings = await searchRings(searchTerm);
@@ -178,7 +178,7 @@ export default function UploadForm() {
 
       if (dbError) throw dbError;
 
-      alert('Ringtone uploaded successfully!');
+      alert('Ringtone uploaded successfully! It has been submitted for review and will be visible after approval.');
       // Reset form
       setStep(1);
       setFile(null);
@@ -253,9 +253,9 @@ export default function UploadForm() {
                     >
                       {movie.poster_path ? (
                         <div className="relative w-10 h-14 shrink-0">
-                          <Image 
-                            src={getImageUrl(movie.poster_path, 'w500')} 
-                            alt={movie.title} 
+                          <Image
+                            src={getImageUrl(movie.poster_path, 'w500')}
+                            alt={movie.title}
                             fill
                             className="object-cover rounded"
                           />
@@ -280,28 +280,28 @@ export default function UploadForm() {
 
           {/* Manual Override Fields */}
           <div className="grid grid-cols-2 gap-4">
-             <div>
-                <label className="block text-xs text-zinc-500 mb-1">Movie Name</label>
-                <input 
-                  type="text" 
-                  value={manualMovieName}
-                  onChange={(e) => setManualMovieName(e.target.value)}
-                  className="w-full bg-neutral-800/50 border border-neutral-700 rounded px-3 py-2 text-sm text-zinc-300 focus:outline-none focus:border-emerald-500"
-                />
-             </div>
-             <div>
-                <label className="block text-xs text-zinc-500 mb-1">Year</label>
-                <input 
-                  type="text" 
-                  value={manualMovieYear}
-                  onChange={(e) => setManualMovieYear(e.target.value)}
-                  className="w-full bg-neutral-800/50 border border-neutral-700 rounded px-3 py-2 text-sm text-zinc-300 focus:outline-none focus:border-emerald-500"
-                />
-             </div>
+            <div>
+              <label className="block text-xs text-zinc-500 mb-1">Movie Name</label>
+              <input
+                type="text"
+                value={manualMovieName}
+                onChange={(e) => setManualMovieName(e.target.value)}
+                className="w-full bg-neutral-800/50 border border-neutral-700 rounded px-3 py-2 text-sm text-zinc-300 focus:outline-none focus:border-emerald-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-zinc-500 mb-1">Year</label>
+              <input
+                type="text"
+                value={manualMovieYear}
+                onChange={(e) => setManualMovieYear(e.target.value)}
+                className="w-full bg-neutral-800/50 border border-neutral-700 rounded px-3 py-2 text-sm text-zinc-300 focus:outline-none focus:border-emerald-500"
+              />
+            </div>
           </div>
 
           <div className="flex justify-between pt-4">
-             <button
+            <button
               onClick={() => setStep(1)}
               className="text-zinc-400 hover:text-zinc-100 text-sm"
             >
@@ -363,7 +363,7 @@ export default function UploadForm() {
                 <div className="absolute z-50 w-full mt-2 bg-neutral-800 border border-neutral-700 rounded-lg shadow-xl max-h-60 overflow-y-auto">
                   <div className="flex justify-between items-center p-2 border-b border-neutral-700 bg-neutral-900/50 sticky top-0">
                     <span className="text-xs text-zinc-400 px-2">Select a ring</span>
-                    <button onClick={() => setRingResults([])}><X size={14} className="text-zinc-500 hover:text-zinc-300"/></button>
+                    <button onClick={() => setRingResults([])}><X size={14} className="text-zinc-500 hover:text-zinc-300" /></button>
                   </div>
                   {ringResults.map((ring, idx) => (
                     <button
@@ -380,7 +380,7 @@ export default function UploadForm() {
               )}
             </div>
             <p className="text-[10px] text-zinc-500 mt-1">
-              Tip: Leave empty and click <Music size={10} className="inline"/> to see all rings from the movie.
+              Tip: Leave empty and click <Music size={10} className="inline" /> to see all rings from the movie.
             </p>
           </div>
 
@@ -428,11 +428,10 @@ export default function UploadForm() {
                       <button
                         key={tag}
                         onClick={() => toggleTag(tag)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
-                          selectedTags.includes(tag)
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${selectedTags.includes(tag)
                             ? 'bg-emerald-500 border-emerald-500 text-neutral-900 shadow-[0_0_10px_rgba(16,185,129,0.3)]'
                             : 'bg-transparent border-neutral-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
-                        }`}
+                          }`}
                       >
                         {tag}
                       </button>

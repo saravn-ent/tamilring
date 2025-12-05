@@ -144,6 +144,19 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
                 fill
                 className="object-cover transition-transform duration-700 group-hover:scale-110"
               />
+
+              {/* Status Badge */}
+              {ringtone.status === 'pending' && (
+                <div className="absolute top-0 right-0 left-0 bg-yellow-500/90 text-black text-[10px] font-bold text-center py-0.5 pointer-events-none">
+                  PENDING REVIEW
+                </div>
+              )}
+              {ringtone.status === 'rejected' && (
+                <div className="absolute top-0 right-0 left-0 bg-red-500/90 text-white text-[10px] font-bold text-center py-0.5 pointer-events-none">
+                  REJECTED
+                </div>
+              )}
+
               {/* Play Button Overlay */}
               <button
                 onClick={handlePlay}

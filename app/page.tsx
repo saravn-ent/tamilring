@@ -19,7 +19,8 @@ const getTopArtists = unstable_cache(
   async () => {
     const { data } = await supabase
       .from('ringtones')
-      .select('singers, music_director, movie_director');
+      .select('singers, music_director, movie_director')
+      .eq('status', 'approved');
 
     if (!data) return { topSingers: [], topMDs: [] };
 
@@ -120,6 +121,7 @@ export default async function Home() {
   const { data: allRingtones } = await supabase
     .from('ringtones')
     .select('*')
+    .eq('status', 'approved')
     .gte('created_at', oneWeekAgo.toISOString());
 
   // Calculate movie with highest aggregate likes
@@ -159,14 +161,15 @@ export default async function Home() {
   const { data: trending } = await supabase
     .from('ringtones')
     .select('*')
+    .eq('status', 'approved')
     .order('created_at', { ascending: false }) // TODO: Change to downloads when available
     .limit(5);
-
 
   // 3. Fetch Recent (Limit to 5)
   const { data: recent } = await supabase
     .from('ringtones')
     .select('*')
+    .eq('status', 'approved')
     .order('created_at', { ascending: false })
     .limit(5);
 
@@ -174,6 +177,7 @@ export default async function Home() {
   const { data: nostalgia } = await supabase
     .from('ringtones')
     .select('*')
+    .eq('status', 'approved')
     .lt('movie_year', '2015')
     .order('likes', { ascending: false })
     .limit(10);
@@ -185,6 +189,7 @@ export default async function Home() {
   const { data: uploads } = await supabase
     .from('ringtones')
     .select('user_id')
+    .eq('status', 'approved')
     .not('user_id', 'is', null);
 
   const contribCounts = new Map<string, number>();
@@ -236,7 +241,7 @@ export default async function Home() {
                 name={singer.name}
                 image={singer.image || ''}
                 href={`/artist/${encodeURIComponent(singer.name)}`}
-                    subtitle={`${singer.count} Rings`}
+                subtitle={`${singer.count} Rings`}
               />
             ))}
           </div>
@@ -316,7 +321,7 @@ export default async function Home() {
             {topContributors.map((c, idx) => (
               <Link key={c.id} href={`/user/${encodeURIComponent(c.id)}`} className="flex items-center justify-between p-3 bg-white/80 dark:bg-neutral-900/40 rounded-xl border border-zinc-200 dark:border-white/5">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-zinc-200 dark:bg-neutral-800 flex items-center justify-center text-sm font-medium text-zinc-700">{(c.name || c.id).slice(0,2).toUpperCase()}</div>
+                  <div className="w-10 h-10 rounded-full bg-zinc-200 dark:bg-neutral-800 flex items-center justify-center text-sm font-medium text-zinc-700">{(c.name || c.id).slice(0, 2).toUpperCase()}</div>
                   <div className="min-w-0">
                     <div className="text-sm font-medium truncate">{c.name || c.id}</div>
                     <div className="text-xs text-zinc-500">{c.count} rings</div>

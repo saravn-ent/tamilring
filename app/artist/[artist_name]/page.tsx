@@ -15,6 +15,7 @@ const getArtistRingtones = unstable_cache(
     let query = supabase
       .from('ringtones')
       .select('*')
+      .eq('status', 'approved')
       .or(`singers.ilike.%${artistName}%,music_director.ilike.%${artistName}%`);
 
     // Apply Sorting

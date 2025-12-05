@@ -17,6 +17,7 @@ export default async function MoodPage({
   let query = supabase
     .from('ringtones')
     .select('*')
+    .eq('status', 'approved')
     .contains('tags', [tag]);
 
   // Apply Sorting

@@ -18,6 +18,7 @@ export default async function MoviePage({
   let query = supabase
     .from('ringtones')
     .select('*')
+    .eq('status', 'approved')
     .eq('movie_name', movieName);
 
   // Apply Sorting
@@ -60,16 +61,16 @@ export default async function MoviePage({
 
         {/* Favorite Button */}
         <div className="absolute top-4 right-4 z-10">
-             <FavoriteButton 
-                item={{ 
-                    id: movieName, 
-                    name: movieName, 
-                    type: 'Movie', 
-                    imageUrl: movie?.poster_url, 
-                    href: `/movie/${encodeURIComponent(movieName)}` 
-                }} 
-                className="w-10 h-10 bg-black/20 backdrop-blur-md hover:bg-black/40"
-            />
+          <FavoriteButton
+            item={{
+              id: movieName,
+              name: movieName,
+              type: 'Movie',
+              imageUrl: movie?.poster_url,
+              href: `/movie/${encodeURIComponent(movieName)}`
+            }}
+            className="w-10 h-10 bg-black/20 backdrop-blur-md hover:bg-black/40"
+          />
         </div>
 
         <div className="absolute bottom-0 left-0 p-6 flex items-end gap-4">

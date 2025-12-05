@@ -29,6 +29,7 @@ function SearchContent() {
           const { data: res } = await supabase
             .from('ringtones')
             .select('*')
+            .eq('status', 'approved')
             .ilike('title', `%${query}%`)
             .limit(20);
           data = res || [];
@@ -38,6 +39,7 @@ function SearchContent() {
           const { data: res } = await supabase
             .from('ringtones')
             .select('movie_name, movie_year, poster_url')
+            .eq('status', 'approved')
             .ilike('movie_name', `%${query}%`)
             .limit(50);
 
@@ -54,6 +56,7 @@ function SearchContent() {
           const { data: res } = await supabase
             .from('ringtones')
             .select('singers')
+            .eq('status', 'approved')
             .ilike('singers', `%${query}%`)
             .limit(50);
 

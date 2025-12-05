@@ -19,4 +19,7 @@ export interface Ringtone {
   apple_music_link?: string;
   spotify_link?: string;
   created_at: string;
+  status?: 'pending' | 'approved' | 'rejected';
+  rejection_reason?: string;
+  user_id?: string;
 }

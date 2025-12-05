@@ -9,6 +9,7 @@ export default async function RecentPage() {
   const { data: recent } = await supabase
     .from('ringtones')
     .select('*')
+    .eq('status', 'approved')
     .order('created_at', { ascending: false })
     .limit(50);
 
