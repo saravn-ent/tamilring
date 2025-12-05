@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Upload, Search, Music, Check, Loader2, X } from 'lucide-react';
 import { searchMovies, MovieResult, getImageUrl, getMovieCredits } from '@/lib/tmdb';
-import { searchSongs, iTunesSong } from '@/lib/itunes';
+import { searchRings, iTunesRing } from '@/lib/itunes';
 import { createBrowserClient } from '@supabase/ssr';
 import Image from 'next/image';
 
@@ -47,9 +47,9 @@ export default function UploadForm() {
   const [manualMovieName, setManualMovieName] = useState('');
   const [manualMovieYear, setManualMovieYear] = useState('');
 
-  // Song Search State
-  const [songResults, setSongResults] = useState<iTunesSong[]>([]);
-  const [isSearchingSong, setIsSearchingSong] = useState(false);
+  // Ring Search State
+  const [ringResults, setRingResults] = useState<iTunesRing[]>([]);
+  const [isSearchingRing, setIsSearchingRing] = useState(false);
 
   // Step 1: File Select
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -100,36 +100,36 @@ export default function UploadForm() {
     setStep(3);
   };
 
-  // Step 3: Song Lookup (iTunes)
-  const handleSongLookup = async () => {
+  // Step 3: Ring Lookup (iTunes)
+  const handleRingLookup = async () => {
     if (!manualMovieName) {
       alert('Please select a movie first!');
       return;
     }
 
-    setIsSearchingSong(true);
-    setSongResults([]); // Clear previous
+    setIsSearchingRing(true);
+    setRingResults([]); // Clear previous
 
-    // If title is empty, search for the MOVIE name to get all songs from album
-    // If title exists, search for MOVIE + SONG TITLE
+    // If title is empty, search for the MOVIE name to get all rings from album
+    // If title exists, search for MOVIE + RING TITLE
     const searchTerm = title 
       ? `${manualMovieName} ${title}` 
       : manualMovieName;
 
-    const songs = await searchSongs(searchTerm);
-    
-    if (songs.length === 0) {
-      alert('No songs found. Try checking the spelling.');
+    const rings = await searchRings(searchTerm);
+
+    if (rings.length === 0) {
+      alert('No rings found. Try checking the spelling.');
     } else {
-      setSongResults(songs);
+      setRingResults(rings);
     }
-    setIsSearchingSong(false);
+    setIsSearchingRing(false);
   };
 
-  const selectSong = (song: iTunesSong) => {
-    setTitle(song.trackName);
-    setSingers(song.artistName);
-    setSongResults([]); // Close dropdown
+  const selectRing = (ring: iTunesRing) => {
+    setTitle(ring.trackName);
+    setSingers(ring.artistName);
+    setRingResults([]); // Close dropdown
   };
 
   // Generate Slug
@@ -336,51 +336,51 @@ export default function UploadForm() {
             <button onClick={() => setStep(2)} className="ml-auto text-xs text-emerald-500 hover:underline">Change</button>
           </div>
 
-          {/* Song Title Input with Search */}
+          {/* Ring Title Input with Search */}
           <div>
-            <label className="block text-xs text-zinc-500 mb-1">Song Title</label>
+            <label className="block text-xs text-zinc-500 mb-1">Ring Title</label>
             <div className="relative">
               <div className="flex gap-2">
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Type song name OR leave empty to fetch all"
+                  placeholder="Type ring name OR leave empty to fetch all"
                   className="flex-1 bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3 text-zinc-100 focus:outline-none focus:border-emerald-500"
                 />
                 <button
-                  onClick={handleSongLookup}
-                  disabled={isSearchingSong}
+                  onClick={handleRingLookup}
+                  disabled={isSearchingRing}
                   className="bg-neutral-800 border border-neutral-700 hover:bg-neutral-700 text-zinc-100 p-3 rounded-lg transition-colors"
                   title="Search iTunes"
                 >
-                  {isSearchingSong ? <Loader2 className="animate-spin" size={20} /> : <Music size={20} />}
+                  {isSearchingRing ? <Loader2 className="animate-spin" size={20} /> : <Music size={20} />}
                 </button>
               </div>
 
-              {/* Song Results Dropdown */}
-              {songResults.length > 0 && (
+              {/* Ring Results Dropdown */}
+              {ringResults.length > 0 && (
                 <div className="absolute z-50 w-full mt-2 bg-neutral-800 border border-neutral-700 rounded-lg shadow-xl max-h-60 overflow-y-auto">
                   <div className="flex justify-between items-center p-2 border-b border-neutral-700 bg-neutral-900/50 sticky top-0">
-                    <span className="text-xs text-zinc-400 px-2">Select a song</span>
-                    <button onClick={() => setSongResults([])}><X size={14} className="text-zinc-500 hover:text-zinc-300"/></button>
+                    <span className="text-xs text-zinc-400 px-2">Select a ring</span>
+                    <button onClick={() => setRingResults([])}><X size={14} className="text-zinc-500 hover:text-zinc-300"/></button>
                   </div>
-                  {songResults.map((song, idx) => (
+                  {ringResults.map((ring, idx) => (
                     <button
                       key={idx}
-                      onClick={() => selectSong(song)}
+                      onClick={() => selectRing(ring)}
                       className="w-full text-left px-4 py-3 hover:bg-neutral-700 border-b border-neutral-700 last:border-0 transition-colors group"
                     >
-                      <p className="font-medium text-zinc-100 group-hover:text-emerald-400 transition-colors">{song.trackName}</p>
-                      <p className="text-xs text-zinc-400 truncate">{song.artistName}</p>
-                      <p className="text-[10px] text-zinc-600 truncate">{song.collectionName}</p>
+                      <p className="font-medium text-zinc-100 group-hover:text-emerald-400 transition-colors">{ring.trackName}</p>
+                      <p className="text-xs text-zinc-400 truncate">{ring.artistName}</p>
+                      <p className="text-[10px] text-zinc-600 truncate">{ring.collectionName}</p>
                     </button>
                   ))}
                 </div>
               )}
             </div>
             <p className="text-[10px] text-zinc-500 mt-1">
-              Tip: Leave empty and click <Music size={10} className="inline"/> to see all songs from the movie.
+              Tip: Leave empty and click <Music size={10} className="inline"/> to see all rings from the movie.
             </p>
           </div>
 

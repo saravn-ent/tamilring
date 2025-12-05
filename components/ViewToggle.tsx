@@ -27,14 +27,14 @@ export default function ViewToggle() {
                 Movies
             </button>
             <button
-                onClick={() => handleToggle('songs')}
-                className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-sm font-bold transition-all ${currentView === 'songs'
+                onClick={() => handleToggle('rings')}
+                className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-sm font-bold transition-all ${currentView === 'rings'
                         ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20'
                         : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
                     }`}
             >
                 <Music size={16} />
-                Songs
+                Rings
             </button>
         </div>
     );

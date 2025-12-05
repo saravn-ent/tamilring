@@ -73,7 +73,7 @@ export default function ProfileHeader({ name, type, ringtoneCount, imageUrl }: P
         {/* Info Card with Glassmorphism */}
         <div className="w-full max-w-xs bg-neutral-800/30 backdrop-blur-md border border-white/5 rounded-2xl p-4 mb-6 flex flex-col items-center shadow-xl shadow-black/20">
           <h1 className="text-2xl font-bold text-white text-center mb-1 drop-shadow-md">{name}</h1>
-          <p className="text-zinc-400 text-xs uppercase tracking-wider font-bold mb-3">{type} • {ringtoneCount} Ringtones</p>
+          <p className="text-zinc-400 text-xs uppercase tracking-wider font-bold mb-3">{type} • {ringtoneCount} Rings</p>
         </div>
 
         {/* Join Fan Club Button */}

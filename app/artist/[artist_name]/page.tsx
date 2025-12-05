@@ -135,7 +135,7 @@ export default async function ArtistPage({
                 ))}
               </div>
             ) : (
-              /* Songs List View */
+              /* Rings List View */
               <div className="space-y-4">
                 {ringtones.map((ringtone) => (
                   <RingtoneCard key={ringtone.id} ringtone={ringtone} />

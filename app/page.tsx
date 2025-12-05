@@ -11,6 +11,7 @@ import { Mic, Clapperboard, User } from 'lucide-react';
 import { MOODS, COLLECTIONS } from '@/lib/constants';
 import { Ringtone } from '@/types';
 import { unstable_cache } from 'next/cache';
+import { splitArtists } from '@/lib/utils';
 
 export const revalidate = 0; // Disable caching for real-time updates
 
@@ -18,23 +19,58 @@ const getTopArtists = unstable_cache(
   async () => {
     const { data } = await supabase
       .from('ringtones')
-      .select('singers, music_director');
+      .select('singers, music_director, movie_director');
 
     if (!data) return { topSingers: [], topMDs: [] };
 
     const singerCounts = new Map<string, number>();
     const mdCounts = new Map<string, number>();
 
-    const EXCLUDED_ARTISTS = ["nivas k prasanna", "ilaiyaraja", "mari selvaraj"];
+    // Build a set of normalized director names (music + movie) to exclude from singer counts
+    const directorSet = new Set<string>();
+    const normalize = (n: string) =>
+      n
+        .replace(/\(.*?\)/g, '') // remove parenthetical notes
+        .replace(/\./g, '') // remove dots
+        .replace(/[^a-z0-9\s]/gi, '') // remove punctuation
+        .replace(/\b(music|director|composer|singer)\b/gi, '') // remove role words
+        .replace(/\s+/g, ' ') // collapse spaces
+        .trim()
+        .toLowerCase();
 
-    data.forEach(row => {
-      // Count Singers
-      if (row.singers) {
-        row.singers.split(/,|&/).map((s: string) => s.trim().toLowerCase()).filter((s: string) => s && !EXCLUDED_ARTISTS.includes(s)).forEach((s: string) => {
-          if (s) singerCounts.set(s, (singerCounts.get(s) || 0) + 1);
+    data.forEach((row: any) => {
+      if (row.music_director) {
+        splitArtists(row.music_director).forEach((d: string) => {
+          const n = normalize(d);
+          if (n) directorSet.add(n);
         });
       }
-      // Count Music Directors
+      if (row.movie_director) {
+        splitArtists(row.movie_director).forEach((d: string) => {
+          const n = normalize(d);
+          if (n) directorSet.add(n);
+        });
+      }
+    });
+
+    // Use normalized keys for singers to avoid duplicates and to exclude directors reliably
+    const singerMap = new Map<string, { name: string; count: number }>();
+    data.forEach((row: any) => {
+      // Count Singers, excluding any directors
+      if (row.singers) {
+        splitArtists(row.singers).forEach((s: string) => {
+          if (!s) return;
+          const n = normalize(s);
+          if (!n) return;
+          if (directorSet.has(n)) return; // exclude music/movie directors
+          if (singerMap.has(n)) {
+            singerMap.get(n)!.count += 1;
+          } else {
+            singerMap.set(n, { name: s.trim(), count: 1 });
+          }
+        });
+      }
+      // Count Music Directors (keep original casing)
       if (row.music_director) {
         const md = row.music_director.trim();
         if (md) mdCounts.set(md, (mdCounts.get(md) || 0) + 1);
@@ -42,7 +78,8 @@ const getTopArtists = unstable_cache(
     });
 
     const topSingers = await Promise.all(
-      Array.from(singerCounts.entries())
+      Array.from(singerMap.entries())
+        .map(([_, v]) => [v.name, v.count] as [string, number])
         .sort((a, b) => b[1] - a[1])
         .slice(0, 10)
         .map(async ([name, count]) => {
@@ -144,6 +181,39 @@ export default async function Home() {
   // 4. Fetch Top Artists (Cached)
   const { topSingers, topMDs } = await getTopArtists();
 
+  // 5. Compute Top Contributors (by uploads)
+  const { data: uploads } = await supabase
+    .from('ringtones')
+    .select('user_id')
+    .not('user_id', 'is', null);
+
+  const contribCounts = new Map<string, number>();
+  uploads?.forEach((r: any) => {
+    const uid = r.user_id || 'unknown';
+    contribCounts.set(uid, (contribCounts.get(uid) || 0) + 1);
+  });
+
+  const topContributorsIds = Array.from(contribCounts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([user_id]) => user_id);
+
+  let topContributors: { id: string; name?: string; count: number }[] = [];
+  if (topContributorsIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, full_name')
+      .in('id', topContributorsIds as string[]);
+
+    const profileMap = new Map<string, string>();
+    profiles?.forEach((p: any) => profileMap.set(p.id, p.full_name || p.id));
+
+    topContributors = Array.from(contribCounts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([user_id, count]) => ({ id: user_id, name: profileMap.get(user_id) || user_id, count }));
+  }
+
   return (
     <div className="max-w-md mx-auto pb-20">
 
@@ -166,7 +236,7 @@ export default async function Home() {
                 name={singer.name}
                 image={singer.image || ''}
                 href={`/artist/${encodeURIComponent(singer.name)}`}
-                subtitle={`${singer.count} Songs`}
+                    subtitle={`${singer.count} Rings`}
               />
             ))}
           </div>
@@ -178,7 +248,7 @@ export default async function Home() {
         <div className="mb-10">
           <div className="px-4">
             <SectionHeader title="Rewind: Memories" />
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-3 -mt-2">Songs that bring back the good times</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-3 -mt-2">Rings that bring back the good times</p>
           </div>
           <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide snap-x">
             {nostalgia.map(ringtone => (
@@ -238,6 +308,27 @@ export default async function Home() {
         </Link>
       </div>
 
+      {/* Top Contributors - Users who uploaded the most rings */}
+      {topContributors && topContributors.length > 0 && (
+        <div className="mb-10 px-4">
+          <SectionHeader title="Top Contributors" />
+          <div className="grid grid-cols-2 gap-3 mt-3">
+            {topContributors.map((c, idx) => (
+              <Link key={c.id} href={`/user/${encodeURIComponent(c.id)}`} className="flex items-center justify-between p-3 bg-white/80 dark:bg-neutral-900/40 rounded-xl border border-zinc-200 dark:border-white/5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-zinc-200 dark:bg-neutral-800 flex items-center justify-center text-sm font-medium text-zinc-700">{(c.name || c.id).slice(0,2).toUpperCase()}</div>
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium truncate">{c.name || c.id}</div>
+                    <div className="text-xs text-zinc-500">{c.count} rings</div>
+                  </div>
+                </div>
+                <div className="text-xs text-zinc-400">View</div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Music Directors (Real Data) - Moved Down */}
       {topMDs.length > 0 && (
         <div className="mb-10">
@@ -252,7 +343,7 @@ export default async function Home() {
                 name={md.name}
                 image={md.image || ''}
                 href={`/artist/${encodeURIComponent(md.name)}`}
-                subtitle={`${md.count} Songs`}
+                subtitle={`${md.count} Rings`}
               />
             ))}
           </div>

@@ -84,7 +84,7 @@ function SearchContent() {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search songs, movies, artists..."
+          placeholder="Search rings, movies, artists..."
           className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-12 py-4 text-lg text-white focus:outline-none focus:border-emerald-500 transition-colors"
           autoFocus
         />

@@ -52,6 +52,11 @@ export default function RootLayout({
               <main className="min-h-screen pt-14 pb-32 relative z-0">
                 {children}
               </main>
+              {/* DMCA / Copyright notice */}
+              <footer className="w-full text-center text-xs text-muted-foreground px-4 py-3">
+                If you believe any content on this site infringes your copyright, please contact us at
+                <a className="ml-1 underline" href="mailto:copyright@tamilring.com">copyright@tamilring.com</a>.
+              </footer>
               <BottomNav />
             </FavoritesProvider>
           </PlayerProvider>

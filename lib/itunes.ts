@@ -1,13 +1,13 @@
-export interface iTunesSong {
+export interface iTunesRing {
   trackName: string;
   artistName: string;
   collectionName: string;
   previewUrl: string;
 }
 
-export const searchSongs = async (term: string, entity: string = 'song'): Promise<iTunesSong[]> => {
+export const searchRings = async (term: string, entity: string = 'song'): Promise<iTunesRing[]> => {
   try {
-    // 1. Try Indian Store first (Best for Tamil songs)
+    // 1. Try Indian Store first (Best for Tamil rings)
     let response = await fetch(
       `https://itunes.apple.com/search?term=${encodeURIComponent(term)}&entity=${entity}&limit=15&country=IN`
     );
