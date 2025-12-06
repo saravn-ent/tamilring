@@ -340,16 +340,6 @@ export default async function Home() {
         </div>
       )}
 
-        {/* Debug: show skipped singer candidates and reasons (dev only) */}
-        {process.env.NODE_ENV !== 'production' && debugSkipped && debugSkipped.length > 0 && (
-          <div className="px-4 mb-6">
-            <SectionHeader title="DEBUG: Skipped Singer Candidates" />
-            <pre className="text-xs text-red-600 dark:text-red-400 whitespace-pre-wrap max-h-48 overflow-auto bg-zinc-50 dark:bg-neutral-900 p-3 rounded">
-              {JSON.stringify(debugSkipped.slice(0, 50), null, 2)}
-            </pre>
-          </div>
-        )}
-
       {/* Nostalgia (Rewind: Memories) */}
       {nostalgia && nostalgia.length > 0 && (
         <div className="mb-10">
