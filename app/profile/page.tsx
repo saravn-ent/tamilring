@@ -7,7 +7,7 @@ import FavoritesList from '@/components/FavoritesList';
 import RingtoneCard from '@/components/RingtoneCard';
 import LoginButton from '@/components/LoginButton';
 import PersonalCollections from '@/components/PersonalCollections';
-import { User, LogOut, Heart, Music, Trash2, Play, Pause } from 'lucide-react';
+import { User, LogOut, Heart, Music, Trash2, Play, Pause, X, Globe, Instagram, Twitter } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Ringtone } from '@/types';
@@ -23,6 +23,15 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<any>(null);
   const [uploads, setUploads] = useState<Ringtone[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Edit State
+  const [isEditing, setIsEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [fullName, setFullName] = useState('');
+  const [bio, setBio] = useState('');
+  const [website, setWebsite] = useState('');
+  const [instagram, setInstagram] = useState('');
+  const [twitter, setTwitter] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -37,7 +46,15 @@ export default function ProfilePage() {
           .select('*')
           .eq('id', user.id)
           .single();
-        setProfile(profileData);
+
+        if (profileData) {
+          setProfile(profileData);
+          setFullName(profileData.full_name || '');
+          setBio(profileData.bio || '');
+          setWebsite(profileData.website_url || '');
+          setInstagram(profileData.instagram_handle || '');
+          setTwitter(profileData.twitter_handle || '');
+        }
 
         // Fetch Uploads
         const { data: uploadsData } = await supabase
@@ -56,6 +73,35 @@ export default function ProfilePage() {
 
     getUser();
   }, [supabase]);
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    setSaving(true);
+
+    try {
+      const updates = {
+        id: user.id,
+        full_name: fullName,
+        bio,
+        website_url: website,
+        instagram_handle: instagram,
+        twitter_handle: twitter,
+        updated_at: new Date().toISOString(),
+      };
+
+      const { error } = await supabase.from('profiles').upsert(updates);
+      if (error) throw error;
+
+      setProfile({ ...profile, ...updates });
+      setIsEditing(false);
+    } catch (error) {
+      alert('Error updating profile!');
+      console.error(error);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -116,20 +162,114 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-md mx-auto p-4 pb-24 min-h-screen flex flex-col">
-      <header className="flex items-center gap-4 py-4 mb-6">
-        <div className="w-16 h-16 rounded-full bg-neutral-800 overflow-hidden relative border-2 border-neutral-700">
+      <header className="flex flex-col items-center mb-8 relative">
+        <div className="w-24 h-24 bg-neutral-800 rounded-full flex items-center justify-center mb-4 overflow-hidden border-4 border-neutral-900 shadow-xl relative group">
           {profile?.avatar_url ? (
-            <img src={profile.avatar_url} alt={profile.full_name} className="w-full h-full object-cover" />
+            <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-emerald-500">
-              <User size={32} />
-            </div>
+            <User size={40} className="text-zinc-600" />
           )}
         </div>
-        <div>
-          <h1 className="text-xl font-bold text-zinc-100">{profile?.full_name || user.email}</h1>
-          <p className="text-sm text-zinc-400">{user.email}</p>
+        <h1 className="text-2xl font-bold text-white mb-1">{profile?.full_name || user.email}</h1>
+        {profile?.bio && <p className="text-zinc-400 text-sm max-w-sm text-center mb-4">{profile.bio}</p>}
+
+        <div className="flex gap-3 mb-2">
+          {profile?.website_url && (
+            <a href={profile.website_url} target="_blank" rel="noreferrer" className="p-2 bg-neutral-800 rounded-full text-zinc-400 hover:text-emerald-400 hover:bg-neutral-700 transition-colors">
+              <Globe size={18} />
+            </a>
+          )}
+          {profile?.instagram_handle && (
+            <a href={`https://instagram.com/${profile.instagram_handle.replace('@', '')}`} target="_blank" rel="noreferrer" className="p-2 bg-neutral-800 rounded-full text-zinc-400 hover:text-pink-500 hover:bg-neutral-700 transition-colors">
+              <Instagram size={18} />
+            </a>
+          )}
+          {profile?.twitter_handle && (
+            <a href={`https://twitter.com/${profile.twitter_handle.replace('@', '')}`} target="_blank" rel="noreferrer" className="p-2 bg-neutral-800 rounded-full text-zinc-400 hover:text-blue-400 hover:bg-neutral-700 transition-colors">
+              <Twitter size={18} />
+            </a>
+          )}
         </div>
+
+        <button
+          onClick={() => setIsEditing(true)}
+          className="px-4 py-1.5 bg-neutral-800 text-zinc-300 text-xs font-bold rounded-full hover:bg-neutral-700 transition-colors border border-neutral-700 mt-2"
+        >
+          Edit Profile
+        </button>
+
+        {/* Edit Modal */}
+        {isEditing && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <div className="bg-neutral-900 border border-neutral-800 p-6 rounded-2xl w-full max-w-md shadow-2xl relative">
+              <button
+                onClick={() => setIsEditing(false)}
+                className="absolute top-4 right-4 text-zinc-500 hover:text-white"
+              >
+                <X size={20} />
+              </button>
+              <h2 className="text-xl font-bold mb-4">Edit Profile</h2>
+              <form onSubmit={handleUpdateProfile} className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+                <div>
+                  <label className="text-xs text-zinc-500 block mb-1">Full Name</label>
+                  <input
+                    type="text"
+                    value={fullName}
+                    onChange={e => setFullName(e.target.value)}
+                    className="w-full bg-black/50 border border-neutral-800 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-zinc-500 block mb-1">Bio</label>
+                  <textarea
+                    value={bio}
+                    onChange={e => setBio(e.target.value)}
+                    className="w-full bg-black/50 border border-neutral-800 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none transition-colors h-20 resize-none"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-xs text-zinc-500 block mb-1">Instagram (@handle)</label>
+                    <input
+                      type="text"
+                      value={instagram}
+                      onChange={e => setInstagram(e.target.value)}
+                      placeholder="username"
+                      className="w-full bg-black/50 border border-neutral-800 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-zinc-500 block mb-1">Twitter (@handle)</label>
+                    <input
+                      type="text"
+                      value={twitter}
+                      onChange={e => setTwitter(e.target.value)}
+                      placeholder="username"
+                      className="w-full bg-black/50 border border-neutral-800 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none transition-colors"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs text-zinc-500 block mb-1">Website URL</label>
+                  <input
+                    type="url"
+                    value={website}
+                    onChange={e => setWebsite(e.target.value)}
+                    placeholder="https://..."
+                    className="w-full bg-black/50 border border-neutral-800 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none transition-colors"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="w-full py-3 bg-emerald-500 text-black font-bold rounded-xl hover:bg-emerald-400 transition-colors disabled:opacity-50 mt-2"
+                >
+                  {saving ? 'Saving...' : 'Save Changes'}
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
       </header>
 
       <div className="space-y-8 flex-1">
