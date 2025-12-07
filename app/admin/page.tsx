@@ -98,6 +98,28 @@ export default function AdminDashboard() {
                 <ShieldAlert size={48} className="text-red-500 mb-4" />
                 <h1 className="text-2xl font-bold text-zinc-100 mb-2">Access Denied</h1>
                 <p className="text-zinc-400 mb-8">You do not have permission to view this page.</p>
+
+                <div className="bg-neutral-900 p-4 rounded-lg border border-neutral-800 mb-8 max-w-lg text-left">
+                    <p className="text-xs text-zinc-500 uppercase font-bold mb-2">Debug Info</p>
+                    {user ? (
+                        <>
+                            <p className="text-sm text-zinc-400 font-mono mb-1">User ID: <span className="text-zinc-100">{user.id}</span></p>
+                            <p className="text-sm text-zinc-400 font-mono mb-4">Email: <span className="text-zinc-100">{user.email}</span></p>
+
+                            <p className="text-xs text-zinc-500 uppercase font-bold mb-2">How to Fix</p>
+                            <p className="text-xs text-zinc-400 mb-2">Run this SQL in your Supabase SQL Editor:</p>
+                            <code className="block bg-black p-2 rounded text-xs text-green-400 font-mono break-all selection:bg-zinc-700">
+                                UPDATE profiles SET role = 'admin' WHERE id = '{user.id}';
+                            </code>
+                        </>
+                    ) : (
+                        <div className="text-center">
+                            <p className="text-zinc-400 mb-2">User details not valid.</p>
+                            <p className="text-xs text-zinc-500 mb-4">Please try signing out and signing back in.</p>
+                        </div>
+                    )}
+                </div>
+
                 <LoginButton />
                 <button onClick={() => router.push('/')} className="mt-4 text-zinc-500 hover:text-zinc-300">Back to Home</button>
             </div>
