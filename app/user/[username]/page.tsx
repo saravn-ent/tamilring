@@ -1,4 +1,3 @@
-import { createClient } from '@/lib/supabaseClient';
 import { supabase } from '@/lib/supabaseClient';
 import { ArrowLeft, Globe, Instagram, Twitter, User, Music } from 'lucide-react';
 import Link from 'next/link';
