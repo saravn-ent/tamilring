@@ -12,6 +12,9 @@ import { MOODS, COLLECTIONS } from '@/lib/constants';
 import { Ringtone } from '@/types';
 import { unstable_cache } from 'next/cache';
 import { splitArtists } from '@/lib/utils';
+
+export const dynamic = 'force-dynamic';
+
 const getTopArtists = unstable_cache(
   async () => {
     const { data } = await supabase
@@ -506,6 +509,7 @@ export default async function Home() {
           ))}
         </div>
       </div>
+
 
     </div>
   );
