@@ -15,6 +15,15 @@ export default function UploadForm() {
   const [step, setStep] = useState(1);
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) setUserId(user.id);
+    };
+    getUser();
+  }, []);
 
   // Form Data
   const [title, setTitle] = useState('');
@@ -164,6 +173,7 @@ export default function UploadForm() {
       const { error: dbError } = await supabase
         .from('ringtones')
         .insert({
+          user_id: userId,
           title,
           slug,
           movie_name: manualMovieName,
@@ -429,8 +439,8 @@ export default function UploadForm() {
                         key={tag}
                         onClick={() => toggleTag(tag)}
                         className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${selectedTags.includes(tag)
-                            ? 'bg-emerald-500 border-emerald-500 text-neutral-900 shadow-[0_0_10px_rgba(16,185,129,0.3)]'
-                            : 'bg-transparent border-neutral-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
+                          ? 'bg-emerald-500 border-emerald-500 text-neutral-900 shadow-[0_0_10px_rgba(16,185,129,0.3)]'
+                          : 'bg-transparent border-neutral-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
                           }`}
                       >
                         {tag}
