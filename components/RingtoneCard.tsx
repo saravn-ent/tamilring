@@ -20,7 +20,7 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
   const { currentRingtone, isPlaying, playRingtone, togglePlay, progress } = usePlayer();
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(ringtone.likes || 0);
-  const [downloadsCount, setDownloadsCount] = useState(ringtone.downloads || 0);
+
   const [showAssignModal, setShowAssignModal] = useState(false);
   const router = useRouter();
   const cardRef = useRef<HTMLDivElement>(null);
@@ -230,30 +230,13 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
                       Assign
                     </button>
                   ) : (
-                    <button
-                      onClick={async (e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-
-                        // Increment download count
-                        setDownloadsCount(prev => prev + 1);
-                        await incrementDownloads(ringtone.id);
-
-                        // Trigger download
-                        const link = document.createElement('a');
-                        link.href = ringtone.audio_url;
-                        link.download = '';
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                      }}
+                    <div
                       className="flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/5 text-zinc-700 dark:text-neutral-300 hover:bg-zinc-200 dark:hover:bg-white/10 hover:text-zinc-900 dark:hover:text-white hover:border-zinc-300 dark:hover:border-white/10 transition-all duration-200 shadow-md hover:shadow-lg"
-                      aria-label="Download ringtone"
                       title="Download"
                     >
                       <Download size={16} strokeWidth={2.5} />
-                      <span className="text-sm font-medium">{downloadsCount}</span>
-                    </button>
+                      <span className="text-sm font-medium">{ringtone.downloads || 0}</span>
+                    </div>
                   )}
                 </div>
               </div>
