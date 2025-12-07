@@ -7,7 +7,7 @@ import FavoritesList from '@/components/FavoritesList';
 import RingtoneCard from '@/components/RingtoneCard';
 import LoginButton from '@/components/LoginButton';
 import PersonalCollections from '@/components/PersonalCollections';
-import { User, LogOut, Heart, Music } from 'lucide-react';
+import { User, LogOut, Heart, Music, Trash2, Play, Pause } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Ringtone } from '@/types';
@@ -63,6 +63,27 @@ export default function ProfilePage() {
     setProfile(null);
     setUploads([]);
     router.refresh();
+  };
+
+  const handleDelete = async (id: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!confirm('Are you sure you want to delete this ringtone?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('ringtones')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setUploads(prev => prev.filter(r => r.id !== id));
+    } catch (error) {
+      alert('Error deleting ringtone');
+      console.error(error);
+    }
   };
 
   if (loading) {
@@ -136,9 +157,29 @@ export default function ProfilePage() {
               <p className="text-zinc-500 text-sm">You haven't uploaded any ringtones yet.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4">
+            <div className="space-y-3">
               {uploads.map(ringtone => (
-                <RingtoneCard key={ringtone.id} ringtone={ringtone} />
+                <div key={ringtone.id} className="flex items-center gap-3 bg-neutral-900 border border-neutral-800 p-3 rounded-lg group">
+                  <div className="w-12 h-12 rounded bg-neutral-800 relative overflow-hidden shrink-0">
+                    {ringtone.poster_url ? (
+                      <img src={ringtone.poster_url} alt={ringtone.title} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-zinc-600"><Music size={16} /></div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold text-zinc-200 truncate">{ringtone.title}</p>
+                    <p className="text-xs text-zinc-500 truncate">{ringtone.movie_name}</p>
+                    <p className="text-[10px] text-zinc-600 mt-0.5 capitalize">{ringtone.status}</p>
+                  </div>
+                  <button
+                    onClick={(e) => handleDelete(ringtone.id, e)}
+                    className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-full transition-colors"
+                    title="Delete Ringtone"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               ))}
             </div>
           )}

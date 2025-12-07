@@ -295,20 +295,31 @@ export default async function Home() {
     .slice(0, 10)
     .map(([user_id]) => user_id);
 
-  let topContributors: { id: string; name?: string; count: number }[] = [];
+  let topContributors: { id: string; name?: string; image?: string | null; count: number }[] = [];
   if (topContributorsIds.length > 0) {
     const { data: profiles } = await supabase
       .from('profiles')
-      .select('id, full_name')
+      .select('id, full_name, avatar_url')
       .in('id', topContributorsIds as string[]);
 
-    const profileMap = new Map<string, string>();
-    profiles?.forEach((p: any) => profileMap.set(p.id, p.full_name || p.id));
+    const profileMap = new Map<string, { name: string; image: string | null }>();
+    profiles?.forEach((p: any) => profileMap.set(p.id, {
+      name: p.full_name || 'Anonymous User',
+      image: p.avatar_url
+    }));
 
     topContributors = Array.from(contribCounts.entries())
       .sort((a, b) => b[1] - a[1])
       .slice(0, 10)
-      .map(([user_id, count]) => ({ id: user_id, name: profileMap.get(user_id) || user_id, count }));
+      .map(([user_id, count]) => {
+        const profile = profileMap.get(user_id);
+        return {
+          id: user_id,
+          name: profile?.name || 'Anonymous User',
+          image: profile?.image || null,
+          count
+        };
+      });
   }
 
   return (
@@ -409,17 +420,22 @@ export default async function Home() {
       {topContributors && topContributors.length > 0 && (
         <div className="mb-10 px-4">
           <SectionHeader title="Top Contributors" />
-          <div className="grid grid-cols-2 gap-3 mt-3">
+          <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide snap-x pt-2">
             {topContributors.map((c, idx) => (
-              <Link key={c.id} href={`/user/${encodeURIComponent(c.id)}`} className="flex items-center justify-between p-3 bg-white/80 dark:bg-neutral-900/40 rounded-xl border border-zinc-200 dark:border-white/5">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-zinc-200 dark:bg-neutral-800 flex items-center justify-center text-sm font-medium text-zinc-700">{(c.name || c.id).slice(0, 2).toUpperCase()}</div>
-                  <div className="min-w-0">
-                    <div className="text-sm font-medium truncate">{c.name || c.id}</div>
-                    <div className="text-xs text-zinc-500">{c.count} rings</div>
-                  </div>
+              <Link key={c.id} href={`/user/${encodeURIComponent(c.id)}`} className="snap-start shrink-0 flex flex-col items-center gap-3 w-24 group">
+                <div className="w-20 h-20 rounded-full bg-neutral-800 border-2 border-neutral-700 overflow-hidden relative group-hover:border-emerald-500 transition-colors shadow-lg">
+                  {c.image ? (
+                    <Image src={c.image} alt={c.name || 'User'} fill className="object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-zinc-500">
+                      <User size={32} />
+                    </div>
+                  )}
                 </div>
-                <div className="text-xs text-zinc-400">View</div>
+                <div className="text-center w-full">
+                  <p className="text-xs font-bold text-zinc-200 truncate w-full">{c.name}</p>
+                  <p className="text-[10px] text-zinc-500">{c.count} uploads</p>
+                </div>
               </Link>
             ))}
           </div>
