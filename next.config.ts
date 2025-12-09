@@ -58,8 +58,16 @@ const nextConfig: NextConfig = {
             value: 'nosniff',
           },
           {
+            key: 'X-XSS-Protection',
+            value: '1; mode=block',
+          },
+          {
+            key: 'X-Permitted-Cross-Domain-Policies',
+            value: 'none',
+          },
+          {
             key: 'Referrer-Policy',
-            value: 'origin-when-cross-origin',
+            value: 'strict-origin-when-cross-origin',
           },
           {
             key: 'Permissions-Policy',
@@ -78,7 +86,12 @@ const nextConfig: NextConfig = {
               "img-src 'self' blob: data: https:; " +
               "media-src 'self' blob: data: https:; " +
               "connect-src 'self' https:; " +
-              "font-src 'self' data:;",
+              "font-src 'self' data:; " +
+              "object-src 'none'; " +
+              "base-uri 'self'; " +
+              "form-action 'self'; " +
+              "frame-ancestors 'none'; " +
+              "upgrade-insecure-requests;",
           },
         ],
       },
