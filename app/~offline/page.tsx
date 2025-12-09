@@ -1,4 +1,6 @@
 
+'use client';
+
 import React from 'react';
 import { WifiOff } from 'lucide-react';
 
