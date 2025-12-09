@@ -85,6 +85,7 @@ import { revalidateTag, revalidatePath } from 'next/cache'
 
 export async function revalidateArtistCache() {
   try {
+    // @ts-expect-error - Next.js type mismatch workaround
     revalidateTag('homepage-artists')
     revalidatePath('/', 'page') // Stronger refresh for homepage
   } catch (e) {
