@@ -5,6 +5,7 @@ import Link from 'next/link';
 import ImageWithFallback from './ImageWithFallback';
 import { formatCount } from '@/lib/utils';
 import FavoriteButton from './FavoriteButton';
+import ArtistImageUpload from './ArtistImageUpload';
 
 interface CompactProfileHeaderProps {
     name: string;
@@ -57,7 +58,7 @@ export default function CompactProfileHeader({
                     {/* Square-ish Avatar with rounded corners - Larger/Premium */}
                     {/* Portrait Avatar - Matches Homepage HeroCard Style */}
                     <div className={`
-                        relative w-28 h-40 rounded-xl border-2 shadow-2xl overflow-hidden shrink-0 bg-neutral-800
+                        relative w-28 h-40 rounded-xl border-2 shadow-2xl overflow-hidden shrink-0 bg-neutral-800 group
                         ${type === 'Music Director' || type === 'Movie Director' ? 'border-amber-500/30 shadow-amber-500/10' : 'border-white/10'}
                     `}>
                         <ImageWithFallback
