@@ -20,7 +20,7 @@ export default function UploadForm() {
   const [loadingMessage, setLoadingMessage] = useState('');
   const [userId, setUserId] = useState<string | null>(null);
 
-  const ffmpegRef = useRef(new FFmpeg());
+  const ffmpegRef = useRef<FFmpeg | null>(null);
   const [ffmpegLoaded, setFfmpegLoaded] = useState(false);
 
   useEffect(() => {
@@ -67,8 +67,16 @@ export default function UploadForm() {
   const [isSearchingRing, setIsSearchingRing] = useState(false);
 
   const loadFFmpeg = async () => {
+    if (ffmpegRef.current && ffmpegRef.current.loaded) return;
+
+    const { FFmpeg } = await import('@ffmpeg/ffmpeg');
+    const { toBlobURL } = await import('@ffmpeg/util');
+
+    if (!ffmpegRef.current) {
+      ffmpegRef.current = new FFmpeg();
+    }
+
     const ffmpeg = ffmpegRef.current;
-    if (ffmpeg.loaded) return;
 
     const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
     await ffmpeg.load({
@@ -169,8 +177,9 @@ export default function UploadForm() {
   }, [title, manualMovieName]);
 
   const convertAudio = async (inputFile: File, targetFormat: 'mp3' | 'm4r'): Promise<Blob> => {
-    const ffmpeg = ffmpegRef.current;
-    if (!ffmpeg.loaded) await loadFFmpeg();
+    await loadFFmpeg();
+    const ffmpeg = ffmpegRef.current!;
+    const { fetchFile } = await import('@ffmpeg/util');
 
     const inputName = `input.${inputFile.name.split('.').pop()}`;
     const outputName = `output.${targetFormat}`;
