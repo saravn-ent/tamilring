@@ -337,8 +337,30 @@ export default async function Home() {
       });
   }
 
+  // JSON-LD for WebSite
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: 'TamilRing',
+    url: 'https://tamilring.in',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: 'https://tamilring.in/search?q={search_term_string}',
+      'query-input': 'required name=search_term_string'
+    }
+  };
+
   return (
     <div className="w-full md:max-w-6xl mx-auto pb-20">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+
+      {/* Visual Hidden H1 for SEO */}
+      <h1 className="sr-only">
+        TamilRing - Download Best Tamil Ringtones & BGM (தமிழ் ரிங்டோன்)
+      </h1>
 
       {/* Hero Section - Top 10 Movies by Total Likes */}
       <HeroSlider ringtones={heroRingtones || []} />

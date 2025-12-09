@@ -25,8 +25,25 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "TamilRing - Mobile First Ringtones",
-  description: "Download high quality ringtones.",
+  metadataBase: new URL('https://tamilring.in'),
+  title: {
+    default: "TamilRing - Mobile First Ringtones",
+    template: "%s | TamilRing"
+  },
+  description: "Download high quality Tamil ringtones, BGM, and love songs. தமிழ் ரிங்டோன் தரவிறக்கம்.",
+  keywords: [
+    "tamil ringtones", "bgm download", "tamil cut songs", "latest tamil ringtones", "iphone ringtones",
+    "love bgm", "mass bgm", "ringtone tamil", "தமிழ் ரிங்டோன்", "தமிழ் பிஜிஎம்",
+    "tamil love songs", "south indian ringtones"
+  ],
+  openGraph: {
+    title: 'TamilRing',
+    description: 'Download high quality Tamil ringtones, BGM, and love songs.',
+    url: 'https://tamilring.in',
+    siteName: 'TamilRing',
+    locale: 'en_US',
+    type: 'website',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
