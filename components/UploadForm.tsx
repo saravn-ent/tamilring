@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Upload, Search, Music, Check, Loader2, X, RefreshCw, AlertCircle, Film, ChevronDown, Wand2 } from 'lucide-react';
+import { Upload, Search, Music, Check, Loader2, X, RefreshCw, AlertCircle, Film, ChevronDown, Wand2, Scissors, ArrowRight } from 'lucide-react';
+import AudioTrimmer from './AudioTrimmer';
 import { searchMovies, MovieResult, getImageUrl, getMovieCredits, TMDB_GENRE_TO_TAG } from '@/lib/tmdb';
 import { getSongsByMovie, iTunesRing } from '@/lib/itunes';
 import { createBrowserClient } from '@supabase/ssr';
@@ -16,6 +17,11 @@ export default function UploadForm() {
   );
   const [step, setStep] = useState(1);
   const [file, setFile] = useState<File | null>(null);
+
+  // Trimming State
+  const [trimStart, setTrimStart] = useState(0);
+  const [trimEnd, setTrimEnd] = useState(30);
+
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
   const [userId, setUserId] = useState<string | null>(null);
@@ -149,9 +155,21 @@ export default function UploadForm() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
-      setStep(2);
+      // If audio file, go to Step 1.5 (Trim) instead of Step 2
+      setTrimStart(0);
+      setTrimEnd(30);
+      setStep(1.5);
       loadFFmpeg().catch(console.error);
     }
+  };
+
+  const handleTrimChange = (start: number, end: number) => {
+    setTrimStart(start);
+    setTrimEnd(end);
+  };
+
+  const confirmTrim = () => {
+    setStep(2);
   };
 
   // Step 2: TMDB Movie Search
@@ -285,14 +303,24 @@ export default function UploadForm() {
     try {
       await ffmpeg.writeFile(inputName, await fetchFile(inputFile));
 
-      // Command args
+      // Duration Calculation
+      const duration = trimEnd - trimStart;
+
+      // Command args with Trim Support
       let args: string[] = [];
+      const ss = trimStart.toFixed(2);
+      const t = duration.toFixed(2);
+
+      // Using -ss before -i for faster seeking (input seeking)
+      // Note: Re-encoding is required for accurate cut after seeking
+      const commonArgs = ['-ss', ss, '-i', inputName, '-t', t];
+
       if (targetFormat === 'm4r') {
         // Force mp4 container for m4r
-        args = ['-i', inputName, '-c:a', 'aac', '-b:a', '192k', '-vn', '-f', 'mp4', outputName];
+        args = [...commonArgs, '-c:a', 'aac', '-b:a', '192k', '-vn', '-f', 'mp4', outputName];
       } else {
         // Force mp3 container
-        args = ['-i', inputName, '-c:a', 'libmp3lame', '-b:a', '320k', '-vn', '-f', 'mp3', outputName];
+        args = [...commonArgs, '-c:a', 'libmp3lame', '-b:a', '320k', '-vn', '-f', 'mp3', outputName];
       }
 
       const ret = await ffmpeg.exec(args);
@@ -328,20 +356,10 @@ export default function UploadForm() {
       const baseName = `${slug}-${Date.now()}`;
 
       // Conversion Logic
-      if (fileExt === 'm4r') {
-        setLoadingMessage('Creating MP3 version...');
-        m4rBlob = file;
-        mp3Blob = await convertAudio(file, 'mp3');
-      } else if (fileExt === 'mp3') {
-        setLoadingMessage('Creating iPhone version...');
-        mp3Blob = file;
-        m4rBlob = await convertAudio(file, 'm4r');
-      } else {
-        // Wav or others: Convert to BOTH to be safe and normalized
-        setLoadingMessage('Optimizing audio formats...');
-        mp3Blob = await convertAudio(file, 'mp3');
-        m4rBlob = await convertAudio(file, 'm4r');
-      }
+      // Always convert/trim now since we support trimming
+      setLoadingMessage('Optimizing & Trimming audio...');
+      mp3Blob = await convertAudio(file, 'mp3');
+      m4rBlob = await convertAudio(file, 'm4r');
 
       // 1. Upload MP3
       setLoadingMessage('Uploading MP3...');
@@ -352,7 +370,7 @@ export default function UploadForm() {
       if (mp3Error) throw mp3Error;
       const { data: { publicUrl: mp3Url } } = supabase.storage.from('ringtone-files').getPublicUrl(mp3Name);
 
-      // 2. Upload M4R (if exists)
+      // 2. Upload M4R
       if (m4rBlob) {
         setLoadingMessage('Uploading iPhone version...');
         const m4rName = `${baseName}.m4r`;
@@ -403,6 +421,8 @@ export default function UploadForm() {
       setMusicDirector('');
       setMovieDirector('');
       setSelectedTags([]);
+      setTrimStart(0);
+      setTrimEnd(30);
 
     } catch (error: any) {
       console.error('Upload failed:', error);
@@ -418,6 +438,7 @@ export default function UploadForm() {
       {/* Progress */}
       <div className="flex justify-between mb-8 text-[10px] font-medium text-zinc-500 uppercase tracking-widest">
         <span className={step >= 1 ? 'text-emerald-500' : ''}>1. File</span>
+        <span className={step === 1.5 ? 'text-emerald-500 font-bold' : (step > 1.5 ? 'text-emerald-500' : '')}>Trim</span>
         <span className={step >= 2 ? 'text-emerald-500' : ''}>2. Movie</span>
         <span className={step >= 3 ? 'text-emerald-500' : ''}>3. Details</span>
       </div>
@@ -433,9 +454,44 @@ export default function UploadForm() {
             <p className="text-zinc-300">Drag & Drop or Click to Upload</p>
             <p className="text-zinc-500 text-xs text-center px-4">
               MP3, M4R, WAV accepted.<br />
-              <span className="text-emerald-500/70">Auto-converts for iPhone & Android</span>
+              <span className="text-emerald-500/70">You can trim the song next</span>
             </p>
           </label>
+        </div>
+      )}
+
+      {/* Step 1.5: Trimmer */}
+      {step === 1.5 && file && (
+        <div className="space-y-6">
+          <div className="flex items-center gap-2 mb-2">
+            <Scissors className="text-emerald-500" size={20} />
+            <h2 className="text-lg font-bold text-white">Trim Ringtone</h2>
+          </div>
+
+          <AudioTrimmer file={file} onTrimChange={handleTrimChange} />
+
+          <div className="bg-neutral-800/50 p-4 rounded-xl border border-neutral-800 flex items-center justify-between text-xs text-zinc-400">
+            <div>
+              <p>Start: <span className="text-white font-mono">{trimStart.toFixed(1)}s</span></p>
+              <p>End: <span className="text-white font-mono">{trimEnd.toFixed(1)}s</span></p>
+            </div>
+            <div className="text-right">
+              <p>Duration</p>
+              <p className={`font-mono font-bold ${trimEnd - trimStart > 30 ? 'text-yellow-500' : 'text-emerald-500'}`}>
+                {(trimEnd - trimStart).toFixed(1)}s
+              </p>
+            </div>
+          </div>
+
+          <div className="flex gap-4 pt-4">
+            <button onClick={() => { setStep(1); setFile(null); }} className="px-6 py-3 rounded-xl bg-neutral-800 text-zinc-400 hover:text-white transition-colors">
+              Cancel
+            </button>
+            <button onClick={confirmTrim} className="flex-1 bg-emerald-500 text-neutral-900 font-bold rounded-xl py-3 hover:bg-emerald-400 transition-colors flex items-center justify-center gap-2">
+              <span>Continue</span>
+              <ArrowRight size={16} />
+            </button>
+          </div>
         </div>
       )}
 

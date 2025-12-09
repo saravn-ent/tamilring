@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import ThemeToggle from './ThemeToggle';
+import { Scissors } from 'lucide-react';
+
 
 export default function TopBar() {
   return (
@@ -9,7 +10,9 @@ export default function TopBar() {
           Tamil<span className="text-zinc-900 dark:text-white">Ring</span>
         </Link>
         <div className="flex items-center gap-2">
-          <ThemeToggle />
+          <Link href="/trim" className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-emerald-500 transition-colors">
+            <Scissors size={20} />
+          </Link>
         </div>
       </div>
     </div>
