@@ -752,6 +752,7 @@ export default function UploadForm() {
                 <>
                   <Check />
                   <span>Upload Ringtone</span>
+                  <span className="text-[10px] text-emerald-900 bg-emerald-400/50 px-2 py-0.5 rounded-full ml-1">+50 Rep</span>
                 </>
               )}
             </button>

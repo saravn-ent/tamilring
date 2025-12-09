@@ -12,6 +12,8 @@ import { MOODS, COLLECTIONS } from '@/lib/constants';
 import { Ringtone } from '@/types';
 import { unstable_cache } from 'next/cache';
 import { splitArtists } from '@/lib/utils';
+import { getLevelTitle } from '@/lib/gamification';
+import AvatarRank from '@/components/AvatarRank';
 
 export const dynamic = 'force-dynamic';
 
@@ -298,17 +300,19 @@ export default async function Home() {
     .slice(0, 10)
     .map(([user_id]) => user_id);
 
-  let topContributors: { id: string; name?: string; image?: string | null; count: number }[] = [];
+  let topContributors: { id: string; name?: string; image?: string | null; count: number; points: number; title: string; level: number }[] = [];
   if (topContributorsIds.length > 0) {
     const { data: profiles } = await supabase
       .from('profiles')
-      .select('id, full_name, avatar_url')
+      .select('id, full_name, avatar_url, points, level')
       .in('id', topContributorsIds as string[]);
 
-    const profileMap = new Map<string, { name: string; image: string | null }>();
+    const profileMap = new Map<string, { name: string; image: string | null, points: number, level: number }>();
     profiles?.forEach((p: any) => profileMap.set(p.id, {
       name: p.full_name || 'Anonymous User',
-      image: p.avatar_url
+      image: p.avatar_url,
+      points: p.points,
+      level: p.level
     }));
 
     topContributors = Array.from(contribCounts.entries())
@@ -316,11 +320,26 @@ export default async function Home() {
       .slice(0, 10)
       .map(([user_id, count]) => {
         const profile = profileMap.get(user_id);
+
+        let userPoints = profile?.points || 0;
+        let userLevel = profile?.level || 1;
+
+        // Visual Fallback: Calculate correct stats if DB is outdated (user hasn't logged in recently)
+        const calculatedPoints = count * 50; // POINTS_PER_UPLOAD
+        if (userPoints < calculatedPoints) {
+          userPoints = calculatedPoints;
+          userLevel = Math.floor(userPoints / 500) + 1;
+        }
+
+        const levelTitle = getLevelTitle(userLevel);
         return {
           id: user_id,
           name: profile?.name || 'Ringtone User',
           image: profile?.image || null,
-          count
+          count,
+          points: userPoints,
+          title: levelTitle,
+          level: userLevel
         };
       });
   }
@@ -426,18 +445,16 @@ export default async function Home() {
           <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide snap-x pt-2">
             {topContributors.map((c, idx) => (
               <Link key={c.id} href={`/user/${encodeURIComponent(c.id)}`} className="snap-start shrink-0 flex flex-col items-center gap-3 w-24 group">
-                <div className="w-20 h-20 rounded-full bg-neutral-800 border-2 border-neutral-700 overflow-hidden relative group-hover:border-emerald-500 transition-colors shadow-lg">
-                  {c.image ? (
-                    <Image src={c.image} alt={c.name || 'User'} fill className="object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-zinc-500">
-                      <User size={32} />
-                    </div>
-                  )}
-                </div>
-                <div className="text-center w-full">
+                <AvatarRank
+                  image={c.image}
+                  point={c.points}
+                  level={c.level || 1}
+                  size="md"
+                />
+                <div className="text-center w-full mt-3 flex flex-col items-center">
+                  <span className="text-[10px] text-emerald-400 font-bold tracking-wider mb-0.5">{c.points} Rep</span>
                   <p className="text-xs font-bold text-zinc-200 truncate w-full">{c.name}</p>
-                  <p className="text-[10px] text-zinc-500">{c.count} uploads</p>
+                  <span className="text-[10px] text-amber-500 font-bold mt-1">{c.title}</span>
                 </div>
               </Link>
             ))}

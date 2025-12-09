@@ -8,8 +8,9 @@ import FavoriteButton from './FavoriteButton';
 
 interface CompactProfileHeaderProps {
     name: string;
-    type: 'Actor' | 'Singer' | 'Music Director';
+    type: 'Actor' | 'Singer' | 'Music Director' | 'Movie Director';
     ringtoneCount: number;
+    movieCount?: number;
     totalLikes: number;
     imageUrl?: string;
     bio?: string;
@@ -19,53 +20,68 @@ export default function CompactProfileHeader({
     name,
     type,
     ringtoneCount,
+    movieCount,
     totalLikes,
     imageUrl,
     bio
 }: CompactProfileHeaderProps) {
     return (
         <div className="sticky top-0 z-40 bg-neutral-900/95 backdrop-blur-md border-b border-white/10 shadow-lg">
-            {/* Back Button - Absolute positioned */}
-            <Link
-                href="/"
-                className="absolute top-3 left-3 z-50 p-2 bg-black/40 backdrop-blur-md rounded-full text-zinc-100 hover:bg-black/60 transition-colors"
-            >
-                <ArrowLeft size={18} />
-            </Link>
-
-            {/* Favorite Button - Absolute positioned */}
-            <div className="absolute top-3 right-3 z-50">
-                <FavoriteButton 
-                    item={{ 
-                        id: name, 
-                        name, 
-                        type, 
-                        imageUrl, 
-                        href: type === 'Actor' ? `/actor/${encodeURIComponent(name)}` : `/artist/${encodeURIComponent(name)}` 
-                    }} 
-                    className="w-9 h-9 bg-black/40 backdrop-blur-md hover:bg-black/60"
-                />
+            {/* Top Navigation Bar */}
+            <div className="flex items-center justify-between px-3 py-2 border-b border-white/5">
+                <Link
+                    href="/"
+                    className="p-2 -ml-2 text-zinc-400 hover:text-white transition-colors"
+                >
+                    <ArrowLeft size={20} />
+                </Link>
+                <div className="flex flex-col items-center">
+                    <span className="text-[10px] font-bold text-emerald-500 uppercase tracking-[0.2em]">{type}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <FavoriteButton
+                        item={{
+                            id: name,
+                            name,
+                            type,
+                            imageUrl,
+                            href: type === 'Actor' ? `/actor/${encodeURIComponent(name)}` : `/artist/${encodeURIComponent(name)}`
+                        }}
+                        className="w-8 h-8 bg-neutral-800 hover:bg-neutral-700 text-zinc-400 hover:text-red-500"
+                    />
+                </div>
             </div>
 
-            <div className="max-w-md mx-auto px-4 py-3">
-                <div className="flex items-center gap-3">
-                    {/* Compact Avatar */}
-                    <div className="relative w-14 h-14 rounded-full border-2 border-white/10 shadow-lg overflow-hidden shrink-0">
+            <div className="max-w-md mx-auto px-4 py-4">
+                <div className="flex items-start gap-4">
+                    {/* Square-ish Avatar with rounded corners - Larger/Premium */}
+                    {/* Portrait Avatar - Matches Homepage HeroCard Style */}
+                    <div className={`
+                        relative w-28 h-40 rounded-xl border-2 shadow-2xl overflow-hidden shrink-0 bg-neutral-800
+                        ${type === 'Music Director' || type === 'Movie Director' ? 'border-amber-500/30 shadow-amber-500/10' : 'border-white/10'}
+                    `}>
                         <ImageWithFallback
                             src={imageUrl}
                             alt={name}
-                            className="object-cover"
-                            fallbackClassName="bg-neutral-800 text-zinc-500"
+                            className="object-cover object-top"
+                            fallbackClassName="bg-neutral-800 text-zinc-600 flex items-center justify-center p-4"
                         />
                     </div>
 
                     {/* Info */}
-                    <div className="flex-1 min-w-0">
-                        <h1 className="text-lg font-bold text-white truncate">{name}</h1>
-                        <div className="flex items-center gap-3 text-xs text-zinc-400">
-                            <span>{type} • {ringtoneCount} Ringtones</span>
-                            <span className="flex items-center gap-1 text-zinc-300 bg-white/5 px-2 py-0.5 rounded-full border border-white/5">
-                                <Heart size={10} className="fill-zinc-300" />
+                    <div className="flex-1 min-w-0 pt-1">
+                        <h1 className="text-2xl font-bold text-white leading-tight mb-2 tracking-tight">{name}</h1>
+                        <div className="flex flex-wrap gap-2 text-xs text-zinc-400">
+                            {movieCount !== undefined && movieCount > 0 && (
+                                <span className="flex items-center gap-1 bg-white/5 px-2.5 py-1 rounded-md text-zinc-200 border border-white/10 font-medium">
+                                    <span className={type === 'Music Director' ? 'text-amber-500' : 'text-zinc-400'}>{movieCount} Movies</span>
+                                </span>
+                            )}
+                            <span className="bg-white/5 px-2.5 py-1 rounded-md text-zinc-300 border border-white/10">
+                                {ringtoneCount} Ringtones
+                            </span>
+                            <span className="flex items-center gap-1 bg-white/5 px-2.5 py-1 rounded-md text-zinc-300 border border-white/10">
+                                <Heart size={10} className="fill-zinc-300 text-zinc-300" />
                                 {formatCount(totalLikes)} Likes
                             </span>
                         </div>
@@ -74,8 +90,8 @@ export default function CompactProfileHeader({
 
                 {/* Bio - Collapsible/Compact */}
                 {bio && (
-                    <div className="mt-2 pt-2 border-t border-white/5">
-                        <p className="text-xs text-zinc-400 line-clamp-2 leading-relaxed">
+                    <div className="mt-4 pt-3 border-t border-white/5">
+                        <p className="text-sm text-zinc-400 line-clamp-3 leading-relaxed">
                             {bio}
                         </p>
                     </div>

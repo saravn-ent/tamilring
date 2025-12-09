@@ -69,7 +69,24 @@ export default async function ArtistPage({
   // Get artist bio
   const artistBio = getArtistBio(artistName);
 
-  // Group by Movies for "Movies" view
+  // Determine Artist Type & Stats
+  let artistType = 'Singer'; // Default
+  if (person?.known_for_department === 'Sound' || person?.known_for_department === 'Composing') {
+    artistType = 'Music Director';
+  } else if (person?.known_for_department === 'Directing') {
+    artistType = 'Movie Director';
+  } else if (person?.known_for_department === 'Acting') {
+    artistType = 'Actor';
+  }
+
+  // Override based on ringtone data if TMDB is ambiguous (e.g. some music directors might be listed as Sound)
+  // Check if they appear frequently in music_director column
+  const isMusicDirector = ringtones?.some(r => r.music_director?.toLowerCase().includes(artistName.toLowerCase()));
+  if (isMusicDirector && artistType !== 'Movie Director') {
+    artistType = 'Music Director';
+  }
+
+  // Group by Movies for "Movies" view & Count
   const moviesMap = new Map<string, Ringtone>();
   if (ringtones) {
     ringtones.forEach(r => {
@@ -79,14 +96,16 @@ export default async function ArtistPage({
     });
   }
   const uniqueMovies = Array.from(moviesMap.values());
+  const movieCount = uniqueMovies.length;
 
   return (
     <div className="max-w-md mx-auto pb-24">
       {/* Sticky Compact Profile Header */}
       <CompactProfileHeader
         name={artistName}
-        type="Singer"
+        type={artistType as any}
         ringtoneCount={ringtones?.length || 0}
+        movieCount={movieCount}
         totalLikes={totalLikes}
         imageUrl={artistImage}
         bio={artistBio}

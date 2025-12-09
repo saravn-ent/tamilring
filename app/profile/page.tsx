@@ -7,11 +7,13 @@ import FavoritesList from '@/components/FavoritesList';
 import RingtoneCard from '@/components/RingtoneCard';
 import LoginButton from '@/components/LoginButton';
 import PersonalCollections from '@/components/PersonalCollections';
-import { User, LogOut, Heart, Music, Trash2, Play, Pause, X, Globe, Instagram, Twitter } from 'lucide-react';
+import { User, LogOut, Heart, Music, Trash2, Play, Pause, X, Globe, Instagram, Twitter, Trophy, Star, Crown, Zap, Scissors, Disc } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Ringtone } from '@/types';
 import LegalFooter from '@/components/LegalFooter';
+import AvatarRank from '@/components/AvatarRank';
+import { getLevelTitle, syncUserGamification } from '@/lib/gamification';
 
 const supabase = createBrowserClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -22,6 +24,7 @@ export default function ProfilePage() {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [uploads, setUploads] = useState<Ringtone[]>([]);
+  const [userBadges, setUserBadges] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Edit State
@@ -32,6 +35,7 @@ export default function ProfilePage() {
   const [website, setWebsite] = useState('');
   const [instagram, setInstagram] = useState('');
   const [twitter, setTwitter] = useState('');
+  const [showAllContributions, setShowAllContributions] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -54,6 +58,13 @@ export default function ProfilePage() {
           setWebsite(profileData.website_url || '');
           setInstagram(profileData.instagram_handle || '');
           setTwitter(profileData.twitter_handle || '');
+
+          // Check and Sync Gamification Stats (Self-Healing)
+          syncUserGamification(supabase, user.id).then((synced) => {
+            if (synced && (synced.points !== profileData.points || synced.level !== profileData.level)) {
+              setProfile((prev: any) => ({ ...prev, ...synced }));
+            }
+          });
         }
 
         // Fetch Uploads
@@ -66,6 +77,16 @@ export default function ProfilePage() {
         if (uploadsData) {
           // Cast to Ringtone type, ensuring types match
           setUploads(uploadsData as unknown as Ringtone[]);
+        }
+
+        // Fetch Badges
+        const { data: badgesData } = await supabase
+          .from('user_badges')
+          .select('*, badge:badges(*)')
+          .eq('user_id', user.id);
+
+        if (badgesData) {
+          setUserBadges(badgesData);
         }
       }
       setLoading(false);
@@ -132,9 +153,9 @@ export default function ProfilePage() {
 
       setProfile({ ...profile, ...updates });
       setIsEditing(false);
-    } catch (error) {
-      alert('Error updating profile!');
-      console.error(error);
+    } catch (error: any) {
+      console.error('Error updating profile:', error);
+      alert(`Error updating profile: ${error.message || 'Unknown error. Check console for details.'}`);
     } finally {
       setSaving(false);
     }
@@ -200,18 +221,146 @@ export default function ProfilePage() {
   return (
     <div className="max-w-md mx-auto p-4 pb-24 min-h-screen flex flex-col">
       <header className="flex flex-col items-center mb-8 relative">
-        <div className="w-24 h-24 bg-neutral-800 rounded-full flex items-center justify-center mb-4 overflow-hidden border-4 border-neutral-900 shadow-xl relative group">
-          {profile?.avatar_url ? (
-            <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
-          ) : (
-            <User size={40} className="text-zinc-600" />
-          )}
+        <div className="mb-4">
+          <AvatarRank
+            image={profile?.avatar_url || user.user_metadata?.avatar_url}
+            point={profile?.points || 0}
+            level={profile?.level || 1}
+            size="lg"
+          />
         </div>
         <h1 className="text-2xl font-bold text-white mb-1">
           {profile?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Ringtone User'}
         </h1>
         <p className="text-xs text-zinc-600 mb-4 font-mono">{user.email}</p>
         {profile?.bio && <p className="text-zinc-400 text-sm max-w-sm text-center mb-4">{profile.bio}</p>}
+
+        {/* Stats */}
+        <div className="flex items-center gap-6 mb-6 text-sm">
+          <div className="flex flex-col items-center">
+            <span className="font-bold text-white text-xl">{uploads?.length || 0}</span>
+            <span className="text-zinc-500 font-medium text-[10px] uppercase tracking-wider">Ringtones</span>
+          </div>
+          <div className="w-px h-8 bg-neutral-800" />
+          <div className="flex flex-col items-center">
+            <span className="font-bold text-emerald-500 text-xl">{profile?.points || 0}</span>
+            <span className="text-zinc-500 font-medium text-[10px] uppercase tracking-wider">Reputation</span>
+          </div>
+          <div className="w-px h-8 bg-neutral-800" />
+          <div className="flex flex-col items-center">
+            <span className="font-bold text-amber-500 text-xl">{getLevelTitle(profile?.level || 1)}</span>
+            <span className="text-zinc-500 font-medium text-[10px] uppercase tracking-wider">Level</span>
+          </div>
+        </div>
+
+        {/* Badges */}
+        {userBadges && userBadges.length > 0 && (
+          <div className="mb-6 w-full px-4">
+            <div className="flex flex-wrap justify-center gap-2">
+              {userBadges.map((ub: any) => {
+                const Icon = ub.badge?.icon_name === 'scissors' ? Scissors :
+                  ub.badge?.icon_name === 'zap' ? Zap :
+                    ub.badge?.icon_name === 'crown' ? Crown :
+                      ub.badge?.icon_name === 'heart' ? Heart :
+                        ub.badge?.icon_name === 'music' ? Disc : Star;
+                // Improved Badge Style Logic
+                const getBadgeColor = (name: string) => {
+                  switch (name) {
+                    case 'crown': return {
+                      bg: 'from-amber-500/30 to-black',
+                      border: 'border-amber-500',
+                      text: 'text-amber-400',
+                      hex: '#fbbf24', // Amber 400
+                      shadow: 'shadow-amber-500/40',
+                      glow: 'group-hover:shadow-amber-500/60'
+                    };
+                    case 'zap': return {
+                      bg: 'from-yellow-400/30 to-black',
+                      border: 'border-yellow-400',
+                      text: 'text-yellow-400',
+                      hex: '#facc15', // Yellow 400
+                      shadow: 'shadow-yellow-400/40',
+                      glow: 'group-hover:shadow-yellow-400/60'
+                    };
+                    case 'heart': return {
+                      bg: 'from-rose-500/30 to-black',
+                      border: 'border-rose-500',
+                      text: 'text-rose-400',
+                      hex: '#fb7185', // Rose 400
+                      shadow: 'shadow-rose-500/40',
+                      glow: 'group-hover:shadow-rose-500/60'
+                    };
+                    case 'scissors': return {
+                      bg: 'from-cyan-400/30 to-black',
+                      border: 'border-cyan-400',
+                      text: 'text-cyan-400',
+                      hex: '#22d3ee', // Cyan 400
+                      shadow: 'shadow-cyan-400/40',
+                      glow: 'group-hover:shadow-cyan-400/60'
+                    };
+                    case 'music': return {
+                      bg: 'from-violet-500/30 to-black',
+                      border: 'border-violet-500',
+                      text: 'text-violet-400',
+                      hex: '#a78bfa', // Violet 400
+                      shadow: 'shadow-violet-500/40',
+                      glow: 'group-hover:shadow-violet-500/60'
+                    };
+                    default: return { // Star/Default
+                      bg: 'from-emerald-500/30 to-black',
+                      border: 'border-emerald-500',
+                      text: 'text-emerald-400',
+                      hex: '#34d399', // Emerald 400
+                      shadow: 'shadow-emerald-500/40',
+                      glow: 'group-hover:shadow-emerald-500/60'
+                    };
+                  }
+                };
+
+                const style = getBadgeColor(ub.badge?.icon_name);
+
+                return (
+                  <div key={ub.id} className="relative group cursor-help p-2">
+                    {/* Main Badge Container */}
+                    <div className={`
+                      w-16 h-16 rounded-2xl border-2 flex items-center justify-center relative overflow-hidden transition-all duration-300 transform group-hover:-translate-y-1 group-hover:scale-105
+                      bg-gradient-to-br ${style.bg}
+                      ${style.border}
+                      ${style.shadow} shadow-lg
+                      ${style.glow}
+                    `}>
+                      {/* Glossy Reflection Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-tr from-white/20 via-transparent to-transparent opacity-50 pointer-events-none" />
+
+                      {/* Subtle Inner Glow */}
+                      <div className={`absolute inset-0 bg-${style.text.split('-')[1]}-500/10 blur-xl`} />
+
+                      {/* Icon */}
+                      <Icon
+                        size={28}
+                        color={style.hex}
+                        fill={style.hex}
+                        className={`relative z-10 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] filter`}
+                      />
+                    </div>
+
+                    {/* Badge Name Label (Little pill below) */}
+                    <div className={`mt-2 text-[10px] font-bold uppercase tracking-wider text-center opacity-70 group-hover:opacity-100 transition-opacity ${style.text}`}>
+                      {ub.badge?.name}
+                    </div>
+
+                    {/* Tooltip */}
+                    <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 w-48 bg-black/90 backdrop-blur-xl p-3 rounded-xl text-xs text-center border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-50 shadow-2xl translate-y-2 group-hover:translate-y-0">
+                      <p className={`font-bold text-sm mb-1 ${style.text}`}>{ub.badge?.name}</p>
+                      <p className="text-zinc-400 leading-relaxed">{ub.badge?.description}</p>
+                      <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-black border-r border-b border-white/10 rotate-45"></div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         <div className="flex gap-3 mb-2">
           {profile?.website_url && (
@@ -339,7 +488,7 @@ export default function ProfilePage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {uploads.map(ringtone => (
+              {(showAllContributions ? uploads : uploads.slice(0, 3)).map(ringtone => (
                 <div key={ringtone.id} className="flex items-center gap-3 bg-neutral-900 border border-neutral-800 p-3 rounded-lg group">
                   <div className="w-12 h-12 rounded bg-neutral-800 relative overflow-hidden shrink-0">
                     {ringtone.poster_url ? (
@@ -362,6 +511,15 @@ export default function ProfilePage() {
                   </button>
                 </div>
               ))}
+
+              {uploads.length > 3 && (
+                <button
+                  onClick={() => setShowAllContributions(!showAllContributions)}
+                  className="w-full py-3 mt-2 text-xs font-bold uppercase tracking-wider text-zinc-500 bg-neutral-900/50 hover:bg-neutral-800 hover:text-emerald-400 rounded-xl border border-neutral-800 transition-all"
+                >
+                  {showAllContributions ? 'Show Less' : `View All (${uploads.length})`}
+                </button>
+              )}
             </div>
           )}
         </section>

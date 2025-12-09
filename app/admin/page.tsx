@@ -59,14 +59,22 @@ export default function AdminDashboard() {
         setLoading(false);
     };
 
-    const handleApprove = async (id: string) => {
+    const handleApprove = async (ringtone: Ringtone) => {
         const { error } = await supabase
             .from('ringtones')
             .update({ status: 'approved' })
-            .eq('id', id);
+            .eq('id', ringtone.id);
 
         if (!error) {
-            setRingtones(prev => prev.filter(r => r.id !== id));
+            setRingtones(prev => prev.filter(r => r.id !== ringtone.id));
+
+            // Gamification Logic
+            if (ringtone.user_id) {
+                // Dynamically import to avoid server/client issues if any, though it's client code
+                const { awardPoints, checkUploadBadges, POINTS_PER_UPLOAD } = await import('@/lib/gamification');
+                await awardPoints(supabase, ringtone.user_id, POINTS_PER_UPLOAD);
+                await checkUploadBadges(supabase, ringtone.user_id);
+            }
         } else {
             alert('Error approving ringtone');
         }
@@ -182,7 +190,7 @@ export default function AdminDashboard() {
                             {/* Actions */}
                             <div className="flex sm:flex-col gap-2 justify-center border-t sm:border-t-0 sm:border-l border-neutral-800 pt-4 sm:pt-0 sm:pl-4 mt-2 sm:mt-0">
                                 <button
-                                    onClick={() => handleApprove(ringtone.id)}
+                                    onClick={() => handleApprove(ringtone)}
                                     className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-black border border-emerald-500/20 rounded-lg px-4 py-2 font-medium transition-all"
                                 >
                                     <Check size={18} /> Approve
