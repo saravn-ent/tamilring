@@ -19,9 +19,11 @@ export const dynamic = 'force-dynamic';
 
 const getTopArtists = unstable_cache(
   async () => {
+    // 1. Fix Content Leak: Filter by 'approved' status
     const { data } = await supabase
       .from('ringtones')
-      .select('singers, music_director, movie_director, likes');
+      .select('singers, music_director, movie_director, likes')
+      .eq('status', 'approved');
 
     if (!data) return { topSingers: [], topMusicDirectors: [], topMovieDirectors: [] };
 
@@ -104,117 +106,97 @@ const getTopArtists = unstable_cache(
       }
     });
 
-    // Build top singers but skip results that are actually directors according to TMDB
+    // Clean Name Helper
+    const cleanName = (n: string) =>
+      n
+        .replace(/\(.*?\)/g, '')
+        .replace(/\b(music|director|composer|singer|vocals|vocal|feat|ft)\b/gi, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+
+    // Helper to fetch Person details (Parallelized)
+    const enrichArtist = async (rawName: string, likes: number) => {
+      const searchQuery = cleanName(rawName);
+      const person = await searchPerson(searchQuery);
+      return {
+        name: person?.name || searchQuery,
+        likes,
+        image: person?.profile_path ? getImageUrl(person.profile_path, 'w500') : null
+      };
+    };
+
+    // 1. Process Top Singers (Parallel)
     const sortedSingers = Array.from(singerMap.entries())
       .map(([_, v]) => [v.name, v.likes] as [string, number])
       .sort((a, b) => b[1] - a[1]);
-    // Debug info for why some singer candidates were skipped
-    const debugSkipped: { name: string; likes: number; reason: string; norm: string; tmdbDept?: string | null }[] = [];
 
-    const topSingers: { name: string; likes: number; image: string | null }[] = [];
-    const cleanName = (n: string) =>
-      n
-        .replace(/\(.*?\)/g, '') // remove parenthetical notes
-        .replace(/\b(music|director|composer|singer|vocals|vocal|feat|ft)\b/gi, '') // remove role words
-        .replace(/\s+/g, ' ') // collapse spaces
-        .trim();
+    const topSingerCandidates = sortedSingers.slice(0, 15); // Process top 15 candidates to account for potential skips
 
-    // ... inside the sortedSingers loop ...
-    for (const [rawName, likes] of sortedSingers) {
-      if (topSingers.length >= 10) break;
+    // Filter candidates before fetch to save requests
+    const validSingerCandidates = topSingerCandidates.filter(([rawName, _]) => {
       const norm = normalize(rawName);
-      if (!norm) continue;
+      if (!norm) return false;
+      if (directorSet.has(norm) || musicDirectorMap.has(norm) || movieDirectorMap.has(norm)) return false;
+      return true;
+    });
 
-      // ... exclusions ...
-      if (directorSet.has(norm) || musicDirectorMap.has(norm) || movieDirectorMap.has(norm)) {
-        // ...
-        continue;
-      }
-
-      const searchQuery = cleanName(rawName);
-      const person = await searchPerson(searchQuery); // Search with cleaner name
-
-      // ... check known_for_department ...
-
-      // Use the name returned by TMDB if available (better casing/spelling), else fallback to clean raw name
-      const displayName = person?.name || searchQuery;
-
-      topSingers.push({
-        name: displayName,
-        likes,
-        image: person?.profile_path ? getImageUrl(person.profile_path, 'w500') : null
-      });
-    }
-
-    const topMusicDirectors = await Promise.all(
-      Array.from(musicDirectorMap.entries())
-        .map(([_, v]) => [v.name, v.likes] as [string, number])
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 10)
-        .map(async ([rawName, likes]) => {
-          const searchQuery = cleanName(rawName);
-          const person = await searchPerson(searchQuery);
-          return {
-            name: person?.name || searchQuery,
-            likes,
-            image: person?.profile_path ? getImageUrl(person.profile_path, 'w500') : null
-          };
-        })
+    // Fetch images in parallel
+    const topSingers = await Promise.all(
+      validSingerCandidates.slice(0, 10).map(([name, likes]) => enrichArtist(name, likes))
     );
 
-    // Include known music directors if not already present
+
+    // 2. Process Music Directors (Parallel)
+    const mdCandidates = Array.from(musicDirectorMap.entries())
+      .map(([_, v]) => [v.name, v.likes] as [string, number])
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10);
+
+    // Add known manual MDs if missing
     for (const name of knownMusicDirectors) {
       const norm = normalize(name);
-      if (!topMusicDirectors.some(d => normalize(d.name) === norm)) {
+      if (!mdCandidates.some(([cName]) => normalize(cName) === norm)) {
         const likes = musicDirectorMap.get(norm)?.likes || 0;
-        const person = await searchPerson(name);
-        topMusicDirectors.push({
-          name: person?.name || name,
-          likes,
-          image: person?.profile_path ? getImageUrl(person.profile_path, 'w500') : null
-        });
+        mdCandidates.push([name, likes]);
       }
     }
 
-    // Sort by likes descending
-    topMusicDirectors.sort((a, b) => b.likes - a.likes);
+    // Dedup and sort
+    const finalMDCandidates = mdCandidates
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10);
 
-    const topMovieDirectors = await Promise.all(
-      Array.from(movieDirectorMap.entries())
-        .map(([_, v]) => [v.name, v.likes] as [string, number])
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 10)
-        .map(async ([rawName, likes]) => {
-          const searchQuery = cleanName(rawName);
-          const person = await searchPerson(searchQuery);
-          return {
-            name: person?.name || searchQuery,
-            likes,
-            image: person?.profile_path ? getImageUrl(person.profile_path, 'w500') : null
-          };
-        })
+    const topMusicDirectors = await Promise.all(
+      finalMDCandidates.map(([name, likes]) => enrichArtist(name, likes))
     );
 
-    // Include known directors if not already present
+
+    // 3. Process Movie Directors (Parallel)
+    const dirCandidates = Array.from(movieDirectorMap.entries())
+      .map(([_, v]) => [v.name, v.likes] as [string, number])
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10);
+
+    // Add known manual Directors if missing
     for (const name of knownMovieDirectors) {
       const norm = normalize(name);
-      if (!topMovieDirectors.some(d => normalize(d.name) === norm)) {
+      if (!dirCandidates.some(([cName]) => normalize(cName) === norm)) {
         const likes = movieDirectorMap.get(norm)?.likes || 0;
-        const person = await searchPerson(name);
-        topMovieDirectors.push({
-          name: person?.name || name,
-          likes,
-          image: person?.profile_path ? getImageUrl(person.profile_path, 'w500') : null
-        });
+        dirCandidates.push([name, likes]);
       }
     }
 
-    // Sort by likes descending
-    topMovieDirectors.sort((a, b) => b.likes - a.likes);
+    const finalDirCandidates = dirCandidates
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10);
 
-    return { topSingers, topMusicDirectors, topMovieDirectors, debugSkipped } as any;
+    const topMovieDirectors = await Promise.all(
+      finalDirCandidates.map(([name, likes]) => enrichArtist(name, likes))
+    );
+
+    return { topSingers, topMusicDirectors, topMovieDirectors };
   },
-  ['top-artists-home-v5'],
+  ['top-artists-home-v6'], // Bump version
   { revalidate: 3600, tags: ['homepage-artists'] }
 );
 

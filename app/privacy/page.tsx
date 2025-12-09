@@ -1,29 +1,44 @@
+
 import React from 'react';
 
-export default function PrivacyPage() {
+export default function PrivacyPolicy() {
     return (
-        <div className="container mx-auto px-4 py-8 max-w-3xl">
-            <h1 className="text-3xl font-bold mb-6 text-zinc-100">Privacy Policy</h1>
-            <div className="prose prose-invert prose-zinc max-w-none">
-                <p className="text-zinc-300 mb-4">
-                    At TamilRing, we prioritize the privacy of our visitors. This Privacy Policy document contains types of information that is collected and recorded by TamilRing and how we use it.
-                </p>
+        <div className="max-w-3xl mx-auto px-4 py-10 text-zinc-300 space-y-6">
+            <h1 className="text-3xl font-bold text-white mb-6">Privacy Policy</h1>
 
-                <h2 className="text-xl font-semibold mt-6 mb-3 text-zinc-200">Log Files</h2>
-                <p className="text-zinc-300 mb-4">
-                    TamilRing follows a standard procedure of using log files. These files log visitors when they visit websites. All hosting companies do this as a part of hosting services' analytics.
+            <section>
+                <h2 className="text-xl font-semibold text-emerald-500 mb-3">1. Information We Collect</h2>
+                <p>
+                    Available information includes your account details (Google Profile) when you sign in,
+                    which we use solely for authentication and profile display. We also collect usage data like
+                    uploads, downloads, and favorites to personalize your experience.
                 </p>
+            </section>
 
-                <h2 className="text-xl font-semibold mt-6 mb-3 text-zinc-200">Cookies</h2>
-                <p className="text-zinc-300 mb-4">
-                    Like any other website, TamilRing uses 'cookies'. These cookies are used to store information including visitors' preferences, and the pages on the website that the visitor accessed or visited.
+            <section>
+                <h2 className="text-xl font-semibold text-emerald-500 mb-3">2. Cookies</h2>
+                <p>
+                    We use cookies to maintain your session and authentication state. By using TamilRing, you
+                    consent to our use of cookies for these functional purposes.
                 </p>
+            </section>
 
-                <h2 className="text-xl font-semibold mt-6 mb-3 text-zinc-200">Data Security</h2>
-                <p className="text-zinc-300 mb-4">
-                    We take reasonable measures to help protect information about you from loss, theft, misuse and unauthorized access, disclosure, alteration and destruction.
+            <section>
+                <h2 className="text-xl font-semibold text-emerald-500 mb-3">3. User Generated Content</h2>
+                <p>
+                    Any ringtones you upload are public. Please do not upload personal or private audio.
+                    We are not responsible for the content uploaded by users, but we moderate it for compliance.
                 </p>
-            </div>
+            </section>
+
+            <section>
+                <h2 className="text-xl font-semibold text-emerald-500 mb-3">4. Contact</h2>
+                <p>
+                    For privacy concerns, please contact us at <a href="mailto:privacy@tamilring.com" className="text-emerald-400 hover:underline">privacy@tamilring.com</a>.
+                </p>
+            </section>
+
+            <p className="text-zinc-500 text-sm mt-8">Last Updated: December 2025</p>
         </div>
     );
 }

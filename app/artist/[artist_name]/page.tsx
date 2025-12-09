@@ -109,10 +109,14 @@ export default async function ArtistPage({
         totalLikes={totalLikes}
         imageUrl={artistImage}
         bio={artistBio}
+        shareMetadata={{
+          title: `${artistName} Ringtones`,
+          text: `Check out the best ringtones by ${artistName} on TamilRing!`
+        }}
       />
 
       {/* Sticky Controls Bar */}
-      <div className="sticky top-[120px] z-30 bg-neutral-900/95 backdrop-blur-md border-b border-white/5 px-4 py-3 space-y-3 shadow-lg">
+      <div className="sticky top-[120px] z-30 bg-neutral-900/95 backdrop-blur-md border-b border-white/5 px-4 py-3 shadow-lg flex items-center justify-between gap-2">
         <ViewToggle />
         <div className="flex justify-end">
           <SortControl />

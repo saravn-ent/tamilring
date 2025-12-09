@@ -3,6 +3,7 @@ import "./globals.css";
 import { PlayerProvider } from "@/context/PlayerContext";
 import { FavoritesProvider } from "@/context/FavoritesContext";
 import BottomNav from "@/components/BottomNav";
+import LegalFooter from "@/components/LegalFooter";
 import TopBar from "@/components/TopBar";
 import { ThemeProvider } from "@/components/ThemeProvider";
 
@@ -33,10 +34,6 @@ export const metadata: Metadata = {
   },
   formatDetection: {
     telephone: false,
-  },
-  icons: {
-    icon: '/icons/icon-192x192.png',
-    apple: '/icons/icon-512x512.png',
   },
 };
 
@@ -72,11 +69,9 @@ export default function RootLayout({
               <main className="min-h-screen pt-14 pb-32 relative z-0">
                 {children}
               </main>
-              {/* DMCA / Copyright notice */}
-              <footer className="w-full text-center text-xs text-muted-foreground px-4 py-3">
-                If you believe any content on this site infringes your copyright, please contact us at
-                <a className="ml-1 underline" href="mailto:copyright@tamilring.com">copyright@tamilring.com</a>.
-              </footer>
+              <div className="pb-24">
+                <LegalFooter />
+              </div>
               <BottomNav />
             </FavoritesProvider>
           </PlayerProvider>

@@ -4,6 +4,7 @@ import { Heart, Zap, Frown, Music, Mic2, Disc, Guitar, Wind, Moon, Dumbbell, Pla
 import { supabase } from '@/lib/supabaseClient';
 import { unstable_cache } from 'next/cache';
 import ImageWithFallback from '@/components/ImageWithFallback';
+import { ERAS } from '@/lib/constants';
 
 const getFeaturedArtists = unstable_cache(
   async () => {
@@ -65,12 +66,7 @@ export default async function DiscoveryHub() {
     { name: "Melody", icon: Mic2, color: "text-purple-400" },
   ];
 
-  const ERAS = [
-    { label: "80s", query: "80s", color: "from-pink-500/20 to-purple-500/20" },
-    { label: "90s", query: "90s", color: "from-cyan-500/20 to-blue-500/20" },
-    { label: "2K Kids", query: "2000s", color: "from-emerald-500/20 to-teal-500/20" },
-    { label: "2024", query: "2024", color: "from-orange-500/20 to-red-500/20" }
-  ];
+  /* ERAS imported from constants */
 
   const INSTRUMENTS = [
     { label: "Flute", icon: Wind, query: "flute" },
@@ -121,11 +117,11 @@ export default async function DiscoveryHub() {
           {ERAS.map((era) => (
             <Link
               key={era.label}
-              href={`/search?q=${era.query}`}
-              className={`relative h-24 rounded-2xl overflow-hidden flex items-center justify-center bg-gradient-to-br ${era.color} border border-zinc-200 dark:border-white/5 hover:scale-[1.02] transition-transform group`}
+              href={`/search?q=${era.label}`}
+              className={`relative h-24 rounded-2xl overflow-hidden flex items-center justify-center bg-gradient-to-br ${era.color} border border-zinc-200 dark:border-white/5 hover:scale-[1.02] transition-transform group shadow-md`}
             >
-              <div className="absolute inset-0 bg-white/40 dark:bg-neutral-900/20 group-hover:bg-transparent transition-colors" />
-              <span className="relative text-xl font-bold text-zinc-900 dark:text-white tracking-wider drop-shadow-lg">{era.label}</span>
+              <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
+              <span className="relative text-xl font-black italic text-white tracking-wider drop-shadow-lg opacity-90">{era.label}</span>
             </Link>
           ))}
         </div>

@@ -9,6 +9,7 @@ import DownloadButton from './DownloadButton';
 import StreamButtons from '@/components/StreamButtons';
 import { splitArtists } from '@/lib/utils';
 import LegalFooter from '@/components/LegalFooter';
+import ShareButton from '@/components/ShareButton';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -27,6 +28,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${ringtone.title} Ringtone Download - ${ringtone.movie_name} (${ringtone.movie_year}) | Free MP3`,
     description: `Download ${ringtone.mood} ${ringtone.title} ringtone by ${ringtone.singers} from the movie ${ringtone.movie_name}. High quality 320kbps MP3.`,
+    openGraph: {
+      title: `${ringtone.title} Ringtone`,
+      description: `Download ${ringtone.title} ringtone on TamilRing.`,
+      images: ringtone.poster_url ? [{ url: ringtone.poster_url }] : [],
+    },
   };
 }
 
@@ -66,10 +72,19 @@ export default async function RingtonePage({ params }: Props) {
       </div>
 
       <div className="relative z-10 p-4 pt-4 flex-1 pb-32">
-        <Link href="/" className="inline-flex items-center gap-2 text-zinc-100 hover:text-emerald-500 mb-6 bg-neutral-800 px-4 py-3 rounded-xl shadow-lg transition-all active:scale-95">
-          <ArrowLeft size={24} strokeWidth={2.5} />
-          <span className="text-base font-semibold">Back</span>
-        </Link>
+        <div className="flex items-center justify-between mb-6">
+          <Link href="/" className="inline-flex items-center gap-2 text-zinc-100 hover:text-emerald-500 bg-neutral-800 px-4 py-3 rounded-xl shadow-lg transition-all active:scale-95">
+            <ArrowLeft size={24} strokeWidth={2.5} />
+            <span className="text-base font-semibold">Back</span>
+          </Link>
+
+          {/* Top Right Share Button */}
+          <ShareButton
+            variant="icon"
+            title={`${ringtone.title} Ringtone`}
+            text={`Download ${ringtone.title} ringtone from ${ringtone.movie_name} on TamilRing!`}
+          />
+        </div>
 
         <div className="flex flex-col items-center text-center space-y-4 mt-2">
           <div className="relative w-32 h-48 rounded-xl overflow-hidden shadow-2xl shadow-black/50 bg-neutral-800 flex items-center justify-center">
@@ -112,8 +127,8 @@ export default async function RingtonePage({ params }: Props) {
             )}
           </div>
 
-          {/* Play and Download Buttons */}
-          <div className="flex gap-4 w-full max-w-xs">
+          {/* Play & Download Buttons (Share removed from here) */}
+          <div className="flex gap-4 w-full max-w-xs justify-center">
             <PlayButton ringtone={ringtone} />
             <DownloadButton ringtone={ringtone} />
           </div>

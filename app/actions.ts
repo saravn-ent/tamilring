@@ -83,13 +83,16 @@ export async function incrementDownloads(ringtoneId: string) {
 
 import { revalidateTag, revalidatePath } from 'next/cache'
 
+// ... imports
+
 export async function revalidateArtistCache() {
   try {
-    // @ts-expect-error - Next.js type mismatch workaround
+    // Current Next.js types for server actions can be strict about void/return types
+    // @ts-expect-error - revalidateTag returns void, but we wrap it for safety
     revalidateTag('homepage-artists')
     revalidatePath('/', 'page') // Stronger refresh for homepage
   } catch (e) {
     console.error('Revalidation failed:', e)
   }
-  return { success: true }
+  return { success: true, timestamp: Date.now() }
 }

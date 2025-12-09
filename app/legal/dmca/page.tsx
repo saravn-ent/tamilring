@@ -1,33 +1,34 @@
+
 import React from 'react';
 
-export default function DMCAPage() {
+export default function DMCA() {
     return (
-        <div className="container mx-auto px-4 py-8 max-w-3xl">
-            <h1 className="text-3xl font-bold mb-6 text-zinc-100">DMCA / Copyright Policy</h1>
-            <div className="prose prose-invert prose-zinc max-w-none">
-                <p className="text-zinc-300 mb-4">
-                    TamilRing respects the intellectual property rights of others and expects its users to do the same.
-                    It is our policy to respond to clear notices of alleged copyright infringement that comply with the
-                    Digital Millennium Copyright Act (DMCA).
-                </p>
+        <div className="max-w-3xl mx-auto px-4 py-10 text-zinc-300 space-y-6">
+            <h1 className="text-3xl font-bold text-white mb-6">DMCA Takedown Request</h1>
 
-                <h2 className="text-xl font-semibold mt-6 mb-3 text-zinc-200">Reporting Infringement</h2>
-                <p className="text-zinc-300 mb-4">
-                    If you believe that your work has been copied in a way that constitutes copyright infringement,
-                    please provide us with the following information:
+            <p>
+                TamilRing respects the intellectual property rights of others. We comply with the Digital Millennium Copyright Act (DMCA).
+            </p>
+
+            <div className="bg-neutral-900 border border-neutral-800 p-6 rounded-xl space-y-4">
+                <h2 className="text-xl font-bold text-white">Submit a Request</h2>
+                <p className="text-sm">
+                    To file a copyright infringement notification, please email us with the following information:
                 </p>
-                <ul className="list-disc pl-6 text-zinc-300 mb-4 space-y-2">
-                    <li>A physical or electronic signature of the copyright owner or a person authorized to act on their behalf.</li>
-                    <li>Identification of the copyrighted work claimed to have been infringed.</li>
-                    <li>Identification of the material that is claimed to be infringing or to be the subject of infringing activity and that is to be removed or access to which is to be disabled.</li>
-                    <li>Information reasonably sufficient to permit us to contact you, such as an email address or telephone number.</li>
-                    <li>A statement that you have a good faith belief that use of the material in the manner complained of is not authorized by the copyright owner, its agent, or the law.</li>
+                <ul className="list-disc ml-5 space-y-2 text-sm text-zinc-400">
+                    <li>Identify the copyrighted work you claim has been infringed.</li>
+                    <li>Identify the material on TamilRing that you claim is infringing (provide the URL).</li>
+                    <li>Your contact information (Name, Email, Phone).</li>
+                    <li>A statement that you have a "good faith belief" that the use is not authorized.</li>
+                    <li>A statement that the information in the notification is accurate.</li>
                 </ul>
 
-                <h2 className="text-xl font-semibold mt-6 mb-3 text-zinc-200">Contact</h2>
-                <p className="text-zinc-300">
-                    Notices of copyright infringement should be sent to: <a href="mailto:support@tamilring.com" className="text-emerald-500 hover:text-emerald-400">support@tamilring.com</a>
-                </p>
+                <div className="mt-6 pt-6 border-t border-neutral-800">
+                    <p className="text-sm font-bold text-white mb-2">Send Email To:</p>
+                    <a href="mailto:copyright@tamilring.com?subject=DMCA Takedown Request" className="inline-block bg-emerald-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-emerald-500 transition-colors">
+                        copyright@tamilring.com
+                    </a>
+                </div>
             </div>
         </div>
     );

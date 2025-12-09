@@ -28,11 +28,13 @@ export default function UploadForm() {
 
   const ffmpegRef = useRef<FFmpeg | null>(null);
   const [ffmpegLoaded, setFfmpegLoaded] = useState(false);
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
 
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) setUserId(user.id);
+      setIsAuthChecking(false);
     };
     getUser();
   }, []);
@@ -432,6 +434,36 @@ export default function UploadForm() {
       setLoadingMessage('');
     }
   };
+
+  // Auth Check Block
+  if (isAuthChecking) {
+    return (
+      <div className="max-w-md mx-auto p-12 text-center text-zinc-500">
+        <Loader2 className="animate-spin mx-auto mb-4" />
+        <p>Verifying account...</p>
+      </div>
+    );
+  }
+
+  if (!userId) {
+    return (
+      <div className="max-w-md mx-auto bg-neutral-900/50 p-8 rounded-2xl border border-neutral-800 text-center space-y-6">
+        <div className="w-20 h-20 bg-neutral-800 rounded-full flex items-center justify-center mx-auto text-emerald-500 mb-4">
+          <Upload size={32} />
+        </div>
+        <div>
+          <h2 className="text-2xl font-bold text-white mb-2">Login Required</h2>
+          <p className="text-zinc-400 text-sm">You must be logged in to upload ringtones to TamilRing.</p>
+        </div>
+        <a
+          href="/profile" // Profile page usually handles login if not logged in
+          className="block w-full bg-emerald-500 text-neutral-900 font-bold py-3.5 rounded-xl hover:bg-emerald-400 transition-colors"
+        >
+          Go to Login
+        </a>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-md mx-auto bg-neutral-900 p-6 rounded-2xl border border-neutral-800 pb-32">

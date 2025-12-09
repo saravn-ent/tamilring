@@ -10,6 +10,7 @@ import { useSearchParams } from 'next/navigation';
 import { splitArtists } from '@/lib/utils';
 import { MOODS, ERAS } from '@/lib/constants';
 import ImageWithFallback from '@/components/ImageWithFallback';
+import NoResults from '@/components/NoResults';
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -76,23 +77,50 @@ function SearchContent() {
 
         let newResults = { ringtones: [], movies: [], artists: [] };
 
+        const matchedEra = ERAS.find(e => e.label.toLowerCase() === query.toLowerCase());
+
         const fetchRingtones = async () => {
-          const { data } = await supabase
+          let dbQuery = supabase
             .from('ringtones')
             .select('*')
-            .eq('status', 'approved')
-            .ilike('title', `%${query}%`)
-            .limit(10);
+            .eq('status', 'approved');
+
+          if (matchedEra) {
+            // Era Filtering
+            dbQuery = dbQuery
+              .gte('movie_year', matchedEra.startYear)
+              .lte('movie_year', matchedEra.endYear)
+              .order('downloads', { ascending: false }) // Sort by popularity for Eras
+              .limit(20);
+          } else {
+            // Text Search
+            dbQuery = dbQuery
+              .ilike('title', `%${query}%`)
+              .limit(10);
+          }
+
+          const { data } = await dbQuery;
           return data || [];
         };
 
         const fetchMovies = async () => {
-          const { data } = await supabase
+          let dbQuery = supabase
             .from('ringtones')
             .select('movie_name, movie_year, poster_url')
-            .eq('status', 'approved')
-            .ilike('movie_name', `%${query}%`)
-            .limit(20);
+            .eq('status', 'approved');
+
+          if (matchedEra) {
+            dbQuery = dbQuery
+              .gte('movie_year', matchedEra.startYear)
+              .lte('movie_year', matchedEra.endYear)
+              .limit(50);
+          } else {
+            dbQuery = dbQuery
+              .ilike('movie_name', `%${query}%`)
+              .limit(20);
+          }
+
+          const { data } = await dbQuery;
 
           const uniqueMovies = new Map();
           data?.forEach(item => {
@@ -102,11 +130,23 @@ function SearchContent() {
         };
 
         const fetchArtists = async () => {
+          // Artists don't have years attached directly in a searchable way for Eras, 
+          // and "Top Artists from the 80s" is complex without an 'artist_era' column.
+          // For now, if searching by Era, we might return empty artists or just generic text search matches?
+
+          if (matchedEra) {
+            // Optional: Find artists who have songs in that era? 
+            // That requires a JOIN or complex query not easily doable in one go.
+            // Let's return empty for Artists tab in Era mode to keep it clean, 
+            // OR just run the text search just in case they typed "80s" and there's a band called "80s".
+            return [];
+          }
+
           const { data } = await supabase
             .from('ringtones')
             .select('singers, music_director')
             .eq('status', 'approved')
-            .or(`singers.ilike.%${query}%,music_director.ilike.%${query}%`) // Search both columns
+            .or(`singers.ilike.%${query}%,music_director.ilike.%${query}%`)
             .limit(20);
 
           const allArtists = new Set<string>();
@@ -142,6 +182,12 @@ function SearchContent() {
   }, [query, activeTab]);
 
   const hasResults = results.ringtones.length > 0 || results.movies.length > 0 || results.artists.length > 0;
+  const matchedEra = ERAS.find(e => e.label.toLowerCase() === query.toLowerCase());
+
+  const tabs = ['all', 'ringtones', 'movies', 'artists'].filter(tab => {
+    if (matchedEra && tab === 'artists') return false;
+    return true;
+  });
 
   return (
     <div className="max-w-md mx-auto px-4 pt-4 pb-24">
@@ -161,7 +207,7 @@ function SearchContent() {
 
       {/* Tabs (Always Visible) */}
       <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
-        {['all', 'ringtones', 'movies', 'artists'].map((tab) => (
+        {tabs.map((tab) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab as any)}
@@ -208,7 +254,7 @@ function SearchContent() {
               {(activeTab === 'all' || activeTab === 'movies') && results.movies.length > 0 && (
                 <section className="animate-in fade-in slide-in-from-bottom-2 duration-500">
                   <h3 className="font-bold text-zinc-400 text-xs uppercase tracking-wider mb-3 px-1">
-                    {activeTab === 'all' ? 'Movies' : 'Matching Movies'}
+                    {ERAS.find(e => e.label.toLowerCase() === query.toLowerCase()) ? `${query} Movies` : (activeTab === 'all' ? 'Movies' : 'Matching Movies')}
                   </h3>
                   <div className="grid grid-cols-2 gap-3">
                     {results.movies.map((item, idx) => (
@@ -256,9 +302,7 @@ function SearchContent() {
               )}
             </>
           ) : (
-            <div className="text-center py-10 text-zinc-500">
-              No results found for "{query}"
-            </div>
+            <NoResults query={query} />
           )}
         </div>
       ) : (

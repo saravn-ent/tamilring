@@ -1,39 +1,46 @@
+
 import React from 'react';
 
-export default function TermsPage() {
+export default function TermsOfService() {
     return (
-        <div className="container mx-auto px-4 py-8 max-w-3xl">
-            <h1 className="text-3xl font-bold mb-6 text-zinc-100">Terms of Service</h1>
-            <div className="prose prose-invert prose-zinc max-w-none">
-                <p className="text-zinc-300 mb-4">
-                    Welcome to TamilRing. By accessing or using our website, you agree to be bound by these Terms of Service.
-                </p>
+        <div className="max-w-3xl mx-auto px-4 py-10 text-zinc-300 space-y-6">
+            <h1 className="text-3xl font-bold text-white mb-6">Terms of Service</h1>
 
-                <h2 className="text-xl font-semibold mt-6 mb-3 text-zinc-200">1. Acceptance of Terms</h2>
-                <p className="text-zinc-300 mb-4">
-                    By accessing and using this service, you accept and agree to be bound by the terms and provision of this agreement.
+            <section>
+                <h2 className="text-xl font-semibold text-emerald-500 mb-3">1. Acceptance of Terms</h2>
+                <p>
+                    By accessing TamilRing, you agree to be bound by these Terms of Service and all applicable laws and regulations.
                 </p>
+            </section>
 
-                <h2 className="text-xl font-semibold mt-6 mb-3 text-zinc-200">2. User Conduct</h2>
-                <p className="text-zinc-300 mb-4">
-                    You agree to use the website only for lawful purposes. You are prohibited from posting or transmitting any
-                    unlawful, threatening, libelous, defamatory, obscene, or profane material.
+            <section>
+                <h2 className="text-xl font-semibold text-emerald-500 mb-3">2. User Conduct</h2>
+                <p>
+                    You agree NOT to upload content that is:
+                    <ul className="list-disc ml-5 mt-2 space-y-1 text-zinc-400">
+                        <li>Illegal, hate speech, or defamatory.</li>
+                        <li>Explicitly infringing on copyright (though we respect fair use for ringtones, direct piracy is prohibited).</li>
+                        <li>Malicious code or spam.</li>
+                    </ul>
                 </p>
+            </section>
 
-                <h2 className="text-xl font-semibold mt-6 mb-3 text-zinc-200">3. Content</h2>
-                <p className="text-zinc-300 mb-4">
-                    Ringtones and content available on TamilRing are for personal use only. Users are responsible for the content
-                    they upload and share on the platform.
+            <section>
+                <h2 className="text-xl font-semibold text-emerald-500 mb-3">3. Copyright & DMCA</h2>
+                <p>
+                    We respect intellectual property rights. If you believe your content has been infringed,
+                    please submit a <a href="/legal/dmca" className="text-emerald-400 hover:underline">DMCA Takedown Request</a>.
                 </p>
+            </section>
 
-                <h2 className="text-xl font-semibold mt-6 mb-3 text-zinc-200">4. Disclaimer</h2>
-                <p className="text-zinc-300 mb-4">
-                    The materials on TamilRing's website are provided on an 'as is' basis. TamilRing makes no warranties,
-                    expressed or implied, and hereby disclaims and negates all other warranties including, without limitation,
-                    implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement
-                    of intellectual property or other violation of rights.
+            <section>
+                <h2 className="text-xl font-semibold text-emerald-500 mb-3">4. Termination</h2>
+                <p>
+                    We reserve the right to ban users who violate these terms or upload inappropriate content.
                 </p>
-            </div>
+            </section>
+
+            <p className="text-zinc-500 text-sm mt-8">Last Updated: December 2025</p>
         </div>
     );
 }

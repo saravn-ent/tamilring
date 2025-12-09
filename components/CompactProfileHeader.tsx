@@ -5,7 +5,10 @@ import Link from 'next/link';
 import ImageWithFallback from './ImageWithFallback';
 import { formatCount } from '@/lib/utils';
 import FavoriteButton from './FavoriteButton';
+import ShareButton from './ShareButton';
 import ArtistImageUpload from './ArtistImageUpload';
+
+// ...
 
 interface CompactProfileHeaderProps {
     name: string;
@@ -15,8 +18,10 @@ interface CompactProfileHeaderProps {
     totalLikes: number;
     imageUrl?: string;
     bio?: string;
+    shareMetadata?: { title: string; text: string };
 }
 
+// ... props ...
 export default function CompactProfileHeader({
     name,
     type,
@@ -24,7 +29,8 @@ export default function CompactProfileHeader({
     movieCount,
     totalLikes,
     imageUrl,
-    bio
+    bio,
+    shareMetadata
 }: CompactProfileHeaderProps) {
     return (
         <div className="sticky top-0 z-40 bg-neutral-900/95 backdrop-blur-md border-b border-white/10 shadow-lg">
@@ -76,7 +82,17 @@ export default function CompactProfileHeader({
 
                     {/* Info */}
                     <div className="flex-1 min-w-0 pt-1">
-                        <h1 className="text-2xl font-bold text-white leading-tight mb-2 tracking-tight">{name}</h1>
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                            <h1 className="text-2xl font-bold text-white leading-tight tracking-tight">{name}</h1>
+                            {shareMetadata && (
+                                <ShareButton
+                                    variant="icon"
+                                    title={shareMetadata.title}
+                                    text={shareMetadata.text}
+                                    className="shrink-0 w-8 h-8 !p-0 bg-white/5 hover:bg-white/10 border border-white/10 text-zinc-400 hover:text-white"
+                                />
+                            )}
+                        </div>
                         <div className="flex flex-wrap gap-2 text-xs text-zinc-400">
                             {movieCount !== undefined && movieCount > 0 && (
                                 <span className="flex items-center gap-1 bg-white/5 px-2.5 py-1 rounded-md text-zinc-200 border border-white/10 font-medium">
