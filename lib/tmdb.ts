@@ -69,11 +69,12 @@ export const searchPerson = async (query: string): Promise<PersonResult | null> 
   if (!query) return null;
 
   // 1. Check Database Uploads first (Highest Priority)
+  // ... (keep existing db code)
   try {
     const { data: dbImage } = await supabase
       .from('artist_images')
       .select('image_url')
-      .eq('artist_name', query) // Exact match for now
+      .eq('artist_name', query)
       .single();
 
     if (dbImage && dbImage.image_url) {
@@ -85,11 +86,10 @@ export const searchPerson = async (query: string): Promise<PersonResult | null> 
       };
     }
   } catch (e) {
-    // Ignore DB errors, fall through
-    console.warn('Error fetching artist image from DB', e);
+    // Ignore DB errors
   }
 
-  // 2. Check Manual Overrides (Code)
+  // 2. Check Manual Overrides
   const manualImage = MANUAL_ARTIST_IMAGES[query] ||
     Object.entries(MANUAL_ARTIST_IMAGES).find(([k, v]) => k.toLowerCase() === query.toLowerCase())?.[1];
 
@@ -102,13 +102,21 @@ export const searchPerson = async (query: string): Promise<PersonResult | null> 
     };
   }
 
+  // 3. TMDB - Fail gracefully if no key
+  if (!TMDB_API_KEY) {
+    console.warn("TMDB_API_KEY is missing, skipping TMDB search for: " + query);
+    return null;
+  }
+
   try {
-    const res = await fetch(`${BASE_URL}/search/person?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&language=en-US&page=1&include_adult=false`);
-    if (!res.ok) throw new Error('Failed to fetch person');
+    const res = await fetch(`${BASE_URL}/search/person?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&language=en-US&page=1&include_adult=false`, {
+      next: { revalidate: 3600 }
+    });
+    if (!res.ok) throw new Error(`TMDB Error: ${res.status}`);
     const data = await res.json();
     return data.results?.[0] || null; // Return the first match
   } catch (error) {
-    console.error(`Error searching person ${query}:`, error);
+    console.warn(`Warning: Could not fetch artist "${query}" from TMDB. (Network/API Error)`);
     return null;
   }
 };

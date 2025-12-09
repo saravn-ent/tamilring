@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { PlayerProvider } from "@/context/PlayerContext";
 import { FavoritesProvider } from "@/context/FavoritesContext";
@@ -15,9 +15,29 @@ const figtree = Figtree({
   variable: '--font-figtree',
 });
 
+export const viewport: Viewport = {
+  themeColor: "#050505",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export const metadata: Metadata = {
   title: "TamilRing - Mobile First Ringtones",
   description: "Download high quality ringtones.",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "TamilRing",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  icons: {
+    icon: '/icons/icon-192x192.png',
+    apple: '/icons/icon-512x512.png',
+  },
 };
 
 import Background from "@/components/Background";
@@ -43,9 +63,9 @@ export default function RootLayout({
           </Suspense>
           {/* Aurora Background - Only visible in dark mode or adapted */}
           <div className="dark:block hidden">
-             <Background />
+            <Background />
           </div>
-          
+
           <PlayerProvider>
             <FavoritesProvider>
               <TopBar />

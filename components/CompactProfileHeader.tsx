@@ -57,16 +57,21 @@ export default function CompactProfileHeader({
                 <div className="flex items-start gap-4">
                     {/* Square-ish Avatar with rounded corners - Larger/Premium */}
                     {/* Portrait Avatar - Matches Homepage HeroCard Style */}
-                    <div className={`
-                        relative w-28 h-40 rounded-xl border-2 shadow-2xl overflow-hidden shrink-0 bg-neutral-800 group
-                        ${type === 'Music Director' || type === 'Movie Director' ? 'border-amber-500/30 shadow-amber-500/10' : 'border-white/10'}
-                    `}>
-                        <ImageWithFallback
-                            src={imageUrl}
-                            alt={name}
-                            className="object-cover object-top"
-                            fallbackClassName="bg-neutral-800 text-zinc-600 flex items-center justify-center p-4"
-                        />
+                    {/* Portrait Avatar - Matches Homepage HeroCard Style */}
+                    <div className="relative shrink-0 group">
+                        <div className={`
+                            relative w-28 h-40 rounded-xl border-2 shadow-2xl overflow-hidden bg-neutral-800
+                            ${type === 'Music Director' || type === 'Movie Director' ? 'border-amber-500/30 shadow-amber-500/10' : 'border-white/10'}
+                        `}>
+                            <ImageWithFallback
+                                src={imageUrl}
+                                alt={name}
+                                className="object-cover object-top"
+                                fallbackClassName="bg-neutral-800 text-zinc-600 flex items-center justify-center p-4"
+                            />
+                        </div>
+                        {/* Admin Upload Control */}
+                        <ArtistImageUpload artistName={name} currentImage={imageUrl} />
                     </div>
 
                     {/* Info */}

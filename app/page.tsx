@@ -112,26 +112,35 @@ const getTopArtists = unstable_cache(
     const debugSkipped: { name: string; likes: number; reason: string; norm: string; tmdbDept?: string | null }[] = [];
 
     const topSingers: { name: string; likes: number; image: string | null }[] = [];
-    for (const [name, likes] of sortedSingers) {
+    const cleanName = (n: string) =>
+      n
+        .replace(/\(.*?\)/g, '') // remove parenthetical notes
+        .replace(/\b(music|director|composer|singer|vocals|vocal|feat|ft)\b/gi, '') // remove role words
+        .replace(/\s+/g, ' ') // collapse spaces
+        .trim();
+
+    // ... inside the sortedSingers loop ...
+    for (const [rawName, likes] of sortedSingers) {
       if (topSingers.length >= 10) break;
-      const norm = normalize(name);
+      const norm = normalize(rawName);
       if (!norm) continue;
-      // Exclude if this normalized singer name appears in known director sets/maps
+
+      // ... exclusions ...
       if (directorSet.has(norm) || musicDirectorMap.has(norm) || movieDirectorMap.has(norm)) {
-        debugSkipped.push({ name, likes, reason: 'normalized-matches-director', norm });
+        // ...
         continue;
       }
-      const person = await searchPerson(name);
-      // If TMDB says this person is primarily in Directing or Music (i.e., directors/composers), skip them from singer list
-      if (person?.known_for_department) {
-        const dept = person.known_for_department.toLowerCase();
-        if (dept === 'directing' || dept === 'music') {
-          debugSkipped.push({ name, likes, reason: 'tmdb-dept', norm, tmdbDept: dept });
-          continue;
-        }
-      }
+
+      const searchQuery = cleanName(rawName);
+      const person = await searchPerson(searchQuery); // Search with cleaner name
+
+      // ... check known_for_department ...
+
+      // Use the name returned by TMDB if available (better casing/spelling), else fallback to clean raw name
+      const displayName = person?.name || searchQuery;
+
       topSingers.push({
-        name,
+        name: displayName,
         likes,
         image: person?.profile_path ? getImageUrl(person.profile_path, 'w500') : null
       });
@@ -142,10 +151,11 @@ const getTopArtists = unstable_cache(
         .map(([_, v]) => [v.name, v.likes] as [string, number])
         .sort((a, b) => b[1] - a[1])
         .slice(0, 10)
-        .map(async ([name, likes]) => {
-          const person = await searchPerson(name);
+        .map(async ([rawName, likes]) => {
+          const searchQuery = cleanName(rawName);
+          const person = await searchPerson(searchQuery);
           return {
-            name,
+            name: person?.name || searchQuery,
             likes,
             image: person?.profile_path ? getImageUrl(person.profile_path, 'w500') : null
           };
@@ -159,7 +169,7 @@ const getTopArtists = unstable_cache(
         const likes = musicDirectorMap.get(norm)?.likes || 0;
         const person = await searchPerson(name);
         topMusicDirectors.push({
-          name,
+          name: person?.name || name,
           likes,
           image: person?.profile_path ? getImageUrl(person.profile_path, 'w500') : null
         });
@@ -174,10 +184,11 @@ const getTopArtists = unstable_cache(
         .map(([_, v]) => [v.name, v.likes] as [string, number])
         .sort((a, b) => b[1] - a[1])
         .slice(0, 10)
-        .map(async ([name, likes]) => {
-          const person = await searchPerson(name);
+        .map(async ([rawName, likes]) => {
+          const searchQuery = cleanName(rawName);
+          const person = await searchPerson(searchQuery);
           return {
-            name,
+            name: person?.name || searchQuery,
             likes,
             image: person?.profile_path ? getImageUrl(person.profile_path, 'w500') : null
           };
@@ -191,7 +202,7 @@ const getTopArtists = unstable_cache(
         const likes = movieDirectorMap.get(norm)?.likes || 0;
         const person = await searchPerson(name);
         topMovieDirectors.push({
-          name,
+          name: person?.name || name,
           likes,
           image: person?.profile_path ? getImageUrl(person.profile_path, 'w500') : null
         });
@@ -203,8 +214,8 @@ const getTopArtists = unstable_cache(
 
     return { topSingers, topMusicDirectors, topMovieDirectors, debugSkipped } as any;
   },
-  ['top-artists-home-v4'],
-  { revalidate: 3600 }
+  ['top-artists-home-v5'],
+  { revalidate: 3600, tags: ['homepage-artists'] }
 );
 
 export default async function Home() {
@@ -345,7 +356,7 @@ export default async function Home() {
   }
 
   return (
-    <div className="max-w-md mx-auto pb-20">
+    <div className="w-full md:max-w-6xl mx-auto pb-20">
 
       {/* Hero Section - Top 10 Movies by Total Likes */}
       <HeroSlider ringtones={heroRingtones || []} />
@@ -421,10 +432,10 @@ export default async function Home() {
         </div>
       </div>
 
-      {/* Just Added (Vertical - Fixed 5) */}
+      {/* Just Added (Responsive Grid) */}
       <div className="px-4 mb-10">
         <SectionHeader title="Just Added" />
-        <div className="space-y-3 mb-6">
+        <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 mb-6">
           {recent?.map(ringtone => (
             <RingtoneCard key={ringtone.id} ringtone={ringtone} />
           ))}

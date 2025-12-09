@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { createBrowserClient } from '@supabase/auth-helpers-nextjs';
 import { Camera, Upload, X, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { revalidateArtistCache } from '@/app/actions';
 
 interface ArtistImageUploadProps {
     artistName: string;
@@ -23,19 +24,31 @@ export default function ArtistImageUpload({ artistName, currentImage, onUploadSu
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     );
 
+    const [debugMsg, setDebugMsg] = useState('Init...');
+
     useEffect(() => {
         const checkAdmin = async () => {
+            setDebugMsg('Auth...');
             const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return;
+            console.log('ArtistUpload: Current User', user?.id);
 
-            const { data: profile } = await supabase
+            if (!user) {
+                setDebugMsg('No User');
+                return;
+            }
+
+            const { data: profile, error } = await supabase
                 .from('profiles')
                 .select('role')
                 .eq('id', user.id)
                 .single();
 
+            console.log('ArtistUpload: Profile Role', profile?.role, 'Error:', error);
+
             if (profile?.role === 'admin') {
                 setIsAdmin(true);
+            } else {
+                setDebugMsg(`Role: ${profile?.role || 'None'}`);
             }
         };
         checkAdmin();
@@ -74,6 +87,8 @@ export default function ArtistImageUpload({ artistName, currentImage, onUploadSu
 
             if (dbError) throw dbError;
 
+            await revalidateArtistCache();
+
             alert('Image updated successfully!');
             setIsOpen(false);
             router.refresh(); // Refresh server components
@@ -87,10 +102,19 @@ export default function ArtistImageUpload({ artistName, currentImage, onUploadSu
         }
     };
 
-    if (!isAdmin) return null;
+    // DEBUG: Always show something to help debugging
+    if (!isAdmin) {
+        return (
+            <div className="absolute bottom-0 right-0 z-50 bg-red-600 text-white text-[10px] p-1 rounded font-bold">
+                {debugMsg}
+            </div>
+        );
+    }
 
+    /* Original Code when admin... */
     return (
         <>
+            <div className="absolute bottom-0 right-0 z-50 bg-green-500 text-black text-[10px] px-1 rounded-t">Admin</div>
             {/* Edit Button (Visible only to admins) */}
             <button
                 onClick={() => setIsOpen(true)}

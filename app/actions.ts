@@ -29,10 +29,10 @@ async function getSupabase() {
 
 export async function incrementLikes(ringtoneId: string) {
   const supabase = await getSupabase()
-  
+
   // Try RPC first (atomic)
   const { error: rpcError } = await supabase.rpc('increment_likes', { row_id: ringtoneId })
-  
+
   if (!rpcError) return { success: true }
 
   // Fallback: Fetch and Update (non-atomic)
@@ -50,7 +50,7 @@ export async function incrementLikes(ringtoneId: string) {
     .eq('id', ringtoneId)
 
   if (updateError) return { success: false, error: updateError }
-  
+
   return { success: true }
 }
 
@@ -59,7 +59,7 @@ export async function incrementDownloads(ringtoneId: string) {
 
   // Try RPC first (atomic)
   const { error: rpcError } = await supabase.rpc('increment_downloads', { row_id: ringtoneId })
-  
+
   if (!rpcError) return { success: true }
 
   // Fallback: Fetch and Update (non-atomic)
@@ -77,6 +77,18 @@ export async function incrementDownloads(ringtoneId: string) {
     .eq('id', ringtoneId)
 
   if (updateError) return { success: false, error: updateError }
-  
+
+  return { success: true }
+}
+
+import { revalidateTag, revalidatePath } from 'next/cache'
+
+export async function revalidateArtistCache() {
+  try {
+    revalidateTag('homepage-artists')
+    revalidatePath('/', 'page') // Stronger refresh for homepage
+  } catch (e) {
+    console.error('Revalidation failed:', e)
+  }
   return { success: true }
 }
