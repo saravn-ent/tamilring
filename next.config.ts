@@ -44,7 +44,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-},
   async headers() {
     return [
       {
