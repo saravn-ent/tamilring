@@ -1,11 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Upload, Search, Music, Check, Loader2, X } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { Upload, Search, Music, Check, Loader2, X, RefreshCw } from 'lucide-react';
 import { searchMovies, MovieResult, getImageUrl, getMovieCredits } from '@/lib/tmdb';
 import { searchRings, iTunesRing } from '@/lib/itunes';
 import { createBrowserClient } from '@supabase/ssr';
 import Image from 'next/image';
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { fetchFile, toBlobURL } from '@ffmpeg/util';
 
 export default function UploadForm() {
   const supabase = createBrowserClient(
@@ -15,7 +17,11 @@ export default function UploadForm() {
   const [step, setStep] = useState(1);
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('');
   const [userId, setUserId] = useState<string | null>(null);
+
+  const ffmpegRef = useRef(new FFmpeg());
+  const [ffmpegLoaded, setFfmpegLoaded] = useState(false);
 
   useEffect(() => {
     const getUser = async () => {
@@ -60,11 +66,25 @@ export default function UploadForm() {
   const [ringResults, setRingResults] = useState<iTunesRing[]>([]);
   const [isSearchingRing, setIsSearchingRing] = useState(false);
 
+  const loadFFmpeg = async () => {
+    const ffmpeg = ffmpegRef.current;
+    if (ffmpeg.loaded) return;
+
+    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+    await ffmpeg.load({
+      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+      wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+    });
+    setFfmpegLoaded(true);
+  };
+
   // Step 1: File Select
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
       setStep(2);
+      // Preload FFmpeg silently when file is picked
+      loadFFmpeg().catch(console.error);
     }
   };
 
@@ -119,8 +139,6 @@ export default function UploadForm() {
     setIsSearchingRing(true);
     setRingResults([]); // Clear previous
 
-    // If title is empty, search for the MOVIE name to get all rings from album
-    // If title exists, search for MOVIE + RING TITLE
     const searchTerm = title
       ? `${manualMovieName} ${title}`
       : manualMovieName;
@@ -150,24 +168,83 @@ export default function UploadForm() {
     }
   }, [title, manualMovieName]);
 
+  const convertAudio = async (inputFile: File, targetFormat: 'mp3' | 'm4r'): Promise<Blob> => {
+    const ffmpeg = ffmpegRef.current;
+    if (!ffmpeg.loaded) await loadFFmpeg();
+
+    const inputName = `input.${inputFile.name.split('.').pop()}`;
+    const outputName = `output.${targetFormat}`;
+
+    await ffmpeg.writeFile(inputName, await fetchFile(inputFile));
+
+    // Command args
+    let args: string[] = [];
+    if (targetFormat === 'm4r') {
+      // Convert to AAC (m4r)
+      args = ['-i', inputName, '-c:a', 'aac', '-b:a', '192k', '-vn', outputName];
+    } else {
+      // Convert to MP3
+      args = ['-i', inputName, '-c:a', 'libmp3lame', '-b:a', '320k', '-vn', outputName];
+    }
+
+    await ffmpeg.exec(args);
+    const data = await ffmpeg.readFile(outputName);
+    return new Blob([data as any], { type: targetFormat === 'm4r' ? 'audio/x-m4r' : 'audio/mpeg' });
+  };
+
   const handleSubmit = async () => {
     if (!file || !title || !manualMovieName) return;
     setLoading(true);
+    setLoadingMessage('Initializing...');
 
     try {
-      // 1. Upload File to Supabase Storage
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${slug}-${Date.now()}.${fileExt}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('ringtone-files')
-        .upload(fileName, file);
+      let mp3Blob: Blob | File = file;
+      let m4rBlob: Blob | File | null = null;
+      let iphoneUrl: string | null = null;
 
-      if (uploadError) throw uploadError;
+      const fileExt = file.name.split('.').pop()?.toLowerCase();
+      const baseName = `${slug}-${Date.now()}`;
 
-      // 2. Get Public URL
-      const { data: { publicUrl } } = supabase.storage
+      // Conversion Logic
+      if (fileExt === 'm4r') {
+        setLoadingMessage('Creating MP3 version...');
+        m4rBlob = file;
+        mp3Blob = await convertAudio(file, 'mp3');
+      } else if (fileExt === 'mp3') {
+        setLoadingMessage('Creating iPhone version...');
+        mp3Blob = file;
+        m4rBlob = await convertAudio(file, 'm4r');
+      } else {
+        // Wav or others: Convert to BOTH to be safe and normalized
+        setLoadingMessage('Optimizing audio formats...');
+        mp3Blob = await convertAudio(file, 'mp3');
+        m4rBlob = await convertAudio(file, 'm4r');
+      }
+
+      // 1. Upload MP3
+      setLoadingMessage('Uploading MP3...');
+      const mp3Name = `${baseName}.mp3`;
+      const { error: mp3Error } = await supabase.storage
         .from('ringtone-files')
-        .getPublicUrl(fileName);
+        .upload(mp3Name, mp3Blob);
+      if (mp3Error) throw mp3Error;
+      const { data: { publicUrl: mp3Url } } = supabase.storage.from('ringtone-files').getPublicUrl(mp3Name);
+
+      // 2. Upload M4R (if exists)
+      if (m4rBlob) {
+        setLoadingMessage('Uploading iPhone version...');
+        const m4rName = `${baseName}.m4r`;
+        const { error: m4rError } = await supabase.storage
+          .from('ringtone-files')
+          .upload(m4rName, m4rBlob);
+
+        if (!m4rError) {
+          const { data: { publicUrl } } = supabase.storage.from('ringtone-files').getPublicUrl(m4rName);
+          iphoneUrl = publicUrl;
+        }
+      }
+
+      setLoadingMessage('Finalizing...');
 
       // 3. Insert into Database
       const { error: dbError } = await supabase
@@ -182,13 +259,15 @@ export default function UploadForm() {
           music_director: musicDirector,
           movie_director: movieDirector,
           poster_url: selectedMovie ? getImageUrl(selectedMovie.poster_path) : null,
-          audio_url: publicUrl,
+          audio_url: mp3Url,
+          audio_url_iphone: iphoneUrl || undefined,
           tags: selectedTags,
+          status: 'pending' // Just to be explicit
         });
 
       if (dbError) throw dbError;
 
-      alert('Ringtone uploaded successfully! It has been submitted for review and will be visible after approval.');
+      alert('Ringtone uploaded successfully! It is now pending review.');
       // Reset form
       setStep(1);
       setFile(null);
@@ -205,6 +284,7 @@ export default function UploadForm() {
       alert(`Upload failed: ${error.message}`);
     } finally {
       setLoading(false);
+      setLoadingMessage('');
     }
   };
 
@@ -220,13 +300,16 @@ export default function UploadForm() {
       {/* Step 1: File */}
       {step === 1 && (
         <div className="border-2 border-dashed border-neutral-700 rounded-xl p-10 text-center hover:border-emerald-500 transition-colors">
-          <input type="file" accept="audio/*,.mp3,.wav,.m4a,.aac" onChange={handleFileChange} className="hidden" id="audio-upload" />
+          <input type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.m4r" onChange={handleFileChange} className="hidden" id="audio-upload" />
           <label htmlFor="audio-upload" className="cursor-pointer flex flex-col items-center gap-4">
             <div className="w-16 h-16 bg-neutral-800 rounded-full flex items-center justify-center text-emerald-500">
               <Upload size={32} />
             </div>
             <p className="text-zinc-300">Drag & Drop or Click to Upload</p>
-            <p className="text-zinc-500 text-xs">MP3, M4A, WAV</p>
+            <p className="text-zinc-500 text-xs text-center px-4">
+              MP3, M4R, WAV accepted.<br />
+              <span className="text-emerald-500/70">Auto-converts for iPhone & Android</span>
+            </p>
           </label>
         </div>
       )}
@@ -465,10 +548,19 @@ export default function UploadForm() {
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="w-full bg-emerald-500 text-neutral-900 font-bold py-4 rounded-xl hover:bg-emerald-400 transition-all flex items-center justify-center gap-2 mt-4"
+            className="w-full bg-emerald-500 text-neutral-900 font-bold py-4 rounded-xl hover:bg-emerald-400 transition-all flex items-center justify-center gap-2 mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? <Loader2 className="animate-spin" /> : <Check />}
-            Upload Ringtone
+            {loading ? (
+              <>
+                <Loader2 className="animate-spin" />
+                <span>{loadingMessage || 'Processing...'}</span>
+              </>
+            ) : (
+              <>
+                <Check />
+                <span>Upload Ringtone</span>
+              </>
+            )}
           </button>
         </div>
       )}
