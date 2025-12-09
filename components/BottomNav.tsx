@@ -10,7 +10,7 @@ export default function BottomNav() {
   const isActive = (path: string) => pathname === path;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-black/90 backdrop-blur-md border-t border-zinc-200 dark:border-white/10 z-50 pb-safe transition-colors duration-300">
+    <div className="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-black/90 backdrop-blur-md border-t border-zinc-200 dark:border-white/10 z-[100] pb-safe transition-colors duration-300">
       <div className="flex justify-around items-center h-16 max-w-md mx-auto px-6">
         {/* Home */}
         <Link href="/" className={`flex flex-col items-center gap-1 transition-colors ${isActive('/') ? 'text-emerald-500' : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300'}`}>
