@@ -74,6 +74,43 @@ export default function ProfilePage() {
     getUser();
   }, [supabase]);
 
+  // Auto-sync Google Name/Image to Profile if missing
+  useEffect(() => {
+    if (user && profile && !loading) {
+      const updates: any = {};
+      let needsUpdate = false;
+
+      // Sync Name
+      if (!profile.full_name && user.user_metadata?.full_name) {
+        updates.full_name = user.user_metadata.full_name;
+        needsUpdate = true;
+      } else if (!profile.full_name && user.email) {
+        // Fallback to email username if no name
+        updates.full_name = user.email.split('@')[0];
+        needsUpdate = true;
+      }
+
+      // Sync Avatar
+      if (!profile.avatar_url && user.user_metadata?.avatar_url) {
+        updates.avatar_url = user.user_metadata.avatar_url;
+        needsUpdate = true;
+      }
+
+      if (needsUpdate) {
+        supabase
+          .from('profiles')
+          .update(updates)
+          .eq('id', user.id)
+          .then(({ error }) => {
+            if (!error) {
+              setProfile((prev: any) => ({ ...prev, ...updates }));
+              setFullName(prev => prev || updates.full_name || '');
+            }
+          });
+      }
+    }
+  }, [user, profile, loading, supabase]);
+
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
@@ -170,7 +207,10 @@ export default function ProfilePage() {
             <User size={40} className="text-zinc-600" />
           )}
         </div>
-        <h1 className="text-2xl font-bold text-white mb-1">{profile?.full_name || user.email}</h1>
+        <h1 className="text-2xl font-bold text-white mb-1">
+          {profile?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Ringtone User'}
+        </h1>
+        <p className="text-xs text-zinc-600 mb-4 font-mono">{user.email}</p>
         {profile?.bio && <p className="text-zinc-400 text-sm max-w-sm text-center mb-4">{profile.bio}</p>}
 
         <div className="flex gap-3 mb-2">
@@ -211,11 +251,12 @@ export default function ProfilePage() {
               <h2 className="text-xl font-bold mb-4">Edit Profile</h2>
               <form onSubmit={handleUpdateProfile} className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
                 <div>
-                  <label className="text-xs text-zinc-500 block mb-1">Full Name</label>
+                  <label className="text-xs text-zinc-500 block mb-1">User Name</label>
                   <input
                     type="text"
                     value={fullName}
                     onChange={e => setFullName(e.target.value)}
+                    placeholder="Enter your name"
                     className="w-full bg-black/50 border border-neutral-800 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none transition-colors"
                   />
                 </div>
@@ -229,12 +270,12 @@ export default function ProfilePage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-xs text-zinc-500 block mb-1">Instagram (@handle)</label>
+                    <label className="text-xs text-zinc-500 block mb-1">Instagram ID</label>
                     <input
                       type="text"
                       value={instagram}
                       onChange={e => setInstagram(e.target.value)}
-                      placeholder="username"
+                      placeholder="@username"
                       className="w-full bg-black/50 border border-neutral-800 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none transition-colors"
                     />
                   </div>

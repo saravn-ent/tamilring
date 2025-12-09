@@ -318,7 +318,7 @@ export default async function Home() {
         const profile = profileMap.get(user_id);
         return {
           id: user_id,
-          name: profile?.name || 'Anonymous User',
+          name: profile?.name || 'Ringtone User',
           image: profile?.image || null,
           count
         };

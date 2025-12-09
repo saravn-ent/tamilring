@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Upload, Search, Music, Check, Loader2, X, RefreshCw } from 'lucide-react';
-import { searchMovies, MovieResult, getImageUrl, getMovieCredits } from '@/lib/tmdb';
-import { searchRings, iTunesRing } from '@/lib/itunes';
+import { Upload, Search, Music, Check, Loader2, X, RefreshCw, AlertCircle, Film, ChevronDown, Wand2 } from 'lucide-react';
+import { searchMovies, MovieResult, getImageUrl, getMovieCredits, TMDB_GENRE_TO_TAG } from '@/lib/tmdb';
+import { getSongsByMovie, iTunesRing } from '@/lib/itunes';
 import { createBrowserClient } from '@supabase/ssr';
 import Image from 'next/image';
-import { FFmpeg } from '@ffmpeg/ffmpeg';
-import { fetchFile, toBlobURL } from '@ffmpeg/util';
+import type { FFmpeg } from '@ffmpeg/ffmpeg';
+// import { fetchFile, toBlobURL } from '@ffmpeg/util'; // Imported dynamically
 
 export default function UploadForm() {
   const supabase = createBrowserClient(
@@ -32,23 +32,90 @@ export default function UploadForm() {
   }, []);
 
   // Form Data
-  const [title, setTitle] = useState('');
-  const [movieQuery, setMovieQuery] = useState('');
-  const [movies, setMovies] = useState<MovieResult[]>([]);
+  const [songName, setSongName] = useState('');
+  const [segmentName, setSegmentName] = useState(''); // e.g., "Pallavi", "BGM"
+
+  // Movie Data (Source of Truth)
   const [selectedMovie, setSelectedMovie] = useState<MovieResult | null>(null);
+  const [manualMovieName, setManualMovieName] = useState(''); // Fallback or override
+
+  // iTunes Data
+  const [movieSongs, setMovieSongs] = useState<iTunesRing[]>([]);
+  const [isLoadingSongs, setIsLoadingSongs] = useState(false);
+  const [showSongDropdown, setShowSongDropdown] = useState(false);
+
   const [singers, setSingers] = useState('');
   const [musicDirector, setMusicDirector] = useState('');
   const [movieDirector, setMovieDirector] = useState('');
+
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [slug, setSlug] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
+
+  // Duplication Check
+  const [isCheckingDuplicate, setIsCheckingDuplicate] = useState(false);
+  const [duplicateError, setDuplicateError] = useState<string | null>(null);
+
+  // Search State
+  const [movieQuery, setMovieQuery] = useState('');
+  const [movies, setMovies] = useState<MovieResult[]>([]);
+  const [isSearchingMovie, setIsSearchingMovie] = useState(false);
 
   const TAG_CATEGORIES = {
     "Moods": ["Love", "Sad", "Mass", "BGM", "Motivational", "Devotional", "Funny"],
-    "Types": ["Instrumental", "Interlude", "Humming", "Dialogue", "Remix", "8D Audio"],
+    "Types": ["Vocal", "Instrumental", "Interlude", "Humming", "Dialogue", "Remix", "8D Audio"],
     "Vocals": ["Male", "Female", "Duet"],
-    "Instruments": ["Flute", "Violin", "Guitar", "Piano"]
+    "Instruments": ["Flute", "Violin", "Guitar", "Piano", "Keyboard", "Veena", "Drums", "Nadaswaram"]
   };
+
+  const SEGMENT_SUGGESTIONS = ["Pallavi", "Charanam", "BGM", "Whistle", "Flute Version", "Violin Version", "Climax BGM", "Intro", "Interlude"];
+
+  // Smart Tagging Logic
+  useEffect(() => {
+    let newTags = new Set<string>(selectedTags);
+
+    // 1. Tag by Movie Genre
+    if (selectedMovie?.genre_ids) {
+      selectedMovie.genre_ids.forEach(id => {
+        const mappedTag = TMDB_GENRE_TO_TAG[id];
+        if (mappedTag) newTags.add(mappedTag);
+      });
+    }
+
+    // 2. Tag by Text Analysis (Song, Segment)
+    const combinedText = `${songName} ${segmentName}`.toLowerCase();
+
+    // Moods
+    if (combinedText.includes('sad') || combinedText.includes('sogam') || combinedText.includes('pathos')) newTags.add('Sad');
+    if (combinedText.includes('love') || combinedText.includes('kadhal') || combinedText.includes('romantic')) newTags.add('Love');
+    if (combinedText.includes('mass') || combinedText.includes('kuthu') || combinedText.includes('hero')) newTags.add('Mass');
+
+    // Types
+    if (combinedText.includes('bgm') || combinedText.includes('theme') || combinedText.includes('background')) {
+      newTags.add('BGM');
+      newTags.add('Instrumental');
+    }
+    if (combinedText.includes('remix') || combinedText.includes('mix')) newTags.add('Remix');
+    if (combinedText.includes('dialogue') || combinedText.includes('pedchur')) newTags.add('Dialogue');
+    if (combinedText.includes('8d')) newTags.add('8D Audio');
+    if (combinedText.includes('humming')) newTags.add('Humming');
+    if (combinedText.includes('interlude')) newTags.add('Interlude');
+
+    // Instruments
+    if (combinedText.includes('flute')) { newTags.add('Flute'); newTags.add('Instrumental'); }
+    if (combinedText.includes('violin')) { newTags.add('Violin'); newTags.add('Instrumental'); }
+    if (combinedText.includes('guitar')) { newTags.add('Guitar'); newTags.add('Instrumental'); }
+    if (combinedText.includes('piano')) { newTags.add('Piano'); newTags.add('Instrumental'); }
+    if (combinedText.includes('keyboard')) { newTags.add('Keyboard'); newTags.add('Instrumental'); }
+    if (combinedText.includes('veena')) { newTags.add('Veena'); newTags.add('Instrumental'); }
+    if (combinedText.includes('drums')) { newTags.add('Drums'); newTags.add('Instrumental'); }
+    if (combinedText.includes('nadaswaram')) { newTags.add('Nadaswaram'); newTags.add('Instrumental'); }
+    if (combinedText.includes('whistle')) { newTags.add('Humming'); } // Close enough
+
+    // Only update if changes found to avoid loops
+    if (newTags.size > selectedTags.length) {
+      setSelectedTags(Array.from(newTags));
+    }
+  }, [segmentName, songName, selectedMovie]);
 
   const toggleTag = (tag: string) => {
     setSelectedTags(prev =>
@@ -57,14 +124,6 @@ export default function UploadForm() {
         : [...prev, tag]
     );
   };
-
-  // Manual Override State
-  const [manualMovieName, setManualMovieName] = useState('');
-  const [manualMovieYear, setManualMovieYear] = useState('');
-
-  // Ring Search State
-  const [ringResults, setRingResults] = useState<iTunesRing[]>([]);
-  const [isSearchingRing, setIsSearchingRing] = useState(false);
 
   const loadFFmpeg = async () => {
     if (ffmpegRef.current && ffmpegRef.current.loaded) return;
@@ -91,25 +150,24 @@ export default function UploadForm() {
     if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
       setStep(2);
-      // Preload FFmpeg silently when file is picked
       loadFFmpeg().catch(console.error);
     }
   };
 
-  // Step 2: Movie Lookup
+  // Step 2: TMDB Movie Search
   const handleMovieSearch = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setMovieQuery(query);
 
     if (query.length > 2) {
-      setIsSearching(true);
+      setIsSearchingMovie(true);
       try {
         const results = await searchMovies(query);
         setMovies(results);
       } catch (error) {
         console.error(error);
       } finally {
-        setIsSearching(false);
+        setIsSearchingMovie(false);
       }
     } else {
       setMovies([]);
@@ -119,17 +177,19 @@ export default function UploadForm() {
   const selectMovie = async (movie: MovieResult) => {
     setSelectedMovie(movie);
     setManualMovieName(movie.title);
-    setManualMovieYear(movie.release_date?.split('-')[0] || '');
     setMovieQuery(movie.title);
     setMovies([]);
 
-    // Fetch credits
+    // Reset song details
+    setSongName('');
+    setSingers('');
+    setMovieSongs([]);
+
+    // Fetch Credits
     const credits = await getMovieCredits(movie.id);
     if (credits) {
       const directors = credits.crew.filter(c => c.job === 'Director').map(c => c.name).join(', ');
-      // TMDB uses 'Original Music Composer' or 'Music' for music directors
       const musicDirectors = credits.crew.filter(c => c.job === 'Original Music Composer' || c.job === 'Music').map(c => c.name).join(', ');
-
       setMovieDirector(directors);
       setMusicDirector(musicDirectors);
     }
@@ -137,74 +197,127 @@ export default function UploadForm() {
     setStep(3);
   };
 
-  // Step 3: Ring Lookup (iTunes)
-  const handleRingLookup = async () => {
-    if (!manualMovieName) {
-      alert('Please select a movie first!');
-      return;
-    }
-
-    setIsSearchingRing(true);
-    setRingResults([]); // Clear previous
-
-    const searchTerm = title
-      ? `${manualMovieName} ${title}`
-      : manualMovieName;
-
-    const rings = await searchRings(searchTerm);
-
-    if (rings.length === 0) {
-      alert('No rings found. Try checking the spelling.');
-    } else {
-      setRingResults(rings);
-    }
-    setIsSearchingRing(false);
-  };
-
-  const selectRing = (ring: iTunesRing) => {
-    setTitle(ring.trackName);
-    setSingers(ring.artistName);
-    setRingResults([]); // Close dropdown
-  };
-
-  // Generate Slug
+  // Step 3 Effect: Fetch Songs when entering Step 3
   useEffect(() => {
-    if (title && manualMovieName) {
-      const text = `${title} ${manualMovieName} ringtone`;
-      const newSlug = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-      setSlug(newSlug);
+    if (step === 3 && selectedMovie) {
+      const fetchSongs = async () => {
+        setIsLoadingSongs(true);
+        try {
+          const songs = await getSongsByMovie(selectedMovie.title);
+          setMovieSongs(songs);
+        } catch (e) {
+          console.error(e);
+        } finally {
+          setIsLoadingSongs(false);
+        }
+      }
+      fetchSongs();
     }
-  }, [title, manualMovieName]);
+  }, [step, selectedMovie]);
+
+  const cleanName = (text: string) => {
+    if (!text) return '';
+    return text
+      .replace(/\(From.*?\)/gi, '')
+      .replace(/\(Original.*?\)/gi, '')
+      .replace(/\[From.*?\]/gi, '')
+      .replace(/- From.*/gi, '')
+      .trim();
+  };
+
+  const selectSong = (ring: iTunesRing) => {
+    setSongName(cleanName(ring.trackName));
+    setSingers(ring.artistName);
+    setShowSongDropdown(false);
+  }
+
+  // Generate Slug & Check Duplicates SAME LOGIC
+  useEffect(() => {
+    const generateAndCheckSlug = async () => {
+      if (songName && manualMovieName && segmentName) {
+        const text = `${manualMovieName} ${songName} ${segmentName}`;
+        const newSlug = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+        setSlug(newSlug);
+
+        // Check Duplication
+        setIsCheckingDuplicate(true);
+        setDuplicateError(null);
+        try {
+          const { data, error } = await supabase
+            .from('ringtones')
+            .select('id')
+            .eq('slug', newSlug)
+            .single();
+
+          if (data) {
+            setDuplicateError('A ringtone with this name already exists!');
+          }
+        } catch (err) {
+          // Good
+        } finally {
+          setIsCheckingDuplicate(false);
+        }
+      }
+    };
+
+    const timer = setTimeout(generateAndCheckSlug, 500); // Debounce
+    return () => clearTimeout(timer);
+  }, [songName, manualMovieName, segmentName]);
+
 
   const convertAudio = async (inputFile: File, targetFormat: 'mp3' | 'm4r'): Promise<Blob> => {
     await loadFFmpeg();
     const ffmpeg = ffmpegRef.current!;
     const { fetchFile } = await import('@ffmpeg/util');
 
-    const inputName = `input.${inputFile.name.split('.').pop()}`;
-    const outputName = `output.${targetFormat}`;
+    // Logging Capture
+    const logs: string[] = [];
+    ffmpeg.on('log', ({ message }) => {
+      console.log('FFmpeg:', message);
+      logs.push(message);
+      if (logs.length > 20) logs.shift(); // Keep last 20 lines
+    });
 
-    await ffmpeg.writeFile(inputName, await fetchFile(inputFile));
+    const fileExt = inputFile.name.split('.').pop()?.toLowerCase() || 'dat';
+    const inputName = `input_${Date.now()}.${fileExt}`;
+    const outputName = `output_${Date.now()}.${targetFormat}`;
 
-    // Command args
-    let args: string[] = [];
-    if (targetFormat === 'm4r') {
-      // Convert to AAC (m4r)
-      args = ['-i', inputName, '-c:a', 'aac', '-b:a', '192k', '-vn', outputName];
-    } else {
-      // Convert to MP3
-      args = ['-i', inputName, '-c:a', 'libmp3lame', '-b:a', '320k', '-vn', outputName];
+    try {
+      await ffmpeg.writeFile(inputName, await fetchFile(inputFile));
+
+      // Command args
+      let args: string[] = [];
+      if (targetFormat === 'm4r') {
+        // Force mp4 container for m4r
+        args = ['-i', inputName, '-c:a', 'aac', '-b:a', '192k', '-vn', '-f', 'mp4', outputName];
+      } else {
+        // Force mp3 container
+        args = ['-i', inputName, '-c:a', 'libmp3lame', '-b:a', '320k', '-vn', '-f', 'mp3', outputName];
+      }
+
+      const ret = await ffmpeg.exec(args);
+      if (ret !== 0) {
+        console.error('FFmpeg logs:', logs.join('\n'));
+        throw new Error(`FFmpeg error (code ${ret}): ${logs.slice(-3).join(', ')}`);
+      }
+
+      const data = await ffmpeg.readFile(outputName);
+      return new Blob([data as any], { type: targetFormat === 'm4r' ? 'audio/x-m4r' : 'audio/mpeg' });
+    } finally {
+      // Cleanup
+      try {
+        await ffmpeg.deleteFile(inputName);
+        await ffmpeg.deleteFile(outputName);
+      } catch (e) { /* ignore cleanup errors */ }
     }
-
-    await ffmpeg.exec(args);
-    const data = await ffmpeg.readFile(outputName);
-    return new Blob([data as any], { type: targetFormat === 'm4r' ? 'audio/x-m4r' : 'audio/mpeg' });
   };
 
   const handleSubmit = async () => {
-    if (!file || !title || !manualMovieName) return;
+    if (!file || !songName || !manualMovieName || !segmentName || duplicateError) return;
     setLoading(true);
     setLoadingMessage('Initializing...');
+
+    const finalTitle = `${songName} - ${segmentName}`;
 
     try {
       let mp3Blob: Blob | File = file;
@@ -260,14 +373,14 @@ export default function UploadForm() {
         .from('ringtones')
         .insert({
           user_id: userId,
-          title,
+          title: finalTitle,
           slug,
           movie_name: manualMovieName,
-          movie_year: manualMovieYear ? parseInt(manualMovieYear) : null,
+          movie_year: selectedMovie?.release_date ? parseInt(selectedMovie.release_date.split('-')[0]) : null,
           singers,
           music_director: musicDirector,
           movie_director: movieDirector,
-          poster_url: selectedMovie ? getImageUrl(selectedMovie.poster_path) : null,
+          poster_url: selectedMovie?.poster_path ? getImageUrl(selectedMovie.poster_path) : null,
           audio_url: mp3Url,
           audio_url_iphone: iphoneUrl || undefined,
           tags: selectedTags,
@@ -280,8 +393,11 @@ export default function UploadForm() {
       // Reset form
       setStep(1);
       setFile(null);
-      setTitle('');
+      setSongName('');
+      setSegmentName('');
+      setManualMovieName('');
       setMovieQuery('');
+      setMovieSongs([]);
       setSelectedMovie(null);
       setSingers('');
       setMusicDirector('');
@@ -300,7 +416,7 @@ export default function UploadForm() {
   return (
     <div className="max-w-md mx-auto bg-neutral-900 p-6 rounded-2xl border border-neutral-800 pb-32">
       {/* Progress */}
-      <div className="flex justify-between mb-8 text-sm font-medium text-zinc-500">
+      <div className="flex justify-between mb-8 text-[10px] font-medium text-zinc-500 uppercase tracking-widest">
         <span className={step >= 1 ? 'text-emerald-500' : ''}>1. File</span>
         <span className={step >= 2 ? 'text-emerald-500' : ''}>2. Movie</span>
         <span className={step >= 3 ? 'text-emerald-500' : ''}>3. Details</span>
@@ -323,12 +439,12 @@ export default function UploadForm() {
         </div>
       )}
 
-      {/* Step 2: Movie */}
+      {/* Step 2: Movie Search */}
       {step === 2 && (
         <div className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-zinc-400 mb-2">
-              Search Movie (TMDB)
+              Select Movie (TMDB)
             </label>
             <div className="relative">
               <div className="flex gap-2">
@@ -336,197 +452,192 @@ export default function UploadForm() {
                   type="text"
                   value={movieQuery}
                   onChange={handleMovieSearch}
-                  placeholder="Type movie name..."
+                  placeholder="e.g. Thegidi"
                   className="flex-1 bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3 text-zinc-100 focus:outline-none focus:border-emerald-500 transition-colors"
+                  autoFocus
                 />
                 <div className="bg-emerald-500 text-neutral-900 p-3 rounded-lg font-bold flex items-center justify-center">
-                  {isSearching ? <Loader2 className="animate-spin" size={20} /> : <Search size={20} />}
+                  {isSearchingMovie ? <Loader2 className="animate-spin" size={20} /> : <Search size={20} />}
                 </div>
               </div>
 
-              {/* Dropdown Results */}
+              {/* Movie Results */}
               {movies.length > 0 && (
-                <div className="absolute z-50 w-full mt-2 bg-neutral-800 border border-neutral-700 rounded-lg shadow-xl max-h-60 overflow-y-auto">
+                <div className="absolute z-50 w-full mt-2 bg-neutral-800 border border-neutral-700 rounded-lg shadow-xl max-h-80 overflow-y-auto">
+                  <div className="flex justify-between items-center p-2 border-b border-neutral-700 bg-neutral-900/50 sticky top-0">
+                    <span className="text-xs text-zinc-400 px-2">Select the correct movie</span>
+                    <button onClick={() => setMovies([])}><X size={14} className="text-zinc-500 hover:text-zinc-300" /></button>
+                  </div>
                   {movies.map((movie) => (
                     <button
                       key={movie.id}
                       onClick={() => selectMovie(movie)}
-                      className="w-full text-left px-4 py-3 hover:bg-neutral-700 flex items-center gap-3 border-b border-neutral-700 last:border-0 transition-colors"
+                      className="w-full text-left px-4 py-3 hover:bg-neutral-700 border-b border-neutral-700 last:border-0 transition-colors group flex items-center gap-3"
                     >
                       {movie.poster_path ? (
-                        <div className="relative w-10 h-14 shrink-0">
-                          <Image
-                            src={getImageUrl(movie.poster_path, 'w500')}
-                            alt={movie.title}
-                            fill
-                            className="object-cover rounded"
-                          />
+                        <div className="relative w-8 h-12 shrink-0 rounded overflow-hidden">
+                          <Image src={getImageUrl(movie.poster_path, 'w92')} alt={movie.title} fill className="object-cover" />
                         </div>
                       ) : (
-                        <div className="w-10 h-14 bg-neutral-600 rounded flex items-center justify-center text-xs text-zinc-400 shrink-0">
-                          No Img
-                        </div>
+                        <div className="w-8 h-12 bg-neutral-700 rounded flex items-center justify-center shrink-0"><Film size={16} /></div>
                       )}
                       <div>
-                        <p className="font-medium text-zinc-100">{movie.title}</p>
-                        <p className="text-xs text-zinc-400">
-                          {movie.release_date?.split('-')[0] || 'Unknown Year'}
-                        </p>
+                        <p className="font-medium text-zinc-100 group-hover:text-emerald-400">{movie.title}</p>
+                        <p className="text-xs text-zinc-400">{movie.release_date?.split('-')[0] || 'Unknown'}</p>
                       </div>
                     </button>
                   ))}
                 </div>
               )}
             </div>
+            <p className="text-[10px] text-zinc-500 mt-2">
+              This ensures we get the correct movie details and poster.
+            </p>
           </div>
 
-          {/* Manual Override Fields */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs text-zinc-500 mb-1">Movie Name</label>
-              <input
-                type="text"
-                value={manualMovieName}
-                onChange={(e) => setManualMovieName(e.target.value)}
-                className="w-full bg-neutral-800/50 border border-neutral-700 rounded px-3 py-2 text-sm text-zinc-300 focus:outline-none focus:border-emerald-500"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-zinc-500 mb-1">Year</label>
-              <input
-                type="text"
-                value={manualMovieYear}
-                onChange={(e) => setManualMovieYear(e.target.value)}
-                className="w-full bg-neutral-800/50 border border-neutral-700 rounded px-3 py-2 text-sm text-zinc-300 focus:outline-none focus:border-emerald-500"
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-between pt-4">
+          <div className="pt-4">
             <button
               onClick={() => setStep(1)}
               className="text-zinc-400 hover:text-zinc-100 text-sm"
             >
               Back
             </button>
-            <button
-              onClick={() => setStep(3)}
-              disabled={!manualMovieName}
-              className="bg-emerald-500 hover:bg-emerald-400 text-neutral-900 px-6 py-2 rounded-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Next Step
-            </button>
           </div>
         </div>
       )}
 
-      {/* Step 3: Details */}
+      {/* Step 3: Details (Movie -> Song) */}
       {step === 3 && (
         <div className="space-y-4">
-          <div className="flex items-center gap-3 bg-neutral-800 p-3 rounded-lg">
-            <div className="relative w-12 h-16 bg-neutral-700 rounded overflow-hidden shrink-0">
-              {selectedMovie?.poster_path ? (
+          {/* Selected Movie Header */}
+          <div className="flex bg-neutral-800 p-3 rounded-lg gap-3 shadow-lg border border-neutral-700/50">
+            {selectedMovie?.poster_path ? (
+              <div className="relative w-12 h-16 bg-neutral-700 rounded overflow-hidden shrink-0">
                 <Image src={getImageUrl(selectedMovie.poster_path)} alt={manualMovieName} fill className="object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-xs text-zinc-500">No Img</div>
-              )}
+              </div>
+            ) : (
+              <div className="w-12 h-16 bg-neutral-700 rounded flex items-center justify-center text-zinc-500"><Film size={20} /></div>
+            )}
+
+            <div className="flex-1 min-w-0 flex flex-col justify-center">
+              <p className="text-[10px] text-emerald-500 uppercase tracking-wider font-bold">Selected Movie</p>
+              <p className="text-base font-bold text-zinc-100 truncate">{manualMovieName}</p>
+              <p className="text-xs text-zinc-400">{selectedMovie?.release_date?.split('-')[0]} • {musicDirector.split(',')[0]}</p>
             </div>
-            <div>
-              <p className="text-zinc-200 font-bold">{manualMovieName}</p>
-              <p className="text-zinc-500 text-xs">{manualMovieYear}</p>
-            </div>
-            <button onClick={() => setStep(2)} className="ml-auto text-xs text-emerald-500 hover:underline">Change</button>
+            <button onClick={() => setStep(2)} className="text-xs text-emerald-500 hover:underline self-center shrink-0">Change</button>
           </div>
 
-          {/* Ring Title Input with Search */}
           <div>
-            <label className="block text-xs text-zinc-500 mb-1">Ring Title</label>
+            <label className="block text-xs text-zinc-500 mb-1">Song Name</label>
             <div className="relative">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Type ring name OR leave empty to fetch all"
-                  className="flex-1 bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3 text-zinc-100 focus:outline-none focus:border-emerald-500"
-                />
-                <button
-                  onClick={handleRingLookup}
-                  disabled={isSearchingRing}
-                  className="bg-neutral-800 border border-neutral-700 hover:bg-neutral-700 text-zinc-100 p-3 rounded-lg transition-colors"
-                  title="Search iTunes"
-                >
-                  {isSearchingRing ? <Loader2 className="animate-spin" size={20} /> : <Music size={20} />}
-                </button>
+              <div
+                onClick={() => setShowSongDropdown(!showSongDropdown)}
+                className="flex w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3 text-zinc-100 cursor-pointer hover:border-emerald-500 transition-colors items-center justify-between"
+              >
+                <span className={songName ? "text-zinc-100" : "text-zinc-500"}>
+                  {songName || `Select song from "${manualMovieName}"...`}
+                </span>
+                {isLoadingSongs ? <Loader2 size={16} className="animate-spin text-zinc-500" /> : <ChevronDown size={16} className="text-zinc-500" />}
               </div>
 
-              {/* Ring Results Dropdown */}
-              {ringResults.length > 0 && (
-                <div className="absolute z-50 w-full mt-2 bg-neutral-800 border border-neutral-700 rounded-lg shadow-xl max-h-60 overflow-y-auto">
-                  <div className="flex justify-between items-center p-2 border-b border-neutral-700 bg-neutral-900/50 sticky top-0">
-                    <span className="text-xs text-zinc-400 px-2">Select a ring</span>
-                    <button onClick={() => setRingResults([])}><X size={14} className="text-zinc-500 hover:text-zinc-300" /></button>
+              {/* Song Dropdown */}
+              {showSongDropdown && (
+                <div className="absolute z-50 w-full mt-2 bg-neutral-800 border border-neutral-700 rounded-lg shadow-xl max-h-60 overflow-y-auto pb-1">
+                  <div className="px-3 py-2 text-[10px] text-zinc-500 uppercase tracking-wider bg-neutral-900/50 sticky top-0 border-b border-neutral-700 backdrop-blur-sm">
+                    Album Tracks
                   </div>
-                  {ringResults.map((ring, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => selectRing(ring)}
-                      className="w-full text-left px-4 py-3 hover:bg-neutral-700 border-b border-neutral-700 last:border-0 transition-colors group"
-                    >
-                      <p className="font-medium text-zinc-100 group-hover:text-emerald-400 transition-colors">{ring.trackName}</p>
-                      <p className="text-xs text-zinc-400 truncate">{ring.artistName}</p>
-                      <p className="text-[10px] text-zinc-600 truncate">{ring.collectionName}</p>
-                    </button>
-                  ))}
+                  {movieSongs.length > 0 ? (
+                    <>
+                      {movieSongs.map((ring, i) => (
+                        <button
+                          key={i}
+                          onClick={() => selectSong(ring)}
+                          className="w-full text-left px-4 py-3 hover:bg-neutral-700 border-b border-neutral-700/50 last:border-0 transition-colors group"
+                        >
+                          <p className="font-medium text-zinc-200 group-hover:text-emerald-400 text-sm">{cleanName(ring.trackName)}</p>
+                          <p className="text-[10px] text-zinc-500 truncate">{ring.artistName}</p>
+                        </button>
+                      ))}
+                    </>
+                  ) : (
+                    <div className="px-4 py-4 text-center text-zinc-500 text-xs">
+                      {isLoadingSongs ? 'Loading songs...' : 'No songs found for this movie on iTunes.'}
+                    </div>
+                  )}
+                  {/* Fallback Manual Input Trigger if needed, or just let them type in a separate input below if simplified */}
                 </div>
               )}
             </div>
-            <p className="text-[10px] text-zinc-500 mt-1">
-              Tip: Leave empty and click <Music size={10} className="inline" /> to see all rings from the movie.
-            </p>
+            {/* Manual Song Fallback */}
+            <div className="mt-2 text-right">
+              <button
+                className="text-[10px] text-zinc-500 hover:text-emerald-500 underline"
+                onClick={() => {
+                  const manual = prompt("Enter song name manually:");
+                  if (manual) setSongName(manual);
+                }}
+              >
+                Song not listed? Enter manually
+              </button>
+            </div>
           </div>
 
           <div>
-            <label className="block text-xs text-zinc-500 mb-1">Singers</label>
+            <label className="block text-xs text-zinc-500 mb-1">Ringtone Name</label>
             <input
               type="text"
-              value={singers}
-              onChange={(e) => setSingers(e.target.value)}
-              placeholder="e.g. Anirudh Ravichander"
+              value={segmentName}
+              onChange={(e) => setSegmentName(e.target.value)}
+              placeholder="Type lyrics name..."
               className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3 text-zinc-100 focus:outline-none focus:border-emerald-500"
             />
           </div>
 
-          <div>
-            <label className="block text-xs text-zinc-500 mb-1">Music Director</label>
-            <input
-              type="text"
-              value={musicDirector}
-              onChange={(e) => setMusicDirector(e.target.value)}
-              placeholder="e.g. A.R. Rahman"
-              className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3 text-zinc-100 focus:outline-none focus:border-emerald-500"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            {!singers && (
+              <div>
+                <label className="block text-xs text-zinc-500 mb-1">Singers</label>
+                <input
+                  type="text"
+                  value={singers}
+                  onChange={(e) => setSingers(e.target.value)}
+                  className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+            )}
+            {!movieDirector && (
+              <div>
+                <label className="block text-xs text-zinc-500 mb-1">Director</label>
+                <input
+                  type="text"
+                  value={movieDirector}
+                  onChange={(e) => setMovieDirector(e.target.value)}
+                  className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+            )}
           </div>
 
-          <div>
-            <label className="block text-xs text-zinc-500 mb-1">Movie Director</label>
-            <input
-              type="text"
-              value={movieDirector}
-              onChange={(e) => setMovieDirector(e.target.value)}
-              placeholder="e.g. Mari Selvaraj"
-              className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3 text-zinc-100 focus:outline-none focus:border-emerald-500"
-            />
-          </div>
+          {!musicDirector && (
+            <div>
+              <label className="block text-xs text-zinc-500 mb-1">Music Director</label>
+              <input
+                type="text"
+                value={musicDirector}
+                onChange={(e) => setMusicDirector(e.target.value)}
+                className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-zinc-100 focus:outline-none focus:border-emerald-500"
+              />
+            </div>
+          )}
 
           <div>
-            <label className="block text-xs text-zinc-500 mb-2">Tags (Select all that apply)</label>
+            <label className="block text-xs text-zinc-500 mb-2">Tags</label>
             <div className="space-y-4 bg-neutral-800/30 p-4 rounded-xl border border-neutral-800">
               {Object.entries(TAG_CATEGORIES).map(([category, tags]) => (
                 <div key={category}>
                   <p className="text-[10px] text-zinc-500 uppercase font-bold mb-2 tracking-wider">{category}</p>
                   <div className="flex flex-wrap gap-2">
-                    {tags.map(tag => (
+                    {tags.filter(t => !['BGM', 'Interlude'].includes(t)).map(tag => (
                       <button
                         key={tag}
                         onClick={() => toggleTag(tag)}
@@ -544,33 +655,51 @@ export default function UploadForm() {
             </div>
           </div>
 
-          <div>
-            <label className="block text-xs text-zinc-500 mb-1">SEO Slug (Auto-generated)</label>
+          {/* Slug Preview & Duplicate Error */}
+          <div className="space-y-2">
+            <label className="block text-xs text-zinc-500">SEO Slug Preview</label>
             <input
               type="text"
               value={slug}
               readOnly
-              className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-2 text-zinc-500 text-sm font-mono"
+              className={`w-full bg-neutral-900 border ${duplicateError ? 'border-red-500 text-red-400' : 'border-neutral-800 text-zinc-500'} rounded-lg px-4 py-2 text-sm font-mono transition-colors`}
             />
+            {duplicateError && (
+              <div className="flex items-center gap-2 text-red-500 text-xs">
+                <AlertCircle size={14} />
+                <span>{duplicateError}</span>
+              </div>
+            )}
+            {isCheckingDuplicate && (
+              <span className="text-xs text-zinc-600 flex items-center gap-1"><Loader2 size={10} className="animate-spin" /> Checking availability...</span>
+            )}
           </div>
 
-          <button
-            onClick={handleSubmit}
-            disabled={loading}
-            className="w-full bg-emerald-500 text-neutral-900 font-bold py-4 rounded-xl hover:bg-emerald-400 transition-all flex items-center justify-center gap-2 mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? (
-              <>
-                <Loader2 className="animate-spin" />
-                <span>{loadingMessage || 'Processing...'}</span>
-              </>
-            ) : (
-              <>
-                <Check />
-                <span>Upload Ringtone</span>
-              </>
-            )}
-          </button>
+          <div className="flex justify-between pt-4">
+            <button
+              onClick={() => setStep(2)}
+              className="text-zinc-400 hover:text-zinc-100 text-sm"
+            >
+              Back
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={loading || !!duplicateError || !segmentName}
+              className="flex-1 ml-4 bg-emerald-500 text-neutral-900 font-bold py-4 rounded-xl hover:bg-emerald-400 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="animate-spin" />
+                  <span>{loadingMessage || 'Processing...'}</span>
+                </>
+              ) : (
+                <>
+                  <Check />
+                  <span>Upload Ringtone</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       )}
     </div>

@@ -8,76 +8,140 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { splitArtists } from '@/lib/utils';
-import { MOODS } from '@/lib/constants';
+import { MOODS, ERAS } from '@/lib/constants';
 import ImageWithFallback from '@/components/ImageWithFallback';
 
 function SearchContent() {
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get('q') || '');
   const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<'ringtones' | 'movies' | 'artists'>('ringtones');
+
+  // Results State
+  const [results, setResults] = useState<{
+    ringtones: any[];
+    movies: any[];
+    artists: any[];
+  }>({ ringtones: [], movies: [], artists: [] });
+
+  const [activeTab, setActiveTab] = useState<'all' | 'ringtones' | 'movies' | 'artists'>('all');
+
+  // Fetch defaults (Trending)
+  const [defaults, setDefaults] = useState<{ movies: any[], artists: any[] }>({ movies: [], artists: [] });
 
   useEffect(() => {
+    // Fetch browsing data once on mount
+    const fetchDefaults = async () => {
+      const { data: movies } = await supabase
+        .from('ringtones')
+        .select('movie_name, movie_year, poster_url, likes')
+        .eq('status', 'approved')
+        .order('likes', { ascending: false })
+        .limit(20);
+
+      const uniqueMovies = new Map();
+      movies?.forEach(m => {
+        if (!uniqueMovies.has(m.movie_name)) uniqueMovies.set(m.movie_name, m);
+      });
+
+      // Top Artists (Singers + MDs)
+      const { data: artists } = await supabase
+        .from('ringtones')
+        .select('singers, music_director')
+        .eq('status', 'approved')
+        .limit(50);
+
+      const artistCounts = new Map<string, number>();
+      artists?.forEach(r => {
+        splitArtists(r.singers || '').forEach((s: string) => artistCounts.set(s, (artistCounts.get(s) || 0) + 1));
+        splitArtists(r.music_director || '').forEach((s: string) => artistCounts.set(s, (artistCounts.get(s) || 0) + 1));
+      });
+
+      const topArtists = Array.from(artistCounts.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(([name]) => ({ name }));
+
+      setDefaults({ movies: Array.from(uniqueMovies.values()), artists: topArtists });
+    };
+    fetchDefaults();
+  }, []);
+
+  useEffect(() => {
+    // Clear results immediately
+    setResults({ ringtones: [], movies: [], artists: [] });
+    setLoading(true);
+
     const delayDebounceFn = setTimeout(async () => {
       if (query.length > 1) {
-        setLoading(true);
 
-        let data: any[] = [];
+        let newResults = { ringtones: [], movies: [], artists: [] };
 
-        if (activeTab === 'ringtones') {
-          const { data: res } = await supabase
+        const fetchRingtones = async () => {
+          const { data } = await supabase
             .from('ringtones')
             .select('*')
             .eq('status', 'approved')
             .ilike('title', `%${query}%`)
-            .limit(20);
-          data = res || [];
-        } else if (activeTab === 'movies') {
-          // Group by movie name (distinct)
-          // Note: Supabase distinct on client side is tricky, better to use RPC or just filter client side for now
-          const { data: res } = await supabase
+            .limit(10);
+          return data || [];
+        };
+
+        const fetchMovies = async () => {
+          const { data } = await supabase
             .from('ringtones')
             .select('movie_name, movie_year, poster_url')
             .eq('status', 'approved')
             .ilike('movie_name', `%${query}%`)
-            .limit(50);
+            .limit(20);
 
-          // Deduplicate movies
           const uniqueMovies = new Map();
-          res?.forEach(item => {
-            if (!uniqueMovies.has(item.movie_name)) {
-              uniqueMovies.set(item.movie_name, item);
-            }
+          data?.forEach(item => {
+            if (!uniqueMovies.has(item.movie_name)) uniqueMovies.set(item.movie_name, item);
           });
-          data = Array.from(uniqueMovies.values());
+          return Array.from(uniqueMovies.values());
+        };
 
-        } else if (activeTab === 'artists') {
-          const { data: res } = await supabase
+        const fetchArtists = async () => {
+          const { data } = await supabase
             .from('ringtones')
-            .select('singers')
+            .select('singers, music_director')
             .eq('status', 'approved')
-            .ilike('singers', `%${query}%`)
-            .limit(50);
+            .or(`singers.ilike.%${query}%,music_director.ilike.%${query}%`) // Search both columns
+            .limit(20);
 
-          // Extract and deduplicate singers using splitArtists utility
-          const allSingers = new Set<string>();
-          res?.forEach(r => {
-            splitArtists(r.singers || '').forEach((s: string) => allSingers.add(s));
+          const allArtists = new Set<string>();
+          data?.forEach(r => {
+            splitArtists(r.singers || '').forEach(s => allArtists.add(s));
+            splitArtists(r.music_director || '').forEach(s => allArtists.add(s));
           });
-          // Filter by query again since we split
-          data = Array.from(allSingers).filter(s => s.toLowerCase().includes(query.toLowerCase())).map(s => ({ name: s }));
+          return Array.from(allArtists)
+            .filter(s => s.toLowerCase().includes(query.toLowerCase()))
+            .map(s => ({ name: s }))
+            .slice(0, 10);
+        };
+
+        if (activeTab === 'all') {
+          const [r, m, a] = await Promise.all([fetchRingtones(), fetchMovies(), fetchArtists()]);
+          newResults = { ringtones: r, movies: m, artists: a } as any;
+        } else if (activeTab === 'ringtones') {
+          newResults.ringtones = await fetchRingtones() as any;
+        } else if (activeTab === 'movies') {
+          newResults.movies = await fetchMovies() as any;
+        } else if (activeTab === 'artists') {
+          newResults.artists = await fetchArtists() as any;
         }
 
-        setResults(data);
+        setResults(newResults);
         setLoading(false);
       } else {
-        setResults([]);
+        setLoading(false); // Ensure loading is false if query is short
       }
-    }, 500);
+    }, 300); // Reduced debounce for snappier feel
 
     return () => clearTimeout(delayDebounceFn);
   }, [query, activeTab]);
+
+  const hasResults = results.ringtones.length > 0 || results.movies.length > 0 || results.artists.length > 0;
 
   return (
     <div className="max-w-md mx-auto px-4 pt-4 pb-24">
@@ -95,82 +159,185 @@ function SearchContent() {
         {loading && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-500 animate-spin" />}
       </div>
 
+      {/* Tabs (Always Visible) */}
+      <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
+        {['all', 'ringtones', 'movies', 'artists'].map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab as any)}
+            className={`px-4 py-2 rounded-full text-sm font-medium capitalize whitespace-nowrap transition-colors ${activeTab === tab
+              ? 'bg-emerald-500 text-neutral-900'
+              : 'bg-neutral-800 text-zinc-400 border border-neutral-700'
+              }`}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+
       {query.length > 1 ? (
-        <>
-          {/* Tabs */}
-          <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
-            {['ringtones', 'movies', 'artists'].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab as any)}
-                className={`px-4 py-2 rounded-full text-sm font-medium capitalize whitespace-nowrap transition-colors ${activeTab === tab
-                  ? 'bg-emerald-500 text-neutral-900'
-                  : 'bg-neutral-800 text-zinc-400 border border-neutral-700'
-                  }`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
+        /* ... SEARCH RESULTS ... */
+        <div className="space-y-8">
+          {loading ? (
+            /* SKELETONS */
+            <div className="animate-pulse space-y-8">
+              {/* Movie Skeleton */}
+              {(activeTab === 'all' || activeTab === 'movies') && (
+                <div className="space-y-3">
+                  <div className="h-4 w-20 bg-neutral-800 rounded ml-1" />
+                  <div className="grid grid-cols-2 gap-3">
+                    {[1, 2].map(i => (
+                      <div key={i} className="aspect-[2/3] bg-neutral-800 rounded-xl border border-neutral-700/50" />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {/* Ringtone Skeleton */}
+              {(activeTab === 'all' || activeTab === 'ringtones') && (
+                <div className="space-y-3">
+                  <div className="h-4 w-24 bg-neutral-800 rounded ml-1" />
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="h-20 bg-neutral-800 rounded-xl border border-neutral-700/50" />
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : hasResults ? (
+            <>
+              {/* Movies Section */}
+              {(activeTab === 'all' || activeTab === 'movies') && results.movies.length > 0 && (
+                <section className="animate-in fade-in slide-in-from-bottom-2 duration-500">
+                  <h3 className="font-bold text-zinc-400 text-xs uppercase tracking-wider mb-3 px-1">
+                    {activeTab === 'all' ? 'Movies' : 'Matching Movies'}
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    {results.movies.map((item, idx) => (
+                      <Link href={`/movie/${encodeURIComponent(item.movie_name)}`} key={idx} className="flex flex-col gap-2 p-2 bg-neutral-900 rounded-xl border border-neutral-800 hover:border-emerald-500/50 transition-colors group">
+                        <div className="relative w-full aspect-[2/3] bg-neutral-800 rounded-lg overflow-hidden shrink-0">
+                          {item.poster_url ? <Image src={item.poster_url} alt={item.movie_name} fill className="object-cover group-hover:scale-110 transition-transform duration-500" /> : null}
+                        </div>
+                        <div>
+                          <p className="font-bold text-white text-sm truncate">{item.movie_name}</p>
+                          <p className="text-[10px] text-zinc-500">{item.movie_year}</p>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              )}
 
-          {/* Results */}
-          <div className="space-y-4">
-            {results.length > 0 ? (
-              <>
-                {activeTab === 'ringtones' && results.map((item) => (
-                  <RingtoneCard key={item.id} ringtone={item} assignTo={searchParams.get('assignTo') || undefined} />
-                ))}
+              {/* Artists Section */}
+              {(activeTab === 'all' || activeTab === 'artists') && results.artists.length > 0 && (
+                <section className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-100">
+                  <h3 className="font-bold text-zinc-400 text-xs uppercase tracking-wider mb-3 px-1">Artists</h3>
+                  <div className="flex flex-wrap gap-3">
+                    {results.artists.map((item, idx) => (
+                      <Link href={`/artist/${encodeURIComponent(item.name)}`} key={idx} className="flex items-center gap-3 pr-4 pl-2 py-2 bg-neutral-900 rounded-full border border-neutral-800 hover:border-emerald-500/50 transition-colors">
+                        <div className="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center text-emerald-500 font-bold border border-neutral-700">
+                          {item.name.charAt(0)}
+                        </div>
+                        <p className="font-medium text-white text-sm">{item.name}</p>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              )}
 
-                {activeTab === 'movies' && results.map((item, idx) => (
-                  <Link href={`/movie/${encodeURIComponent(item.movie_name)}`} key={idx} className="flex items-center gap-4 p-3 bg-neutral-800/50 rounded-xl border border-neutral-800 hover:border-emerald-500/50 transition-colors">
-                    <div className="relative w-12 h-16 bg-neutral-700 rounded overflow-hidden shrink-0">
-                      {item.poster_url && <Image src={item.poster_url} alt={item.movie_name} fill className="object-cover" />}
+              {/* Ringtones Section */}
+              {(activeTab === 'all' || activeTab === 'ringtones') && results.ringtones.length > 0 && (
+                <section className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-200">
+                  <h3 className="font-bold text-zinc-400 text-xs uppercase tracking-wider mb-3 px-1">Ringtones</h3>
+                  <div className="space-y-3">
+                    {results.ringtones.map((item) => (
+                      <RingtoneCard key={item.id} ringtone={item} assignTo={searchParams.get('assignTo') || undefined} />
+                    ))}
+                  </div>
+                </section>
+              )}
+            </>
+          ) : (
+            <div className="text-center py-10 text-zinc-500">
+              No results found for "{query}"
+            </div>
+          )}
+        </div>
+      ) : (
+        /* BROWSE MODE (Empty Query) */
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          {activeTab === 'all' && (
+            <>
+              {/* Browse by Mood */}
+              <section>
+                <h2 className="text-lg font-bold text-white mb-3">Browse by Mood</h2>
+                <div className="grid grid-cols-2 gap-3">
+                  {MOODS.map((mood) => (
+                    <Link
+                      key={mood}
+                      href={`/mood/${mood.toLowerCase()}`}
+                      className="p-4 bg-neutral-800/50 border border-neutral-800 rounded-xl hover:bg-neutral-800 hover:border-emerald-500/50 transition-all group"
+                    >
+                      <span className="font-bold text-zinc-200 group-hover:text-emerald-400">{mood}</span>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+
+              {/* Browse by Era */}
+              <section>
+                <h2 className="text-lg font-bold text-white mb-3">Browse by Era</h2>
+                <div className="grid grid-cols-2 gap-3">
+                  {ERAS.map((era) => (
+                    <Link
+                      key={era.label}
+                      href={`/search?q=${era.label}`}
+                      className={`p-6 rounded-xl bg-gradient-to-br ${era.color} relative overflow-hidden group shadow-lg`}
+                    >
+                      <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
+                      <span className="relative z-10 text-2xl font-black text-white italic tracking-tighter opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all block text-center">
+                        {era.label}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            </>
+          )}
+
+          {/* Default Populated Content for Specific Tabs */}
+          {activeTab === 'movies' && (
+            <section>
+              <h3 className="font-bold text-zinc-400 text-xs uppercase tracking-wider mb-3 px-1">Popular Movies</h3>
+              <div className="grid grid-cols-2 gap-3">
+                {defaults.movies.map((item, idx) => (
+                  <Link href={`/movie/${encodeURIComponent(item.movie_name)}`} key={idx} className="flex flex-col gap-2 p-2 bg-neutral-900 rounded-xl border border-neutral-800 hover:border-emerald-500/50 transition-colors group">
+                    <div className="relative w-full aspect-[2/3] bg-neutral-800 rounded-lg overflow-hidden shrink-0">
+                      {item.poster_url ? <Image src={item.poster_url} alt={item.movie_name} fill className="object-cover group-hover:scale-110 transition-transform duration-500" /> : null}
                     </div>
                     <div>
-                      <p className="font-bold text-white">{item.movie_name}</p>
-                      <p className="text-xs text-zinc-500">{item.movie_year}</p>
+                      <p className="font-bold text-white text-sm truncate">{item.movie_name}</p>
+                      <p className="text-[10px] text-zinc-500">{item.movie_year}</p>
                     </div>
                   </Link>
                 ))}
+              </div>
+            </section>
+          )}
 
-                {activeTab === 'artists' && results.map((item, idx) => (
-                  <Link href={`/artist/${encodeURIComponent(item.name)}`} key={idx} className="flex items-center gap-4 p-4 bg-neutral-800/50 rounded-xl border border-neutral-800 hover:border-emerald-500/50 transition-colors">
-                    <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-500 font-bold">
+          {activeTab === 'artists' && (
+            <section>
+              <h3 className="font-bold text-zinc-400 text-xs uppercase tracking-wider mb-3 px-1">Top Artists</h3>
+              <div className="flex flex-wrap gap-3">
+                {defaults.artists.map((item, idx) => (
+                  <Link href={`/artist/${encodeURIComponent(item.name)}`} key={idx} className="flex items-center gap-3 pr-4 pl-2 py-2 bg-neutral-900 rounded-full border border-neutral-800 hover:border-emerald-500/50 transition-colors">
+                    <div className="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center text-emerald-500 font-bold border border-neutral-700">
                       {item.name.charAt(0)}
                     </div>
-                    <p className="font-medium text-white">{item.name}</p>
+                    <p className="font-medium text-white text-sm">{item.name}</p>
                   </Link>
                 ))}
-              </>
-            ) : (
-              !loading && (
-                <div className="text-center py-10 text-zinc-500">
-                  No results found for "{query}"
-                </div>
-              )
-            )}
-          </div>
-        </>
-      ) : (
-        /* Browse / Discovery Section */
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-
-          {/* Moods */}
-          <section>
-            <h2 className="text-lg font-bold text-white mb-3">Browse by Mood</h2>
-            <div className="flex flex-wrap gap-2">
-              {MOODS.map((mood) => (
-                <Link
-                  key={mood}
-                  href={`/mood/${mood.toLowerCase()}`}
-                  className="px-4 py-2 bg-neutral-800 border border-white/5 rounded-full text-sm text-zinc-300 hover:bg-emerald-500 hover:text-black hover:border-emerald-500 transition-all"
-                >
-                  {mood}
-                </Link>
-              ))}
-            </div>
-          </section>
-
+              </div>
+            </section>
+          )}
         </div>
       )}
     </div>
