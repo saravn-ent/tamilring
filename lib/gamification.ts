@@ -1,7 +1,7 @@
 
 import { SupabaseClient } from '@supabase/supabase-js';
 
-export const POINTS_PER_UPLOAD = 50;
+export const POINTS_PER_UPLOAD = 15;
 
 export const LEVEL_TITLES = {
     1: 'Listener',
