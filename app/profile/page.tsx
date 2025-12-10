@@ -36,6 +36,8 @@ export default function ProfilePage() {
   const [website, setWebsite] = useState('');
   const [instagram, setInstagram] = useState('');
   const [twitter, setTwitter] = useState('');
+  const [upiId, setUpiId] = useState('');
+  const [btcAddress, setBtcAddress] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -59,6 +61,8 @@ export default function ProfilePage() {
             setWebsite(profileData.website_url || '');
             setInstagram(profileData.instagram_handle || '');
             setTwitter(profileData.twitter_handle || '');
+            setUpiId(profileData.upi_id || '');
+            setBtcAddress(profileData.btc_address || '');
 
             // Check and Sync Gamification Stats
             syncUserGamification(supabase, user.id).then((synced) => {
@@ -141,6 +145,8 @@ export default function ProfilePage() {
         website_url: website,
         instagram_handle: instagram,
         twitter_handle: twitter,
+        upi_id: upiId,
+        btc_address: btcAddress,
         updated_at: new Date().toISOString(),
       };
       const { error } = await supabase.from('profiles').upsert(updates);
@@ -262,8 +268,13 @@ export default function ProfilePage() {
               >
                 <X size={20} />
               </button>
-              <h2 className="text-xl font-bold mb-4">Edit Profile</h2>
-              <form onSubmit={handleUpdateProfile} className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+              <h2 className="text-xl font-bold mb-1">Edit Profile</h2>
+              <p className="text-xs text-emerald-400 font-medium mb-4 flex items-center gap-1.5 bg-emerald-500/10 p-2 rounded-lg border border-emerald-500/20">
+                <span className="text-lg">💰</span>
+                <span>Earn <b>₹15</b> for every approved ringtone! Add your payment details below.</span>
+              </p>
+
+              <form onSubmit={handleUpdateProfile} className="space-y-4 max-h-[70vh] overflow-y-auto pr-2 custom-scrollbar">
                 <div>
                   <label className="text-xs text-zinc-500 block mb-1">User Name</label>
                   <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Enter your name" className="w-full bg-black/50 border border-neutral-800 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none transition-colors" />
@@ -272,20 +283,25 @@ export default function ProfilePage() {
                   <label className="text-xs text-zinc-500 block mb-1">Bio</label>
                   <textarea value={bio} onChange={e => setBio(e.target.value)} className="w-full bg-black/50 border border-neutral-800 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none transition-colors h-20 resize-none" />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-xs text-zinc-500 block mb-1">Instagram ID</label>
-                    <input type="text" value={instagram} onChange={e => setInstagram(e.target.value)} placeholder="@username" className="w-full bg-black/50 border border-neutral-800 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none transition-colors" />
-                  </div>
-                  <div>
-                    <label className="text-xs text-zinc-500 block mb-1">Twitter (@handle)</label>
-                    <input type="text" value={twitter} onChange={e => setTwitter(e.target.value)} placeholder="username" className="w-full bg-black/50 border border-neutral-800 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none transition-colors" />
-                  </div>
-                </div>
                 <div>
-                  <label className="text-xs text-zinc-500 block mb-1">Website URL</label>
-                  <input type="url" value={website} onChange={e => setWebsite(e.target.value)} placeholder="https://..." className="w-full bg-black/50 border border-neutral-800 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none transition-colors" />
+                  <label className="text-xs text-zinc-500 block mb-1">Instagram ID</label>
+                  <input type="text" value={instagram} onChange={e => setInstagram(e.target.value)} placeholder="@username" className="w-full bg-black/50 border border-neutral-800 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none transition-colors" />
                 </div>
+
+                <div className="pt-2 border-t border-white/5">
+                  <p className="text-xs font-bold text-zinc-400 mb-2 uppercase tracking-wider">Payment Details</p>
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-xs text-zinc-500 block mb-1">UPI ID (GPay/PhonePe)</label>
+                      <input type="text" value={upiId} onChange={e => setUpiId(e.target.value)} placeholder="username@upi" className="w-full bg-black/50 border border-neutral-800 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none transition-colors font-mono" />
+                    </div>
+                    <div>
+                      <label className="text-xs text-zinc-500 block mb-1">Bitcoin Address (BTC)</label>
+                      <input type="text" value={btcAddress} onChange={e => setBtcAddress(e.target.value)} placeholder="bc1q..." className="w-full bg-black/50 border border-neutral-800 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none transition-colors font-mono" />
+                    </div>
+                  </div>
+                </div>
+
                 <button type="submit" disabled={saving} className="w-full py-3 bg-emerald-500 text-black font-bold rounded-xl hover:bg-emerald-400 transition-colors disabled:opacity-50 mt-2">
                   {saving ? 'Saving...' : 'Save Changes'}
                 </button>

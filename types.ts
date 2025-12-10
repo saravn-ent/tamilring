@@ -33,6 +33,12 @@ export interface Profile {
   role?: 'user' | 'admin';
   points: number;
   level: number;
+  bio?: string;
+  website_url?: string;
+  instagram_handle?: string;
+  twitter_handle?: string;
+  upi_id?: string;
+  btc_address?: string;
 }
 
 export interface Badge {
