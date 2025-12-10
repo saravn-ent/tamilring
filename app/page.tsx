@@ -200,46 +200,53 @@ const getTopArtists = unstable_cache(
   { revalidate: 3600, tags: ['homepage-artists'] }
 );
 
-export default async function Home() {
-  // 1. Fetch all approved ringtones to calculate top movies by total likes
-  const { data: allRingtones } = await supabase
-    .from('ringtones')
-    .select('*')
-    .eq('status', 'approved');
-
-  // Calculate movies with highest aggregate likes
-  const movieLikes = new Map<string, { likes: number; ringtones: Ringtone[] }>();
-
-  allRingtones?.forEach(ringtone => {
-    const movieName = ringtone.movie_name;
-    if (!movieLikes.has(movieName)) {
-      movieLikes.set(movieName, { likes: 0, ringtones: [] });
+// 1. Cached RPC for Top Movies (Hero)
+const getTopMoviesHero = unstable_cache(
+  async () => {
+    const { data, error } = await supabase.rpc('get_top_movies_by_likes', { limit_count: 10 });
+    if (error) {
+      console.error('Error fetching top movies:', error);
+      return [];
     }
-    const movieData = movieLikes.get(movieName)!;
-    movieData.likes += ringtone.likes || 0;
-    movieData.ringtones.push(ringtone);
-  });
+    return data || [];
+  },
+  ['hero-top-movies-v1'],
+  { revalidate: 3600, tags: ['homepage-hero'] }
+);
 
-  // Get top 10 movies by total likes
-  const topMovies = Array.from(movieLikes.entries())
-    .map(([name, data]) => ({
-      name,
-      likes: data.likes,
-      ringtones: data.ringtones
-    }))
-    .sort((a, b) => {
-      if (b.likes !== a.likes) return b.likes - a.likes;
-      return b.ringtones.length - a.ringtones.length;
-    })
-    .slice(0, 10);
+// 2. Cached RPC for Top Contributors
+const getTopContributorsList = unstable_cache(
+  async () => {
+    const { data, error } = await supabase.rpc('get_top_contributors', { limit_count: 10 });
+    if (error) {
+      console.error('Error fetching top contributors:', error);
+      return [];
+    }
+    return data || [];
+  },
+  ['home-top-contributors-v1'],
+  { revalidate: 3600, tags: ['homepage-contributors'] }
+);
 
-  // For each top movie, get its most liked ringtone for the hero slider
-  const heroRingtones = topMovies.map(movie => {
-    // Sort ringtones by likes and take the top one
-    const topRingtone = movie.ringtones
-      .sort((a, b) => (b.likes || 0) - (a.likes || 0))[0];
-    return topRingtone;
-  }).filter(Boolean);
+export default async function Home() {
+  // 1. Fetch Top Movies (Hero) via RPC
+  const topMoviesRaw = await getTopMoviesHero();
+  const heroRingtones = topMoviesRaw.map((m: any) => ({
+    id: m.ringtone_id,
+    title: m.ringtone_title,
+    slug: m.ringtone_slug,
+    movie_name: m.movie_name,
+    movie_year: m.ringtone_movie_year,
+    poster_url: m.ringtone_poster_url,
+    likes: m.total_likes, // Showing total movie likes might be more impressive? Or logic remains similar.
+    // Ensure minimal valid Ringtone object
+    downloads: 0,
+    created_at: new Date().toISOString(),
+    audio_url: '',
+    waveform_url: '',
+    backdrop_url: '',
+    singers: ''
+  } as Ringtone));
 
   // 2. Fetch Trending (Top 5 by downloads - mocked for now as downloads col might be empty, using created_at)
   const { data: trending } = await supabase
@@ -275,67 +282,20 @@ export default async function Home() {
       debugSkipped: { name: string; likes: number; reason: string; norm: string; tmdbDept?: string | null }[];
     };
 
-  // 5. Compute Top Contributors (by uploads)
-  const { data: uploads } = await supabase
-    .from('ringtones')
-    .select('user_id')
-    .eq('status', 'approved')
-    .not('user_id', 'is', null);
+  // 5. Fetch Top Contributors via RPC
+  console.time('Fetch Top Contributors');
+  const topContributorsRaw = await getTopContributorsList();
+  console.timeEnd('Fetch Top Contributors');
 
-  const contribCounts = new Map<string, number>();
-  uploads?.forEach((r: any) => {
-    const uid = r.user_id || 'unknown';
-    contribCounts.set(uid, (contribCounts.get(uid) || 0) + 1);
-  });
-
-  const topContributorsIds = Array.from(contribCounts.entries())
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 10)
-    .map(([user_id]) => user_id);
-
-  let topContributors: { id: string; name?: string; image?: string | null; count: number; points: number; title: string; level: number }[] = [];
-  if (topContributorsIds.length > 0) {
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('id, full_name, avatar_url, points, level')
-      .in('id', topContributorsIds as string[]);
-
-    const profileMap = new Map<string, { name: string; image: string | null, points: number, level: number }>();
-    profiles?.forEach((p: any) => profileMap.set(p.id, {
-      name: p.full_name || 'Anonymous User',
-      image: p.avatar_url,
-      points: p.points,
-      level: p.level
-    }));
-
-    topContributors = Array.from(contribCounts.entries())
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10)
-      .map(([user_id, count]) => {
-        const profile = profileMap.get(user_id);
-
-        let userPoints = profile?.points || 0;
-        let userLevel = profile?.level || 1;
-
-        // Visual Fallback: Calculate correct stats if DB is outdated (user hasn't logged in recently)
-        const calculatedPoints = count * 50; // POINTS_PER_UPLOAD
-        if (userPoints < calculatedPoints) {
-          userPoints = calculatedPoints;
-          userLevel = Math.floor(userPoints / 500) + 1;
-        }
-
-        const levelTitle = getLevelTitle(userLevel);
-        return {
-          id: user_id,
-          name: profile?.name || 'Ringtone User',
-          image: profile?.image || null,
-          count,
-          points: userPoints,
-          title: levelTitle,
-          level: userLevel
-        };
-      });
-  }
+  const topContributors: { id: string; name: string; image: string | null; count: number; points: number; title: string; level: number }[] = topContributorsRaw.map((c: any) => ({
+    id: c.user_id,
+    name: c.full_name || 'Ringtone User',
+    image: c.avatar_url,
+    count: c.upload_count,
+    points: c.points,
+    title: getLevelTitle(c.level),
+    level: c.level
+  }));
 
   // JSON-LD for WebSite
   const jsonLd = {
