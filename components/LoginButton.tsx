@@ -1,7 +1,7 @@
 'use client';
 
 import { createBrowserClient } from '@supabase/ssr';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 
@@ -12,6 +12,7 @@ export default function LoginButton() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     const getUser = async () => {
@@ -31,7 +32,8 @@ export default function LoginButton() {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `http://localhost:3000/auth/callback`,
+        // Redirect back to the current page after login
+        redirectTo: `${location.origin}/auth/callback?next=${pathname || '/'}`,
       },
     });
   };
