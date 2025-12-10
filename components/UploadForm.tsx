@@ -164,7 +164,13 @@ export default function UploadForm() {
   // Step 1: File Select
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+      const selectedFile = e.target.files[0];
+      setFile(selectedFile);
+
+      // Auto-fill Ringtone Name from Filename
+      const fileName = selectedFile.name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " ");
+      setSegmentName(fileName);
+
       // If audio file, go to Step 1.5 (Trim) instead of Step 2
       setTrimStart(0);
       setTrimEnd(30);
