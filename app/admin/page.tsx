@@ -191,7 +191,7 @@ export default function AdminDashboard() {
                                         className="object-cover"
                                     />
                                 </div>
-                                <audio controls src={ringtone.audio_url} className="w-full h-8" />
+                                <audio controls preload="none" src={ringtone.audio_url} className="w-full h-8" />
                             </div>
 
                             {/* Details */}

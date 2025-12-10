@@ -11,15 +11,16 @@ export async function middleware(request: NextRequest) {
   // 4. form-action: 'self'
   const cspHeader = `
     default-src 'self';
-    script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval';
+    script-src 'self' 'nonce-${nonce}' 'strict-dynamic' 'unsafe-eval' https://unpkg.com;
     style-src 'self' 'unsafe-inline';
     img-src 'self' blob: data: https:;
     media-src 'self' blob: data: https:;
-    connect-src 'self' https:;
+    connect-src 'self' blob: https: https://unpkg.com;
     font-src 'self' data:;
     object-src 'none';
     base-uri 'self';
     form-action 'self';
+    worker-src 'self' blob:;
     frame-ancestors 'none';
     upgrade-insecure-requests;
   `
@@ -56,6 +57,7 @@ export async function middleware(request: NextRequest) {
           })
           // Re-set CSP on new response
           response.headers.set('Content-Security-Policy', cspHeader)
+
 
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, options)

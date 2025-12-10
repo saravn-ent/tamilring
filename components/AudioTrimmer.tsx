@@ -12,86 +12,100 @@ export default function AudioTrimmer({ file, onTrimChange }: { file: File, onTri
     const [zoom, setZoom] = useState(0); // 0 = fit
     const [isReady, setIsReady] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
+    const [localStart, setLocalStart] = useState(0);
+    const [localEnd, setLocalEnd] = useState(30);
+
+    const updateRegion = (start: number, end: number) => {
+        if (!regionsRef.current) return;
+        regionsRef.current.clearRegions();
+        regionsRef.current.addRegion({
+            start,
+            end,
+            color: 'rgba(244, 63, 94, 0.4)',
+            drag: true,
+            resize: true
+        });
+        onTrimChange(start, end);
+    };
 
     useEffect(() => {
         if (!containerRef.current || !file) return;
 
         let ws: any;
         const initWaveSurfer = async () => {
-            const WaveSurfer = (await import('wavesurfer.js')).default;
-            const RegionsPlugin = (await import('wavesurfer.js/dist/plugins/regions.esm.js')).default;
+            try {
+                const WaveSurferModule = await import('wavesurfer.js');
+                const WaveSurfer = WaveSurferModule.default || WaveSurferModule;
 
-            if (wsRef.current) {
-                wsRef.current.destroy();
-            }
+                const RegionsPluginModule = await import('wavesurfer.js/dist/plugins/regions.esm.js');
+                const RegionsPlugin = RegionsPluginModule.default || RegionsPluginModule;
 
-            ws = WaveSurfer.create({
-                container: containerRef.current!,
-                waveColor: '#3f3f46', // zinc-700 (darker base)
-                progressColor: '#059669', // emerald-600 (played part)
-                cursorColor: '#10b981',
-                barWidth: 3,
-                barGap: 3,
-                barRadius: 3,
-                height: 160, // Taller for better touch
-                url: URL.createObjectURL(file),
-                normalize: true,
-                minPxPerSec: 0, // Allow fitting to screen
-            });
+                if (wsRef.current) {
+                    wsRef.current.destroy();
+                }
 
-            // Initialize Regions
-            const wsRegions = ws.registerPlugin(RegionsPlugin.create());
-            regionsRef.current = wsRegions;
-
-            ws.on('decode', () => {
-                setIsReady(true);
-                const duration = ws.getDuration();
-                const containerWidth = containerRef.current!.clientWidth;
-
-                // Calculate zoom to fit entire song in view
-                const fitZoom = containerWidth / duration;
-
-                // Initial Default Region (30s centered)
-                const start = Math.max(0, (duration / 2) - 15);
-                const end = Math.min(start + 30, duration);
-
-                wsRegions.addRegion({
-                    start,
-                    end,
-                    color: 'rgba(244, 63, 94, 0.4)', // Rose-500
-                    drag: true,
-                    resize: true,
+                ws = WaveSurfer.create({
+                    container: containerRef.current!,
+                    waveColor: '#3f3f46',
+                    progressColor: '#059669',
+                    cursorColor: '#10b981',
+                    barWidth: 3,
+                    barGap: 3,
+                    barRadius: 3,
+                    height: 160,
+                    url: URL.createObjectURL(file), // Helper to create blob URL
+                    normalize: true,
+                    minPxPerSec: 0,
                 });
 
-                // Default to fitting the screen
-                ws.zoom(fitZoom);
-                setZoom(Math.floor(fitZoom));
+                // Initialize Regions
+                const wsRegions = ws.registerPlugin(RegionsPlugin.create());
+                regionsRef.current = wsRegions;
 
-                onTrimChange(start, end);
-            });
+                // Event: Decoded (Waveform ready)
+                ws.on('decode', () => {
+                    setIsReady(true);
+                    setupDefaultRegion(ws, wsRegions);
+                });
 
-            ws.on('timeupdate', (t: number) => {
-                setCurrentTime(t);
-            });
+                // Event: Ready (Fallback if decode doesn't trigger for some reason)
+                ws.on('ready', () => {
+                    if (!isReady) setIsReady(true);
+                });
 
-            ws.on('play', () => setIsPlaying(true));
-            ws.on('pause', () => setIsPlaying(false));
+                // Event: Error
+                ws.on('error', (e: any) => {
+                    console.error("WaveSurfer Error:", e);
+                    // Force ready so user isn't stuck, but maybe show error
+                    setIsReady(true);
+                });
 
-            wsRegions.on('region-updated', (region: any) => {
-                onTrimChange(region.start, region.end);
-            });
+                ws.on('timeupdate', (t: number) => {
+                    setCurrentTime(t);
+                });
 
-            // Play region on click
-            wsRegions.on('region-clicked', (region: any, e: any) => {
-                e.stopPropagation();
-                region.play();
-            });
-            // Loop region when playing
-            wsRegions.on('region-out', (region: any) => {
-                if (isPlaying) region.play();
-            });
+                ws.on('play', () => setIsPlaying(true));
+                ws.on('pause', () => setIsPlaying(false));
 
-            wsRef.current = ws;
+                wsRegions.on('region-updated', (region: any) => {
+                    onTrimChange(region.start, region.end);
+                    setLocalStart(region.start);
+                    setLocalEnd(region.end);
+                });
+
+                wsRegions.on('region-clicked', (region: any, e: any) => {
+                    e.stopPropagation();
+                    region.play();
+                });
+
+                wsRegions.on('region-out', (region: any) => {
+                    if (isPlaying) region.play();
+                });
+
+                wsRef.current = ws;
+            } catch (err) {
+                console.error("WaveSurfer Init Error:", err);
+            }
         };
 
         initWaveSurfer();
@@ -100,6 +114,60 @@ export default function AudioTrimmer({ file, onTrimChange }: { file: File, onTri
             if (ws) ws.destroy();
         };
     }, [file]);
+
+    const setupDefaultRegion = (ws: any, wsRegions: any) => {
+        setTimeout(() => {
+            try {
+                if (!ws || !ws.backend || ws.isDestroyed) return;
+
+                // Debug Log
+                console.log("Setting up default region...", ws.getDuration());
+
+                // Prevent double init
+                if (wsRegions.getRegions().length > 0) {
+                    console.log("Region already exists:", wsRegions.getRegions());
+                    return;
+                }
+
+                const duration = ws.getDuration() || 30; // Fallback
+
+                // Center 30s
+                const start = Math.max(0, (duration / 2) - 15);
+                const end = Math.min(start + 30, duration);
+
+                console.log(`Adding region: ${start} - ${end}`);
+
+                const r = wsRegions.addRegion({
+                    start,
+                    end,
+                    color: 'rgba(244, 63, 94, 0.4)',
+                    drag: true,
+                    resize: true,
+                    content: 'Drag me'
+                });
+
+                console.log("Region added:", r);
+
+                // Enable drawing just in case
+                wsRegions.enableDragSelection({
+                    color: 'rgba(244, 63, 94, 0.4)',
+                });
+
+                // Zoom logic
+                const containerWidth = containerRef.current!.clientWidth;
+                const fitZoom = containerWidth / duration;
+                ws.zoom(fitZoom);
+                setZoom(Math.floor(fitZoom));
+                setZoom(Math.floor(fitZoom));
+                onTrimChange(start, end);
+                setLocalStart(start);
+                setLocalEnd(end);
+
+            } catch (e) {
+                console.error("WaveSurfer region setup error:", e);
+            }
+        }, 100); // Small delay to ensure DOM is ready
+    };
 
     const togglePlay = () => {
         if (wsRef.current) {
@@ -161,6 +229,42 @@ export default function AudioTrimmer({ file, onTrimChange }: { file: File, onTri
                 />
             </div>
 
+            {/* Manual Trim Controls (Prominent) */}
+            <div className="flex items-center justify-between gap-4 bg-neutral-800/50 p-3 rounded-xl border border-white/5">
+                <div className="flex flex-col">
+                    <label className="text-[10px] text-zinc-500 uppercase font-bold mb-1">Start (0.0s)</label>
+                    <input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        className="w-24 bg-black border border-neutral-700 rounded-lg px-3 py-2 text-center text-lg font-mono font-bold text-white focus:border-emerald-500 outline-none"
+                        value={localStart.toFixed(1)}
+                        onChange={(e) => {
+                            const val = Math.max(0, Number(e.target.value));
+                            setLocalStart(val);
+                            updateRegion(val, localEnd);
+                        }}
+                    />
+                </div>
+
+                <div className="text-zinc-500 font-mono text-xs">TO</div>
+
+                <div className="flex flex-col items-end">
+                    <label className="text-[10px] text-zinc-500 uppercase font-bold mb-1">End (30.0s)</label>
+                    <input
+                        type="number"
+                        step="0.1"
+                        className="w-24 bg-black border border-neutral-700 rounded-lg px-3 py-2 text-center text-lg font-mono font-bold text-white focus:border-emerald-500 outline-none"
+                        value={localEnd.toFixed(1)}
+                        onChange={(e) => {
+                            const val = Number(e.target.value);
+                            setLocalEnd(val);
+                            updateRegion(localStart, val);
+                        }}
+                    />
+                </div>
+            </div>
+
             {/* Main Controls */}
             <div className="flex flex-col gap-6">
 
@@ -217,6 +321,22 @@ export default function AudioTrimmer({ file, onTrimChange }: { file: File, onTri
                 <span className="text-rose-500 font-bold">Tip: </span>
                 Drag the highlighted rose box to select the ringtone part.
             </div>
+
+
+
+            <style jsx global>{`
+                div[part="region"] {
+                    z-index: 99 !important;
+                    background-color: rgba(244, 63, 94, 0.4) !important;
+                    border: 1px solid rgba(244, 63, 94, 0.8) !important;
+                }
+                .wavesurfer-region {
+                    z-index: 99 !important;
+                    position: absolute !important;
+                    height: 100% !important;
+                    background-color: rgba(244, 63, 94, 0.4) !important;
+                }
+            `}</style>
         </div>
     );
 }

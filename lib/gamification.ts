@@ -26,7 +26,7 @@ export async function awardPoints(supabase: SupabaseClient, userId: string, amou
         .single();
 
     if (fetchError || !profile) {
-        console.error('Error fetching profile for points:', fetchError);
+        console.error('Error fetching profile for points:', JSON.stringify(fetchError), 'UserId:', userId);
         return;
     }
 

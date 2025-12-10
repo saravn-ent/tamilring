@@ -82,6 +82,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         onEnded={handleEnded}
         onTimeUpdate={handleTimeUpdate}
         className="hidden"
+        preload="none"
       />
     </PlayerContext.Provider>
   );

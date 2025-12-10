@@ -6,6 +6,7 @@ import AudioTrimmer from './AudioTrimmer';
 import { searchMovies, MovieResult, getImageUrl, getMovieCredits, TMDB_GENRE_TO_TAG } from '@/lib/tmdb';
 import { getSongsByMovie, iTunesRing } from '@/lib/itunes';
 import { createBrowserClient } from '@supabase/ssr';
+import { notifyAdminOnUpload } from '@/app/actions';
 import Image from 'next/image';
 import type { FFmpeg } from '@ffmpeg/ffmpeg';
 // import { fetchFile, toBlobURL } from '@ffmpeg/util'; // Imported dynamically
@@ -145,12 +146,19 @@ export default function UploadForm() {
 
     const ffmpeg = ffmpegRef.current;
 
-    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
-    await ffmpeg.load({
-      coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
-      wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
-    });
-    setFfmpegLoaded(true);
+    // Use local FFmpeg files to avoid CSP/Network issues
+    const baseURL = `${window.location.origin}/ffmpeg`;
+    try {
+      await ffmpeg.load({
+        coreURL: `${baseURL}/ffmpeg-core.js`,
+        wasmURL: `${baseURL}/ffmpeg-core.wasm`,
+        // workerURL: `${baseURL}/ffmpeg-core.worker.js` // Not needed for single-threaded or if integrated
+      });
+      setFfmpegLoaded(true);
+    } catch (e) {
+      console.error("FFmpeg load failed:", e);
+      // Fallback or alert to user - actually just let it fail later or retry
+    }
   };
 
   // Step 1: File Select
@@ -360,16 +368,30 @@ export default function UploadForm() {
       // Conversion Logic
       // Always convert/trim now since we support trimming
       setLoadingMessage('Optimizing & Trimming audio...');
-      mp3Blob = await convertAudio(file, 'mp3');
-      m4rBlob = await convertAudio(file, 'm4r');
+      console.log('Starting conversion...');
+      try {
+        mp3Blob = await convertAudio(file, 'mp3');
+        console.log('MP3 conversion done');
+        m4rBlob = await convertAudio(file, 'm4r');
+        console.log('M4R conversion done');
+      } catch (convErr) {
+        console.error('Conversion Error:', convErr);
+        throw new Error('Audio processing failed. Please try a different file.');
+      }
 
       // 1. Upload MP3
       setLoadingMessage('Uploading MP3...');
+      console.log('Starting MP3 upload...');
       const mp3Name = `${baseName}.mp3`;
       const { error: mp3Error } = await supabase.storage
         .from('ringtone-files')
         .upload(mp3Name, mp3Blob);
-      if (mp3Error) throw mp3Error;
+
+      if (mp3Error) {
+        console.error('MP3 Upload Error:', mp3Error);
+        throw new Error(`MP3 Upload failed: ${mp3Error.message}`);
+      }
+      console.log('MP3 upload done');
       const { data: { publicUrl: mp3Url } } = supabase.storage.from('ringtone-files').getPublicUrl(mp3Name);
 
       // 2. Upload M4R
@@ -409,16 +431,18 @@ export default function UploadForm() {
 
       if (dbError) throw dbError;
 
-      // Notify Admin
-      import('@/app/actions').then(({ notifyAdminOnUpload }) => {
-        notifyAdminOnUpload({
+      // Notify Admin (Fire & Forget)
+      try {
+        await notifyAdminOnUpload({
           title: finalTitle,
           movie_name: manualMovieName,
           user_id: userId!,
           tags: selectedTags,
-          slug
-        }).catch(err => console.error("Notification trigger failed", err));
-      });
+          slug: slug
+        });
+      } catch (notifyErr) {
+        console.warn("Notification failed silently", notifyErr);
+      }
 
       alert('Ringtone uploaded successfully! It is now pending review.');
       // Reset form
@@ -439,7 +463,8 @@ export default function UploadForm() {
 
     } catch (error: any) {
       console.error('Upload failed:', error);
-      alert(`Upload failed: ${error.message}`);
+      const msg = error?.message || (typeof error === 'object' ? JSON.stringify(error) : String(error));
+      alert(`Upload failed: ${msg}`);
     } finally {
       setLoading(false);
       setLoadingMessage('');
