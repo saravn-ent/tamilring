@@ -409,6 +409,17 @@ export default function UploadForm() {
 
       if (dbError) throw dbError;
 
+      // Notify Admin
+      import('@/app/actions').then(({ notifyAdminOnUpload }) => {
+        notifyAdminOnUpload({
+          title: finalTitle,
+          movie_name: manualMovieName,
+          user_id: userId!,
+          tags: selectedTags,
+          slug
+        }).catch(err => console.error("Notification trigger failed", err));
+      });
+
       alert('Ringtone uploaded successfully! It is now pending review.');
       // Reset form
       setStep(1);

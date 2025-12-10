@@ -96,3 +96,46 @@ export async function revalidateArtistCache() {
   }
   return { success: true, timestamp: Date.now() }
 }
+
+export async function notifyAdminOnUpload(ringtoneData: {
+  title: string;
+  movie_name: string;
+  user_id: string;
+  tags?: string[];
+  slug?: string;
+}) {
+  const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+  if (!webhookUrl) return { success: false, error: 'No webhook URL configured' };
+
+  try {
+    const embed = {
+      title: "🎵 New Ringtone Pending Review",
+      url: `https://tamilring.in/admin`, // Hardcoded based on project knowledge, can be adjusted
+      color: 5090150, // #4DAC66
+      fields: [
+        { name: "Title", value: ringtoneData.title, inline: true },
+        { name: "Movie", value: ringtoneData.movie_name, inline: true },
+        { name: "User", value: ringtoneData.user_id, inline: false },
+        { name: "Tags", value: Array.isArray(ringtoneData.tags) ? ringtoneData.tags.join(', ') : "None", inline: false }
+      ],
+      timestamp: new Date().toISOString(),
+      footer: { text: "TamilRing Admin Bot" }
+    };
+
+    const res = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        content: "New upload waiting for approval!",
+        embeds: [embed]
+      })
+    });
+
+    if (!res.ok) throw new Error(`Discord API Status: ${res.status}`);
+
+    return { success: true };
+  } catch (e) {
+    console.error('Notification failed:', e);
+    return { success: false }; // Fail silently for user
+  }
+}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createBrowserClient } from '@supabase/auth-helpers-nextjs';
+import { createBrowserClient } from '@supabase/ssr';
 import Image from 'next/image';
 import { Loader2, Check, X, LogOut, ShieldAlert, BadgeCheck } from 'lucide-react';
 import { Ringtone } from '@/types';
@@ -25,38 +25,59 @@ export default function AdminDashboard() {
     }, []);
 
     const checkAdmin = async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        setUser(user);
+        try {
+            const { data: { user }, error: authError } = await supabase.auth.getUser();
+            if (authError || !user) {
+                console.error("Auth check failed:", authError);
+                setLoading(false);
+                return;
+            }
 
-        if (user) {
-            const { data: profile } = await supabase
+            setUser(user);
+
+            const { data: profile, error: profileError } = await supabase
                 .from('profiles')
                 .select('role')
                 .eq('id', user.id)
                 .single();
 
+            if (profileError) {
+                console.error("Profile check failed:", profileError);
+                // If error accessing profile, likely row doesn't exist or RLS blocked -> treat as not admin
+                setLoading(false);
+                return;
+            }
+
             if (profile?.role === 'admin') {
                 setIsAdmin(true);
-                fetchPendingRingtones();
+                await fetchPendingRingtones();
             } else {
                 setLoading(false);
             }
-        } else {
+        } catch (e) {
+            console.error("Unexpected error in checkAdmin:", e);
             setLoading(false);
         }
     };
 
     const fetchPendingRingtones = async () => {
-        const { data } = await supabase
-            .from('ringtones')
-            .select('*')
-            .eq('status', 'pending')
-            .order('created_at', { ascending: false });
+        try {
+            const { data, error } = await supabase
+                .from('ringtones')
+                .select('*')
+                .eq('status', 'pending')
+                .order('created_at', { ascending: false });
 
-        if (data) {
-            setRingtones(data as any);
+            if (error) throw error;
+
+            if (data) {
+                setRingtones(data as any);
+            }
+        } catch (e) {
+            console.error("Error fetching ringtones:", e);
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
 
     const handleApprove = async (ringtone: Ringtone) => {
