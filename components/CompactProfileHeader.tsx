@@ -16,7 +16,7 @@ interface CompactProfileHeaderProps {
     ringtoneCount: number;
     movieCount?: number;
     totalLikes: number;
-    imageUrl?: string;
+    imageUrl?: string | null;
     bio?: string;
     shareMetadata?: { title: string; text: string };
 }
@@ -51,7 +51,7 @@ export default function CompactProfileHeader({
                             id: name,
                             name,
                             type,
-                            imageUrl,
+                            imageUrl: imageUrl || undefined,
                             href: type === 'Actor' ? `/actor/${encodeURIComponent(name)}` : `/artist/${encodeURIComponent(name)}`
                         }}
                         className="w-8 h-8 bg-neutral-800 hover:bg-neutral-700 text-zinc-400 hover:text-red-500"
@@ -70,14 +70,14 @@ export default function CompactProfileHeader({
                             ${type === 'Music Director' || type === 'Movie Director' ? 'border-amber-500/30 shadow-amber-500/10' : 'border-white/10'}
                         `}>
                             <ImageWithFallback
-                                src={imageUrl}
+                                src={imageUrl || undefined}
                                 alt={name}
                                 className="object-cover object-top"
                                 fallbackClassName="bg-neutral-800 text-zinc-600 flex items-center justify-center p-4"
                             />
                         </div>
                         {/* Admin Upload Control */}
-                        <ArtistImageUpload artistName={name} currentImage={imageUrl} />
+                        <ArtistImageUpload artistName={name} currentImage={imageUrl || undefined} />
                     </div>
 
                     {/* Info */}

@@ -25,13 +25,19 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!ringtone) return { title: 'Ringtone Not Found' };
 
+  const musicDir = ringtone.music_director || 'Unknown';
+
   return {
-    title: `${ringtone.title} Ringtone Download - ${ringtone.movie_name} (${ringtone.movie_year}) | Free MP3`,
-    description: `Download ${ringtone.mood} ${ringtone.title} ringtone by ${ringtone.singers} from the movie ${ringtone.movie_name}. High quality 320kbps MP3.`,
+    title: `${ringtone.title} Ringtone Download - ${ringtone.movie_name} | ${musicDir} | Free MP3`,
+    description: `Download ${ringtone.title} ringtone by ${ringtone.singers} from the tamil movie ${ringtone.movie_name}. High quality 320kbps BGM, Cut Songs, and Mass Dialogues for mobile.`,
+    alternates: {
+      canonical: `/ringtone/${slug}`,
+    },
     openGraph: {
-      title: `${ringtone.title} Ringtone`,
-      description: `Download ${ringtone.title} ringtone on TamilRing.`,
+      title: `${ringtone.title} Ringtone Download`,
+      description: `Download ${ringtone.title} ringtone from ${ringtone.movie_name}.`,
       images: ringtone.poster_url ? [{ url: ringtone.poster_url }] : [],
+      type: 'music.song',
     },
   };
 }
@@ -46,14 +52,21 @@ export default async function RingtonePage({ params }: Props) {
 
   if (!ringtone) return <div className="text-center py-20 text-zinc-500">Ringtone not found</div>;
 
+  // Strict AudioObject Schema for "Play" Button
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'AudioObject',
-    name: ringtone.title,
-    description: `Download ${ringtone.title} ringtone from ${ringtone.movie_name}`,
+    name: `${ringtone.movie_name} - ${ringtone.title} Ringtone`,
+    description: `Download ${ringtone.title} high-quality ringtone from the Tamil movie ${ringtone.movie_name} composed by ${ringtone.music_director}.`,
     contentUrl: ringtone.audio_url,
+    encodingFormat: 'audio/mpeg',
+    duration: 'T0M30S', // Hardcoded standard for Rich Snippet eligibility
     thumbnailUrl: ringtone.poster_url,
     uploadDate: ringtone.created_at,
+    inAlbum: {
+      '@type': 'MusicAlbum',
+      name: ringtone.movie_name
+    }
   };
 
   return (
@@ -102,7 +115,7 @@ export default async function RingtonePage({ params }: Props) {
 
           <div className="space-y-1">
             <h1 className="text-2xl font-bold text-zinc-100">{ringtone.title}</h1>
-            <Link href={`/movie/${encodeURIComponent(ringtone.movie_name)}`} className="text-zinc-400 text-base hover:text-emerald-500 transition-colors block">
+            <Link href={`/tamil/movies/${encodeURIComponent(ringtone.movie_name)}`} className="text-zinc-400 text-base hover:text-emerald-500 transition-colors block">
               {ringtone.movie_name} <span className="text-zinc-600">({ringtone.movie_year})</span>
             </Link>
 
@@ -122,7 +135,7 @@ export default async function RingtonePage({ params }: Props) {
 
             {ringtone.music_director && (
               <div className="text-zinc-500 text-xs mt-1">
-                Music: <Link href={`/artist/${encodeURIComponent(ringtone.music_director)}`} className="text-zinc-300 hover:text-emerald-500 transition-colors">{ringtone.music_director}</Link>
+                Music: <Link href={`/tamil/music-directors/${encodeURIComponent(ringtone.music_director)}`} className="text-zinc-300 hover:text-emerald-500 transition-colors">{ringtone.music_director}</Link>
               </div>
             )}
           </div>

@@ -55,6 +55,29 @@ export const getMovieCredits = async (movieId: number): Promise<MovieCredits | n
     return null;
   }
 };
+
+export interface PersonMovieCredits {
+  cast: {
+    id: number;
+    title: string;
+    character: string;
+    release_date: string;
+    poster_path: string | null;
+  }[];
+}
+
+export const getPersonMovieCredits = async (personId: number): Promise<PersonMovieCredits | null> => {
+  try {
+    const res = await fetch(`${BASE_URL}/person/${personId}/movie_credits?api_key=${TMDB_API_KEY}&language=en-US`, {
+      next: { revalidate: 3600 }
+    });
+    if (!res.ok) throw new Error('Failed to fetch person credits');
+    return await res.json();
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+};
 export interface PersonResult {
   id: number;
   name: string;
