@@ -40,55 +40,60 @@ export default function ProfilePage() {
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        setUser(user);
 
-      if (user) {
-        // Fetch Profile
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
+        if (user) {
+          // Fetch Profile
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
 
-        if (profileData) {
-          setProfile(profileData);
-          setFullName(profileData.full_name || '');
-          setBio(profileData.bio || '');
-          setWebsite(profileData.website_url || '');
-          setInstagram(profileData.instagram_handle || '');
-          setTwitter(profileData.twitter_handle || '');
+          if (profileData) {
+            setProfile(profileData);
+            setFullName(profileData.full_name || '');
+            setBio(profileData.bio || '');
+            setWebsite(profileData.website_url || '');
+            setInstagram(profileData.instagram_handle || '');
+            setTwitter(profileData.twitter_handle || '');
 
-          // Check and Sync Gamification Stats
-          syncUserGamification(supabase, user.id).then((synced) => {
-            if (synced && (synced.points !== profileData.points || synced.level !== profileData.level)) {
-              setProfile((prev: any) => ({ ...prev, ...synced }));
-            }
-          });
+            // Check and Sync Gamification Stats
+            syncUserGamification(supabase, user.id).then((synced) => {
+              if (synced && (synced.points !== profileData.points || synced.level !== profileData.level)) {
+                setProfile((prev: any) => ({ ...prev, ...synced }));
+              }
+            });
+          }
+
+          // Fetch Uploads
+          const { data: uploadsData } = await supabase
+            .from('ringtones')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false });
+
+          if (uploadsData) {
+            setUploads(uploadsData as unknown as Ringtone[]);
+          }
+
+          // Fetch Badges
+          const { data: badgesData } = await supabase
+            .from('user_badges')
+            .select('*, badge:badges(*)')
+            .eq('user_id', user.id);
+
+          if (badgesData) {
+            setUserBadges(badgesData);
+          }
         }
-
-        // Fetch Uploads
-        const { data: uploadsData } = await supabase
-          .from('ringtones')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false });
-
-        if (uploadsData) {
-          setUploads(uploadsData as unknown as Ringtone[]);
-        }
-
-        // Fetch Badges
-        const { data: badgesData } = await supabase
-          .from('user_badges')
-          .select('*, badge:badges(*)')
-          .eq('user_id', user.id);
-
-        if (badgesData) {
-          setUserBadges(badgesData);
-        }
+      } catch (error) {
+        console.error("Error loading profile:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     getUser();
@@ -243,7 +248,7 @@ export default function ProfilePage() {
             onClick={handleSignOut}
             className="px-4 py-1.5 bg-neutral-800/50 text-red-400 text-xs font-bold rounded-full hover:bg-red-900/20 transition-colors border border-neutral-800"
           >
-            Start Over
+            Sign Out
           </button>
         </div>
 
@@ -296,8 +301,8 @@ export default function ProfilePage() {
           <button
             onClick={() => setActiveTab('overview')}
             className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors flex items-center justify-center gap-2 ${activeTab === 'overview'
-                ? 'border-emerald-500 text-emerald-500'
-                : 'border-transparent text-zinc-500 hover:text-zinc-300'
+              ? 'border-emerald-500 text-emerald-500'
+              : 'border-transparent text-zinc-500 hover:text-zinc-300'
               }`}
           >
             <LayoutDashboard size={16} /> Overview
@@ -305,8 +310,8 @@ export default function ProfilePage() {
           <button
             onClick={() => setActiveTab('uploads')}
             className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors flex items-center justify-center gap-2 ${activeTab === 'uploads'
-                ? 'border-emerald-500 text-emerald-500'
-                : 'border-transparent text-zinc-500 hover:text-zinc-300'
+              ? 'border-emerald-500 text-emerald-500'
+              : 'border-transparent text-zinc-500 hover:text-zinc-300'
               }`}
           >
             <Music size={16} /> My Rings
@@ -314,8 +319,8 @@ export default function ProfilePage() {
           <button
             onClick={() => setActiveTab('upload')}
             className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors flex items-center justify-center gap-2 ${activeTab === 'upload'
-                ? 'border-emerald-500 text-white bg-emerald-500/10'
-                : 'border-transparent text-zinc-500 hover:text-zinc-300'
+              ? 'border-emerald-500 text-white bg-emerald-500/10'
+              : 'border-transparent text-zinc-500 hover:text-zinc-300'
               }`}
           >
             <UploadCloud size={16} /> Upload
@@ -397,8 +402,8 @@ export default function ProfilePage() {
                       <p className="text-xs text-zinc-500 truncate">{ringtone.movie_name}</p>
                       <div className="flex items-center gap-2 mt-1">
                         <span className={`text-[10px] px-1.5 py-0.5 rounded capitalize font-medium ${ringtone.status === 'approved' ? 'bg-emerald-500/10 text-emerald-500' :
-                            ringtone.status === 'rejected' ? 'bg-red-500/10 text-red-500' :
-                              'bg-yellow-500/10 text-yellow-500'
+                          ringtone.status === 'rejected' ? 'bg-red-500/10 text-red-500' :
+                            'bg-yellow-500/10 text-yellow-500'
                           }`}>
                           {ringtone.status}
                         </span>
