@@ -11,19 +11,18 @@ function AuthCodeErrorContent() {
     const [seconds, setSeconds] = useState(5);
 
     useEffect(() => {
+        if (seconds <= 0) {
+            router.push('/');
+        }
+    }, [seconds, router]);
+
+    useEffect(() => {
         const timer = setInterval(() => {
-            setSeconds((s) => {
-                if (s <= 1) {
-                    clearInterval(timer);
-                    router.push('/');
-                    return 0;
-                }
-                return s - 1;
-            });
+            setSeconds((s) => Math.max(0, s - 1));
         }, 1000);
 
         return () => clearInterval(timer);
-    }, [router]);
+    }, []);
 
     return (
         <div className="min-h-screen flex flex-col items-center justify-center p-4 text-center">

@@ -200,37 +200,45 @@ const getTopArtists = unstable_cache(
   { revalidate: 3600, tags: ['homepage-artists'] }
 );
 
-// 1. Cached RPC for Top Movies (Hero)
-const getTopMoviesHero = unstable_cache(
-  async () => {
-    const { data, error } = await supabase.rpc('get_top_movies_by_likes', { limit_count: 10 });
-    if (error) {
-      console.error('Error fetching top movies:', error);
-      return [];
-    }
-    return data || [];
-  },
-  ['hero-top-movies-v1'],
-  { revalidate: 3600, tags: ['homepage-hero'] }
-);
+// Direct RPC calls for debugging and ensuring freshness
+async function getTopMoviesHero() {
+  const { data, error } = await supabase.rpc('get_top_movies_by_likes', { limit_count: 10 });
+  if (error) {
+    console.error('Error fetching top movies:', JSON.stringify(error, null, 2));
+    return [];
+  }
+  return data || [];
+}
 
-// 2. Cached RPC for Top Contributors
-const getTopContributorsList = unstable_cache(
-  async () => {
-    const { data, error } = await supabase.rpc('get_top_contributors', { limit_count: 10 });
-    if (error) {
-      console.error('Error fetching top contributors:', error);
-      return [];
-    }
-    return data || [];
-  },
-  ['home-top-contributors-v1'],
-  { revalidate: 3600, tags: ['homepage-contributors'] }
-);
+async function getTopContributorsList() {
+  const { data, error } = await supabase.rpc('get_top_contributors', { limit_count: 10 });
+  if (error) {
+    console.error('Error fetching top contributors:', JSON.stringify(error, null, 2));
+    return [];
+  }
+  return data || [];
+}
 
 export default async function Home() {
-  // 1. Fetch Top Movies (Hero) via RPC
-  const topMoviesRaw = await getTopMoviesHero();
+  console.log('--- Homepage Render Start ---');
+  // Parallel Fetching
+  const [
+    topMoviesRaw,
+    trendingRes,
+    recentRes,
+    nostalgiaRes,
+    topArtistsData,
+    topContributorsRaw
+  ] = await Promise.all([
+    getTopMoviesHero(),
+    supabase.from('ringtones').select('*').eq('status', 'approved').order('created_at', { ascending: false }).limit(5),
+    supabase.from('ringtones').select('*').eq('status', 'approved').order('created_at', { ascending: false }).limit(5),
+    supabase.from('ringtones').select('*').eq('status', 'approved').lt('movie_year', '2015').order('likes', { ascending: false }).limit(10),
+    getTopArtists(),
+    getTopContributorsList()
+  ]);
+
+  // 1. Process Top Movies
   const heroRingtones = topMoviesRaw.map((m: any) => ({
     id: m.ringtone_id,
     title: m.ringtone_title,
@@ -238,8 +246,7 @@ export default async function Home() {
     movie_name: m.movie_name,
     movie_year: m.ringtone_movie_year,
     poster_url: m.ringtone_poster_url,
-    likes: m.total_likes, // Showing total movie likes might be more impressive? Or logic remains similar.
-    // Ensure minimal valid Ringtone object
+    likes: m.total_likes,
     downloads: 0,
     created_at: new Date().toISOString(),
     audio_url: '',
@@ -248,45 +255,23 @@ export default async function Home() {
     singers: ''
   } as Ringtone));
 
-  // 2. Fetch Trending (Top 5 by downloads - mocked for now as downloads col might be empty, using created_at)
-  const { data: trending } = await supabase
-    .from('ringtones')
-    .select('*')
-    .eq('status', 'approved')
-    .order('created_at', { ascending: false }) // TODO: Change to downloads when available
-    .limit(5);
+  // 2. Process Trending
+  const trending = trendingRes.data;
 
-  // 3. Fetch Recent (Limit to 5)
-  const { data: recent } = await supabase
-    .from('ringtones')
-    .select('*')
-    .eq('status', 'approved')
-    .order('created_at', { ascending: false })
-    .limit(5);
+  // 3. Process Recent
+  const recent = recentRes.data;
 
-  // 4. Fetch Nostalgia (Movies before 2015) - Random sample or sorted by likes
-  const { data: nostalgia } = await supabase
-    .from('ringtones')
-    .select('*')
-    .eq('status', 'approved')
-    .lt('movie_year', '2015')
-    .order('likes', { ascending: false })
-    .limit(10);
+  // 4. Process Nostalgia
+  const nostalgia = nostalgiaRes.data;
 
-  // 4. Fetch Top Artists (Cached)
-  const { topSingers, topMusicDirectors, topMovieDirectors, debugSkipped } =
-    (await getTopArtists()) as {
-      topSingers: { name: string; likes: number; image: string | null }[];
-      topMusicDirectors: { name: string; likes: number; image: string | null }[];
-      topMovieDirectors: { name: string; likes: number; image: string | null }[];
-      debugSkipped: { name: string; likes: number; reason: string; norm: string; tmdbDept?: string | null }[];
-    };
+  // 5. Process Top Artists
+  const { topSingers, topMusicDirectors, topMovieDirectors } = topArtistsData as {
+    topSingers: { name: string; likes: number; image: string | null }[];
+    topMusicDirectors: { name: string; likes: number; image: string | null }[];
+    topMovieDirectors: { name: string; likes: number; image: string | null }[];
+  };
 
-  // 5. Fetch Top Contributors via RPC
-  console.time('Fetch Top Contributors');
-  const topContributorsRaw = await getTopContributorsList();
-  console.timeEnd('Fetch Top Contributors');
-
+  // 6. Process Top Contributors
   const topContributors: { id: string; name: string; image: string | null; count: number; points: number; title: string; level: number }[] = topContributorsRaw.map((c: any) => ({
     id: c.user_id,
     name: c.full_name || 'Ringtone User',

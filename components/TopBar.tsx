@@ -10,7 +10,7 @@ export default function TopBar() {
           Tamil<span className="text-zinc-900 dark:text-white">Ring</span>
         </Link>
         <div className="flex items-center gap-2">
-          <Link href="/trim" className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-emerald-500 transition-colors">
+          <Link href="/trim" className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-emerald-500 transition-colors" aria-label="Ringtone Cutter">
             <Scissors size={20} />
           </Link>
         </div>

@@ -8,7 +8,7 @@ import PlayButton from './PlayButton';
 import DownloadButton from './DownloadButton';
 import StreamButtons from '@/components/StreamButtons';
 import { splitArtists } from '@/lib/utils';
-import LegalFooter from '@/components/LegalFooter';
+
 import ShareButton from '@/components/ShareButton';
 
 interface Props {
@@ -170,12 +170,7 @@ export default async function RingtonePage({ params }: Props) {
         </div>
       </div>
 
-      {/* Legal Footer Section - Fixed to bottom */}
-      <div className="fixed bottom-0 left-0 right-0 z-20 border-t border-neutral-800 bg-neutral-900 max-w-md mx-auto">
-        <div className="p-4 pb-24">
-          <LegalFooter />
-        </div>
-      </div>
+
 
       <script
         type="application/ld+json"

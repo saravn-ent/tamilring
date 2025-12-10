@@ -279,6 +279,7 @@ export default function AudioTrimmer({ file, onTrimChange }: { file: File, onTri
                         }}
                         className="p-3 rounded-full text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
                         title="Restart"
+                        aria-label="Restart Audio"
                     >
                         <RotateCcw size={20} />
                     </button>
@@ -286,6 +287,7 @@ export default function AudioTrimmer({ file, onTrimChange }: { file: File, onTri
                     <button
                         onClick={togglePlay}
                         className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center text-black hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
+                        aria-label={isPlaying ? "Pause" : "Play"}
                     >
                         {isPlaying ? <Pause size={28} fill="currentColor" /> : <Play size={28} fill="currentColor" className="ml-1" />}
                     </button>
@@ -294,8 +296,8 @@ export default function AudioTrimmer({ file, onTrimChange }: { file: File, onTri
                         {/* Placeholder for symmetry or secondary button */}
                         <div className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">Zoom</div>
                         <div className="flex items-center justify-center gap-1 mt-1">
-                            <button onClick={() => changeZoom(zoom - 10)} className="text-zinc-400 hover:text-emerald-500 p-1"><ZoomOut size={16} /></button>
-                            <button onClick={() => changeZoom(zoom + 10)} className="text-zinc-400 hover:text-emerald-500 p-1"><ZoomIn size={16} /></button>
+                            <button onClick={() => changeZoom(zoom - 10)} className="text-zinc-400 hover:text-emerald-500 p-1" aria-label="Zoom Out"><ZoomOut size={16} /></button>
+                            <button onClick={() => changeZoom(zoom + 10)} className="text-zinc-400 hover:text-emerald-500 p-1" aria-label="Zoom In"><ZoomIn size={16} /></button>
                         </div>
                     </div>
                 </div>
@@ -310,6 +312,7 @@ export default function AudioTrimmer({ file, onTrimChange }: { file: File, onTri
                         value={zoom}
                         onChange={handleZoom}
                         className="w-full accent-emerald-500 h-1.5 bg-neutral-800 rounded-lg appearance-none cursor-pointer"
+                        aria-label="Zoom Level"
                     />
                     <button onClick={fitToScreen} className="text-[10px] font-bold text-emerald-500 whitespace-nowrap hover:text-emerald-400 px-2 py-1 bg-emerald-500/10 rounded-md">
                         FIT VIEW

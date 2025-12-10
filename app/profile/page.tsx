@@ -11,7 +11,6 @@ import { User, LogOut, Heart, Music, Trash2, Play, Pause, X, Globe, Instagram, T
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Ringtone } from '@/types';
-import LegalFooter from '@/components/LegalFooter';
 import AvatarRank from '@/components/AvatarRank';
 import { getLevelTitle, syncUserGamification } from '@/lib/gamification';
 
@@ -210,10 +209,7 @@ export default function ProfilePage() {
           <LoginButton />
         </div>
 
-        <div className="w-full mt-8">
-          <hr className="border-neutral-800 mb-8" />
-          <LegalFooter />
-        </div>
+
       </div>
     );
   }
@@ -553,10 +549,7 @@ export default function ProfilePage() {
         </section>
       </div>
 
-      <div className="mt-8">
-        <hr className="border-neutral-800 mb-8" />
-        <LegalFooter />
-      </div>
+
     </div>
   );
 }

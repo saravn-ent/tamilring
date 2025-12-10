@@ -133,7 +133,7 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
             <button
               onClick={handleOpenAssignModal}
               className="absolute top-2 right-2 z-10 flex items-center justify-center w-8 h-8 rounded-full bg-white/20 backdrop-blur-md border border-white/20 text-zinc-600 dark:text-zinc-300 hover:bg-emerald-500 hover:text-white hover:border-emerald-500 transition-all duration-200"
-              title="Set Ringtone For..."
+              aria-label="Add to Collection"
             >
               <Plus size={16} />
             </button>

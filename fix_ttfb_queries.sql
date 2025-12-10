@@ -12,13 +12,15 @@ RETURNS TABLE (
     ringtone_likes bigint
 )
 LANGUAGE plpgsql
+SECURITY DEFINER -- Bypass RLS to ensure efficient aggregation
+SET search_path = public -- Prevent search_path hijacking
 AS $$
 BEGIN
     RETURN QUERY
     WITH MovieLikes AS (
         SELECT
             r.movie_name,
-            SUM(r.likes) as total_likes
+            SUM(r.likes)::bigint as total_likes
         FROM ringtones r
         WHERE r.status = 'approved'
         GROUP BY r.movie_name
@@ -33,7 +35,7 @@ BEGIN
             r.slug,
             r.poster_url,
             r.movie_year,
-            r.likes
+            r.likes::bigint
         FROM ringtones r
         WHERE r.status = 'approved'
         ORDER BY r.movie_name, r.likes DESC
@@ -46,7 +48,7 @@ BEGIN
         br.slug,
         br.poster_url,
         br.movie_year,
-        br.likes
+        br.likes::bigint
     FROM MovieLikes ml
     -- Inner join ensures we only get movies that successfully found a ringtone match
     JOIN BestRingtones br ON ml.movie_name = br.movie_name
@@ -66,16 +68,18 @@ RETURNS TABLE (
     level bigint
 )
 LANGUAGE plpgsql
+SECURITY DEFINER -- Bypass RLS to read profiles
+SET search_path = public
 AS $$
 BEGIN
     RETURN QUERY
     SELECT
         r.user_id,
-        COUNT(*) as upload_count,
+        COUNT(*)::bigint as upload_count,
         p.full_name,
         p.avatar_url,
-        COALESCE(p.points, 0) as points,
-        COALESCE(p.level, 1) as level
+        COALESCE(p.points, 0)::bigint as points,
+        COALESCE(p.level, 1)::bigint as level
     FROM ringtones r
     JOIN profiles p ON r.user_id = p.id
     WHERE r.status = 'approved'
@@ -84,3 +88,7 @@ BEGIN
     LIMIT limit_count;
 END;
 $$;
+
+-- Grant permissions to allow anonymous and authenticated users to call these functions
+GRANT EXECUTE ON FUNCTION get_top_movies_by_likes(int) TO anon, authenticated, service_role;
+GRANT EXECUTE ON FUNCTION get_top_contributors(int) TO anon, authenticated, service_role;

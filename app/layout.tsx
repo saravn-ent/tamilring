@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+
 import "./globals.css";
 import { PlayerProvider } from "@/context/PlayerContext";
 import { FavoritesProvider } from "@/context/FavoritesContext";
@@ -20,8 +21,8 @@ export const viewport: Viewport = {
   themeColor: "#050505",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  maximumScale: 5,
+  userScalable: true,
 };
 
 export const metadata: Metadata = {
