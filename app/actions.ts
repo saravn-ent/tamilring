@@ -109,8 +109,8 @@ export async function notifyAdminOnUpload(ringtoneData: {
 
   try {
     const embed = {
-      title: "🎵 New Ringtone Pending Review",
-      url: `https://tamilring.in/admin`, // Hardcoded based on project knowledge, can be adjusted
+      title: "🎵 New Ringtone Uploaded (Auto-Approved)",
+      url: `https://tamilring.in/ringtone/${ringtoneData.slug}`, // Link to live ringtone
       color: 5090150, // #4DAC66
       fields: [
         { name: "Title", value: ringtoneData.title, inline: true },
@@ -126,7 +126,7 @@ export async function notifyAdminOnUpload(ringtoneData: {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        content: "New upload waiting for approval!",
+        content: "New upload live on site!",
         embeds: [embed]
       })
     });

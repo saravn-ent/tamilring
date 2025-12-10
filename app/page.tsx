@@ -60,9 +60,9 @@ const getTopArtists = unstable_cache(
     const knownDirectors = new Set([...knownMusicDirectors, ...knownMovieDirectors].map(n => normalize(n)));
 
     // Aggregate likes for singers and directors
-    const singerMap = new Map<string, { name: string; likes: number }>();
-    const musicDirectorMap = new Map<string, { name: string; likes: number }>();
-    const movieDirectorMap = new Map<string, { name: string; likes: number }>();
+    const singerMap = new Map<string, { name: string; likes: number; count: number }>();
+    const musicDirectorMap = new Map<string, { name: string; likes: number; count: number }>();
+    const movieDirectorMap = new Map<string, { name: string; likes: number; count: number }>();
 
     data.forEach((row: any) => {
       const likes = Number(row.likes || 0);
@@ -76,8 +76,12 @@ const getTopArtists = unstable_cache(
           if (directorSet.has(n)) return; // strictly exclude any director
           if (knownDirectors.has(n)) return; // manual exclude for known directors
           const existing = singerMap.get(n);
-          if (existing) existing.likes += likes;
-          else singerMap.set(n, { name: s.trim(), likes });
+          if (existing) {
+            existing.likes += likes;
+            existing.count += 1;
+          } else {
+            singerMap.set(n, { name: s.trim(), likes, count: 1 });
+          }
         });
       }
 
@@ -88,8 +92,12 @@ const getTopArtists = unstable_cache(
           const n = normalize(d);
           if (!n) return;
           const existing = musicDirectorMap.get(n);
-          if (existing) existing.likes += likes;
-          else musicDirectorMap.set(n, { name: d.trim(), likes });
+          if (existing) {
+            existing.likes += likes;
+            existing.count += 1;
+          } else {
+            musicDirectorMap.set(n, { name: d.trim(), likes, count: 1 });
+          }
         });
       }
 
@@ -100,8 +108,12 @@ const getTopArtists = unstable_cache(
           const n = normalize(d);
           if (!n) return;
           const existing = movieDirectorMap.get(n);
-          if (existing) existing.likes += likes;
-          else movieDirectorMap.set(n, { name: d.trim(), likes });
+          if (existing) {
+            existing.likes += likes;
+            existing.count += 1;
+          } else {
+            movieDirectorMap.set(n, { name: d.trim(), likes, count: 1 });
+          }
         });
       }
     });
@@ -115,19 +127,20 @@ const getTopArtists = unstable_cache(
         .trim();
 
     // Helper to fetch Person details (Parallelized)
-    const enrichArtist = async (rawName: string, likes: number) => {
+    const enrichArtist = async (rawName: string, likes: number, count: number) => {
       const searchQuery = cleanName(rawName);
       const person = await searchPerson(searchQuery);
       return {
         name: person?.name || searchQuery,
         likes,
+        count,
         image: person?.profile_path ? getImageUrl(person.profile_path, 'w500') : null
       };
     };
 
     // 1. Process Top Singers (Parallel)
     const sortedSingers = Array.from(singerMap.entries())
-      .map(([_, v]) => [v.name, v.likes] as [string, number])
+      .map(([_, v]) => [v.name, v.likes, v.count] as [string, number, number])
       .sort((a, b) => b[1] - a[1]);
 
     const topSingerCandidates = sortedSingers.slice(0, 15); // Process top 15 candidates to account for potential skips
@@ -142,22 +155,22 @@ const getTopArtists = unstable_cache(
 
     // Fetch images in parallel
     const topSingers = await Promise.all(
-      validSingerCandidates.slice(0, 10).map(([name, likes]) => enrichArtist(name, likes))
+      validSingerCandidates.slice(0, 10).map(([name, likes, count]) => enrichArtist(name, likes, count))
     );
 
 
     // 2. Process Music Directors (Parallel)
     const mdCandidates = Array.from(musicDirectorMap.entries())
-      .map(([_, v]) => [v.name, v.likes] as [string, number])
-      .sort((a, b) => b[1] - a[1])
+      .map(([_, v]) => [v.name, v.likes, v.count] as [string, number, number])
+      .sort((a, b) => b[1] - a[1]) // Sort by likes
       .slice(0, 10);
 
     // Add known manual MDs if missing
     for (const name of knownMusicDirectors) {
       const norm = normalize(name);
       if (!mdCandidates.some(([cName]) => normalize(cName) === norm)) {
-        const likes = musicDirectorMap.get(norm)?.likes || 0;
-        mdCandidates.push([name, likes]);
+        const entry = musicDirectorMap.get(norm) || { name, likes: 0, count: 0 };
+        mdCandidates.push([entry.name, entry.likes, entry.count]);
       }
     }
 
@@ -167,13 +180,13 @@ const getTopArtists = unstable_cache(
       .slice(0, 10);
 
     const topMusicDirectors = await Promise.all(
-      finalMDCandidates.map(([name, likes]) => enrichArtist(name, likes))
+      finalMDCandidates.map(([name, likes, count]) => enrichArtist(name, likes, count))
     );
 
 
     // 3. Process Movie Directors (Parallel)
     const dirCandidates = Array.from(movieDirectorMap.entries())
-      .map(([_, v]) => [v.name, v.likes] as [string, number])
+      .map(([_, v]) => [v.name, v.likes, v.count] as [string, number, number])
       .sort((a, b) => b[1] - a[1])
       .slice(0, 10);
 
@@ -181,8 +194,8 @@ const getTopArtists = unstable_cache(
     for (const name of knownMovieDirectors) {
       const norm = normalize(name);
       if (!dirCandidates.some(([cName]) => normalize(cName) === norm)) {
-        const likes = movieDirectorMap.get(norm)?.likes || 0;
-        dirCandidates.push([name, likes]);
+        const entry = movieDirectorMap.get(norm) || { name, likes: 0, count: 0 };
+        dirCandidates.push([entry.name, entry.likes, entry.count]);
       }
     }
 
@@ -191,12 +204,12 @@ const getTopArtists = unstable_cache(
       .slice(0, 10);
 
     const topMovieDirectors = await Promise.all(
-      finalDirCandidates.map(([name, likes]) => enrichArtist(name, likes))
+      finalDirCandidates.map(([name, likes, count]) => enrichArtist(name, likes, count))
     );
 
     return { topSingers, topMusicDirectors, topMovieDirectors };
   },
-  ['top-artists-home-v6'], // Bump version
+  ['top-artists-home-v7'], // Bump version
   { revalidate: 3600, tags: ['homepage-artists'] }
 );
 
@@ -266,9 +279,9 @@ export default async function Home() {
 
   // 5. Process Top Artists
   const { topSingers, topMusicDirectors, topMovieDirectors } = topArtistsData as {
-    topSingers: { name: string; likes: number; image: string | null }[];
-    topMusicDirectors: { name: string; likes: number; image: string | null }[];
-    topMovieDirectors: { name: string; likes: number; image: string | null }[];
+    topSingers: { name: string; likes: number; count: number; image: string | null }[];
+    topMusicDirectors: { name: string; likes: number; count: number; image: string | null }[];
+    topMovieDirectors: { name: string; likes: number; count: number; image: string | null }[];
   };
 
   // 6. Process Top Contributors
@@ -326,7 +339,7 @@ export default async function Home() {
                 name={singer.name}
                 image={singer.image || ''}
                 href={`/artist/${encodeURIComponent(singer.name)}`}
-                subtitle={`${singer.likes} Likes`}
+                subtitle={`${singer.count} rings`}
               />
             ))}
           </div>
@@ -436,7 +449,7 @@ export default async function Home() {
                 name={md.name}
                 image={md.image || ''}
                 href={`/artist/${encodeURIComponent(md.name)}`}
-                subtitle={`${md.likes} Likes`}
+                subtitle={`${md.likes} likes`}
               />
             ))}
           </div>
@@ -457,7 +470,7 @@ export default async function Home() {
                 name={md.name}
                 image={md.image || ''}
                 href={`/artist/${encodeURIComponent(md.name)}`}
-                subtitle={`${md.likes} Likes`}
+                subtitle={`${md.likes} likes`}
               />
             ))}
           </div>

@@ -426,7 +426,7 @@ export default function UploadForm() {
           audio_url: mp3Url,
           audio_url_iphone: iphoneUrl || undefined,
           tags: selectedTags,
-          status: 'pending' // Just to be explicit
+          status: 'approved' // Auto-approve enabled
         });
 
       if (dbError) throw dbError;
@@ -444,7 +444,7 @@ export default function UploadForm() {
         console.warn("Notification failed silently", notifyErr);
       }
 
-      alert('Ringtone uploaded successfully! It is now pending review.');
+      alert('Ringtone uploaded successfully! It is now live on the site.');
       // Reset form
       setStep(1);
       setFile(null);

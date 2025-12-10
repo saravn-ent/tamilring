@@ -1,15 +1,14 @@
 'use client';
-// Updated layout - removed Settings, adjusted footer spacing
+
+// Updated layout - Tabbed Interface
 import { useEffect, useState } from 'react';
 import { createBrowserClient } from '@supabase/auth-helpers-nextjs';
 import UploadForm from '@/components/UploadForm';
 import FavoritesList from '@/components/FavoritesList';
-import RingtoneCard from '@/components/RingtoneCard';
 import LoginButton from '@/components/LoginButton';
 import PersonalCollections from '@/components/PersonalCollections';
-import { User, LogOut, Heart, Music, Trash2, Play, Pause, X, Globe, Instagram, Twitter, Trophy, Star, Crown, Zap, Scissors, Disc } from 'lucide-react';
+import { User, LogOut, Heart, Music, Trash2, X, Globe, Instagram, Twitter, Star, Disc, LayoutDashboard, UploadCloud } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { Ringtone } from '@/types';
 import AvatarRank from '@/components/AvatarRank';
 import { getLevelTitle, syncUserGamification } from '@/lib/gamification';
@@ -26,6 +25,9 @@ export default function ProfilePage() {
   const [userBadges, setUserBadges] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Tab State
+  const [activeTab, setActiveTab] = useState<'overview' | 'uploads' | 'upload'>('overview');
+
   // Edit State
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -34,7 +36,6 @@ export default function ProfilePage() {
   const [website, setWebsite] = useState('');
   const [instagram, setInstagram] = useState('');
   const [twitter, setTwitter] = useState('');
-  const [showAllContributions, setShowAllContributions] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -58,7 +59,7 @@ export default function ProfilePage() {
           setInstagram(profileData.instagram_handle || '');
           setTwitter(profileData.twitter_handle || '');
 
-          // Check and Sync Gamification Stats (Self-Healing)
+          // Check and Sync Gamification Stats
           syncUserGamification(supabase, user.id).then((synced) => {
             if (synced && (synced.points !== profileData.points || synced.level !== profileData.level)) {
               setProfile((prev: any) => ({ ...prev, ...synced }));
@@ -74,7 +75,6 @@ export default function ProfilePage() {
           .order('created_at', { ascending: false });
 
         if (uploadsData) {
-          // Cast to Ringtone type, ensuring types match
           setUploads(uploadsData as unknown as Ringtone[]);
         }
 
@@ -94,39 +94,32 @@ export default function ProfilePage() {
     getUser();
   }, [supabase]);
 
-  // Auto-sync Google Name/Image to Profile if missing
+  // Auto-sync Google Name/Image
   useEffect(() => {
     if (user && profile && !loading) {
       const updates: any = {};
       let needsUpdate = false;
 
-      // Sync Name
       if (!profile.full_name && user.user_metadata?.full_name) {
         updates.full_name = user.user_metadata.full_name;
         needsUpdate = true;
       } else if (!profile.full_name && user.email) {
-        // Fallback to email username if no name
         updates.full_name = user.email.split('@')[0];
         needsUpdate = true;
       }
 
-      // Sync Avatar
       if (!profile.avatar_url && user.user_metadata?.avatar_url) {
         updates.avatar_url = user.user_metadata.avatar_url;
         needsUpdate = true;
       }
 
       if (needsUpdate) {
-        supabase
-          .from('profiles')
-          .update(updates)
-          .eq('id', user.id)
-          .then(({ error }) => {
-            if (!error) {
-              setProfile((prev: any) => ({ ...prev, ...updates }));
-              setFullName(prev => prev || updates.full_name || '');
-            }
-          });
+        supabase.from('profiles').update(updates).eq('id', user.id).then(({ error }) => {
+          if (!error) {
+            setProfile((prev: any) => ({ ...prev, ...updates }));
+            setFullName(prev => prev || updates.full_name || '');
+          }
+        });
       }
     }
   }, [user, profile, loading, supabase]);
@@ -135,7 +128,6 @@ export default function ProfilePage() {
     e.preventDefault();
     if (!user) return;
     setSaving(true);
-
     try {
       const updates = {
         id: user.id,
@@ -146,15 +138,13 @@ export default function ProfilePage() {
         twitter_handle: twitter,
         updated_at: new Date().toISOString(),
       };
-
       const { error } = await supabase.from('profiles').upsert(updates);
       if (error) throw error;
-
       setProfile({ ...profile, ...updates });
       setIsEditing(false);
     } catch (error: any) {
       console.error('Error updating profile:', error);
-      alert(`Error updating profile: ${error.message || 'Unknown error. Check console for details.'}`);
+      alert(`Error updating profile: ${error.message}`);
     } finally {
       setSaving(false);
     }
@@ -171,27 +161,17 @@ export default function ProfilePage() {
   const handleDelete = async (id: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
     if (!confirm('Are you sure you want to delete this ringtone?')) return;
-
     try {
-      const { error } = await supabase
-        .from('ringtones')
-        .delete()
-        .eq('id', id);
-
+      const { error } = await supabase.from('ringtones').delete().eq('id', id);
       if (error) throw error;
-
       setUploads(prev => prev.filter(r => r.id !== id));
     } catch (error) {
       alert('Error deleting ringtone');
-      console.error(error);
     }
   };
 
-  if (loading) {
-    return <div className="p-8 text-center text-zinc-500">Loading profile...</div>;
-  }
+  if (loading) return <div className="p-8 text-center text-zinc-500">Loading profile...</div>;
 
   if (!user) {
     return (
@@ -202,21 +182,19 @@ export default function ProfilePage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-zinc-100 mb-2">Guest User</h1>
-            <p className="text-zinc-400 max-w-xs mx-auto">
-              Sign in to view your profile, upload ringtones, and manage your favorites.
-            </p>
+            <p className="text-zinc-400 max-w-xs mx-auto">Sign in to view your profile, upload ringtones, and manage your favorites.</p>
           </div>
           <LoginButton />
         </div>
-
-
       </div>
     );
   }
 
   return (
-    <div className="max-w-md mx-auto p-4 pb-24 min-h-screen flex flex-col">
-      <header className="flex flex-col items-center mb-8 relative">
+    <div className="max-w-md mx-auto min-h-screen flex flex-col pb-24">
+
+      {/* 1. Header Section (Always Visible) */}
+      <header className="flex flex-col items-center pt-4 pb-6 px-4 relative">
         <div className="mb-4">
           <AvatarRank
             image={profile?.avatar_url || user.user_metadata?.avatar_url}
@@ -240,9 +218,7 @@ export default function ProfilePage() {
                 <span className="text-zinc-500 text-xs">/ {uploads?.length}</span>
               )}
             </div>
-            <span className="text-zinc-500 font-medium text-[10px] uppercase tracking-wider">
-              {uploads?.some(u => u.status === 'pending') ? 'Approved' : 'Ringtones'}
-            </span>
+            <span className="text-zinc-500 font-medium text-[10px] uppercase tracking-wider">Ringtones</span>
           </div>
           <div className="w-px h-8 bg-neutral-800" />
           <div className="flex flex-col items-center">
@@ -256,139 +232,20 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Badges */}
-        {userBadges && userBadges.length > 0 && (
-          <div className="mb-6 w-full px-4">
-            <div className="flex flex-wrap justify-center gap-2">
-              {userBadges.map((ub: any) => {
-                const Icon = ub.badge?.icon_name === 'scissors' ? Scissors :
-                  ub.badge?.icon_name === 'zap' ? Zap :
-                    ub.badge?.icon_name === 'crown' ? Crown :
-                      ub.badge?.icon_name === 'heart' ? Heart :
-                        ub.badge?.icon_name === 'music' ? Disc : Star;
-                // Improved Badge Style Logic
-                const getBadgeColor = (name: string) => {
-                  switch (name) {
-                    case 'crown': return {
-                      bg: 'from-amber-500/30 to-black',
-                      border: 'border-amber-500',
-                      text: 'text-amber-400',
-                      hex: '#fbbf24', // Amber 400
-                      shadow: 'shadow-amber-500/40',
-                      glow: 'group-hover:shadow-amber-500/60'
-                    };
-                    case 'zap': return {
-                      bg: 'from-yellow-400/30 to-black',
-                      border: 'border-yellow-400',
-                      text: 'text-yellow-400',
-                      hex: '#facc15', // Yellow 400
-                      shadow: 'shadow-yellow-400/40',
-                      glow: 'group-hover:shadow-yellow-400/60'
-                    };
-                    case 'heart': return {
-                      bg: 'from-rose-500/30 to-black',
-                      border: 'border-rose-500',
-                      text: 'text-rose-400',
-                      hex: '#fb7185', // Rose 400
-                      shadow: 'shadow-rose-500/40',
-                      glow: 'group-hover:shadow-rose-500/60'
-                    };
-                    case 'scissors': return {
-                      bg: 'from-cyan-400/30 to-black',
-                      border: 'border-cyan-400',
-                      text: 'text-cyan-400',
-                      hex: '#22d3ee', // Cyan 400
-                      shadow: 'shadow-cyan-400/40',
-                      glow: 'group-hover:shadow-cyan-400/60'
-                    };
-                    case 'music': return {
-                      bg: 'from-violet-500/30 to-black',
-                      border: 'border-violet-500',
-                      text: 'text-violet-400',
-                      hex: '#a78bfa', // Violet 400
-                      shadow: 'shadow-violet-500/40',
-                      glow: 'group-hover:shadow-violet-500/60'
-                    };
-                    default: return { // Star/Default
-                      bg: 'from-emerald-500/30 to-black',
-                      border: 'border-emerald-500',
-                      text: 'text-emerald-400',
-                      hex: '#34d399', // Emerald 400
-                      shadow: 'shadow-emerald-500/40',
-                      glow: 'group-hover:shadow-emerald-500/60'
-                    };
-                  }
-                };
-
-                const style = getBadgeColor(ub.badge?.icon_name);
-
-                return (
-                  <div key={ub.id} className="relative group cursor-help p-2">
-                    {/* Main Badge Container */}
-                    <div className={`
-                      w-16 h-16 rounded-2xl border-2 flex items-center justify-center relative overflow-hidden transition-all duration-300 transform group-hover:-translate-y-1 group-hover:scale-105
-                      bg-gradient-to-br ${style.bg}
-                      ${style.border}
-                      ${style.shadow} shadow-lg
-                      ${style.glow}
-                    `}>
-                      {/* Glossy Reflection Overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-tr from-white/20 via-transparent to-transparent opacity-50 pointer-events-none" />
-
-                      {/* Subtle Inner Glow */}
-                      <div className={`absolute inset-0 bg-${style.text.split('-')[1]}-500/10 blur-xl`} />
-
-                      {/* Icon */}
-                      <Icon
-                        size={28}
-                        color={style.hex}
-                        fill={style.hex}
-                        className={`relative z-10 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] filter`}
-                      />
-                    </div>
-
-                    {/* Badge Name Label (Little pill below) */}
-                    <div className={`mt-2 text-[10px] font-bold uppercase tracking-wider text-center opacity-70 group-hover:opacity-100 transition-opacity ${style.text}`}>
-                      {ub.badge?.name}
-                    </div>
-
-                    {/* Tooltip */}
-                    <div className="absolute bottom-full mb-3 left-1/2 -translate-x-1/2 w-48 bg-black/90 backdrop-blur-xl p-3 rounded-xl text-xs text-center border border-white/10 opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-50 shadow-2xl translate-y-2 group-hover:translate-y-0">
-                      <p className={`font-bold text-sm mb-1 ${style.text}`}>{ub.badge?.name}</p>
-                      <p className="text-zinc-400 leading-relaxed">{ub.badge?.description}</p>
-                      <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-black border-r border-b border-white/10 rotate-45"></div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        <div className="flex gap-3 mb-2">
-          {profile?.website_url && (
-            <a href={profile.website_url} target="_blank" rel="noreferrer" className="p-2 bg-neutral-800 rounded-full text-zinc-400 hover:text-emerald-400 hover:bg-neutral-700 transition-colors">
-              <Globe size={18} />
-            </a>
-          )}
-          {profile?.instagram_handle && (
-            <a href={`https://instagram.com/${profile.instagram_handle.replace('@', '')}`} target="_blank" rel="noreferrer" className="p-2 bg-neutral-800 rounded-full text-zinc-400 hover:text-pink-500 hover:bg-neutral-700 transition-colors">
-              <Instagram size={18} />
-            </a>
-          )}
-          {profile?.twitter_handle && (
-            <a href={`https://twitter.com/${profile.twitter_handle.replace('@', '')}`} target="_blank" rel="noreferrer" className="p-2 bg-neutral-800 rounded-full text-zinc-400 hover:text-blue-400 hover:bg-neutral-700 transition-colors">
-              <Twitter size={18} />
-            </a>
-          )}
+        <div className="flex gap-2 mb-2">
+          <button
+            onClick={() => setIsEditing(true)}
+            className="px-4 py-1.5 bg-neutral-800 text-zinc-300 text-xs font-bold rounded-full hover:bg-neutral-700 transition-colors border border-neutral-700"
+          >
+            Edit Profile
+          </button>
+          <button
+            onClick={handleSignOut}
+            className="px-4 py-1.5 bg-neutral-800/50 text-red-400 text-xs font-bold rounded-full hover:bg-red-900/20 transition-colors border border-neutral-800"
+          >
+            Start Over
+          </button>
         </div>
-
-        <button
-          onClick={() => setIsEditing(true)}
-          className="px-4 py-1.5 bg-neutral-800 text-zinc-300 text-xs font-bold rounded-full hover:bg-neutral-700 transition-colors border border-neutral-700 mt-2"
-        >
-          Edit Profile
-        </button>
 
         {/* Edit Modal */}
         {isEditing && (
@@ -404,59 +261,27 @@ export default function ProfilePage() {
               <form onSubmit={handleUpdateProfile} className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
                 <div>
                   <label className="text-xs text-zinc-500 block mb-1">User Name</label>
-                  <input
-                    type="text"
-                    value={fullName}
-                    onChange={e => setFullName(e.target.value)}
-                    placeholder="Enter your name"
-                    className="w-full bg-black/50 border border-neutral-800 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none transition-colors"
-                  />
+                  <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Enter your name" className="w-full bg-black/50 border border-neutral-800 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none transition-colors" />
                 </div>
                 <div>
                   <label className="text-xs text-zinc-500 block mb-1">Bio</label>
-                  <textarea
-                    value={bio}
-                    onChange={e => setBio(e.target.value)}
-                    className="w-full bg-black/50 border border-neutral-800 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none transition-colors h-20 resize-none"
-                  />
+                  <textarea value={bio} onChange={e => setBio(e.target.value)} className="w-full bg-black/50 border border-neutral-800 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none transition-colors h-20 resize-none" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-xs text-zinc-500 block mb-1">Instagram ID</label>
-                    <input
-                      type="text"
-                      value={instagram}
-                      onChange={e => setInstagram(e.target.value)}
-                      placeholder="@username"
-                      className="w-full bg-black/50 border border-neutral-800 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none transition-colors"
-                    />
+                    <input type="text" value={instagram} onChange={e => setInstagram(e.target.value)} placeholder="@username" className="w-full bg-black/50 border border-neutral-800 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none transition-colors" />
                   </div>
                   <div>
                     <label className="text-xs text-zinc-500 block mb-1">Twitter (@handle)</label>
-                    <input
-                      type="text"
-                      value={twitter}
-                      onChange={e => setTwitter(e.target.value)}
-                      placeholder="username"
-                      className="w-full bg-black/50 border border-neutral-800 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none transition-colors"
-                    />
+                    <input type="text" value={twitter} onChange={e => setTwitter(e.target.value)} placeholder="username" className="w-full bg-black/50 border border-neutral-800 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none transition-colors" />
                   </div>
                 </div>
                 <div>
                   <label className="text-xs text-zinc-500 block mb-1">Website URL</label>
-                  <input
-                    type="url"
-                    value={website}
-                    onChange={e => setWebsite(e.target.value)}
-                    placeholder="https://..."
-                    className="w-full bg-black/50 border border-neutral-800 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none transition-colors"
-                  />
+                  <input type="url" value={website} onChange={e => setWebsite(e.target.value)} placeholder="https://..." className="w-full bg-black/50 border border-neutral-800 rounded-lg px-3 py-2 text-sm focus:border-emerald-500 outline-none transition-colors" />
                 </div>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="w-full py-3 bg-emerald-500 text-black font-bold rounded-xl hover:bg-emerald-400 transition-colors disabled:opacity-50 mt-2"
-                >
+                <button type="submit" disabled={saving} className="w-full py-3 bg-emerald-500 text-black font-bold rounded-xl hover:bg-emerald-400 transition-colors disabled:opacity-50 mt-2">
                   {saving ? 'Saving...' : 'Save Changes'}
                 </button>
               </form>
@@ -465,91 +290,146 @@ export default function ProfilePage() {
         )}
       </header>
 
-      <div className="space-y-8 flex-1">
-
-        {/* Personal Collections Section */}
-        <PersonalCollections />
-
-        {/* Favorites Section */}
-        <section>
-          <h2 className="text-lg font-bold text-zinc-100 mb-4 flex items-center gap-2">
-            <Heart size={20} className="text-emerald-500" />
-            My Favorites
-          </h2>
-          <FavoritesList />
-        </section>
-
-        {/* My Uploads Section */}
-        <section>
-          <h2 className="text-lg font-bold text-zinc-100 mb-4 flex items-center gap-2">
-            <Music size={20} className="text-emerald-500" />
-            My Contributions
-          </h2>
-          {uploads.length === 0 ? (
-            <div className="text-center py-8 bg-neutral-900/50 rounded-xl border border-dashed border-neutral-800">
-              <p className="text-zinc-500 text-sm">You haven't uploaded any ringtones yet.</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {(showAllContributions ? uploads : uploads.slice(0, 3)).map(ringtone => (
-                <div key={ringtone.id} className="flex items-center gap-3 bg-neutral-900 border border-neutral-800 p-3 rounded-lg group">
-                  <div className="w-12 h-12 rounded bg-neutral-800 relative overflow-hidden shrink-0">
-                    {ringtone.poster_url ? (
-                      <img src={ringtone.poster_url} alt={ringtone.title} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-zinc-600"><Music size={16} /></div>
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-bold text-zinc-200 truncate">{ringtone.title}</p>
-                    <p className="text-xs text-zinc-500 truncate">{ringtone.movie_name}</p>
-                    <p className="text-[10px] text-zinc-600 mt-0.5 capitalize">{ringtone.status}</p>
-                  </div>
-                  <button
-                    onClick={(e) => handleDelete(ringtone.id, e)}
-                    className="p-2 text-zinc-500 hover:text-red-500 hover:bg-red-500/10 rounded-full transition-colors"
-                    title="Delete Ringtone"
-                  >
-                    <Trash2 size={16} />
-                  </button>
-                </div>
-              ))}
-
-              {uploads.length > 3 && (
-                <button
-                  onClick={() => setShowAllContributions(!showAllContributions)}
-                  className="w-full py-3 mt-2 text-xs font-bold uppercase tracking-wider text-zinc-500 bg-neutral-900/50 hover:bg-neutral-800 hover:text-emerald-400 rounded-xl border border-neutral-800 transition-all"
-                >
-                  {showAllContributions ? 'Show Less' : `View All (${uploads.length})`}
-                </button>
-              )}
-            </div>
-          )}
-        </section>
-
-        {/* Upload Section */}
-        <section className="bg-neutral-900 border border-neutral-800 rounded-xl p-4">
-          <h2 className="text-lg font-bold text-zinc-100 mb-4 flex items-center gap-2">
-            Upload Ringtone
-          </h2>
-          <UploadForm />
-        </section>
-
-        {/* Sign Out Section */}
-        <section className="bg-neutral-900 border border-neutral-800 rounded-xl overflow-hidden">
-          <div
-            onClick={handleSignOut}
-            className="p-4 flex items-center justify-between hover:bg-neutral-800/50 transition-colors cursor-pointer text-red-400"
+      {/* 2. Sticky Tab Navigation */}
+      <div className="sticky top-14 z-20 bg-black/80 backdrop-blur-md border-b border-neutral-800 mb-4">
+        <div className="flex w-full">
+          <button
+            onClick={() => setActiveTab('overview')}
+            className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors flex items-center justify-center gap-2 ${activeTab === 'overview'
+                ? 'border-emerald-500 text-emerald-500'
+                : 'border-transparent text-zinc-500 hover:text-zinc-300'
+              }`}
           >
-            <div className="flex items-center gap-3">
-              <LogOut size={20} />
-              <span>Sign Out</span>
-            </div>
-          </div>
-        </section>
+            <LayoutDashboard size={16} /> Overview
+          </button>
+          <button
+            onClick={() => setActiveTab('uploads')}
+            className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors flex items-center justify-center gap-2 ${activeTab === 'uploads'
+                ? 'border-emerald-500 text-emerald-500'
+                : 'border-transparent text-zinc-500 hover:text-zinc-300'
+              }`}
+          >
+            <Music size={16} /> My Rings
+          </button>
+          <button
+            onClick={() => setActiveTab('upload')}
+            className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors flex items-center justify-center gap-2 ${activeTab === 'upload'
+                ? 'border-emerald-500 text-white bg-emerald-500/10'
+                : 'border-transparent text-zinc-500 hover:text-zinc-300'
+              }`}
+          >
+            <UploadCloud size={16} /> Upload
+          </button>
+        </div>
       </div>
 
+      {/* 3. Content Sections */}
+      <div className="flex-1 px-4 space-y-6">
 
+        {/* TAB 1: OVERVIEW */}
+        {activeTab === 'overview' && (
+          <div className="space-y-8 animate-in slide-in-from-left-4 fade-in duration-300">
+            {/* Badges */}
+            {userBadges && userBadges.length > 0 && (
+              <div className="w-full">
+                <h2 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-3 px-1">Badges & Achievements</h2>
+                <div className="flex flex-wrap gap-2">
+                  {userBadges.map((ub: any) => (
+                    <div key={ub.id} className="w-10 h-10 rounded-lg bg-neutral-800 border border-neutral-700 flex items-center justify-center relative group" title={ub.badge?.name}>
+                      <Star size={16} className="text-yellow-500" />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Personal Collections */}
+            <PersonalCollections />
+
+            {/* Favorites Section */}
+            <section>
+              <h2 className="text-lg font-bold text-zinc-100 mb-4 flex items-center gap-2">
+                <Heart size={20} className="text-emerald-500" />
+                My Favorites
+              </h2>
+              <FavoritesList />
+            </section>
+
+            <div className="pt-8 flex justify-center pb-8">
+              <p className="text-[10px] text-zinc-700 uppercase tracking-widest">User since {new Date(user.created_at).getFullYear()}</p>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 2: MY UPLOADS */}
+        {activeTab === 'uploads' && (
+          <div className="animate-in slide-in-from-right-4 fade-in duration-300 pb-20">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-zinc-100 flex items-center gap-2">
+                <Music size={20} className="text-emerald-500" />
+                All Contributions
+              </h2>
+              <span className="text-xs font-bold text-zinc-500">{uploads.length} Ringtones</span>
+            </div>
+
+            {uploads.length === 0 ? (
+              <div className="text-center py-12 bg-neutral-900/50 rounded-xl border border-dashed border-neutral-800">
+                <div className="w-12 h-12 bg-neutral-800 rounded-full flex items-center justify-center mx-auto mb-3 text-zinc-600">
+                  <Music size={24} />
+                </div>
+                <p className="text-zinc-400 font-medium mb-1">No uploads yet</p>
+                <p className="text-zinc-600 text-xs mb-4">Share your first ringtone with the community</p>
+                <button onClick={() => setActiveTab('upload')} className="text-emerald-500 text-xs font-bold hover:underline">Upload Now</button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {uploads.map(ringtone => (
+                  <div key={ringtone.id} className="flex items-center gap-3 bg-neutral-900/80 border border-neutral-800 p-3 rounded-xl group hover:border-emerald-500/30 transition-colors">
+                    <div className="w-12 h-12 rounded-lg bg-neutral-800 relative overflow-hidden shrink-0">
+                      {ringtone.poster_url ? (
+                        <img src={ringtone.poster_url} alt={ringtone.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-zinc-600"><Music size={16} /></div>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-zinc-200 truncate">{ringtone.title}</p>
+                      <p className="text-xs text-zinc-500 truncate">{ringtone.movie_name}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className={`text-[10px] px-1.5 py-0.5 rounded capitalize font-medium ${ringtone.status === 'approved' ? 'bg-emerald-500/10 text-emerald-500' :
+                            ringtone.status === 'rejected' ? 'bg-red-500/10 text-red-500' :
+                              'bg-yellow-500/10 text-yellow-500'
+                          }`}>
+                          {ringtone.status}
+                        </span>
+                        <span className="text-[10px] text-zinc-600">
+                          {new Date(ringtone.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={(e) => handleDelete(ringtone.id, e)}
+                      className="p-2.5 text-zinc-500 hover:text-red-500 hover:bg-neutral-800 rounded-full transition-colors"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 3: UPLOAD FORM */}
+        {activeTab === 'upload' && (
+          <div className="animate-in zoom-in-95 fade-in duration-300 pb-20">
+            <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-1">
+              <UploadForm />
+            </div>
+          </div>
+        )}
+
+      </div>
     </div>
   );
 }

@@ -176,7 +176,7 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
             {/* Info & Actions */}
             <div className="flex-1 min-w-0 flex flex-col justify-center gap-2">
               <div>
-                <h3 className="text-base font-semibold text-zinc-900 dark:text-white truncate leading-tight">
+                <h3 className={`text-base font-semibold text-zinc-900 dark:text-white truncate leading-tight ${!assignTo ? 'pr-10' : ''}`}>
                   {ringtone.title}
                 </h3>
                 <p className="text-xs text-zinc-500 dark:text-neutral-400 truncate mt-0.5">
