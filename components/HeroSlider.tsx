@@ -95,7 +95,14 @@ export default function HeroSlider({ ringtones, movieName, totalLikes }: HeroSli
               {/* Card Content */}
               <div className="relative w-full h-full rounded-2xl overflow-hidden bg-neutral-800 border border-white/10">
                 {ringtone.poster_url ? (
-                  <Image src={ringtone.poster_url} alt={ringtone.title} fill className="object-cover" priority={idx === currentIndex} />
+                  <Image
+                    src={ringtone.poster_url}
+                    alt={ringtone.title}
+                    fill
+                    className="object-cover"
+                    priority={idx === currentIndex}
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                  />
                 ) : (
                   <div className="w-full h-full bg-neutral-800" />
                 )}

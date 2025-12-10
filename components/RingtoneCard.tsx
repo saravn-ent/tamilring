@@ -50,11 +50,14 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
   const handlePlay = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    if (isActive) {
-      togglePlay();
-    } else {
-      playRingtone(ringtone);
-    }
+    // Antigravity Fix: Yield to main thread to prioritize UI response (INP)
+    setTimeout(() => {
+      if (isActive) {
+        togglePlay();
+      } else {
+        playRingtone(ringtone);
+      }
+    }, 0);
   };
 
   const handleAssign = (e: React.MouseEvent) => {

@@ -79,6 +79,16 @@ const nextConfig: NextConfig = {
           },
         ],
       },
+      {
+        // Aggressive Caching for Static Assets (Images, Fonts, etc.)
+        source: '/:all*(svg|jpg|jpeg|png|gif|webp|avif|ico|woff|woff2|ttf|eot)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
     ];
   },
 };
