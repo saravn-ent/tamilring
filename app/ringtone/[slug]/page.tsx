@@ -63,7 +63,7 @@ export default async function RingtonePage({ params }: Props) {
     duration: 'T0M30S', // Hardcoded standard for Rich Snippet eligibility
     thumbnailUrl: ringtone.poster_url,
     uploadDate: ringtone.created_at,
-    inAlbum: {
+    isPartOf: {
       '@type': 'MusicAlbum',
       name: ringtone.movie_name
     }
