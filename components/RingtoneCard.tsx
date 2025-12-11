@@ -177,7 +177,7 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
             <div className="flex-1 min-w-0 flex flex-col justify-center gap-2">
               <div>
                 <h3 className={`text-base font-semibold text-zinc-900 dark:text-white truncate leading-tight ${!assignTo ? 'pr-10' : ''}`}>
-                  {ringtone.title}
+                  {ringtone.title.replace(/\(From ".*?"\)/i, '').trim()}
                 </h3>
                 <p className="text-xs text-zinc-500 dark:text-neutral-400 truncate mt-0.5">
                   {ringtone.movie_name}

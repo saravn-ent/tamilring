@@ -19,7 +19,7 @@ export const dynamic = 'force-dynamic';
 
 const getTopArtists = unstable_cache(
   async () => {
-    // 1. Fix Content Leak: Filter by 'approved' status
+    // 1. Fetch ALL approved ringtones
     const { data } = await supabase
       .from('ringtones')
       .select('singers, music_director, movie_director, likes')
@@ -28,188 +28,133 @@ const getTopArtists = unstable_cache(
     if (!data) return { topSingers: [], topMusicDirectors: [], topMovieDirectors: [] };
 
     const normalize = (n: string) =>
-      n
-        .replace(/\(.*?\)/g, '') // remove parenthetical notes
-        .replace(/\./g, '') // remove dots
-        .replace(/[^a-z0-9\s]/gi, '') // remove punctuation
-        .replace(/\b(music|director|composer|singer|vocals|vocal|feat|ft)\b/gi, '') // remove role words
-        .replace(/\s+/g, ' ') // collapse spaces
+      n.replace(/\(.*?\)/g, '')
+        .replace(/[^a-z0-9\s]/gi, '')
+        .replace(/\b(music|director|composer|singer|vocals|vocal|feat|ft)\b/gi, '')
+        .replace(/\s+/g, ' ')
         .trim()
         .toLowerCase();
 
-    // Build a set of normalized director names (music + movie) to exclude from singer aggregation
-    const directorSet = new Set<string>();
-    data.forEach((row: any) => {
-      if (row.music_director) {
-        splitArtists(row.music_director).forEach((d: string) => {
-          const n = normalize(d);
-          if (n) directorSet.add(n);
+    // Track Global Stats for each Person
+    // { normName: { name, totalLikes, totalCount, isMD, isDir, isSinger } }
+    const peopleStats = new Map<string, {
+      name: string;
+      likes: number;
+      count: number;
+      isMD: boolean;
+      isDir: boolean;
+      isSinger: boolean;
+    }>();
+
+    const updateStats = (rawName: string, role: 'md' | 'dir' | 'singer', likes: number) => {
+      if (!rawName) return;
+      const norm = normalize(rawName);
+      if (!norm) return;
+
+      const existing = peopleStats.get(norm);
+      if (existing) {
+        existing.likes += likes;
+        existing.count += 1;
+        if (role === 'md') existing.isMD = true;
+        if (role === 'dir') existing.isDir = true;
+        if (role === 'singer') existing.isSinger = true;
+      } else {
+        peopleStats.set(norm, {
+          name: rawName.trim(), // Keep first encounter string
+          likes,
+          count: 1,
+          isMD: role === 'md',
+          isDir: role === 'dir',
+          isSinger: role === 'singer'
         });
       }
-      if (row.movie_director) {
-        splitArtists(row.movie_director).forEach((d: string) => {
-          const n = normalize(d);
-          if (n) directorSet.add(n);
-        });
-      }
-    });
-
-    // Manual exclude for known directors/composers that TMDB might miss
-    const knownMusicDirectors = ['Ilaiyaraaja', 'Nivas K Prasanna'];
-    const knownMovieDirectors = ['Mari Selvaraj', 'Raju Murugan'];
-    const knownDirectors = new Set([...knownMusicDirectors, ...knownMovieDirectors].map(n => normalize(n)));
-
-    // Aggregate likes for singers and directors
-    const singerMap = new Map<string, { name: string; likes: number; count: number }>();
-    const musicDirectorMap = new Map<string, { name: string; likes: number; count: number }>();
-    const movieDirectorMap = new Map<string, { name: string; likes: number; count: number }>();
+    };
 
     data.forEach((row: any) => {
       const likes = Number(row.likes || 0);
 
-      // Singers (exclude directors)
-      if (row.singers) {
-        splitArtists(row.singers).forEach((s: string) => {
-          if (!s) return;
-          const n = normalize(s);
-          if (!n) return;
-          if (directorSet.has(n)) return; // strictly exclude any director
-          if (knownDirectors.has(n)) return; // manual exclude for known directors
-          const existing = singerMap.get(n);
-          if (existing) {
-            existing.likes += likes;
-            existing.count += 1;
-          } else {
-            singerMap.set(n, { name: s.trim(), likes, count: 1 });
-          }
-        });
-      }
+      // Process each role but ensure we don't double count the SAME person for the SAME ringtone
+      // (e.g. if they are both Singer and MD on the same track, it's 1 ringtone valid for them)
 
-      // Music Directors
-      if (row.music_director) {
-        splitArtists(row.music_director).forEach((d: string) => {
-          if (!d) return;
-          const n = normalize(d);
-          if (!n) return;
-          const existing = musicDirectorMap.get(n);
-          if (existing) {
-            existing.likes += likes;
-            existing.count += 1;
-          } else {
-            musicDirectorMap.set(n, { name: d.trim(), likes, count: 1 });
-          }
-        });
-      }
+      const distinctPeopleInRow = new Set<string>();
 
-      // Movie Directors
-      if (row.movie_director) {
-        splitArtists(row.movie_director).forEach((d: string) => {
-          if (!d) return;
-          const n = normalize(d);
-          if (!n) return;
-          const existing = movieDirectorMap.get(n);
-          if (existing) {
-            existing.likes += likes;
-            existing.count += 1;
+      const processRowRole = (rawList: string | null, role: 'md' | 'dir' | 'singer') => {
+        if (!rawList) return;
+        splitArtists(rawList).forEach(rawName => {
+          const norm = normalize(rawName);
+          if (!norm) return;
+
+          // We record which role they played, but for count/likes we only add ONCE per row
+          const rowKey = `${norm}`;
+
+          if (!distinctPeopleInRow.has(rowKey)) {
+            distinctPeopleInRow.add(rowKey);
+            updateStats(rawName, role, likes);
           } else {
-            movieDirectorMap.set(n, { name: d.trim(), likes, count: 1 });
+            // Already added stats for this person in this row? 
+            // Updating flags only
+            const p = peopleStats.get(norm);
+            if (p) {
+              if (role === 'md') p.isMD = true;
+              if (role === 'dir') p.isDir = true;
+              if (role === 'singer') p.isSinger = true;
+            }
           }
         });
-      }
+      };
+
+      processRowRole(row.music_director, 'md');
+      processRowRole(row.movie_director, 'dir');
+      processRowRole(row.singers, 'singer');
     });
 
-    // Clean Name Helper
-    const cleanName = (n: string) =>
-      n
-        .replace(/\(.*?\)/g, '')
-        .replace(/\b(music|director|composer|singer|vocals|vocal|feat|ft)\b/gi, '')
-        .replace(/\s+/g, ' ')
-        .trim();
-
     // Helper to fetch Person details (Parallelized)
-    const enrichArtist = async (rawName: string, likes: number, count: number) => {
-      const searchQuery = cleanName(rawName);
+    const cleanName = (n: string) => n.replace(/\(.*?\)/g, '').trim();
+    const enrichArtist = async (stats: { name: string; likes: number; count: number }) => {
+      const searchQuery = cleanName(stats.name);
       const person = await searchPerson(searchQuery);
       return {
         name: person?.name || searchQuery,
-        likes,
-        count,
+        likes: stats.likes,
+        count: stats.count,
         image: person?.profile_path ? getImageUrl(person.profile_path, 'w500') : null
       };
     };
 
-    // 1. Process Top Singers (Parallel)
-    const sortedSingers = Array.from(singerMap.entries())
-      .map(([_, v]) => [v.name, v.likes, v.count] as [string, number, number])
-      .sort((a, b) => b[1] - a[1]);
+    const allPeople = Array.from(peopleStats.values());
 
-    const topSingerCandidates = sortedSingers.slice(0, 15); // Process top 15 candidates to account for potential skips
-
-    // Filter candidates before fetch to save requests
-    const validSingerCandidates = topSingerCandidates.filter(([rawName, _]) => {
-      const norm = normalize(rawName);
-      if (!norm) return false;
-      if (directorSet.has(norm) || musicDirectorMap.has(norm) || movieDirectorMap.has(norm)) return false;
-      return true;
-    });
-
-    // Fetch images in parallel
-    const topSingers = await Promise.all(
-      validSingerCandidates.slice(0, 10).map(([name, likes, count]) => enrichArtist(name, likes, count))
-    );
-
-
-    // 2. Process Music Directors (Parallel)
-    const mdCandidates = Array.from(musicDirectorMap.entries())
-      .map(([_, v]) => [v.name, v.likes, v.count] as [string, number, number])
-      .sort((a, b) => b[1] - a[1]) // Sort by likes
+    // 1. Top Music Directors (Filter by isMD)
+    const topMDsList = allPeople
+      .filter(p => p.isMD && p.count > 0)
+      .sort((a, b) => b.likes - a.likes)
       .slice(0, 10);
 
-    // Add known manual MDs if missing
-    for (const name of knownMusicDirectors) {
-      const norm = normalize(name);
-      if (!mdCandidates.some(([cName]) => normalize(cName) === norm)) {
-        const entry = musicDirectorMap.get(norm) || { name, likes: 0, count: 0 };
-        mdCandidates.push([entry.name, entry.likes, entry.count]);
-      }
-    }
+    const topMusicDirectors = await Promise.all(topMDsList.map(enrichArtist));
 
-    // Dedup and sort
-    const finalMDCandidates = mdCandidates
-      .sort((a, b) => b[1] - a[1])
+    // 2. Top Movie Directors (Filter by isDir)
+    const topDirsList = allPeople
+      .filter(p => p.isDir && p.count > 0)
+      .sort((a, b) => b.likes - a.likes)
       .slice(0, 10);
 
-    const topMusicDirectors = await Promise.all(
-      finalMDCandidates.map(([name, likes, count]) => enrichArtist(name, likes, count))
-    );
+    const topMovieDirectors = await Promise.all(topDirsList.map(enrichArtist));
 
+    // 3. Top Singers (Filter by isSinger, EXCLUDE if they are in top MD/Dir lists to keep variety)
+    const excludeNames = new Set([
+      ...topMDsList.map(p => normalize(p.name)),
+      ...topDirsList.map(p => normalize(p.name))
+    ]);
 
-    // 3. Process Movie Directors (Parallel)
-    const dirCandidates = Array.from(movieDirectorMap.entries())
-      .map(([_, v]) => [v.name, v.likes, v.count] as [string, number, number])
-      .sort((a, b) => b[1] - a[1])
+    const topSingersList = allPeople
+      .filter(p => p.isSinger && !excludeNames.has(normalize(p.name)))
+      .sort((a, b) => b.likes - a.likes)
       .slice(0, 10);
 
-    // Add known manual Directors if missing
-    for (const name of knownMovieDirectors) {
-      const norm = normalize(name);
-      if (!dirCandidates.some(([cName]) => normalize(cName) === norm)) {
-        const entry = movieDirectorMap.get(norm) || { name, likes: 0, count: 0 };
-        dirCandidates.push([entry.name, entry.likes, entry.count]);
-      }
-    }
-
-    const finalDirCandidates = dirCandidates
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10);
-
-    const topMovieDirectors = await Promise.all(
-      finalDirCandidates.map(([name, likes, count]) => enrichArtist(name, likes, count))
-    );
+    const topSingers = await Promise.all(topSingersList.map(enrichArtist));
 
     return { topSingers, topMusicDirectors, topMovieDirectors };
   },
-  ['top-artists-home-v7'], // Bump version
+  ['top-artists-home-v11'], // Bump version
   { revalidate: 3600, tags: ['homepage-artists'] }
 );
 

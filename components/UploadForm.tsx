@@ -570,7 +570,7 @@ export default function UploadForm() {
         <div className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-zinc-400 mb-2">
-              Select Movie (TMDB)
+              Select Movie
             </label>
             <div className="relative">
               <div className="flex gap-2">

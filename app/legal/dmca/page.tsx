@@ -25,8 +25,8 @@ export default function DMCA() {
 
                 <div className="mt-6 pt-6 border-t border-neutral-800">
                     <p className="text-sm font-bold text-white mb-2">Send Email To:</p>
-                    <a href="mailto:copyright@tamilring.com?subject=DMCA Takedown Request" className="inline-block bg-emerald-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-emerald-500 transition-colors">
-                        copyright@tamilring.com
+                    <a href="mailto:tamilring.in@gmail.com?subject=DMCA Takedown Request" className="inline-block bg-emerald-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-emerald-500 transition-colors">
+                        tamilring.in@gmail.com
                     </a>
                 </div>
             </div>

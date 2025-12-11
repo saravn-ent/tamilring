@@ -19,8 +19,8 @@ export default function ContactPage() {
                             </div>
                             <div>
                                 <h3 className="text-zinc-100 font-medium">Email Us</h3>
-                                <a href="mailto:support@tamilring.com" className="text-zinc-400 hover:text-emerald-500 transition-colors">
-                                    support@tamilring.com
+                                <a href="mailto:tamilring.in@gmail.com" className="text-zinc-400 hover:text-emerald-500 transition-colors">
+                                    tamilring.in@gmail.com
                                 </a>
                             </div>
                         </div>

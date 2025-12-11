@@ -34,7 +34,7 @@ export default function PrivacyPolicy() {
             <section>
                 <h2 className="text-xl font-semibold text-emerald-500 mb-3">4. Contact</h2>
                 <p>
-                    For privacy concerns, please contact us at <a href="mailto:privacy@tamilring.com" className="text-emerald-400 hover:underline">privacy@tamilring.com</a>.
+                    For privacy concerns, please contact us at <a href="mailto:tamilring.in@gmail.com" className="text-emerald-400 hover:underline">tamilring.in@gmail.com</a>.
                 </p>
             </section>
 

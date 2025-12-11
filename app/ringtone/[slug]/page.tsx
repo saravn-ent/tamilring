@@ -27,15 +27,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const musicDir = ringtone.music_director || 'Unknown';
 
+  const cleanTitle = ringtone.title.replace(/\(From ".*?"\)/i, '').trim();
+
   return {
-    title: `${ringtone.title} Ringtone Download - ${ringtone.movie_name} | ${musicDir} | Free MP3`,
-    description: `Download ${ringtone.title} ringtone by ${ringtone.singers} from the tamil movie ${ringtone.movie_name}. High quality 320kbps BGM, Cut Songs, and Mass Dialogues for mobile.`,
+    title: `${cleanTitle} Ringtone Download - ${ringtone.movie_name} | ${musicDir} | Free MP3`,
+    description: `Download ${cleanTitle} ringtone by ${ringtone.singers} from the tamil movie ${ringtone.movie_name}. High quality 320kbps BGM, Cut Songs, and Mass Dialogues for mobile.`,
     alternates: {
       canonical: `/ringtone/${slug}`,
     },
     openGraph: {
-      title: `${ringtone.title} Ringtone Download`,
-      description: `Download ${ringtone.title} ringtone from ${ringtone.movie_name}.`,
+      title: `${cleanTitle} Ringtone Download`,
+      description: `Download ${cleanTitle} ringtone from ${ringtone.movie_name}.`,
       images: ringtone.poster_url ? [{ url: ringtone.poster_url }] : [],
       type: 'music.song',
     },
@@ -53,11 +55,13 @@ export default async function RingtonePage({ params }: Props) {
   if (!ringtone) return <div className="text-center py-20 text-zinc-500">Ringtone not found</div>;
 
   // Strict AudioObject Schema for "Play" Button
+  const cleanTitle = ringtone.title.replace(/\(From ".*?"\)/i, '').trim();
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'AudioObject',
-    name: `${ringtone.movie_name} - ${ringtone.title} Ringtone`,
-    description: `Download ${ringtone.title} high-quality ringtone from the Tamil movie ${ringtone.movie_name} composed by ${ringtone.music_director}.`,
+    name: `${ringtone.movie_name} - ${cleanTitle} Ringtone`,
+    description: `Download ${cleanTitle} high-quality ringtone from the Tamil movie ${ringtone.movie_name} composed by ${ringtone.music_director}.`,
     contentUrl: ringtone.audio_url,
     encodingFormat: 'audio/mpeg',
     duration: 'T0M30S', // Hardcoded standard for Rich Snippet eligibility
@@ -94,8 +98,8 @@ export default async function RingtonePage({ params }: Props) {
           {/* Top Right Share Button */}
           <ShareButton
             variant="icon"
-            title={`${ringtone.title} Ringtone`}
-            text={`Download ${ringtone.title} ringtone from ${ringtone.movie_name} on TamilRing!`}
+            title={`${cleanTitle} Ringtone`}
+            text={`Download ${cleanTitle} ringtone from ${ringtone.movie_name} on TamilRing!`}
           />
         </div>
 
@@ -114,7 +118,7 @@ export default async function RingtonePage({ params }: Props) {
           </div>
 
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold text-zinc-100">{ringtone.title}</h1>
+            <h1 className="text-2xl font-bold text-zinc-100">{ringtone.title.replace(/\(From ".*?"\)/i, '').trim()}</h1>
             <Link href={`/tamil/movies/${encodeURIComponent(ringtone.movie_name)}`} className="text-zinc-400 text-base hover:text-emerald-500 transition-colors block">
               {ringtone.movie_name} <span className="text-zinc-600">({ringtone.movie_year})</span>
             </Link>
@@ -152,7 +156,7 @@ export default async function RingtonePage({ params }: Props) {
               Stream Full Song
             </h3>
             <StreamButtons
-              songTitle={ringtone.title}
+              songTitle={cleanTitle}
               artistName={ringtone.singers}
               appleMusicLink={ringtone.apple_music_link}
               spotifyLink={ringtone.spotify_link}
@@ -176,7 +180,7 @@ export default async function RingtonePage({ params }: Props) {
               </div>
               <div>
                 <p className="text-zinc-500">Format</p>
-                <p className="text-zinc-300">MP3</p>
+                <p className="text-zinc-300">MP3 / M4R</p>
               </div>
             </div>
           </div>
@@ -189,6 +193,6 @@ export default async function RingtonePage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-    </div>
+    </div >
   );
 }
