@@ -18,36 +18,16 @@ export function getLevelTitle(level: number): string {
 
 
 export async function awardPoints(supabase: SupabaseClient, userId: string, amount: number) {
-    // 1. Get current profile to check level (optional in future)
-    const { data: profile, error: fetchError } = await supabase
-        .from('profiles')
-        .select('points, level')
-        .eq('id', userId)
-        .single();
+    // secure, atomic RPC call
+    const { error } = await supabase.rpc('award_points_securely', {
+        target_user_id: userId,
+        amount: amount
+    });
 
-    if (fetchError || !profile) {
-        console.error('Error fetching profile for points:', JSON.stringify(fetchError), 'UserId:', userId);
-        return;
-    }
-
-    const newPoints = (profile.points || 0) + amount;
-
-    // Simple Level Check: Level up every 500 points
-    const newLevel = Math.floor(newPoints / 500) + 1;
-
-    // 2. Update Profile
-    const { error: updateError } = await supabase
-        .from('profiles')
-        .update({
-            points: newPoints,
-            level: newLevel
-        })
-        .eq('id', userId);
-
-    if (updateError) {
-        console.error('Error updating points:', updateError);
+    if (error) {
+        console.error('Error awarding points (RPC):', error);
     } else {
-        console.log(`Awarded ${amount} points to user ${userId}`);
+        console.log(`Awarded ${amount} points to user ${userId} (Secure RPC)`);
     }
 }
 
