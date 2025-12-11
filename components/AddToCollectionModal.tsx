@@ -66,7 +66,7 @@ export default function AddToCollectionModal({ isOpen, onClose, ringtone }: AddT
                 onClick={e => e.stopPropagation()}
             >
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-bold text-white">Set Ringtone For...</h3>
+                    <h3 className="text-lg font-bold text-white">For My</h3>
                     <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors">
                         <X size={20} />
                     </button>
@@ -82,8 +82,8 @@ export default function AddToCollectionModal({ isOpen, onClose, ringtone }: AddT
                                 key={item.id}
                                 onClick={() => handleAssign(item.id)}
                                 className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all duration-200 ${isAssigned || justAssigned
-                                        ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-500'
-                                        : 'bg-neutral-800 border-neutral-700 text-zinc-300 hover:bg-neutral-700 hover:border-neutral-600'
+                                    ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-500'
+                                    : 'bg-neutral-800 border-neutral-700 text-zinc-300 hover:bg-neutral-700 hover:border-neutral-600'
                                     }`}
                             >
                                 <div className="flex items-center gap-3">

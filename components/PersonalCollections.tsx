@@ -74,7 +74,7 @@ export default function PersonalCollections() {
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-bold text-zinc-100 flex items-center gap-2">
                     <User size={20} className="text-emerald-500" />
-                    Set Ringtone For...
+                    For My
                 </h2>
                 <button
                     onClick={() => setIsAdding(!isAdding)}
