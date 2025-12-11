@@ -449,7 +449,7 @@ export default async function Home() {
                 name={md.name}
                 image={md.image || ''}
                 href={`/artist/${encodeURIComponent(md.name)}`}
-                subtitle={`${md.likes} likes`}
+                subtitle={`${md.count} rings`}
               />
             ))}
           </div>
@@ -470,7 +470,7 @@ export default async function Home() {
                 name={md.name}
                 image={md.image || ''}
                 href={`/artist/${encodeURIComponent(md.name)}`}
-                subtitle={`${md.likes} likes`}
+                subtitle={`${md.count} rings`}
               />
             ))}
           </div>
