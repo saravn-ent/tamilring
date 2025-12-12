@@ -9,7 +9,7 @@ import FavoritesList from '@/components/FavoritesList';
 import LoginButton from '@/components/LoginButton';
 import PersonalCollections from '@/components/PersonalCollections';
 import AvatarRank from '@/components/AvatarRank';
-import { getLevelTitle, syncUserGamification } from '@/lib/gamification';
+import { getLevelTitle, syncUserGamification, POINTS_PER_UPLOAD } from '@/lib/gamification';
 import { Ringtone } from '@/types';
 
 // Simple timeout helper
@@ -92,9 +92,33 @@ export default function ProfilePage() {
 
         if (!mounted) return;
 
-        // Handle Profile
+        // Handle Uploads & Recalculate Points locally for instant update
+        let currentPoints = 0;
+        let currentLevel = 1;
+
+        if (uploadsRes.data) {
+          setUploads(uploadsRes.data as any[]);
+          const approvedCount = (uploadsRes.data as any[]).filter(u => u.status === 'approved').length;
+          currentPoints = approvedCount * POINTS_PER_UPLOAD;
+          currentLevel = Math.floor(currentPoints / 500) + 1;
+        } else {
+          console.error('Uploads fetch failed:', uploadsRes.error);
+          currentPoints = profileRes.data?.points || 0;
+          currentLevel = profileRes.data?.level || 1;
+        }
+
+        // Handle Badges
+        if (badgesRes.data) setUserBadges(badgesRes.data);
+        else console.error('Badges fetch failed:', badgesRes.error);
+
+        // Handle Profile (Use calculated points/level)
         if (profileRes.data) {
-          setProfile(profileRes.data);
+          const profileData = {
+            ...profileRes.data,
+            points: currentPoints,
+            level: currentLevel
+          };
+          setProfile(profileData);
           setFullName(profileRes.data.full_name || '');
           setBio(profileRes.data.bio || '');
           setWebsite(profileRes.data.website_url || '');
@@ -105,14 +129,6 @@ export default function ProfilePage() {
         } else if (profileRes.error) {
           console.error('Profile fetch failed:', profileRes.error);
         }
-
-        // Handle Uploads
-        if (uploadsRes.data) setUploads(uploadsRes.data as any[]);
-        else console.error('Uploads fetch failed:', uploadsRes.error);
-
-        // Handle Badges
-        if (badgesRes.data) setUserBadges(badgesRes.data);
-        else console.error('Badges fetch failed:', badgesRes.error);
 
         // Async Gamification Sync (Don't await)
         syncUserGamification(supabase, user.id)

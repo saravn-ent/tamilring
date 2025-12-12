@@ -46,8 +46,14 @@ export default async function UserProfilePage({
     .select('*, badge:badges(*)')
     .eq('user_id', userId);
 
-  const level = profile.level || 1;
-  const points = profile.points || 0;
+  // Calculate Points and Level dynamically to ensure consistency
+  // Points logic: 15 points per approved upload
+  const calculatedPoints = (uploads?.length || 0) * 15;
+  const calculatedLevel = Math.floor(calculatedPoints / 500) + 1;
+
+  // Use calculated values instead of stored ones (which might be stale)
+  const level = calculatedLevel;
+  const points = calculatedPoints;
 
   return (
     <div className="max-w-md mx-auto p-4 pb-24 min-h-screen flex flex-col">

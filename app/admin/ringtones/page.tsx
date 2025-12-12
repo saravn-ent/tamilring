@@ -17,23 +17,34 @@ export default function RingtoneManagement() {
     const [search, setSearch] = useState('');
     const [playingId, setPlayingId] = useState<string | null>(null);
 
+    const [editingRingtone, setEditingRingtone] = useState<Ringtone | null>(null);
+    const [newTitle, setNewTitle] = useState('');
+    const [saving, setSaving] = useState(false);
+
     useEffect(() => {
         fetchRingtones();
     }, []);
 
     const fetchRingtones = async () => {
         setLoading(true);
-        let query = supabase.from('ringtones').select('*').order('created_at', { ascending: false });
 
-        if (filter !== 'all') {
-            query = query.eq('status', filter);
+        let result;
+        if (filter === 'all') {
+            result = await supabase
+                .from('ringtones')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(100);
+        } else {
+            result = await supabase
+                .from('ringtones')
+                .select('*')
+                .eq('status', filter)
+                .order('created_at', { ascending: false })
+                .limit(100);
         }
 
-        // Note: Search logic is better done client-side for small datasets or via separate query if large.
-        // We'll fetch mostly latest 100 for now.
-        query = query.limit(100);
-
-        const { data, error } = await query;
+        const { data, error } = result;
         if (data) setRingtones(data as any);
         setLoading(false);
     };
@@ -44,9 +55,9 @@ export default function RingtoneManagement() {
     }, [filter]);
 
     const filteredRingtones = ringtones.filter(r =>
-        r.title.toLowerCase().includes(search.toLowerCase()) ||
-        r.movie_name.toLowerCase().includes(search.toLowerCase()) ||
-        r.user_id?.toLowerCase().includes(search.toLowerCase())
+        (r.title || '').toLowerCase().includes(search.toLowerCase()) ||
+        (r.movie_name || '').toLowerCase().includes(search.toLowerCase()) ||
+        (r.user_id || '').toLowerCase().includes(search.toLowerCase())
     );
 
     const handleApprove = async (id: string, userId?: string) => {
@@ -80,6 +91,30 @@ export default function RingtoneManagement() {
         } else {
             alert("Failed to delete. Check permissions.");
         }
+    };
+
+    const openEditModal = (ringtone: Ringtone) => {
+        setEditingRingtone(ringtone);
+        setNewTitle(ringtone.title || '');
+    };
+
+    const saveTitle = async () => {
+        if (!editingRingtone || !newTitle.trim()) return;
+        setSaving(true);
+
+        const { error } = await supabase
+            .from('ringtones')
+            .update({ title: newTitle.trim() })
+            .eq('id', editingRingtone.id);
+
+        if (!error) {
+            setRingtones(prev => prev.map(r => r.id === editingRingtone.id ? { ...r, title: newTitle.trim() } : r));
+            setEditingRingtone(null);
+            setNewTitle('');
+        } else {
+            alert("Failed to update title.");
+        }
+        setSaving(false);
     };
 
     return (
@@ -167,7 +202,7 @@ export default function RingtoneManagement() {
                                                 <div className="flex items-center gap-2 mt-1">
                                                     <span className={`w-2 h-2 rounded-full 
                                     ${ringtone.audio_url_iphone ? 'bg-blue-500' : 'bg-zinc-700'}`} title={ringtone.audio_url_iphone ? 'iPhone Ready' : 'No M4R'} />
-                                                    <span className="text-[10px] text-zinc-500 font-mono">{ringtone.id.split('-')[0]}</span>
+                                                    <span className="text-[10px] text-zinc-500 font-mono">{ringtone.id ? ringtone.id.split('-')[0] : ''}</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -193,6 +228,14 @@ export default function RingtoneManagement() {
                                     </td>
                                     <td className="p-4 text-right pr-6">
                                         <div className="flex items-center justify-end gap-2">
+                                            <button
+                                                onClick={() => openEditModal(ringtone)}
+                                                title="Edit Title"
+                                                className="p-2 rounded-lg hover:bg-white/5 text-zinc-400 hover:text-white transition-colors"
+                                            >
+                                                <Edit size={16} />
+                                            </button>
+
                                             {ringtone.status === 'pending' && (
                                                 <>
                                                     <button onClick={() => handleApprove(ringtone.id, ringtone.user_id)} title="Approve" className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white transition-colors">
@@ -215,6 +258,44 @@ export default function RingtoneManagement() {
                             ))}
                         </tbody>
                     </table>
+                </div>
+            )}
+
+            {/* Edit Modal */}
+            {editingRingtone && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                    <div className="bg-neutral-900 border border-white/10 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+                        <h3 className="text-lg font-bold text-white mb-4">Edit Ringtone</h3>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="text-xs font-bold text-zinc-500 uppercase block mb-1.5">Title</label>
+                                <input
+                                    type="text"
+                                    value={newTitle}
+                                    onChange={(e) => setNewTitle(e.target.value)}
+                                    className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-emerald-500/50 outline-none"
+                                />
+                            </div>
+
+                            <div className="flex justify-end gap-3 pt-2">
+                                <button
+                                    onClick={() => setEditingRingtone(null)}
+                                    className="px-4 py-2 rounded-lg text-sm font-medium text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={saveTitle}
+                                    disabled={saving}
+                                    className="px-4 py-2 rounded-lg text-sm font-bold bg-emerald-500 text-black hover:bg-emerald-400 transition-colors disabled:opacity-50 flex items-center gap-2"
+                                >
+                                    {saving && <Loader2 className="animate-spin" size={14} />}
+                                    Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>
