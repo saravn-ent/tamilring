@@ -2,7 +2,7 @@
 
 // Updated layout - Tabbed Interface
 import { useEffect, useState } from 'react';
-import { createBrowserClient } from '@supabase/auth-helpers-nextjs';
+import { createBrowserClient } from '@supabase/ssr'; // Updated to SSR package
 import UploadForm from '@/components/UploadForm';
 import FavoritesList from '@/components/FavoritesList';
 import LoginButton from '@/components/LoginButton';
@@ -13,12 +13,15 @@ import { Ringtone } from '@/types';
 import AvatarRank from '@/components/AvatarRank';
 import { getLevelTitle, syncUserGamification } from '@/lib/gamification';
 
-const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// Removed global supabase client
 
 export default function ProfilePage() {
+  // Initialize Supabase Client for client-side usage
+  const [supabase] = useState(() => createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  ));
+
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [uploads, setUploads] = useState<Ringtone[]>([]);
@@ -41,8 +44,11 @@ export default function ProfilePage() {
   const router = useRouter();
 
   // Debug State
-  const [debugLogs, setDebugLogs] = useState<string[]>([]);
-  const addLog = (msg: string) => setDebugLogs(prev => [...prev, `${new Date().toISOString().split('T')[1].split('.')[0]} - ${msg}`]);
+  const [debugLogs, setDebugLogs] = useState<string[]>(['Init...']); // Initial log
+  const addLog = (msg: string) => {
+    console.log(`[ProfileDebug] ${msg}`);
+    setDebugLogs(prev => [...prev, `${new Date().toISOString().split('T')[1].split('.')[0]} - ${msg}`]);
+  };
 
   useEffect(() => {
     // Helper for timeouts

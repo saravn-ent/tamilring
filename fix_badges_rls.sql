@@ -21,6 +21,8 @@ DROP POLICY IF EXISTS "Admins can manage badges" ON user_badges;
 DROP POLICY IF EXISTS "Users can view own badges" ON user_badges;
 DROP POLICY IF EXISTS "Everyone can view user_badges" ON user_badges;
 DROP POLICY IF EXISTS "Admins can manage user_badges" ON user_badges;
+DROP POLICY IF EXISTS "Public read user_badges" ON user_badges;
+DROP POLICY IF EXISTS "Admins manage user_badges" ON user_badges;
 
 -- Simple READ policy (No recursion)
 -- This allows anyone to see anyone's badges (needed for public profiles/leaderboards)
