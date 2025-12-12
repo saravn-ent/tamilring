@@ -29,6 +29,7 @@ DROP POLICY IF EXISTS "Admins manage user_badges" ON user_badges;
 CREATE POLICY "Public read user_badges" ON user_badges FOR SELECT USING (true);
 
 -- Admin WRITE policy
-CREATE POLICY "Admins manage user_badges" ON user_badges FOR ALL USING (public.is_admin());
+-- Admin WRITE policy -> Changed to USER SELF-MANAGEMENT policy to allow client-side sync
+CREATE POLICY "Users manage own badges" ON user_badges FOR ALL USING (auth.uid() = user_id);
 
 COMMIT;
