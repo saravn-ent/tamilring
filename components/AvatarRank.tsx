@@ -47,7 +47,13 @@ export default function AvatarRank({ image, point, level, size = 'md' }: AvatarR
             {/* Avatar Container with Rank Border */}
             <div className={`${sizeClasses[size]} rounded-full border-2 ${colorClass.split(' ')[0]} overflow-hidden relative shadow-lg bg-neutral-800`}>
                 {image ? (
-                    <Image src={image} alt="User" fill className="object-cover" />
+                    <Image
+                        src={image}
+                        alt="User"
+                        fill
+                        sizes={size === 'sm' ? '40px' : size === 'md' ? '80px' : '128px'}
+                        className="object-cover"
+                    />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center text-zinc-500">
                         <User size={size === 'sm' ? 20 : (size === 'md' ? 32 : 48)} />

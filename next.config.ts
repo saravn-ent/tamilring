@@ -17,8 +17,10 @@ const withPWA = withPWAInit({
 });
 
 const nextConfig: NextConfig = {
+  compress: true, // Enable Gzip/Brotli compression
   turbopack: {},
   images: {
+    qualities: [10, 75],
     remotePatterns: [
       {
         protocol: 'https',

@@ -26,6 +26,8 @@ export default function HeroCard({ name, image, href, subtitle, index = 0 }: Her
         <ImageWithFallback
           src={image}
           alt={name}
+          sizes="128px"
+          priority={index < 4}
           className="object-cover transition-transform duration-700 group-hover:scale-110"
         />
       </div>
@@ -41,7 +43,7 @@ export default function HeroCard({ name, image, href, subtitle, index = 0 }: Her
           </h3>
         </div>
         {subtitle && (
-          <p className="text-[10px] text-zinc-400 font-medium tracking-wider mt-0.5">
+          <p className="text-[10px] text-zinc-200 font-medium tracking-wider mt-0.5">
             {subtitle}
           </p>
         )}

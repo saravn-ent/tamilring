@@ -9,6 +9,7 @@ import DownloadButton from './DownloadButton';
 import VideoDownloadButton from './VideoDownloadButton';
 import StreamButtons from '@/components/StreamButtons';
 import { splitArtists } from '@/lib/utils';
+import { cache } from 'react';
 
 import ShareButton from '@/components/ShareButton';
 
@@ -16,13 +17,19 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
+// Deduped data fetching
+const getRingtone = cache(async (slug: string) => {
   const { data: ringtone } = await supabase
     .from('ringtones')
     .select('*')
     .eq('slug', slug)
     .single();
+  return ringtone;
+});
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const ringtone = await getRingtone(slug);
 
   if (!ringtone) return { title: 'Ringtone Not Found' };
 
@@ -47,11 +54,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function RingtonePage({ params }: Props) {
   const { slug } = await params;
-  const { data: ringtone } = await supabase
-    .from('ringtones')
-    .select('*')
-    .eq('slug', slug)
-    .single();
+  const ringtone = await getRingtone(slug);
 
   if (!ringtone) return <div className="text-center py-20 text-zinc-500">Ringtone not found</div>;
 
@@ -83,6 +86,7 @@ export default async function RingtonePage({ params }: Props) {
             src={ringtone.backdrop_url || ringtone.poster_url}
             alt={ringtone.movie_name}
             fill
+            priority
             className="object-cover mask-image-gradient"
           />
         )}
@@ -111,6 +115,7 @@ export default async function RingtonePage({ params }: Props) {
                 src={ringtone.poster_url}
                 alt={ringtone.movie_name}
                 fill
+                priority
                 className="object-cover"
               />
             ) : (

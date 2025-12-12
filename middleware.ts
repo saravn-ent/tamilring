@@ -11,7 +11,7 @@ export async function middleware(request: NextRequest) {
   // 4. form-action: 'self'
   const cspHeader = `
     default-src 'self';
-    script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com https://www.googletagmanager.com https://www.google-analytics.com https://accounts.google.com https://apis.google.com;
+    script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://unpkg.com https://www.googletagmanager.com https://www.google-analytics.com https://accounts.google.com https://apis.google.com;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
     img-src 'self' blob: data: https:;
     media-src 'self' blob: data: https:;

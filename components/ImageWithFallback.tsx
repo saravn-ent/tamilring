@@ -13,28 +13,30 @@ interface ImageWithFallbackProps {
   fill?: boolean;
   fallbackText?: string;
   sizes?: string;
+  priority?: boolean;
 }
 
-export default function ImageWithFallback({ 
-  src, 
-  alt, 
-  className = "object-cover", 
+export default function ImageWithFallback({
+  src,
+  alt,
+  className = "object-cover",
   fallbackClassName = "bg-neutral-800 text-zinc-400",
   showIcon = false,
   fill = true,
   fallbackText,
-  sizes
+  sizes,
+  priority = false
 }: ImageWithFallbackProps) {
   const [error, setError] = useState(false);
 
   const getInitials = (name: string) => {
     return name
       ? name
-          .split(' ')
-          .map((n) => n[0])
-          .slice(0, 2)
-          .join('')
-          .toUpperCase()
+        .split(' ')
+        .map((n) => n[0])
+        .slice(0, 2)
+        .join('')
+        .toUpperCase()
       : 'TR';
   };
 
@@ -53,6 +55,7 @@ export default function ImageWithFallback({
       alt={alt}
       fill={fill}
       sizes={sizes}
+      priority={priority}
       className={className}
       onError={() => setError(true)}
       unoptimized

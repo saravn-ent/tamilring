@@ -15,7 +15,7 @@ import { splitArtists } from '@/lib/utils';
 import { getLevelTitle } from '@/lib/gamification';
 import AvatarRank from '@/components/AvatarRank';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600; // Revalidate every hour
 
 const getTopArtists = unstable_cache(
   async () => {
@@ -296,24 +296,24 @@ export default async function Home() {
         <div className="mb-10">
           <div className="px-4">
             <SectionHeader title="Rewind: Memories" />
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-3 -mt-2">Rings that bring back the good times</p>
+            <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-3 -mt-2">Rings that bring back the good times</p>
           </div>
           <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide snap-x">
             {nostalgia.map(ringtone => (
               <Link key={ringtone.id} href={`/ringtone/${ringtone.slug}`} className="snap-start shrink-0 w-32 group">
                 <div className="relative w-32 h-40 rounded-xl overflow-hidden mb-2 bg-zinc-200 dark:bg-neutral-800 shadow-lg group-hover:shadow-emerald-500/10 transition-all">
                   {ringtone.poster_url ? (
-                    <Image src={ringtone.poster_url} alt={ringtone.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <Image src={ringtone.poster_url} alt={ringtone.title} fill sizes="128px" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-zinc-400 dark:text-zinc-600 text-xs">No Img</div>
+                    <div className="w-full h-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 text-xs">No Img</div>
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
-                  <div className="absolute bottom-2 right-2 bg-black/60 px-1.5 py-0.5 rounded text-[10px] text-white font-medium backdrop-blur-sm">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-80" />
+                  <div className="absolute bottom-2 right-2 bg-black/70 px-1.5 py-0.5 rounded text-[10px] text-white font-medium backdrop-blur-sm">
                     {ringtone.movie_year}
                   </div>
                 </div>
-                <p className="text-xs font-bold text-zinc-800 dark:text-zinc-200 truncate group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors">{ringtone.title}</p>
-                <p className="text-[10px] text-zinc-500 truncate">{ringtone.movie_name}</p>
+                <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{ringtone.title}</p>
+                <p className="text-[10px] text-zinc-600 dark:text-zinc-400 truncate">{ringtone.movie_name}</p>
               </Link>
             ))}
           </div>
@@ -432,14 +432,14 @@ export default async function Home() {
             <Link key={ringtone.id} href={`/ringtone/${ringtone.slug}`} className="snap-start shrink-0 w-32 group">
               <div className="relative w-32 h-40 rounded-xl overflow-hidden mb-2 bg-zinc-200 dark:bg-neutral-800 shadow-lg group-hover:shadow-emerald-500/10 transition-all">
                 {ringtone.poster_url ? (
-                  <Image src={ringtone.poster_url} alt={ringtone.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <Image src={ringtone.poster_url} alt={ringtone.title} fill sizes="128px" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-zinc-400 dark:text-zinc-600 text-xs">No Img</div>
+                  <div className="w-full h-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 text-xs">No Img</div>
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-60" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-80" />
               </div>
-              <p className="text-xs font-bold text-zinc-800 dark:text-zinc-200 truncate group-hover:text-emerald-500 dark:group-hover:text-emerald-400 transition-colors">{ringtone.title}</p>
-              <p className="text-[10px] text-zinc-500 truncate">{ringtone.movie_name}</p>
+              <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{ringtone.title}</p>
+              <p className="text-[10px] text-zinc-600 dark:text-zinc-400 truncate">{ringtone.movie_name}</p>
             </Link>
           ))}
         </div>
