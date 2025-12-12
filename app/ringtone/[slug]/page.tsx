@@ -6,6 +6,7 @@ import { ArrowLeft, Download, Music } from 'lucide-react';
 import { Metadata } from 'next';
 import PlayButton from './PlayButton';
 import DownloadButton from './DownloadButton';
+import VideoDownloadButton from './VideoDownloadButton';
 import StreamButtons from '@/components/StreamButtons';
 import { splitArtists } from '@/lib/utils';
 
@@ -148,6 +149,7 @@ export default async function RingtonePage({ params }: Props) {
           <div className="flex gap-4 w-full max-w-xs justify-center">
             <PlayButton ringtone={ringtone} />
             <DownloadButton ringtone={ringtone} />
+            <VideoDownloadButton ringtone={ringtone} />
           </div>
 
           {/* Streaming Section */}
