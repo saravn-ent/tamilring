@@ -40,81 +40,84 @@ export default function ProfilePage() {
   const [btcAddress, setBtcAddress] = useState('');
   const router = useRouter();
 
+  // Debug State
+  const [debugLogs, setDebugLogs] = useState<string[]>([]);
+  const addLog = (msg: string) => setDebugLogs(prev => [...prev, `${new Date().toISOString().split('T')[1].split('.')[0]} - ${msg}`]);
+
   useEffect(() => {
     const getUser = async () => {
       try {
-        console.log('Fetching user...');
+        addLog('Starting getUser...');
+        addLog('Calling supabase.auth.getUser()...');
         const { data: { user } } = await supabase.auth.getUser();
-        console.log('User fetched:', user?.id);
+        addLog(`User fetched: ${user?.id || 'No user'}`);
         setUser(user);
 
         if (user) {
           // Fetch Profile
-          console.log('Fetching profile...');
+          addLog('Fetching profile table...');
           const { data: profileData, error: profileError } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', user.id)
             .single();
 
-          if (profileError && profileError.code !== 'PGRST116') {
-            console.error('Profile fetch error:', profileError);
+          if (profileError) {
+            addLog(`Profile error: ${profileError.message} (${profileError.code})`);
+            if (profileError.code !== 'PGRST116') console.error(profileError);
+          } else {
+            addLog('Profile data received');
           }
-          console.log('Profile fetched:', profileData);
 
           if (profileData) {
             setProfile(profileData);
             setFullName(profileData.full_name || '');
             setBio(profileData.bio || '');
             setWebsite(profileData.website_url || '');
-            setInstagram(profileData.instagram_handle || '');
-            setTwitter(profileData.twitter_handle || '');
-            setUpiId(profileData.upi_id || '');
-            setBtcAddress(profileData.btc_address || '');
-
-            // Check and Sync Gamification Stats
-            console.log('Syncing gamification...');
-            syncUserGamification(supabase, user.id).then((synced) => {
-              console.log('Gamification synced:', synced);
-              if (synced && (synced.points !== profileData.points || synced.level !== profileData.level)) {
-                setProfile((prev: any) => ({ ...prev, ...synced }));
-              }
-            });
           }
 
+          // Check and Sync Gamification Stats
+          addLog('Triggering gamification sync (async)...');
+          syncUserGamification(supabase, user.id).then((synced) => {
+            if (synced && profileData && (synced.points !== profileData.points || synced.level !== profileData.level)) {
+              setProfile((prev: any) => ({ ...prev, ...synced }));
+            }
+          });
+
           // Fetch Uploads
-          console.log('Fetching uploads...');
+          addLog('Fetching ringtones table...');
           const { data: uploadsData, error: uploadsError } = await supabase
             .from('ringtones')
             .select('*')
             .eq('user_id', user.id)
             .order('created_at', { ascending: false });
 
-          if (uploadsError) console.error('Uploads fetch error:', uploadsError);
-          console.log('Uploads fetched:', uploadsData?.length);
+          if (uploadsError) addLog(`Uploads error: ${uploadsError.message}`);
+          else addLog(`Uploads received: ${uploadsData?.length}`);
 
           if (uploadsData) {
             setUploads(uploadsData as unknown as Ringtone[]);
           }
 
           // Fetch Badges
-          console.log('Fetching badges...');
+          addLog('Fetching user_badges table...');
           const { data: badgesData, error: badgesError } = await supabase
             .from('user_badges')
             .select('*, badge:badges(*)')
             .eq('user_id', user.id);
 
-          if (badgesError) console.error('Badges fetch error:', badgesError);
-          console.log('Badges fetched:', badgesData?.length);
+          if (badgesError) addLog(`Badges error: ${badgesError.message}`);
+          else addLog(`Badges received: ${badgesData?.length}`);
 
           if (badgesData) {
             setUserBadges(badgesData);
           }
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error loading profile:", error);
+        addLog(`CRITICAL ERROR: ${error.message}`);
       } finally {
-        console.log('Setting loading false');
+        addLog('Finished loading sequence.');
         setLoading(false);
       }
     };
@@ -201,7 +204,20 @@ export default function ProfilePage() {
     }
   };
 
-  if (loading) return <div className="p-8 text-center text-zinc-500">Loading profile...</div>;
+  if (loading) {
+    return (
+      <div className="p-8 flex flex-col items-center justify-center min-h-[50vh] text-center space-y-4">
+        <div className="text-zinc-500 animate-pulse">Loading profile...</div>
+        <div className="max-w-md w-full bg-neutral-900 p-4 rounded-lg font-mono text-xs text-left text-zinc-400 border border-neutral-800 h-64 overflow-y-auto">
+          <div className="text-zinc-500 mb-2 border-b border-neutral-800 pb-1">Debug Log:</div>
+          {debugLogs.map((log, i) => (
+            <div key={i} className="whitespace-nowrap">{log}</div>
+          ))}
+          {debugLogs.length === 0 && <div>Initializing logs...</div>}
+        </div>
+      </div>
+    );
+  }
 
   if (!user) {
     return (
