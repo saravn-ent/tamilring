@@ -34,6 +34,10 @@ export default function LoginButton() {
       options: {
         // Redirect back to the current page after login
         redirectTo: `${location.origin}/auth/callback?next=${pathname || '/'}`,
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
       },
     });
   };
