@@ -1,232 +1,184 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
-import Image from 'next/image';
-import { Loader2, Check, X, LogOut, ShieldAlert, BadgeCheck } from 'lucide-react';
-import { Ringtone } from '@/types';
-import { useRouter } from 'next/navigation';
-import LoginButton from '@/components/LoginButton';
+import { supabase } from '@/lib/supabaseClient';
+import { Loader2, Music, Users, Download, Clock, TrendingUp, AlertCircle, RefreshCcw } from 'lucide-react';
+import Link from 'next/link';
 
 export default function AdminDashboard() {
-    const [ringtones, setRingtones] = useState<Ringtone[]>([]);
     const [loading, setLoading] = useState(true);
-    const [isAdmin, setIsAdmin] = useState(false);
-    const [user, setUser] = useState<any>(null);
-    const router = useRouter();
-
-    const supabase = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+    const [stats, setStats] = useState({
+        totalRingtones: 0,
+        pendingRingtones: 0,
+        totalUsers: 0,
+        totalDownloads: 0
+    });
+    const [recentUploads, setRecentUploads] = useState<any[]>([]);
 
     useEffect(() => {
-        checkAdmin();
+        fetchStats();
     }, []);
 
-    const checkAdmin = async () => {
+    const fetchStats = async () => {
+        setLoading(true);
         try {
-            const { data: { user }, error: authError } = await supabase.auth.getUser();
-            if (authError || !user) {
-                console.error("Auth check failed:", authError);
-                setLoading(false);
-                return;
-            }
+            // 1. Ringtones Stats
+            const { count: totalRings } = await supabase.from('ringtones').select('*', { count: 'exact', head: true });
+            const { count: pendingRings } = await supabase.from('ringtones').select('*', { count: 'exact', head: true }).eq('status', 'pending');
 
-            setUser(user);
+            // 2. Users Stats
+            const { count: totalUsers } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
 
-            const { data: profile, error: profileError } = await supabase
-                .from('profiles')
-                .select('role')
-                .eq('id', user.id)
-                .single();
+            // 3. Downloads (Sum of downloads column) - Approximate via simple query or RPC if heavy
+            // For now, let's just count total ringtones approx for downloads if column sum is heavy, but let's try RPC or small fetch
+            // Or just fetch `downloads` for top 1000 and sum? Better: Create an RPC function later. 
+            // For now, let's just hold '0' or implement a simple sum if needed. 
+            // Actually, let's just display "Total Likes" instead of downloads if downloads are not summed up easily without RPC.
+            // Let's use totalRings for now or just fetch "approved" count.
 
-            if (profileError) {
-                console.error("Profile check failed:", profileError);
-                // If error accessing profile, likely row doesn't exist or RLS blocked -> treat as not admin
-                setLoading(false);
-                return;
-            }
-
-            if (profile?.role === 'admin') {
-                setIsAdmin(true);
-                await fetchPendingRingtones();
-            } else {
-                setLoading(false);
-            }
-        } catch (e) {
-            console.error("Unexpected error in checkAdmin:", e);
-            setLoading(false);
-        }
-    };
-
-    const fetchPendingRingtones = async () => {
-        try {
-            const { data, error } = await supabase
+            // Recent Uploads
+            const { data: recents } = await supabase
                 .from('ringtones')
-                .select('*')
-                .eq('status', 'pending')
-                .order('created_at', { ascending: false });
+                .select('id, title, created_at, status, poster_url, user_id')
+                .order('created_at', { ascending: false })
+                .limit(5);
 
-            if (error) throw error;
+            setStats({
+                totalRingtones: totalRings || 0,
+                pendingRingtones: pendingRings || 0,
+                totalUsers: totalUsers || 0,
+                totalDownloads: 0 // Placeholder until we have a proper sum function
+            });
 
-            if (data) {
-                setRingtones(data as any);
-            }
-        } catch (e) {
-            console.error("Error fetching ringtones:", e);
+            if (recents) setRecentUploads(recents);
+
+        } catch (error) {
+            console.error("Error fetching stats:", error);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleApprove = async (ringtone: Ringtone) => {
-        const { error } = await supabase
-            .from('ringtones')
-            .update({ status: 'approved' })
-            .eq('id', ringtone.id);
-
-        if (!error) {
-            setRingtones(prev => prev.filter(r => r.id !== ringtone.id));
-
-            // Gamification Logic
-            if (ringtone.user_id) {
-                // Dynamically import to avoid server/client issues if any, though it's client code
-                const { awardPoints, checkUploadBadges, POINTS_PER_UPLOAD } = await import('@/lib/gamification');
-                await awardPoints(supabase, ringtone.user_id, POINTS_PER_UPLOAD);
-                await checkUploadBadges(supabase, ringtone.user_id);
-            }
-        } else {
-            alert('Error approving ringtone');
-        }
-    };
-
-    const handleReject = async (id: string) => {
-        const reason = prompt("Enter rejection reason:");
-        if (!reason) return;
-
-        const { error } = await supabase
-            .from('ringtones')
-            .update({ status: 'rejected', rejection_reason: reason })
-            .eq('id', id);
-
-        if (!error) {
-            setRingtones(prev => prev.filter(r => r.id !== id));
-        } else {
-            alert('Error rejecting ringtone');
-        }
-    };
-
     if (loading) {
-        return <div className="h-screen flex items-center justify-center text-zinc-500"><Loader2 className="animate-spin mr-2" /> Checking permissions...</div>;
-    }
-
-    if (!isAdmin) {
         return (
-            <div className="h-screen flex flex-col items-center justify-center p-8 text-center">
-                <ShieldAlert size={48} className="text-red-500 mb-4" />
-                <h1 className="text-2xl font-bold text-zinc-100 mb-2">Access Denied</h1>
-                <p className="text-zinc-400 mb-8">You do not have permission to view this page.</p>
-
-                <div className="bg-neutral-900 p-4 rounded-lg border border-neutral-800 mb-8 max-w-lg text-left">
-                    <p className="text-xs text-zinc-500 uppercase font-bold mb-2">Debug Info</p>
-                    {user ? (
-                        <>
-                            <p className="text-sm text-zinc-400 font-mono mb-1">User ID: <span className="text-zinc-100">{user.id}</span></p>
-                            <p className="text-sm text-zinc-400 font-mono mb-4">Email: <span className="text-zinc-100">{user.email}</span></p>
-
-                            <p className="text-xs text-zinc-500 uppercase font-bold mb-2">How to Fix</p>
-                            <p className="text-xs text-zinc-400 mb-2">Run this SQL in your Supabase SQL Editor:</p>
-                            <code className="block bg-black p-2 rounded text-xs text-green-400 font-mono break-all selection:bg-zinc-700">
-                                UPDATE profiles SET role = 'admin' WHERE id = '{user.id}';
-                            </code>
-                        </>
-                    ) : (
-                        <div className="text-center">
-                            <p className="text-zinc-400 mb-2">User details not valid.</p>
-                            <p className="text-xs text-zinc-500 mb-4">Please try signing out and signing back in.</p>
-                        </div>
-                    )}
-                </div>
-
-                <LoginButton />
-                <button onClick={() => router.push('/')} className="mt-4 text-zinc-500 hover:text-zinc-300">Back to Home</button>
+            <div className="flex items-center justify-center h-96">
+                <Loader2 className="animate-spin text-emerald-500" size={32} />
             </div>
         );
     }
 
-    return (
-        <div className="max-w-4xl mx-auto p-4 min-h-screen pb-24">
-            <div className="flex items-center justify-between mb-8 pt-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-zinc-100 flex items-center gap-2">
-                        <BadgeCheck className="text-emerald-500" />
-                        Admin Dashboard
-                    </h1>
-                    <p className="text-zinc-400 text-sm">Review pending uploads ({ringtones.length})</p>
+    const StatCard = ({ title, value, icon: Icon, color, href }: any) => (
+        <Link href={href || '#'} className="bg-neutral-900 border border-white/5 p-6 rounded-2xl hover:border-white/10 transition-all group relative overflow-hidden">
+            <div className={`absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity ${color}`}>
+                <Icon size={64} />
+            </div>
+            <div className="relative z-10">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${color.replace('text-', 'bg-')}/10 ${color}`}>
+                    <Icon size={24} />
                 </div>
-                <button
-                    onClick={() => { supabase.auth.signOut(); router.push('/'); }}
-                    className="text-xs text-red-500 hover:text-red-400 bg-red-500/10 px-3 py-1.5 rounded-full"
-                >
-                    Sign Out
-                </button>
+                <h3 className="text-zinc-500 text-sm font-medium mb-1">{title}</h3>
+                <p className="text-3xl font-bold text-white tracking-tight">{value}</p>
+            </div>
+        </Link>
+    );
+
+    return (
+        <div className="space-y-8">
+            {/* Header */}
+            <div>
+                <h1 className="text-3xl font-bold text-white mb-2">Dashboard Overview</h1>
+                <p className="text-zinc-400">Welcome back, Admin. Here's what's happening today.</p>
             </div>
 
-            {ringtones.length === 0 ? (
-                <div className="text-center py-20 bg-neutral-900/50 rounded-xl border border-dashed border-neutral-800">
-                    <p className="text-zinc-500">No pending ringtones to review.</p>
-                </div>
-            ) : (
-                <div className="grid gap-4">
-                    {ringtones.map(ringtone => (
-                        <div key={ringtone.id} className="bg-neutral-900 border border-neutral-800 rounded-xl p-4 flex flex-col sm:flex-row gap-4">
-                            {/* Media Preview */}
-                            <div className="w-full sm:w-48 shrink-0 space-y-2">
-                                <div className="relative aspect-video rounded-lg overflow-hidden bg-neutral-800">
-                                    <Image
-                                        src={ringtone.poster_url || '/placeholder.png'}
-                                        alt={ringtone.title}
-                                        fill
-                                        className="object-cover"
-                                    />
-                                </div>
-                                <audio controls preload="none" src={ringtone.audio_url} className="w-full h-8" />
-                            </div>
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <StatCard
+                    title="Total Ringtones"
+                    value={stats.totalRingtones}
+                    icon={Music}
+                    color="text-blue-500"
+                    href="/admin/ringtones"
+                />
+                <StatCard
+                    title="Pending Approval"
+                    value={stats.pendingRingtones}
+                    icon={AlertCircle}
+                    color="text-amber-500"
+                    href="/admin/ringtones?tab=pending"
+                />
+                <StatCard
+                    title="Total Users"
+                    value={stats.totalUsers}
+                    icon={Users}
+                    color="text-purple-500"
+                    href="/admin/users"
+                />
+                <StatCard
+                    title="Total Downloads"
+                    value={stats.totalDownloads || '-'}
+                    icon={Download}
+                    color="text-emerald-500"
+                />
+            </div>
 
-                            {/* Details */}
-                            <div className="flex-1 min-w-0">
-                                <h3 className="font-bold text-lg text-zinc-100">{ringtone.title}</h3>
-                                <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm text-zinc-400 mt-2">
-                                    <p><span className="text-zinc-500">Movie:</span> {ringtone.movie_name} ({ringtone.movie_year})</p>
-                                    <p><span className="text-zinc-500">Singers:</span> {ringtone.singers}</p>
-                                    <p><span className="text-zinc-500">Music:</span> {ringtone.music_director}</p>
-                                    <p><span className="text-zinc-500">Director:</span> {ringtone.movie_director}</p>
-                                    <p className="col-span-2 truncate"><span className="text-zinc-500">Tags:</span> {ringtone.tags?.join(', ')}</p>
-                                    <p className="col-span-2 text-xs font-mono text-zinc-600 mt-1">ID: {ringtone.id}</p>
-                                    <p className="col-span-2 text-xs font-mono text-zinc-600">User: {ringtone.user_id}</p>
+            {/* Recent Activity */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 bg-neutral-900 border border-white/5 rounded-2xl p-6">
+                    <div className="flex items-center justify-between mb-6">
+                        <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                            <Clock size={18} className="text-zinc-400" />
+                            Recent Uploads
+                        </h3>
+                        <Link href="/admin/ringtones" className="text-xs text-emerald-500 hover:text-emerald-400 font-medium">View All</Link>
+                    </div>
+                    <div className="space-y-4">
+                        {recentUploads.map((item) => (
+                            <div key={item.id} className="flex items-center gap-4 p-3 rounded-xl hover:bg-white/5 transition-colors border border-transparent hover:border-white/5">
+                                <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 
+                                    ${item.status === 'approved' ? 'bg-emerald-500/10 text-emerald-500' :
+                                        item.status === 'rejected' ? 'bg-red-500/10 text-red-500' : 'bg-amber-500/10 text-amber-500'}`}>
+                                    {item.status === 'approved' ? <TrendingUp size={18} /> :
+                                        item.status === 'rejected' ? <AlertCircle size={18} /> : <Clock size={18} />}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h4 className="text-sm font-medium text-zinc-200 truncate">{item.title}</h4>
+                                    <p className="text-xs text-zinc-500">
+                                        by {item.user_id?.substring(0, 8)}... • {new Date(item.created_at).toLocaleDateString()}
+                                    </p>
+                                </div>
+                                <div className={`px-2.5 py-1 rounded text-[10px] font-medium uppercase tracking-wider
+                                    ${item.status === 'approved' ? 'bg-emerald-500/10 text-emerald-500' :
+                                        item.status === 'rejected' ? 'bg-red-500/10 text-red-500' : 'bg-amber-500/10 text-amber-500'}`}>
+                                    {item.status}
                                 </div>
                             </div>
-
-                            {/* Actions */}
-                            <div className="flex sm:flex-col gap-2 justify-center border-t sm:border-t-0 sm:border-l border-neutral-800 pt-4 sm:pt-0 sm:pl-4 mt-2 sm:mt-0">
-                                <button
-                                    onClick={() => handleApprove(ringtone)}
-                                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-black border border-emerald-500/20 rounded-lg px-4 py-2 font-medium transition-all"
-                                >
-                                    <Check size={18} /> Approve
-                                </button>
-                                <button
-                                    onClick={() => handleReject(ringtone.id)}
-                                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white border border-red-500/20 rounded-lg px-4 py-2 font-medium transition-all"
-                                >
-                                    <X size={18} /> Reject
-                                </button>
-                            </div>
-                        </div>
-                    ))}
+                        ))}
+                        {recentUploads.length === 0 && (
+                            <p className="text-zinc-500 text-center py-8">No recent activity.</p>
+                        )}
+                    </div>
                 </div>
-            )}
+
+                <div className="bg-neutral-900 border border-white/5 rounded-2xl p-6">
+                    <h3 className="text-lg font-bold text-white mb-6">Quick Actions</h3>
+                    <div className="space-y-3">
+                        <Link href="/admin/ringtones?tab=pending" className="flex items-center gap-3 p-3 rounded-xl bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 transition-colors border border-amber-500/20">
+                            <AlertCircle size={20} />
+                            <div className="text-left">
+                                <span className="block text-sm font-bold">Review Pending</span>
+                                <span className="block text-[10px] opacity-70">Approve or reject uploads</span>
+                            </div>
+                        </Link>
+                        <button className="w-full flex items-center gap-3 p-3 rounded-xl bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition-colors border border-white/5">
+                            <RefreshCcw size={20} />
+                            <div className="text-left">
+                                <span className="block text-sm font-bold">Clear Cache</span>
+                                <span className="block text-[10px] opacity-70 font-mono">/api/revalidate</span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }
