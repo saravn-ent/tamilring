@@ -1,32 +1,41 @@
 'use client';
 
-// Updated layout - Tabbed Interface
-import { useEffect, useState } from 'react';
-import { createBrowserClient } from '@supabase/ssr'; // Updated to SSR package
+import { useEffect, useState, useMemo } from 'react';
+import { createBrowserClient } from '@supabase/ssr';
+import { useRouter } from 'next/navigation';
+import { User, Heart, Music, Trash2, X, LayoutDashboard, UploadCloud, Star } from 'lucide-react';
 import UploadForm from '@/components/UploadForm';
 import FavoritesList from '@/components/FavoritesList';
 import LoginButton from '@/components/LoginButton';
 import PersonalCollections from '@/components/PersonalCollections';
-import { User, LogOut, Heart, Music, Trash2, X, Globe, Instagram, Twitter, Star, Disc, LayoutDashboard, UploadCloud } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { Ringtone } from '@/types';
 import AvatarRank from '@/components/AvatarRank';
 import { getLevelTitle, syncUserGamification } from '@/lib/gamification';
+import { Ringtone } from '@/types';
 
-// Removed global supabase client
+// Simple timeout helper
+const withTimeout = (promise: any, ms: number = 5000) => {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), ms))
+  ]);
+};
 
 export default function ProfilePage() {
-  // Initialize Supabase Client for client-side usage
-  const [supabase] = useState(() => createBrowserClient(
+  const router = useRouter();
+
+  // Stable Supabase Client
+  const supabase = useMemo(() => createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  ));
+  ), []);
 
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [uploads, setUploads] = useState<Ringtone[]>([]);
   const [userBadges, setUserBadges] = useState<any[]>([]);
+
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Tab State
   const [activeTab, setActiveTab] = useState<'overview' | 'uploads' | 'upload'>('overview');
@@ -41,157 +50,93 @@ export default function ProfilePage() {
   const [twitter, setTwitter] = useState('');
   const [upiId, setUpiId] = useState('');
   const [btcAddress, setBtcAddress] = useState('');
-  const router = useRouter();
-
-  // Debug State
-  const [debugLogs, setDebugLogs] = useState<string[]>(['Init...']); // Initial log
-  const addLog = (msg: string) => {
-    console.log(`[ProfileDebug] ${msg}`);
-    setDebugLogs(prev => [...prev, `${new Date().toISOString().split('T')[1].split('.')[0]} - ${msg}`]);
-  };
 
   useEffect(() => {
-    // Helper for timeouts
-    const fetchWithTimeout = async (promise: any, ms = 3000, label = 'query') => {
-      let timeoutId: NodeJS.Timeout;
-      const timeoutPromise = new Promise<{ data: any, error: any }>((_, reject) => {
-        timeoutId = setTimeout(() => {
-          reject(new Error(`${label} timed out`));
-        }, ms);
-      });
+    let mounted = true;
 
+    const loadData = async () => {
       try {
-        const result = await Promise.race([promise, timeoutPromise]);
-        clearTimeout(timeoutId!);
-        return result as { data: any, error: any };
-      } catch (error) {
-        clearTimeout(timeoutId!);
-        throw error;
-      }
-    };
+        console.log('Starting profile load...');
+        // 1. Get User
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError) throw authError;
 
-    const getUser = async () => {
-      try {
-        addLog('Starting getUser...');
-        addLog('Calling supabase.auth.getUser()...');
-        const { data: { user } } = await supabase.auth.getUser();
-        addLog(`User fetched: ${user?.id || 'No user'}`);
+        if (!mounted) return;
         setUser(user);
 
-        if (user) {
-          // Fetch Profile
-          addLog('Fetching profile table...');
-          // Using a shorter timeout for profile to fail fast
-          try {
-            const { data: profileData, error: profileError } = await fetchWithTimeout(
-              supabase.from('profiles').select('*').eq('id', user.id).single(),
-              4000,
-              'Profile fetch'
-            );
-
-            if (profileError) {
-              addLog(`Profile error: ${profileError.message} (${profileError.code})`);
-            } else {
-              addLog('Profile data received');
-              setProfile(profileData);
-              if (profileData) {
-                setFullName(profileData.full_name || '');
-                setBio(profileData.bio || '');
-                setWebsite(profileData.website_url || '');
-              }
-            }
-          } catch (e: any) {
-            addLog(`PROFILE FETCH FAILED: ${e.message}`);
-          }
-
-
-          // Check and Sync Gamification Stats (Non-blocking)
-          addLog('Triggering gamification sync (async)...');
-          syncUserGamification(supabase, user.id).then((synced) => {
-            if (synced) {
-              setProfile((prev: any) => prev ? ({ ...prev, ...synced }) : prev);
-            }
-          }).catch(err => console.error("Gamification sync error", err));
-
-          // Fetch Uploads
-          addLog('Fetching ringtones table...');
-          try {
-            const { data: uploadsData, error: uploadsError } = await fetchWithTimeout(
-              supabase.from('ringtones').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
-              5000,
-              'Uploads fetch'
-            );
-
-            if (uploadsError) addLog(`Uploads error: ${uploadsError.message}`);
-            else addLog(`Uploads received: ${uploadsData?.length}`);
-
-            if (uploadsData) {
-              setUploads(uploadsData as unknown as Ringtone[]);
-            }
-          } catch (e: any) {
-            addLog(`UPLOADS FETCH FAILED: ${e.message}`);
-          }
-
-          // Fetch Badges
-          addLog('Fetching user_badges table...');
-          try {
-            const { data: badgesData, error: badgesError } = await fetchWithTimeout(
-              supabase.from('user_badges').select('*, badge:badges(*)').eq('user_id', user.id),
-              4000,
-              'Badges fetch'
-            );
-
-            if (badgesError) addLog(`Badges error: ${badgesError.message}`);
-            else addLog(`Badges received: ${badgesData?.length}`);
-
-            if (badgesData) {
-              setUserBadges(badgesData);
-            }
-          } catch (e: any) {
-            addLog(`BADGES FETCH FAILED: ${e.message}`);
-          }
+        if (!user) {
+          setLoading(false);
+          return;
         }
-      } catch (error: any) {
-        console.error("Error loading profile:", error);
-        addLog(`CRITICAL ERROR: ${error.message}`);
+
+        // 2. Load fetching in parallel with separate error handling
+        console.log('Fetching user data...');
+
+        // We use 'any' to bypass strict TypeScript checks on the PostgrestBuilder promise
+        const fetchProfile = withTimeout(supabase.from('profiles').select('*').eq('id', user.id).single())
+          .catch((e: any) => ({ error: e }));
+
+        const fetchUploads = withTimeout(supabase.from('ringtones').select('*').eq('user_id', user.id).order('created_at', { ascending: false }))
+          .catch((e: any) => ({ error: e }));
+
+        const fetchBadges = withTimeout(supabase.from('user_badges').select('*, badge:badges(*)').eq('user_id', user.id))
+          .catch((e: any) => ({ error: e }));
+
+        const [profileRes, uploadsRes, badgesRes] = await Promise.all([fetchProfile, fetchUploads, fetchBadges]);
+
+        if (!mounted) return;
+
+        // Handle Profile
+        if (profileRes.data) {
+          setProfile(profileRes.data);
+          setFullName(profileRes.data.full_name || '');
+          setBio(profileRes.data.bio || '');
+          setWebsite(profileRes.data.website_url || '');
+          setInstagram(profileRes.data.instagram_handle || '');
+          setTwitter(profileRes.data.twitter_handle || '');
+          setUpiId(profileRes.data.upi_id || '');
+          setBtcAddress(profileRes.data.btc_address || '');
+        } else if (profileRes.error) {
+          console.error('Profile fetch failed:', profileRes.error);
+        }
+
+        // Handle Uploads
+        if (uploadsRes.data) setUploads(uploadsRes.data as any[]);
+        else console.error('Uploads fetch failed:', uploadsRes.error);
+
+        // Handle Badges
+        if (badgesRes.data) setUserBadges(badgesRes.data);
+        else console.error('Badges fetch failed:', badgesRes.error);
+
+        // Async Gamification Sync (Don't await)
+        syncUserGamification(supabase, user.id)
+          .then(synced => {
+            if (synced && mounted) setProfile((prev: any) => ({ ...prev, ...synced }));
+          })
+          .catch(console.error);
+
+      } catch (err: any) {
+        console.error('Fatal load error:', err);
+        if (mounted) setError(err.message || 'Failed to load profile');
       } finally {
-        addLog('Finished loading sequence.');
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     };
 
-    getUser();
+    loadData();
+
+    return () => { mounted = false; };
   }, [supabase]);
 
-  // Auto-sync Google Name/Image
-  useEffect(() => {
-    if (user && profile && !loading) {
-      const updates: any = {};
-      let needsUpdate = false;
-
-      if (!profile.full_name && user.user_metadata?.full_name) {
-        updates.full_name = user.user_metadata.full_name;
-        needsUpdate = true;
-      } else if (!profile.full_name && user.email) {
-        updates.full_name = user.email.split('@')[0];
-        needsUpdate = true;
-      }
-
-      if (!profile.avatar_url && user.user_metadata?.avatar_url) {
-        updates.avatar_url = user.user_metadata.avatar_url;
-        needsUpdate = true;
-      }
-
-      if (needsUpdate) {
-        supabase.from('profiles').update(updates).eq('id', user.id).then(({ error }) => {
-          if (!error) {
-            setProfile((prev: any) => ({ ...prev, ...updates }));
-            setFullName(prev => prev || updates.full_name || '');
-          }
-        });
-      }
+  const handleSignOut = async () => {
+    try {
+      await supabase.auth.signOut();
+      window.location.href = '/';
+    } catch (e) {
+      console.error(e);
+      window.location.href = '/';
     }
-  }, [user, profile, loading, supabase]);
+  };
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -214,19 +159,10 @@ export default function ProfilePage() {
       setProfile({ ...profile, ...updates });
       setIsEditing(false);
     } catch (error: any) {
-      console.error('Error updating profile:', error);
       alert(`Error updating profile: ${error.message}`);
     } finally {
       setSaving(false);
     }
-  };
-
-  const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    setUser(null);
-    setProfile(null);
-    setUploads([]);
-    router.refresh();
   };
 
   const handleDelete = async (id: string, e: React.MouseEvent) => {
@@ -242,38 +178,31 @@ export default function ProfilePage() {
     }
   };
 
-  const handleForceSignOut = async () => {
-    try {
-      await supabase.auth.signOut();
-    } catch (e) {
-      console.error(e);
-    }
-    window.location.href = '/'; // Hard reload to clear state
-  };
-
   if (loading) {
     return (
-      <div className="p-8 flex flex-col items-center justify-center min-h-[50vh] text-center space-y-4">
-        <div className="text-zinc-500 animate-pulse">Loading profile...</div>
-
-        {/* Debug Log Box */}
-        <div className="max-w-md w-full bg-neutral-900 p-4 rounded-lg font-mono text-xs text-left text-zinc-400 border border-neutral-800 h-64 overflow-y-auto">
-          <div className="text-zinc-500 mb-2 border-b border-neutral-800 pb-1 flex justify-between">
-            <span>Debug Log:</span>
-            <button onClick={() => setDebugLogs([])} className="text-emerald-500 hover:text-emerald-400">Clear</button>
-          </div>
-          {debugLogs.map((log, i) => (
-            <div key={i} className="whitespace-nowrap">{log}</div>
-          ))}
-          {debugLogs.length === 0 && <div>Initializing logs...</div>}
-        </div>
-
-        {/* Emergency Sign Out */}
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+        <div className="w-8 h-8 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+        <p className="text-zinc-500 font-mono text-sm">Loading profile data...</p>
         <button
-          onClick={handleForceSignOut}
-          className="mt-4 px-4 py-2 bg-red-500/10 text-red-500 text-sm font-bold rounded-lg border border-red-500/20 hover:bg-red-500/20 hover:border-red-500/50 transition-colors"
+          onClick={handleSignOut}
+          className="mt-8 text-xs text-red-500 hover:text-red-400 hover:underline"
         >
-          Force Sign Out
+          Stuck? Force Sign Out
+        </button>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4 p-4 text-center">
+        <p className="text-red-500 font-bold">Something went wrong</p>
+        <p className="text-zinc-500 text-sm max-w-md">{error}</p>
+        <button onClick={() => window.location.reload()} className="px-4 py-2 bg-emerald-500 text-black font-bold rounded-lg hover:bg-emerald-400">
+          Try Again
+        </button>
+        <button onClick={handleSignOut} className="text-zinc-500 hover:text-zinc-300 text-sm">
+          Sign Out
         </button>
       </div>
     );
@@ -298,8 +227,7 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-md mx-auto min-h-screen flex flex-col pb-24">
-
-      {/* 1. Header Section (Always Visible) */}
+      {/* Header */}
       <header className="flex flex-col items-center pt-4 pb-6 px-4 relative">
         <div className="mb-4">
           <AvatarRank
@@ -406,46 +334,30 @@ export default function ProfilePage() {
         )}
       </header>
 
-      {/* 2. Sticky Tab Navigation */}
+      {/* Sticky Tab Navigation */}
       <div className="sticky top-14 z-20 bg-black/80 backdrop-blur-md border-b border-neutral-800 mb-4">
         <div className="flex w-full">
-          <button
-            onClick={() => setActiveTab('overview')}
-            className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors flex items-center justify-center gap-2 ${activeTab === 'overview'
-              ? 'border-emerald-500 text-emerald-500'
-              : 'border-transparent text-zinc-500 hover:text-zinc-300'
-              }`}
-          >
-            <LayoutDashboard size={16} /> Overview
-          </button>
-          <button
-            onClick={() => setActiveTab('uploads')}
-            className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors flex items-center justify-center gap-2 ${activeTab === 'uploads'
-              ? 'border-emerald-500 text-emerald-500'
-              : 'border-transparent text-zinc-500 hover:text-zinc-300'
-              }`}
-          >
-            <Music size={16} /> My Rings
-          </button>
-          <button
-            onClick={() => setActiveTab('upload')}
-            className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors flex items-center justify-center gap-2 ${activeTab === 'upload'
-              ? 'border-emerald-500 text-white bg-emerald-500/10'
-              : 'border-transparent text-zinc-500 hover:text-zinc-300'
-              }`}
-          >
-            <UploadCloud size={16} /> Upload
-          </button>
+          {['overview', 'uploads', 'upload'].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab as any)}
+              className={`flex-1 py-3 text-sm font-bold border-b-2 transition-colors flex items-center justify-center gap-2 ${activeTab === tab ? 'border-emerald-500 text-emerald-500' : 'border-transparent text-zinc-500 hover:text-zinc-300'
+                }`}
+            >
+              {tab === 'overview' && <LayoutDashboard size={16} />}
+              {tab === 'uploads' && <Music size={16} />}
+              {tab === 'upload' && <UploadCloud size={16} />}
+              <span className="capitalize">{tab === 'uploads' ? 'My Rings' : tab}</span>
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* 3. Content Sections */}
+      {/* Content Content */}
       <div className="flex-1 px-4 space-y-6">
-
         {/* TAB 1: OVERVIEW */}
         {activeTab === 'overview' && (
           <div className="space-y-8 animate-in slide-in-from-left-4 fade-in duration-300">
-            {/* Badges */}
             {userBadges && userBadges.length > 0 && (
               <div className="w-full">
                 <h2 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-3 px-1">Badges & Achievements</h2>
@@ -458,11 +370,7 @@ export default function ProfilePage() {
                 </div>
               </div>
             )}
-
-            {/* Personal Collections */}
             <PersonalCollections />
-
-            {/* Favorites Section */}
             <section>
               <h2 className="text-lg font-bold text-zinc-100 mb-4 flex items-center gap-2">
                 <Heart size={20} className="text-emerald-500" />
@@ -470,14 +378,13 @@ export default function ProfilePage() {
               </h2>
               <FavoritesList />
             </section>
-
             <div className="pt-8 flex justify-center pb-8">
               <p className="text-[10px] text-zinc-700 uppercase tracking-widest">User since {new Date(user.created_at).getFullYear()}</p>
             </div>
           </div>
         )}
 
-        {/* TAB 2: MY UPLOADS */}
+        {/* TAB 2: UPLOADS */}
         {activeTab === 'uploads' && (
           <div className="animate-in slide-in-from-right-4 fade-in duration-300 pb-20">
             <div className="flex items-center justify-between mb-4">
@@ -494,7 +401,6 @@ export default function ProfilePage() {
                   <Music size={24} />
                 </div>
                 <p className="text-zinc-400 font-medium mb-1">No uploads yet</p>
-                <p className="text-zinc-600 text-xs mb-4">Share your first ringtone with the community</p>
                 <button onClick={() => setActiveTab('upload')} className="text-emerald-500 text-xs font-bold hover:underline">Upload Now</button>
               </div>
             ) : (
@@ -510,7 +416,6 @@ export default function ProfilePage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold text-zinc-200 truncate">{ringtone.title}</p>
-                      <p className="text-xs text-zinc-500 truncate">{ringtone.movie_name}</p>
                       <div className="flex items-center gap-2 mt-1">
                         <span className={`text-[10px] px-1.5 py-0.5 rounded capitalize font-medium ${ringtone.status === 'approved' ? 'bg-emerald-500/10 text-emerald-500' :
                           ringtone.status === 'rejected' ? 'bg-red-500/10 text-red-500' :
@@ -518,15 +423,9 @@ export default function ProfilePage() {
                           }`}>
                           {ringtone.status}
                         </span>
-                        <span className="text-[10px] text-zinc-600">
-                          {new Date(ringtone.created_at).toLocaleDateString()}
-                        </span>
                       </div>
                     </div>
-                    <button
-                      onClick={(e) => handleDelete(ringtone.id, e)}
-                      className="p-2.5 text-zinc-500 hover:text-red-500 hover:bg-neutral-800 rounded-full transition-colors"
-                    >
+                    <button onClick={(e) => handleDelete(ringtone.id, e)} className="p-2 text-zinc-500 hover:text-red-500">
                       <Trash2 size={16} />
                     </button>
                   </div>
@@ -536,7 +435,7 @@ export default function ProfilePage() {
           </div>
         )}
 
-        {/* TAB 3: UPLOAD FORM */}
+        {/* TAB 3: UPLOAD */}
         {activeTab === 'upload' && (
           <div className="animate-in zoom-in-95 fade-in duration-300 pb-20">
             <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-1">
@@ -544,7 +443,6 @@ export default function ProfilePage() {
             </div>
           </div>
         )}
-
       </div>
     </div>
   );
