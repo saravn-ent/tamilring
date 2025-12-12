@@ -43,16 +43,24 @@ export default function ProfilePage() {
   useEffect(() => {
     const getUser = async () => {
       try {
+        console.log('Fetching user...');
         const { data: { user } } = await supabase.auth.getUser();
+        console.log('User fetched:', user?.id);
         setUser(user);
 
         if (user) {
           // Fetch Profile
-          const { data: profileData } = await supabase
+          console.log('Fetching profile...');
+          const { data: profileData, error: profileError } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', user.id)
             .single();
+
+          if (profileError && profileError.code !== 'PGRST116') {
+            console.error('Profile fetch error:', profileError);
+          }
+          console.log('Profile fetched:', profileData);
 
           if (profileData) {
             setProfile(profileData);
@@ -65,7 +73,9 @@ export default function ProfilePage() {
             setBtcAddress(profileData.btc_address || '');
 
             // Check and Sync Gamification Stats
+            console.log('Syncing gamification...');
             syncUserGamification(supabase, user.id).then((synced) => {
+              console.log('Gamification synced:', synced);
               if (synced && (synced.points !== profileData.points || synced.level !== profileData.level)) {
                 setProfile((prev: any) => ({ ...prev, ...synced }));
               }
@@ -73,21 +83,29 @@ export default function ProfilePage() {
           }
 
           // Fetch Uploads
-          const { data: uploadsData } = await supabase
+          console.log('Fetching uploads...');
+          const { data: uploadsData, error: uploadsError } = await supabase
             .from('ringtones')
             .select('*')
             .eq('user_id', user.id)
             .order('created_at', { ascending: false });
+
+          if (uploadsError) console.error('Uploads fetch error:', uploadsError);
+          console.log('Uploads fetched:', uploadsData?.length);
 
           if (uploadsData) {
             setUploads(uploadsData as unknown as Ringtone[]);
           }
 
           // Fetch Badges
-          const { data: badgesData } = await supabase
+          console.log('Fetching badges...');
+          const { data: badgesData, error: badgesError } = await supabase
             .from('user_badges')
             .select('*, badge:badges(*)')
             .eq('user_id', user.id);
+
+          if (badgesError) console.error('Badges fetch error:', badgesError);
+          console.log('Badges fetched:', badgesData?.length);
 
           if (badgesData) {
             setUserBadges(badgesData);
@@ -96,6 +114,7 @@ export default function ProfilePage() {
       } catch (error) {
         console.error("Error loading profile:", error);
       } finally {
+        console.log('Setting loading false');
         setLoading(false);
       }
     };
