@@ -45,20 +45,11 @@ export const metadata: Metadata = {
     siteName: 'TamilRing',
     locale: 'en_US',
     type: 'website',
-    images: [
-      {
-        url: '/icons/icon-512x512.png',
-        width: 512,
-        height: 512,
-        alt: 'TamilRing Logo',
-      },
-    ],
   },
   twitter: {
     card: 'summary',
     title: 'TamilRing',
     description: 'Download high quality Tamil ringtones, BGM, and love songs.',
-    images: ['/icons/icon-512x512.png'],
   },
   appleWebApp: {
     capable: true,
