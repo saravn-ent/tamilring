@@ -59,7 +59,13 @@ export default function ProfilePage() {
         console.log('Starting profile load...');
         // 1. Get User
         const { data: { user }, error: authError } = await supabase.auth.getUser();
-        if (authError) throw authError;
+
+        if (authError) {
+          console.warn("Auth error (handled as guest):", authError.message);
+          setUser(null);
+          setLoading(false);
+          return;
+        }
 
         if (!mounted) return;
         setUser(user);
