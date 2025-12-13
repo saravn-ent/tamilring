@@ -1,4 +1,5 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from "next"; // Trigger Rebuild
+
 
 import withPWAInit from "@ducanh2912/next-pwa";
 

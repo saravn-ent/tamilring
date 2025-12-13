@@ -3,23 +3,32 @@ import { MetadataRoute } from 'next';
 import { createClient } from '@supabase/supabase-js';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-    const supabase = createClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+    // Attempt to use Service Role Key for full access (bypass RLS)
+    // Fallback to Anon Key if not available
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+    if (!supabaseUrl || !supabaseKey) {
+        console.error('Sitemap Error: Missing Supabase credentials');
+        return [];
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    console.log('Generating Sitemap... Fetching Ringtones');
 
     // 1. Fetch Ringtones
     // Limit to 40000 to be safe (max 50k per sitemap)
-    const { data: ringtones } = await supabase
+    const { data: ringtones, error: ringtoneError } = await supabase
         .from('ringtones')
-        .select('slug, updated_at')
+        .select('slug, created_at')
         .eq('status', 'approved') // Only approved
         .order('created_at', { ascending: false })
         .limit(10000);
 
     const ringtoneEntries: MetadataRoute.Sitemap = (ringtones || []).map((ring) => ({
         url: `https://tamilring.in/ringtone/${ring.slug}`,
-        lastModified: new Date(ring.updated_at || new Date()),
+        lastModified: new Date(ring.created_at || new Date()),
         changeFrequency: 'monthly',
         priority: 0.8,
     }));
@@ -27,7 +36,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // 2. Fetch Movies for Silo
     const { data: movies } = await supabase
         .from('ringtones')
-        .select('movie_name, updated_at')
+        .select('movie_name, created_at')
         .eq('status', 'approved')
         .order('created_at', { ascending: false })
         .limit(5000);
@@ -35,7 +44,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const uniqueMovies = new Map<string, string>();
     movies?.forEach(m => {
         if (m.movie_name && !uniqueMovies.has(m.movie_name)) {
-            uniqueMovies.set(m.movie_name, m.updated_at);
+            uniqueMovies.set(m.movie_name, m.created_at);
         }
     });
 
@@ -49,7 +58,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // 3. Fetch Music Directors for Silo
     const { data: musicDirectors } = await supabase
         .from('ringtones')
-        .select('music_director, updated_at')
+        .select('music_director, created_at')
         .eq('status', 'approved')
         .not('music_director', 'is', null)
         .order('created_at', { ascending: false })
@@ -61,7 +70,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             // Split if comma separated? For now assume primary name strict or split first
             const primaryMD = m.music_director.split(',')[0].trim();
             if (primaryMD && !uniqueMDs.has(primaryMD)) {
-                uniqueMDs.set(primaryMD, m.updated_at);
+                uniqueMDs.set(primaryMD, m.created_at);
             }
         }
     });
