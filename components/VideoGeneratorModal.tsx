@@ -75,9 +75,9 @@ export default function VideoGeneratorModal({ isOpen, onClose, ringtone }: Video
         const ctx = canvas.getContext('2d');
         if (!ctx) return null;
 
-        // Set dimensions (1080x1920 for Stories/Reels)
-        canvas.width = 1080;
-        canvas.height = 1920;
+        // Set dimensions (720x1280 for Stories/Reels - Optimized for Web Rendering)
+        canvas.width = 720;
+        canvas.height = 1280;
 
         // Load image once
         let img: HTMLImageElement | null = null;
@@ -118,24 +118,22 @@ export default function VideoGeneratorModal({ isOpen, onClose, ringtone }: Video
 
         // 2. Draw Main Image (Polaroid Style)
         if (img) {
-            // Card container - ULTRA Compact (Targeting < 37% total height)
-            const cardW = 360;
-            const cardH = 480;
+            // Card container - Compact (Scaled down for 720p)
+            const cardW = 240; // Was 360
+            const cardH = 320; // Was 480
             const cardX = (canvas.width - cardW) / 2;
 
-            // Center the whole block (Card + Text ~ 715px height)
-            // Center Y = 960. 
-            // Top Y = 960 - (715/2) = ~600.
-            const cardY = 600;
+            // Center Y ~ 400
+            const cardY = 400;
 
             // Shadow
             ctx.shadowColor = "rgba(0,0,0,0.5)";
-            ctx.shadowBlur = 30;
-            ctx.shadowOffsetY = 15;
+            ctx.shadowBlur = 20;
+            ctx.shadowOffsetY = 10;
 
             // Draw Image with rounded corners (Clip)
             ctx.save();
-            roundedRect(ctx, cardX, cardY, cardW, cardH, 20);
+            roundedRect(ctx, cardX, cardY, cardW, cardH, 15);
             ctx.clip();
             // Aspect fill
             const scale = Math.max(cardW / img.width, cardH / img.height);
@@ -155,26 +153,26 @@ export default function VideoGeneratorModal({ isOpen, onClose, ringtone }: Video
         ctx.fillStyle = '#ffffff';
 
         // Base Y position below the card
-        let textY = 600 + 480 + 40; // cardY + cardH + gap
+        let textY = 400 + 320 + 30; // cardY + cardH + gap
 
         // Title
-        ctx.font = 'bold 40px Inter, sans-serif';
+        ctx.font = 'bold 28px Inter, sans-serif'; // Scaled font
         const cleanTitle = ringtone.title.replace(/\(From ".*?"\)/i, '').trim();
-        wrapText(ctx, cleanTitle, canvas.width / 2, textY, 800, 50);
+        wrapText(ctx, cleanTitle, canvas.width / 2, textY, 600, 35);
 
         // Calculate lines
         const titleLines = cleanTitle.length > 30 ? 2 : 1;
-        textY += (titleLines * 50) + 15;
+        textY += (titleLines * 35) + 10;
 
         // Movie Name & Year
-        ctx.font = '500 28px Inter, sans-serif';
+        ctx.font = '500 20px Inter, sans-serif';
         ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
         const movieInfo = `${ringtone.movie_name} (${ringtone.movie_year})`;
         ctx.fillText(movieInfo, canvas.width / 2, textY);
 
         // Branding
-        textY += 50;
-        ctx.font = 'bold 22px Inter, sans-serif';
+        textY += 40;
+        ctx.font = 'bold 16px Inter, sans-serif';
         ctx.fillStyle = '#10b981'; // Emerald 500
         ctx.fillText('TAMILRING.IN', canvas.width / 2, textY);
 
@@ -231,9 +229,10 @@ export default function VideoGeneratorModal({ isOpen, onClose, ringtone }: Video
                 '-c:v', 'libx264',
                 '-t', '30', // Max 30s
                 '-pix_fmt', 'yuv420p',
-                '-vf', 'scale=1080:1920',
+                '-vf', 'scale=720:1280', // Optimized to 720p for speed (was 1080p)
+                '-r', '24', // Explicit 24fps
                 '-shortest',
-                '-preset', 'ultrafast', // Speed over compression size
+                '-preset', 'ultrafast',
                 outputFile
             ]);
 
