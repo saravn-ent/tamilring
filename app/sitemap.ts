@@ -2,6 +2,9 @@
 import { MetadataRoute } from 'next';
 import { createClient } from '@supabase/supabase-js';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Attempt to use Service Role Key for full access (bypass RLS)
     // Fallback to Anon Key if not available
