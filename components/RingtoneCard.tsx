@@ -215,16 +215,15 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
                 <div className="flex items-center gap-2 ml-3">
                   <button
                     onClick={handleLike}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border ${isLiked
-                      ? 'bg-rose-500/10 border-rose-500/20 text-rose-500'
+                    className={`flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200 border ${isLiked
+                      ? 'bg-rose-500/10 border-rose-500/20 text-rose-500 animate-pulse-once'
                       : 'bg-zinc-100 dark:bg-white/5 border-zinc-200 dark:border-white/5 text-zinc-500 dark:text-neutral-400 hover:bg-zinc-200 dark:hover:bg-white/10 hover:text-zinc-900 dark:hover:text-white hover:border-zinc-300 dark:hover:border-white/10'
                       }`}
+                    aria-label="Like Ringtone"
+                    title="Like"
                   >
-                    <Heart size={12} className={isLiked ? 'fill-current' : ''} />
-                    <span>{likesCount}</span>
+                    <Heart size={18} className={isLiked ? 'fill-current' : ''} />
                   </button>
-
-
 
                   {assignTo ? (
                     <button
@@ -235,11 +234,10 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
                     </button>
                   ) : (
                     <div
-                      className="flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-100 dark:bg-white/5 border border-zinc-200 dark:border-white/5 text-zinc-700 dark:text-neutral-300 hover:bg-zinc-200 dark:hover:bg-white/10 hover:text-zinc-900 dark:hover:text-white hover:border-zinc-300 dark:hover:border-white/10 transition-all duration-200 shadow-md hover:shadow-lg"
+                      className="flex items-center justify-center w-10 h-10 rounded-full bg-zinc-100 dark:bg-white/5 border-zinc-200 dark:border-white/5 text-zinc-700 dark:text-neutral-300 hover:bg-zinc-200 dark:hover:bg-white/10 hover:text-zinc-900 dark:hover:text-white hover:border-zinc-300 dark:hover:border-white/10 border-transparent transition-all duration-200 shadow-sm hover:shadow-md"
                       title="Download"
                     >
-                      <Download size={16} strokeWidth={2.5} />
-                      <span className="text-sm font-medium">{ringtone.downloads || 0}</span>
+                      <Download size={18} strokeWidth={2.5} />
                     </div>
                   )}
                 </div>
