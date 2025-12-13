@@ -252,28 +252,6 @@ export default async function RingtonePage({ params }: Props) {
               </div>
             </div>
           </div>
-
-          {/* Visible FAQ Section for AEO Alignment */}
-          <div className="w-full mt-8 text-left space-y-4">
-            <h3 className="text-zinc-100 font-bold text-lg">Common Questions</h3>
-            <div className="space-y-4">
-              <div className="bg-neutral-800/30 p-4 rounded-xl border border-white/5">
-                <h4 className="text-emerald-400 font-medium text-sm mb-2">How do I download the {cleanTitle} ringtone?</h4>
-                <p className="text-zinc-400 text-sm leading-relaxed">
-                  You can download the <strong>{cleanTitle}</strong> ringtone for free on TamilRing.in.
-                  Simply click the 'Download' button above to save it as an <strong>MP3</strong> (for Android) or <strong>M4R</strong> (for iPhone).
-                </p>
-              </div>
-
-              <div className="bg-neutral-800/30 p-4 rounded-xl border border-white/5">
-                <h4 className="text-emerald-400 font-medium text-sm mb-2">Which movie is the song {cleanTitle} from?</h4>
-                <p className="text-zinc-400 text-sm leading-relaxed">
-                  <strong>{cleanTitle}</strong> is a popular track from the Tamil movie <strong><Link href={`/tamil/movies/${encodeURIComponent(ringtone.movie_name)}`} className="hover:text-emerald-500 underline decoration-zinc-700 underline-offset-2">{ringtone.movie_name}</Link></strong>
-                  {ringtone.music_director && <>, composed by the talented <strong>{ringtone.music_director}</strong></>}.
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
