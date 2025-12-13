@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { X, Video, Loader2, Download, AlertCircle } from 'lucide-react';
+import { X, Video, Loader2, Download, AlertCircle, Share2 } from 'lucide-react';
 import { Ringtone } from '@/types';
 import SpotifyCard from './SpotifyCard';
 import type { FFmpeg } from '@ffmpeg/ffmpeg';
@@ -239,16 +239,29 @@ export default function VideoGeneratorModal({ isOpen, onClose, ringtone }: Video
             setStatus('Finalizing...');
             const data = await ffmpeg.readFile(outputFile);
 
-            // 4. Download
+            // 4. Share or Download
             const blob = new Blob([data as any], { type: 'video/mp4' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `${cleanTitle(ringtone.title)}_TamilRing.mp4`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            const filename = `${cleanTitle(ringtone.title)}_TamilRing.mp4`;
+            const file = new File([blob], filename, { type: 'video/mp4' });
+
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        files: [file],
+                        title: `${ringtone.title} Ringtone`,
+                        text: `Check out this ringtone: ${ringtone.title}`,
+                    });
+                } catch (err) {
+                    if ((err as Error).name !== 'AbortError') {
+                        console.error('Share failed', err);
+                        // Fallback to download if real error
+                        downloadBlob(blob, filename);
+                    }
+                }
+            } else {
+                // Fallback for desktop / unsupported browsers
+                downloadBlob(blob, filename);
+            }
 
             // Cleanup
             try {
@@ -259,7 +272,10 @@ export default function VideoGeneratorModal({ isOpen, onClose, ringtone }: Video
                 console.warn("Cleanup failed", cleanupErr);
             }
 
-            onClose();
+            // Note: We don't auto-close if sharing, users might want to do it again? 
+            // Actually usually good to keep open or close? Let's keep open for feedback or manual close.
+            // onClose(); 
+            setGenerating(false);
 
         } catch (error: any) {
             console.error("Video Generation Error:", error);
@@ -268,6 +284,17 @@ export default function VideoGeneratorModal({ isOpen, onClose, ringtone }: Video
             setGenerating(false);
         }
     };
+
+    function downloadBlob(blob: Blob, filename: string) {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
 
     // Helper Utils
     function roundedRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
@@ -367,8 +394,8 @@ export default function VideoGeneratorModal({ isOpen, onClose, ringtone }: Video
                                 </>
                             ) : (
                                 <>
-                                    <Download size={20} />
-                                    <span>Download Video</span>
+                                    <Share2 size={20} />
+                                    <span>Share Video</span>
                                 </>
                             )}
                         </button>
