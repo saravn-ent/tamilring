@@ -117,6 +117,47 @@ export default function RootLayout({
               <BottomNav />
             </FavoritesProvider>
           </PlayerProvider>
+          {/* Global Schema for AEO/SEO */}
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@graph": [
+                  {
+                    "@type": "Organization",
+                    "@id": "https://tamilring.in/#organization",
+                    "name": "TamilRing",
+                    "url": "https://tamilring.in",
+                    "logo": {
+                      "@type": "ImageObject",
+                      "url": "https://tamilring.in/icons/icon-512x512.png",
+                      "width": 512,
+                      "height": 512
+                    },
+                    "sameAs": [
+                      "https://twitter.com/tamilring",
+                      "https://instagram.com/tamilring"
+                    ]
+                  },
+                  {
+                    "@type": "WebSite",
+                    "@id": "https://tamilring.in/#website",
+                    "url": "https://tamilring.in",
+                    "name": "TamilRing",
+                    "publisher": {
+                      "@id": "https://tamilring.in/#organization"
+                    },
+                    "potentialAction": {
+                      "@type": "SearchAction",
+                      "target": "https://tamilring.in/search?q={search_term_string}",
+                      "query-input": "required name=search_term_string"
+                    }
+                  }
+                ]
+              })
+            }}
+          />
         </ThemeProvider>
       </body>
     </html>

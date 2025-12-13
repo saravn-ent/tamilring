@@ -63,18 +63,79 @@ export default async function RingtonePage({ params }: Props) {
 
   const jsonLd = {
     '@context': 'https://schema.org',
-    '@type': 'AudioObject',
-    name: `${ringtone.movie_name} - ${cleanTitle} Ringtone`,
-    description: `Download ${cleanTitle} high-quality ringtone from the Tamil movie ${ringtone.movie_name} composed by ${ringtone.music_director}.`,
-    contentUrl: ringtone.audio_url,
-    encodingFormat: 'audio/mpeg',
-    duration: 'T0M30S', // Hardcoded standard for Rich Snippet eligibility
-    thumbnailUrl: ringtone.poster_url,
-    uploadDate: ringtone.created_at,
-    isPartOf: {
-      '@type': 'MusicAlbum',
-      name: ringtone.movie_name
-    }
+    '@graph': [
+      // 1. Breadcrumb List
+      {
+        '@type': 'BreadcrumbList',
+        'itemListElement': [
+          {
+            '@type': 'ListItem',
+            'position': 1,
+            'name': 'Home',
+            'item': 'https://tamilring.in'
+          },
+          {
+            '@type': 'ListItem',
+            'position': 2,
+            'name': 'Tamil Ringtones',
+            'item': 'https://tamilring.in/tamil'
+          },
+          {
+            '@type': 'ListItem',
+            'position': 3,
+            'name': ringtone.movie_name,
+            'item': `https://tamilring.in/tamil/movies/${encodeURIComponent(ringtone.movie_name)}`
+          },
+          {
+            '@type': 'ListItem',
+            'position': 4,
+            'name': cleanTitle
+          }
+        ]
+      },
+      // 2. Audio Object (The Core Content)
+      {
+        '@type': 'AudioObject',
+        'name': `${cleanTitle} - ${ringtone.movie_name}`,
+        'description': `Download free ${cleanTitle} ringtone from the Tamil movie ${ringtone.movie_name}. Composed by ${ringtone.music_director}. Quality: 320kbps MP3/M4R.`,
+        'contentUrl': ringtone.audio_url,
+        'encodingFormat': 'audio/mpeg',
+        'duration': 'PT30S', // Changed to PT30S (ISO 8601 standard)
+        'thumbnailUrl': ringtone.poster_url,
+        'uploadDate': ringtone.created_at,
+        'interactionStatistic': {
+          '@type': 'InteractionCounter',
+          'interactionType': { '@type': 'DownloadAction' },
+          'userInteractionCount': ringtone.downloads
+        },
+        'isPartOf': {
+          '@type': 'MusicAlbum',
+          'name': ringtone.movie_name
+        }
+      },
+      // 3. FAQ Page (For AEO / Voice Search Answers)
+      {
+        '@type': 'FAQPage',
+        'mainEntity': [
+          {
+            '@type': 'Question',
+            'name': `How to download ${cleanTitle} ringtone?`,
+            'acceptedAnswer': {
+              '@type': 'Answer',
+              'text': `You can download the ${cleanTitle} ringtone for free on TamilRing.in. Click the 'Download' button to save it as an MP3 (for Android) or M4R (for iPhone).`
+            }
+          },
+          {
+            '@type': 'Question',
+            'name': `Which movie is the song ${cleanTitle} from?`,
+            'acceptedAnswer': {
+              '@type': 'Answer',
+              'text': `${cleanTitle} is a song from the Tamil movie '${ringtone.movie_name}', composed by ${ringtone.music_director || 'Unknown'}.`
+            }
+          }
+        ]
+      }
+    ]
   };
 
   return (
