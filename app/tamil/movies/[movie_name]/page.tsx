@@ -15,14 +15,26 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { movie_name } = await params;
     const movieName = decodeURIComponent(movie_name);
 
+    // Fetch single row to get metadata (Year, MD)
+    const { data: movie } = await supabase
+        .from('ringtones')
+        .select('movie_year, music_director')
+        .eq('status', 'approved')
+        .eq('movie_name', movieName)
+        .limit(1)
+        .single();
+
+    const year = movie?.movie_year ? `(${movie.movie_year})` : '';
+    const md = movie?.music_director ? `- ${movie.music_director}` : '';
+
     return {
-        title: `${movieName} Ringtones Download (High Quality MP3) - TamilRing`,
-        description: `Download ${movieName} BGM, mass dialogue, and love theme ringtones. Best collection of ${movieName} tamil movie ringtones for mobile.`,
+        title: `${movieName} ${year} Ringtones Download ${md} | TamilRing`,
+        description: `Download ${movieName} ${year} BGM, mass dialogue, and love theme ringtones. Best collection of ${movieName} tamil movie ringtones by ${movie?.music_director || 'all artists'} for mobile.`,
         alternates: {
             canonical: `/tamil/movies/${movie_name}`, // Self-referencing canonical
         },
         openGraph: {
-            title: `${movieName} BGM & Ringtones Download`,
+            title: `${movieName} ${year} BGM & Ringtones Download`,
             description: `Download ${movieName} high quality ringtones and BGM.`,
             type: 'music.album',
         }
