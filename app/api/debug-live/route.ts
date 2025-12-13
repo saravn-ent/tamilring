@@ -17,6 +17,7 @@ export async function GET() {
             NODE_ENV: process.env.NODE_ENV,
         },
         connection: 'Pending',
+        queryType: 'select(slug, created_at).eq(status, approved).limit(10)',
         data: null as any,
         error: null as any,
     };
@@ -31,16 +32,22 @@ export async function GET() {
         const keyToUse = serviceKey || anonKey;
         const supabase = createClient(supabaseUrl, keyToUse);
 
-        const { count, error } = await supabase
+        // Exact query from sitemap.ts
+        const { data: rows, error } = await supabase
             .from('ringtones')
-            .select('*', { count: 'exact', head: true });
+            .select('slug, created_at')
+            .eq('status', 'approved')
+            .limit(10);
 
         if (error) {
             debugInfo.connection = 'Connected but Query Failed';
             debugInfo.error = error;
         } else {
             debugInfo.connection = 'Success';
-            debugInfo.data = { count };
+            debugInfo.data = {
+                count: rows?.length ?? 0,
+                rows: rows
+            };
         }
 
     } catch (e: any) {
