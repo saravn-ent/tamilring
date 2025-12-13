@@ -154,7 +154,7 @@ const getTopArtists = unstable_cache(
 
     return { topSingers, topMusicDirectors, topMovieDirectors };
   },
-  ['top-artists-home-v12'], // Bump version
+  ['top-artists-home-v13'], // Bump version
   { revalidate: 3600, tags: ['homepage-artists'] }
 );
 
