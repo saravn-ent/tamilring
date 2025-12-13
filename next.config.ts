@@ -96,6 +96,25 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  async redirects() {
+    return [
+      {
+        source: '/sample-page',
+        destination: '/404',
+        permanent: true,
+      },
+      {
+        source: '/hello-world',
+        destination: '/404',
+        permanent: true,
+      },
+      {
+        source: '/wp-admin',
+        destination: '/admin',
+        permanent: true,
+      }
+    ];
+  },
 };
 
 export default withPWA(nextConfig);
