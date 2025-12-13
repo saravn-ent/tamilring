@@ -92,16 +92,16 @@ export default function VideoGeneratorModal({ isOpen, onClose, ringtone }: Video
                 });
             } catch (e) {
                 console.error("Image load error:", e);
-                // Continue without image or fail? 
+                // Continue without image or fail?
                 // If we fail here, we can't generate the video as intended.
                 throw e;
             }
         }
 
-        // 1. Draw Background (Reduced Blur as requested)
+        // 1. Draw Background (Blurred Image or Gradient)
         if (img) {
             // Draw scaled up image for background
-            ctx.filter = 'blur(20px) brightness(0.7)'; // Reduced blur from 60px to 20px, increased brightness
+            ctx.filter = 'blur(60px) brightness(0.6)';
             // Center crop scaling
             const scale = Math.max(canvas.width / img.width, canvas.height / img.height) * 1.5;
             const x = (canvas.width / 2) - (img.width / 2) * scale;
@@ -116,31 +116,24 @@ export default function VideoGeneratorModal({ isOpen, onClose, ringtone }: Video
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
 
-        // 2. TamilRing Branding (Top Center - Watermark style)
-        ctx.textAlign = 'center';
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-        ctx.font = 'bold 24px Inter, sans-serif';
-        ctx.fillText('TAMILRING.IN', canvas.width / 2, 80);
-
-
-        // 3. Draw Main Image (Polaroid Style)
+        // 2. Draw Main Image (Polaroid Style)
         if (img) {
             // Card container - Compact (Scaled down for 720p)
-            const cardW = 400; // Increased size slightly to show off art
-            const cardH = 500; // aspect ratio
+            const cardW = 240; // Was 360
+            const cardH = 320; // Was 480
             const cardX = (canvas.width - cardW) / 2;
 
-            // Center Y ~ 450 (Moved up slightly)
-            const cardY = 300;
+            // Center Y ~ 400
+            const cardY = 400;
 
             // Shadow
             ctx.shadowColor = "rgba(0,0,0,0.5)";
-            ctx.shadowBlur = 40;
-            ctx.shadowOffsetY = 20;
+            ctx.shadowBlur = 20;
+            ctx.shadowOffsetY = 10;
 
             // Draw Image with rounded corners (Clip)
             ctx.save();
-            roundedRect(ctx, cardX, cardY, cardW, cardH, 24);
+            roundedRect(ctx, cardX, cardY, cardW, cardH, 15);
             ctx.clip();
             // Aspect fill
             const scale = Math.max(cardW / img.width, cardH / img.height);
@@ -155,70 +148,34 @@ export default function VideoGeneratorModal({ isOpen, onClose, ringtone }: Video
             ctx.shadowOffsetY = 0;
         }
 
-        // 4. Draw Text Info
+        // 3. Draw Text
         ctx.textAlign = 'center';
         ctx.fillStyle = '#ffffff';
 
         // Base Y position below the card
-        let textY = 300 + 500 + 60; // cardY + cardH + gap
+        let textY = 400 + 320 + 30; // cardY + cardH + gap
 
         // Title
-        ctx.font = 'bold 36px Inter, sans-serif'; // Larger Title
+        ctx.font = 'bold 28px Inter, sans-serif'; // Scaled font
         const cleanTitle = ringtone.title.replace(/\(From ".*?"\)/i, '').trim();
-        wrapText(ctx, cleanTitle, canvas.width / 2, textY, 650, 45);
+        wrapText(ctx, cleanTitle, canvas.width / 2, textY, 600, 35);
 
         // Calculate lines
         const titleLines = cleanTitle.length > 30 ? 2 : 1;
-        textY += (titleLines * 45) + 20;
+        textY += (titleLines * 35) + 10;
 
-        // Movie Info
-        ctx.font = '500 24px Inter, sans-serif';
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        // Movie Name & Year
+        ctx.font = '500 20px Inter, sans-serif';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
         const movieInfo = `${ringtone.movie_name} (${ringtone.movie_year})`;
         ctx.fillText(movieInfo, canvas.width / 2, textY);
-        textY += 50;
 
-        // --- ARTIST CREDIT (New Feature) ---
-        const artist = ringtone.singers || ringtone.music_director;
-        if (artist) {
-            // Draw Pill Background
-            const artistText = `🎵  ${artist.split(',')[0]}`; // First artist only for cleaner look? Or slice
-            ctx.font = '600 22px Inter, sans-serif';
-            const metrics = ctx.measureText(artistText);
-            const badgeW = metrics.width + 40;
-            const badgeH = 44;
-            const badgeX = (canvas.width - badgeW) / 2;
-            const badgeY = textY - 30;
+        // Branding
+        textY += 40;
+        ctx.font = 'bold 16px Inter, sans-serif';
+        ctx.fillStyle = '#10b981'; // Emerald 500
+        ctx.fillText('TAMILRING.IN', canvas.width / 2, textY);
 
-            ctx.fillStyle = 'rgba(16, 185, 129, 0.2)'; // Emerald tint
-            ctx.strokeStyle = 'rgba(16, 185, 129, 0.8)'; // Emerald border
-            ctx.lineWidth = 1;
-
-            ctx.beginPath();
-            ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 22);
-            ctx.fill();
-            ctx.stroke();
-
-            ctx.fillStyle = '#34d399'; // Emerald 400 Text
-            ctx.fillText(artistText, canvas.width / 2, textY);
-        }
-
-        // --- VISUALIZER BARS (Static Graphic) ---
-        // Draw some random bars at the bottom to simulate audio
-        textY += 100;
-        const barCount = 20;
-        const barWidth = 10;
-        const gap = 8;
-        const totalW = (barCount * barWidth) + ((barCount - 1) * gap);
-        let startX = (canvas.width - totalW) / 2;
-
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-        for (let i = 0; i < barCount; i++) {
-            // Fake "random" heights that look symmetric-ish
-            const h = 20 + Math.random() * 40 + (i > 5 && i < 15 ? 30 : 0);
-            ctx.fillRect(startX, 1150 - h, barWidth, h); // Anchor near bottom
-            startX += (barWidth + gap);
-        }
 
         return new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
     };
