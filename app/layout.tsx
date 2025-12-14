@@ -29,7 +29,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL('https://tamilring.in'),
   title: {
-    default: "TamilRing - Mobile First Ringtones",
+    default: "TamilRing - mobile ringtones",
     template: "%s | TamilRing"
   },
   description: "Download high quality Tamil ringtones, BGM, and love songs. தமிழ் ரிங்டோன் தரவிறக்கம்.",
