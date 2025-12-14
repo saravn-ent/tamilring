@@ -9,7 +9,9 @@ import { usePlayer } from '@/context/PlayerContext';
 import { incrementLikes, incrementDownloads } from '@/app/actions';
 
 import { useRouter } from 'next/navigation';
-import AddToCollectionModal from './AddToCollectionModal';
+import dynamic from 'next/dynamic';
+
+const AddToCollectionModal = dynamic(() => import('./AddToCollectionModal'), { ssr: false });
 
 interface RingtoneCardProps {
   ringtone: Ringtone;

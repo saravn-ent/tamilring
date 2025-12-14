@@ -66,7 +66,6 @@ export default function HeroSlider({ ringtones, movieName, totalLikes }: HeroSli
             alt="bg"
             fill
             sizes="100vw"
-            priority
             quality={10}
             className="object-cover blur-3xl opacity-20 scale-150 transition-all duration-700"
           />
@@ -104,6 +103,7 @@ export default function HeroSlider({ ringtones, movieName, totalLikes }: HeroSli
                     fill
                     className="object-cover"
                     priority={idx === currentIndex}
+                    fetchPriority={idx === currentIndex ? "high" : "auto"}
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
                 ) : (

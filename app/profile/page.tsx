@@ -3,6 +3,8 @@
 import { useEffect, useState, useMemo } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import Image from 'next/image';
 import { User, Heart, Music, Trash2, X, LayoutDashboard, UploadCloud, Star } from 'lucide-react';
 import UploadForm from '@/components/UploadForm';
 import FavoritesList from '@/components/FavoritesList';
@@ -431,7 +433,7 @@ export default function ProfilePage() {
                   <div key={ringtone.id} className="flex items-center gap-3 bg-neutral-900/80 border border-neutral-800 p-3 rounded-xl group hover:border-emerald-500/30 transition-colors">
                     <div className="w-12 h-12 rounded-lg bg-neutral-800 relative overflow-hidden shrink-0">
                       {ringtone.poster_url ? (
-                        <img src={ringtone.poster_url} alt={ringtone.title} className="w-full h-full object-cover" />
+                        <Image src={ringtone.poster_url} alt={ringtone.title} fill className="object-cover" sizes="48px" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center text-zinc-600"><Music size={16} /></div>
                       )}
