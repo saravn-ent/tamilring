@@ -30,7 +30,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         .limit(10000);
 
     const ringtoneEntries: MetadataRoute.Sitemap = (ringtones || []).map((ring) => ({
-        url: `https://tamilring.in/ringtone/${ring.slug}`,
+        url: `https://tamilring.in/ringtone/${encodeURIComponent(ring.slug)}`,
         lastModified: new Date(ring.created_at || new Date()),
         changeFrequency: 'monthly',
         priority: 0.8,

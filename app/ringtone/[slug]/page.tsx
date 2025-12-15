@@ -1,3 +1,4 @@
+import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { Ringtone } from '@/types';
 import Image from 'next/image';
@@ -56,7 +57,7 @@ export default async function RingtonePage({ params }: Props) {
   const { slug } = await params;
   const ringtone = await getRingtone(slug);
 
-  if (!ringtone) return <div className="text-center py-20 text-zinc-500">Ringtone not found</div>;
+  if (!ringtone) notFound();
 
   // Strict AudioObject Schema for "Play" Button
   const cleanTitle = ringtone.title.replace(/\(From ".*?"\)/i, '').trim();

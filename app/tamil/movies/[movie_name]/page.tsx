@@ -1,3 +1,4 @@
+import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import RingtoneCard from '@/components/RingtoneCard';
 import SortControl from '@/components/SortControl';
@@ -71,6 +72,11 @@ export default async function MovieSiloPage({ params, searchParams }: Props) {
     }
 
     const { data: ringtones } = await query;
+
+    if (!ringtones || ringtones.length === 0) {
+        notFound();
+    }
+
     const movie = ringtones?.[0]; // Get metadata from first ringtone
 
     // Extract Music Director from the first ringtone (if available) for Silo Linking
@@ -160,25 +166,13 @@ export default async function MovieSiloPage({ params, searchParams }: Props) {
                     <SortControl />
                 </div>
 
-                {ringtones && ringtones.length > 0 ? (
-                    <div className="space-y-4">
-                        {ringtones.map((ringtone) => (
-                            <div key={ringtone.id}>
-                                <RingtoneCard ringtone={ringtone} />
-                                {/* Visual H2 for Programmatic Keyword Strategy - Hidden visually or styled minimally 
-                     User requested strict H2s. Adding them as hidden semantic tags or small labels 
-                     might clutter UI. Best approach is to let RingtoneCard title be the link. 
-                     Typically RingtoneCard uses H3. I will not break the Card UI. 
-                  */}
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="text-center py-20 text-zinc-500 bg-neutral-800/50 rounded-xl border border-dashed border-neutral-700">
-                        <p className="font-medium">No ringtones found for this movie.</p>
-                        <p className="text-xs mt-2">Upload one if you have it!</p>
-                    </div>
-                )}
+                <div className="space-y-4">
+                    {ringtones.map((ringtone) => (
+                        <div key={ringtone.id}>
+                            <RingtoneCard ringtone={ringtone} />
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     );
