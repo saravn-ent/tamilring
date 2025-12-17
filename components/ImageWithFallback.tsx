@@ -14,6 +14,8 @@ interface ImageWithFallbackProps {
   fallbackText?: string;
   sizes?: string;
   priority?: boolean;
+  quality?: number;
+  loading?: 'lazy' | 'eager';
 }
 
 export default function ImageWithFallback({
@@ -25,11 +27,11 @@ export default function ImageWithFallback({
   fill = true,
   fallbackText,
   sizes,
-  priority = false
-}: ImageWithFallbackProps & { quality?: number; loading?: 'lazy' | 'eager' }) {
+  priority = false,
+  quality = 75,
+  loading,
+}: ImageWithFallbackProps) {
   const [error, setError] = useState(false);
-
-  // ... (keep getInitials)
 
   const getInitials = (name: string) => {
     return name
@@ -58,10 +60,11 @@ export default function ImageWithFallback({
       fill={fill}
       sizes={sizes}
       priority={priority}
-      quality={arguments[0].quality || 75}
-      loading={arguments[0].loading || (priority ? 'eager' : 'lazy')}
+      quality={quality}
+      loading={loading || (priority ? 'eager' : 'lazy')}
       className={className}
       onError={() => setError(true)}
     />
   );
 }
+

@@ -66,7 +66,7 @@ export default function HeroSlider({ ringtones, movieName, totalLikes }: HeroSli
             alt="bg"
             fill
             sizes="100vw"
-            quality={10}
+            quality={25}
             priority
             className="object-cover blur-3xl opacity-20 scale-150 transition-all duration-700"
           />
