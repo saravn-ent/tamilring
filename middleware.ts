@@ -80,7 +80,7 @@ export async function middleware(request: NextRequest) {
 
   // Rate Limiting for API routes
   if (request.nextUrl.pathname.startsWith('/api')) {
-    const ip = request.ip ?? request.headers.get('x-forwarded-for') ?? '127.0.0.1';
+    const ip = (request as any).ip ?? request.headers.get('x-forwarded-for') ?? '127.0.0.1';
     // Only rate limit write operations or heavy reads if needed.
     // For now, lenient global rate limit on APIs
     try {
