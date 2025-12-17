@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Upload, Search, Music, Check, Loader2, X, RefreshCw, AlertCircle, Film, ChevronDown, Wand2, Scissors, ArrowRight } from 'lucide-react';
-import AudioTrimmer from './AudioTrimmer';
+import { Upload, Search, Music, Check, Loader2, X, RefreshCw, AlertCircle, Film, ChevronDown, Wand2, ArrowRight, Sparkles, Heart, Pencil } from 'lucide-react';
+import ArtistAutocomplete from './ArtistAutocomplete';
 import { searchMovies, MovieResult, getImageUrl, getMovieCredits, TMDB_GENRE_TO_TAG } from '@/lib/tmdb';
 import { getSongsByMovie, iTunesRing } from '@/lib/itunes';
 import { createBrowserClient } from '@supabase/ssr';
@@ -15,12 +15,19 @@ export default function UploadForm() {
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
+
+  // DEV MODE: Set to true to bypass auth for UI testing
+  const DEV_MODE = true;
+  const DEMO_USER_ID = 'demo-user-123';
+
   const [step, setStep] = useState(1);
   const [file, setFile] = useState<File | null>(null);
 
-  // Trimming State
-  const [trimStart, setTrimStart] = useState(0);
-  const [trimEnd, setTrimEnd] = useState(30);
+  // Content Type Selection
+  const [contentType, setContentType] = useState<'movie' | 'album' | 'devotional'>('movie');
+  const [deityCategory, setDeityCategory] = useState('');
+
+
 
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
@@ -32,9 +39,17 @@ export default function UploadForm() {
 
   useEffect(() => {
     const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) setUserId(user.id);
-      setIsAuthChecking(false);
+      if (DEV_MODE) {
+        // Development mode: Use demo user ID
+        setUserId(DEMO_USER_ID);
+        setIsAuthChecking(false);
+        console.log('🔧 DEV MODE: Using demo user ID for testing');
+      } else {
+        // Production mode: Check real auth
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) setUserId(user.id);
+        setIsAuthChecking(false);
+      }
     };
     getUser();
   }, []);
@@ -51,6 +66,19 @@ export default function UploadForm() {
   const [movieSongs, setMovieSongs] = useState<iTunesRing[]>([]);
   const [isLoadingSongs, setIsLoadingSongs] = useState(false);
   const [showSongDropdown, setShowSongDropdown] = useState(false);
+
+  // Devotional iTunes Data
+  const [devotionalSongs, setDevotionalSongs] = useState<iTunesRing[]>([]);
+  const [isLoadingDevotionalSongs, setIsLoadingDevotionalSongs] = useState(false);
+  const [showDevotionalSongDropdown, setShowDevotionalSongDropdown] = useState(false);
+
+  // Album/Independent Artist iTunes Data
+  const [albumSongs, setAlbumSongs] = useState<iTunesRing[]>([]);
+  const [isLoadingAlbumSongs, setIsLoadingAlbumSongs] = useState(false);
+  const [showAlbumSongDropdown, setShowAlbumSongDropdown] = useState(false);
+  const [albumSearchQuery, setAlbumSearchQuery] = useState('');
+  const [isAlbumSongSelected, setIsAlbumSongSelected] = useState(false);
+  const [manualEntryMode, setManualEntryMode] = useState(false);
 
   const [singers, setSingers] = useState('');
   const [musicDirector, setMusicDirector] = useState('');
@@ -73,6 +101,27 @@ export default function UploadForm() {
     "Types": ["Vocal", "Instrumental", "Interlude", "Humming", "Dialogue", "Remix", "8D Audio"],
     "Vocals": ["Male", "Female", "Duet"],
     "Instruments": ["Flute", "Violin", "Guitar", "Piano", "Keyboard", "Veena", "Drums", "Nadaswaram"]
+  };
+
+  const DEITY_CATEGORIES = {
+    "Hindu": [
+      "Ayyappan",
+      "Murugan",
+      "Vinayagar",
+      "Siva",
+      "Vishnu",
+      "Amman",
+      "Krishna",
+      "Rama",
+      "Hanuman",
+      "Karuppusamy",
+      "Perumal",
+      "Mariamman",
+      "Kali"
+    ],
+    "Christian": ["Jesus", "Mary", "Saint"],
+    "Muslim": ["Allah"],
+    "Other": ["Buddha", "Mahavira", "Other"]
   };
 
   const SEGMENT_SUGGESTIONS = ["Pallavi", "Charanam", "BGM", "Whistle", "Flute Version", "Violin Version", "Climax BGM", "Intro", "Interlude"];
@@ -168,22 +217,13 @@ export default function UploadForm() {
       const selectedFile = e.target.files[0];
       setFile(selectedFile);
 
-      // If audio file, go to Step 1.5 (Trim) instead of Step 2
-      setTrimStart(0);
-      setTrimEnd(30);
-      setStep(1.5);
+      // Go to Content Type Selection
+      setStep(1.8);
       loadFFmpeg().catch(console.error);
     }
   };
 
-  const handleTrimChange = (start: number, end: number) => {
-    setTrimStart(start);
-    setTrimEnd(end);
-  };
 
-  const confirmTrim = () => {
-    setStep(2);
-  };
 
   // Step 2: TMDB Movie Search
   const handleMovieSearch = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -262,6 +302,25 @@ export default function UploadForm() {
     setShowSongDropdown(false);
   }
 
+  // Fetch devotional songs when deity selected
+  useEffect(() => {
+    if (contentType === 'devotional' && deityCategory && step === 3) {
+      const fetchDevotionalSongs = async () => {
+        setIsLoadingDevotionalSongs(true);
+        try {
+          const res = await fetch(`/api/devotional/search?deity=${encodeURIComponent(deityCategory)}`);
+          const songs = await res.json();
+          setDevotionalSongs(songs);
+        } catch (e) {
+          console.error('Failed to fetch devotional songs:', e);
+        } finally {
+          setIsLoadingDevotionalSongs(false);
+        }
+      };
+      fetchDevotionalSongs();
+    }
+  }, [deityCategory, contentType, step]);
+
   // Generate Slug & Check Duplicates SAME LOGIC
   useEffect(() => {
     const generateAndCheckSlug = async () => {
@@ -309,16 +368,9 @@ export default function UploadForm() {
       // v0.11 FS API
       ffmpeg.FS('writeFile', inputName, await fetchFile(inputFile));
 
-      // Duration Calculation
-      const duration = trimEnd - trimStart;
-
-      // Command args with Trim Support
+      // Command args
       let args: string[] = [];
-      const ss = trimStart.toFixed(2);
-      const t = duration.toFixed(2);
-
-      // Using -ss before -i for faster seeking (input seeking)
-      const commonArgs = ['-ss', ss, '-i', inputName, '-t', t];
+      const commonArgs = ['-i', inputName];
 
       if (targetFormat === 'm4r') {
         // Force mp4 container for m4r
@@ -343,7 +395,13 @@ export default function UploadForm() {
   };
 
   const handleSubmit = async () => {
-    if (!file || !songName || !manualMovieName || !segmentName || duplicateError) return;
+    // Validation based on content type
+    if (!file || !songName || !segmentName || duplicateError) return;
+
+    if (contentType === 'movie' && !manualMovieName) return;
+    if (contentType === 'album' && !manualMovieName) return;
+    if (contentType === 'devotional' && !deityCategory) return;
+
     setLoading(true);
     setLoadingMessage('Initializing...');
 
@@ -358,8 +416,8 @@ export default function UploadForm() {
       const baseName = `${slug}-${Date.now()}`;
 
       // Conversion Logic
-      // Always convert/trim now since we support trimming
-      setLoadingMessage('Optimizing & Trimming audio...');
+      // Always convert now since we support cross-platform compatibility
+      setLoadingMessage('Optimizing audio...');
       console.log('Starting conversion...');
       try {
         mp3Blob = await convertAudio(file, 'mp3');
@@ -402,41 +460,74 @@ export default function UploadForm() {
 
       setLoadingMessage('Finalizing...');
 
-      // 3. Insert into Database
-      const { error: dbError } = await supabase
-        .from('ringtones')
-        .insert({
-          user_id: userId,
-          title: finalTitle,
-          slug,
+      // 3. Insert into Database - Different data based on content type
+      const baseData = {
+        user_id: userId,
+        title: finalTitle,
+        slug,
+        singers,
+        music_director: musicDirector,
+        audio_url: mp3Url,
+        audio_url_iphone: iphoneUrl || undefined,
+        tags: selectedTags,
+        status: 'pending' // SECURITY: Require admin approval before publishing
+      };
+
+      let insertData: any = baseData;
+
+      if (contentType === 'movie') {
+        insertData = {
+          ...baseData,
           movie_name: manualMovieName,
           movie_year: selectedMovie?.release_date ? parseInt(selectedMovie.release_date.split('-')[0]) : null,
-          singers,
-          music_director: musicDirector,
           movie_director: movieDirector,
           poster_url: selectedMovie?.poster_path ? getImageUrl(selectedMovie.poster_path) : null,
-          audio_url: mp3Url,
-          audio_url_iphone: iphoneUrl || undefined,
-          tags: selectedTags,
-          status: 'pending' // SECURITY: Require admin approval before publishing
-        });
-
-      if (dbError) throw dbError;
-
-      // Notify Admin (Fire & Forget)
-      try {
-        await notifyAdminOnUpload({
-          title: finalTitle,
-          movie_name: manualMovieName,
-          user_id: userId!,
-          tags: selectedTags,
-          slug: slug
-        });
-      } catch (notifyErr) {
-        console.warn("Notification failed silently", notifyErr);
+        };
+      } else if (contentType === 'album') {
+        insertData = {
+          ...baseData,
+          movie_name: manualMovieName, // Using movie_name field for album name
+          movie_year: null,
+          movie_director: null,
+          poster_url: null,
+        };
+      } else if (contentType === 'devotional') {
+        insertData = {
+          ...baseData,
+          movie_name: deityCategory, // Store deity as movie_name for now
+          movie_year: null,
+          movie_director: null,
+          poster_url: null,
+        };
       }
 
-      alert('Ringtone uploaded successfully! It will be reviewed by our team and published shortly.');
+      if (DEV_MODE) {
+        // Development mode: Skip database operations
+        console.log('🔧 DEV MODE: Skipping database insert. Data would be:', insertData);
+        alert('✅ DEV MODE: Upload form completed successfully!\n\nContent Type: ' + contentType + '\nThis is a UI test - no data was saved.');
+      } else {
+        // Production mode: Actually insert into database
+        const { error: dbError } = await supabase
+          .from('ringtones')
+          .insert(insertData);
+
+        if (dbError) throw dbError;
+
+        // Notify Admin (Fire & Forget)
+        try {
+          await notifyAdminOnUpload({
+            title: finalTitle,
+            movie_name: contentType === 'devotional' ? deityCategory : manualMovieName,
+            user_id: userId!,
+            tags: selectedTags,
+            slug: slug
+          });
+        } catch (notifyErr) {
+          console.warn("Notification failed silently", notifyErr);
+        }
+
+        alert('Ringtone uploaded successfully! It will be reviewed by our team and published shortly.');
+      }
       // Reset form
       setStep(1);
       setFile(null);
@@ -450,8 +541,9 @@ export default function UploadForm() {
       setMusicDirector('');
       setMovieDirector('');
       setSelectedTags([]);
-      setTrimStart(0);
-      setTrimEnd(30);
+
+      setContentType('movie');
+      setDeityCategory('');
 
     } catch (error: any) {
       console.error('Upload failed:', error);
@@ -472,6 +564,19 @@ export default function UploadForm() {
       </div>
     );
   }
+
+  // Helper function for tag filtering
+  const getFilteredTagCategories = () => {
+    if (contentType === 'devotional') {
+      return {
+        "Moods": ["Devotional"], // Only Devotional tag
+        "Types": TAG_CATEGORIES["Types"], // Keep all Types
+        // Vocals and Instruments categories removed
+      };
+    }
+    // For movie and album, return all categories
+    return TAG_CATEGORIES;
+  };
 
   if (!userId) {
     return (
@@ -495,11 +600,19 @@ export default function UploadForm() {
 
   return (
     <div className="max-w-md mx-auto bg-neutral-900 p-6 rounded-2xl border border-neutral-800 pb-32">
+      {/* Dev Mode Banner */}
+      {DEV_MODE && (
+        <div className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-xl">
+          <p className="text-xs text-yellow-500 font-bold text-center">
+            🔧 DEV MODE - UI Testing Only (No data will be saved)
+          </p>
+        </div>
+      )}
+
       {/* Progress */}
       <div className="flex justify-between mb-8 text-[10px] font-medium text-zinc-500 uppercase tracking-widest">
-        <span className={step >= 1 ? 'text-emerald-500' : ''}>1. File</span>
-        <span className={step === 1.5 ? 'text-emerald-500 font-bold' : (step > 1.5 ? 'text-emerald-500' : '')}>Trim</span>
-        <span className={step >= 2 ? 'text-emerald-500' : ''}>2. Movie</span>
+        <span className={step >= 1 ? 'text-emerald-500' : ''}>1. File Type</span>
+        <span className={step >= 2 ? 'text-emerald-500' : ''}>2. Source</span>
         <span className={step >= 3 ? 'text-emerald-500' : ''}>3. Details</span>
       </div>
 
@@ -514,49 +627,103 @@ export default function UploadForm() {
             <p className="text-zinc-300">Drag & Drop or Click to Upload</p>
             <p className="text-zinc-500 text-xs text-center px-4">
               MP3, M4R, WAV accepted.<br />
-              <span className="text-emerald-500/70">You can trim the song next</span>
+              <span className="text-emerald-500/70">Max duration 40s recommended for iPhone</span>
             </p>
           </label>
         </div>
       )}
 
-      {/* Step 1.5: Trimmer */}
-      {step === 1.5 && file && (
+
+
+      {/* Step 1.8: Content Type Selection */}
+      {step === 1.8 && (
         <div className="space-y-6">
-          <div className="flex items-center gap-2 mb-2">
-            <Scissors className="text-emerald-500" size={20} />
-            <h2 className="text-lg font-bold text-white">Trim Ringtone</h2>
+          <div>
+            <h2 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+              <Sparkles className="text-emerald-500" size={20} />
+              What type of content is this?
+            </h2>
+            <p className="text-xs text-zinc-500 mb-4">This helps us show the right form for your upload</p>
           </div>
 
-          <AudioTrimmer file={file} onTrimChange={handleTrimChange} />
-
-          <div className="bg-neutral-800/50 p-4 rounded-xl border border-neutral-800 flex items-center justify-between text-xs text-zinc-400">
-            <div>
-              <p>Start: <span className="text-white font-mono">{trimStart.toFixed(1)}s</span></p>
-              <p>End: <span className="text-white font-mono">{trimEnd.toFixed(1)}s</span></p>
-            </div>
-            <div className="text-right">
-              <p>Duration</p>
-              <p className={`font-mono font-bold ${trimEnd - trimStart > 30 ? 'text-yellow-500' : 'text-emerald-500'}`}>
-                {(trimEnd - trimStart).toFixed(1)}s
-              </p>
-            </div>
-          </div>
-
-          <div className="flex gap-4 pt-4">
-            <button onClick={() => { setStep(1); setFile(null); }} className="px-6 py-3 rounded-xl bg-neutral-800 text-zinc-400 hover:text-white transition-colors">
-              Cancel
+          <div className="space-y-3">
+            {/* Movie Option */}
+            <button
+              onClick={() => { setContentType('movie'); setStep(2); }}
+              className={`w-full p-4 rounded-xl border-2 transition-all text-left ${contentType === 'movie'
+                ? 'border-emerald-500 bg-emerald-500/10'
+                : 'border-neutral-700 bg-neutral-800/50 hover:border-neutral-600'
+                }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${contentType === 'movie' ? 'bg-emerald-500 text-neutral-900' : 'bg-neutral-700 text-zinc-400'
+                  }`}>
+                  <Film size={20} />
+                </div>
+                <div className="flex-1">
+                  <p className="font-bold text-white">Movie Song</p>
+                  <p className="text-xs text-zinc-500">From Tamil/Telugu/Malayalam movies</p>
+                </div>
+                {contentType === 'movie' && <Check className="text-emerald-500" size={20} />}
+              </div>
             </button>
-            <button onClick={confirmTrim} className="flex-1 bg-emerald-500 text-neutral-900 font-bold rounded-xl py-3 hover:bg-emerald-400 transition-colors flex items-center justify-center gap-2">
-              <span>Continue</span>
-              <ArrowRight size={16} />
+
+            {/* Album Option */}
+            <button
+              onClick={() => { setContentType('album'); setStep(3); }}
+              className={`w-full p-4 rounded-xl border-2 transition-all text-left ${contentType === 'album'
+                ? 'border-emerald-500 bg-emerald-500/10'
+                : 'border-neutral-700 bg-neutral-800/50 hover:border-neutral-600'
+                }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${contentType === 'album' ? 'bg-emerald-500 text-neutral-900' : 'bg-neutral-700 text-zinc-400'
+                  }`}>
+                  <Music size={20} />
+                </div>
+                <div className="flex-1">
+                  <p className="font-bold text-white">Album / Independent Artist</p>
+                  <p className="text-xs text-zinc-500">Non-movie songs, albums, singles</p>
+                </div>
+                {contentType === 'album' && <Check className="text-emerald-500" size={20} />}
+              </div>
+            </button>
+
+            {/* Devotional Option */}
+            <button
+              onClick={() => { setContentType('devotional'); setStep(3); }}
+              className={`w-full p-4 rounded-xl border-2 transition-all text-left ${contentType === 'devotional'
+                ? 'border-emerald-500 bg-emerald-500/10'
+                : 'border-neutral-700 bg-neutral-800/50 hover:border-neutral-600'
+                }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${contentType === 'devotional' ? 'bg-emerald-500 text-neutral-900' : 'bg-neutral-700 text-zinc-400'
+                  }`}>
+                  <Heart size={20} />
+                </div>
+                <div className="flex-1">
+                  <p className="font-bold text-white">Devotional Song</p>
+                  <p className="text-xs text-zinc-500">Hindu, Christian, Muslim devotional songs</p>
+                </div>
+                {contentType === 'devotional' && <Check className="text-emerald-500" size={20} />}
+              </div>
+            </button>
+          </div>
+
+          <div className="pt-4">
+            <button
+              onClick={() => { setStep(1); setFile(null); }}
+              className="text-zinc-400 hover:text-zinc-100 text-sm"
+            >
+              Change File
             </button>
           </div>
         </div>
       )}
 
-      {/* Step 2: Movie Search */}
-      {step === 2 && (
+      {/* Step 2: Movie Search (Only for Movie content type) */}
+      {step === 2 && contentType === 'movie' && (
         <div className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-zinc-400 mb-2">
@@ -613,7 +780,7 @@ export default function UploadForm() {
 
           <div className="pt-4">
             <button
-              onClick={() => setStep(1)}
+              onClick={() => setStep(1.8)}
               className="text-zinc-400 hover:text-zinc-100 text-sm"
             >
               Back
@@ -622,8 +789,8 @@ export default function UploadForm() {
         </div>
       )}
 
-      {/* Step 3: Details (Movie -> Song) */}
-      {step === 3 && (
+      {/* Step 3: Details - Conditional based on Content Type */}
+      {step === 3 && contentType === 'movie' && (
         <div className="space-y-4">
           {/* Selected Movie Header */}
           <div className="flex bg-neutral-800 p-3 rounded-lg gap-3 shadow-lg border border-neutral-700/50">
@@ -680,7 +847,6 @@ export default function UploadForm() {
                       {isLoadingSongs ? 'Loading songs...' : 'No songs found for this movie on iTunes.'}
                     </div>
                   )}
-                  {/* Fallback Manual Input Trigger if needed, or just let them type in a separate input below if simplified */}
                 </div>
               )}
             </div>
@@ -749,7 +915,7 @@ export default function UploadForm() {
           <div>
             <label className="block text-xs text-zinc-500 mb-2">Tags</label>
             <div className="space-y-4 bg-neutral-800/30 p-4 rounded-xl border border-neutral-800">
-              {Object.entries(TAG_CATEGORIES).map(([category, tags]) => (
+              {Object.entries(getFilteredTagCategories()).map(([category, tags]) => (
                 <div key={category}>
                   <p className="text-[10px] text-zinc-500 uppercase font-bold mb-2 tracking-wider">{category}</p>
                   <div className="flex flex-wrap gap-2">
@@ -801,6 +967,495 @@ export default function UploadForm() {
             <button
               onClick={handleSubmit}
               disabled={loading || !!duplicateError || !segmentName}
+              className="flex-1 ml-4 bg-emerald-500 text-neutral-900 font-bold py-4 rounded-xl hover:bg-emerald-400 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="animate-spin" />
+                  <span>{loadingMessage || 'Processing...'}</span>
+                </>
+              ) : (
+                <>
+                  <Check />
+                  <span>Upload Ringtone</span>
+                  <span className="text-[10px] text-emerald-900 bg-emerald-400/50 px-2 py-0.5 rounded-full ml-1">+15 Rep</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 3: Album Form */}
+      {step === 3 && contentType === 'album' && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <Music className="text-emerald-500" size={20} />
+            <h2 className="text-lg font-bold text-white">Album Details</h2>
+          </div>
+
+          {/* Streamlined Album Form */}
+
+          {/* 1. Search Section or Selected Track Card */}
+          {!isAlbumSongSelected ? (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs text-zinc-500 mb-1">Search Song or Artist</label>
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">
+                    <Search size={16} />
+                  </div>
+                  <input
+                    type="text"
+                    value={albumSearchQuery}
+                    onChange={async (e) => {
+                      const query = e.target.value;
+                      setAlbumSearchQuery(query);
+
+                      if (query.length > 2) {
+                        setIsLoadingAlbumSongs(true);
+                        try {
+                          const res = await fetch(`/api/album/search?artist=${encodeURIComponent(query)}`);
+                          const songs = await res.json();
+                          setAlbumSongs(songs);
+                          setShowAlbumSongDropdown(true);
+                        } catch (e) {
+                          console.error('Failed to fetch album songs:', e);
+                        } finally {
+                          setIsLoadingAlbumSongs(false);
+                        }
+                      } else {
+                        setAlbumSongs([]);
+                        setShowAlbumSongDropdown(false);
+                      }
+                    }}
+                    onFocus={() => albumSongs.length > 0 && setShowAlbumSongDropdown(true)}
+                    placeholder="Search for artist or song name..."
+                    className="w-full bg-neutral-800 border border-neutral-700 rounded-lg pl-10 pr-4 py-4 text-zinc-100 focus:outline-none focus:border-emerald-500 text-sm"
+                  />
+                  {isLoadingAlbumSongs && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <Loader2 size={16} className="animate-spin text-zinc-500" />
+                    </div>
+                  )}
+
+                  {/* Song Dropdown */}
+                  {showAlbumSongDropdown && albumSongs.length > 0 && (
+                    <div className="absolute z-50 w-full mt-2 bg-neutral-800 border border-neutral-700 rounded-lg shadow-xl max-h-60 overflow-y-auto pb-1">
+                      <div className="px-3 py-2 text-[10px] text-zinc-500 uppercase tracking-wider bg-neutral-900/50 sticky top-0 border-b border-neutral-700 backdrop-blur-sm">
+                        Search Results
+                      </div>
+                      {albumSongs.map((song, i) => (
+                        <button
+                          key={i}
+                          onClick={() => {
+                            setSongName(song.trackName);
+                            setSingers(song.artistName);
+                            setMusicDirector(song.artistName); // Default MD to Artist
+                            setManualMovieName(song.collectionName.replace(/ - Single$/i, '').replace(/ - EP$/i, ''));
+                            setAlbumSearchQuery('');
+                            setAlbumSongs([]); // Clear results
+                            setShowAlbumSongDropdown(false);
+                            setIsAlbumSongSelected(true);
+                            setManualEntryMode(false);
+                          }}
+                          className="w-full text-left px-4 py-3 hover:bg-neutral-700 border-b border-neutral-700/50 last:border-0 transition-colors group"
+                        >
+                          <p className="font-medium text-zinc-200 group-hover:text-emerald-400 text-sm">{song.trackName}</p>
+                          <p className="text-[10px] text-zinc-500 truncate">{song.artistName}</p>
+                          <p className="text-[9px] text-zinc-600 truncate">{song.collectionName}</p>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="text-center">
+                <span className="text-xs text-zinc-600">or</span>
+                <button
+                  onClick={() => {
+                    setIsAlbumSongSelected(true);
+                    setManualEntryMode(true);
+                  }}
+                  className="block w-full mt-2 text-xs text-zinc-500 hover:text-emerald-500 underline decoration-dotted underline-offset-4"
+                >
+                  Enter details manually
+                </button>
+              </div>
+            </div>
+          ) : (
+            // Selected Track Info Card (Visible ONLY when NOT in manual mode)
+            !manualEntryMode && (
+              <div className="bg-neutral-800/50 border border-neutral-700 rounded-xl p-4 relative group">
+                <div className="absolute top-3 right-3 flex gap-2">
+                  <button
+                    onClick={() => setManualEntryMode(true)}
+                    className="p-1.5 bg-neutral-800 hover:bg-neutral-700 text-zinc-400 hover:text-emerald-400 rounded-lg transition-colors border border-neutral-700"
+                    title="Edit Details"
+                  >
+                    <Pencil size={14} />
+                  </button>
+                  <button
+                    onClick={() => {
+                      setIsAlbumSongSelected(false);
+                      setSongName('');
+                      setSingers('');
+                      setMusicDirector('');
+                      setManualMovieName('');
+                      setManualEntryMode(false);
+                    }}
+                    className="p-1.5 bg-neutral-800 hover:bg-neutral-700 text-zinc-400 hover:text-red-400 rounded-lg transition-colors border border-neutral-700"
+                    title="Change Selection"
+                  >
+                    <RefreshCw size={14} />
+                  </button>
+                </div>
+
+                <div className="flex items-start gap-4 pr-16">
+                  <div className="w-12 h-12 bg-emerald-500/10 rounded-lg flex items-center justify-center text-emerald-500 shrink-0">
+                    <Music size={20} />
+                  </div>
+                  <div>
+                    <h3 className="text-white font-medium text-sm leading-tight mb-1">{songName}</h3>
+                    <p className="text-xs text-zinc-400">{singers}</p>
+                    <p className="text-[10px] text-zinc-500 mt-0.5">{manualMovieName}</p>
+                  </div>
+                </div>
+              </div>
+            )
+          )}
+
+          {/* 2. Manual Inputs (Visible in Manual Mode) */}
+          {(isAlbumSongSelected && manualEntryMode) && (
+            <div className="space-y-4 p-4 bg-neutral-800/30 rounded-xl border border-neutral-800/50 animate-in fade-in slide-in-from-top-2">
+              <div className="flex justify-between items-center mb-2">
+                <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
+                  {songName ? 'Edit Details' : 'Manual Details'}
+                </h3>
+                {/* Allow canceling manual mode if we came from a song selection */}
+                {songName && (
+                  <button
+                    onClick={() => setManualEntryMode(false)}
+                    className="text-[10px] text-emerald-500 hover:underline"
+                  >
+                    Done Editing
+                  </button>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs text-zinc-500 mb-1">Album / Single Name</label>
+                <input
+                  type="text"
+                  value={manualMovieName}
+                  onChange={(e) => setManualMovieName(e.target.value)}
+                  placeholder="e.g., Kadhal Kavithai"
+                  className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-zinc-100 text-sm focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs text-zinc-500 mb-1">Song Name</label>
+                <input
+                  type="text"
+                  value={songName}
+                  onChange={(e) => setSongName(e.target.value)}
+                  placeholder="e.g., Unnai Ninaithu"
+                  className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-zinc-100 text-sm focus:outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              <ArtistAutocomplete
+                value={singers}
+                onChange={setSingers}
+                placeholder="Search artist..."
+                label="Artist / Singer"
+              />
+
+              <ArtistAutocomplete
+                value={musicDirector}
+                onChange={setMusicDirector}
+                placeholder="Search music director..."
+                label="Music Director"
+              />
+
+              {!songName && (
+                <button
+                  onClick={() => {
+                    setIsAlbumSongSelected(false);
+                    setManualEntryMode(false);
+                  }}
+                  className="text-xs text-red-400 hover:underline mt-2 text-right block w-full"
+                >
+                  Cancel Manual Entry
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* 3. Ringtone Name (Always Visible if Selected/Manual) */}
+          {isAlbumSongSelected && (
+            <div className="animate-in fade-in slide-in-from-top-4 duration-500">
+              <div className="mb-4">
+                <label className="block text-xs text-zinc-500 mb-1">Ringtone Name</label>
+                <input
+                  type="text"
+                  value={segmentName}
+                  onChange={(e) => setSegmentName(e.target.value)}
+                  placeholder="e.g., Pallavi, Charanam, BGM..."
+                  className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3 text-zinc-100 focus:outline-none focus:border-emerald-500"
+                  autoFocus
+                />
+              </div>
+            </div>
+          )}
+
+          <div>
+            <label className="block text-xs text-zinc-500 mb-2">Tags</label>
+            <div className="space-y-4 bg-neutral-800/30 p-4 rounded-xl border border-neutral-800">
+              {Object.entries(getFilteredTagCategories()).map(([category, tags]) => (
+                <div key={category}>
+                  <p className="text-[10px] text-zinc-500 uppercase font-bold mb-2 tracking-wider">{category}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {tags.filter(t => !['BGM', 'Interlude'].includes(t)).map(tag => (
+                      <button
+                        key={tag}
+                        onClick={() => toggleTag(tag)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${selectedTags.includes(tag)
+                          ? 'bg-emerald-500 border-emerald-500 text-neutral-900 shadow-[0_0_10px_rgba(16,185,129,0.3)]'
+                          : 'bg-transparent border-neutral-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
+                          }`}
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Slug Preview & Duplicate Error */}
+          <div className="space-y-2">
+            <label className="block text-xs text-zinc-500">SEO Slug Preview</label>
+            <input
+              type="text"
+              value={slug}
+              readOnly
+              className={`w-full bg-neutral-900 border ${duplicateError ? 'border-red-500 text-red-400' : 'border-neutral-800 text-zinc-500'} rounded-lg px-4 py-2 text-sm font-mono transition-colors`}
+            />
+            {duplicateError && (
+              <div className="flex items-center gap-2 text-red-500 text-xs">
+                <AlertCircle size={14} />
+                <span>{duplicateError}</span>
+              </div>
+            )}
+            {isCheckingDuplicate && (
+              <span className="text-xs text-zinc-600 flex items-center gap-1"><Loader2 size={10} className="animate-spin" /> Checking availability...</span>
+            )}
+          </div>
+
+          <div className="flex justify-between pt-4">
+            <button
+              onClick={() => setStep(1.8)}
+              className="text-zinc-400 hover:text-zinc-100 text-sm"
+            >
+              Back
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={loading || !!duplicateError || !segmentName || !songName || !manualMovieName}
+              className="flex-1 ml-4 bg-emerald-500 text-neutral-900 font-bold py-4 rounded-xl hover:bg-emerald-400 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="animate-spin" />
+                  <span>{loadingMessage || 'Processing...'}</span>
+                </>
+              ) : (
+                <>
+                  <Check />
+                  <span>Upload Ringtone</span>
+                  <span className="text-[10px] text-emerald-900 bg-emerald-400/50 px-2 py-0.5 rounded-full ml-1">+15 Rep</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Step 3: Devotional Form */}
+      {step === 3 && contentType === 'devotional' && (
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <Heart className="text-emerald-500" size={20} />
+            <h2 className="text-lg font-bold text-white">Devotional Song Details</h2>
+          </div>
+
+          <div>
+            <label className="block text-xs text-zinc-500 mb-1">Deity / God</label>
+            <select
+              value={deityCategory}
+              onChange={(e) => {
+                setDeityCategory(e.target.value);
+                // Auto-add Devotional tag
+                if (!selectedTags.includes('Devotional')) {
+                  setSelectedTags([...selectedTags, 'Devotional']);
+                }
+              }}
+              className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3 text-zinc-100 focus:outline-none focus:border-emerald-500"
+            >
+              <option value="">Select deity...</option>
+              {Object.entries(DEITY_CATEGORIES).map(([religion, deities]) => (
+                <optgroup key={religion} label={religion}>
+                  {deities.map(deity => (
+                    <option key={deity} value={deity}>{deity}</option>
+                  ))}
+                </optgroup>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs text-zinc-500 mb-1">Song Name</label>
+            <div className="relative">
+              <div
+                onClick={() => setShowDevotionalSongDropdown(!showDevotionalSongDropdown)}
+                className="flex w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3 text-zinc-100 cursor-pointer hover:border-emerald-500 transition-colors items-center justify-between"
+              >
+                <span className={songName ? "text-zinc-100" : "text-zinc-500"}>
+                  {songName || (deityCategory ? `Select ${deityCategory} song...` : "Select deity first...")}
+                </span>
+                {isLoadingDevotionalSongs ? <Loader2 size={16} className="animate-spin text-zinc-500" /> : <ChevronDown size={16} className="text-zinc-500" />}
+              </div>
+
+              {/* Song Dropdown */}
+              {showDevotionalSongDropdown && deityCategory && (
+                <div className="absolute z-50 w-full mt-2 bg-neutral-800 border border-neutral-700 rounded-lg shadow-xl max-h-60 overflow-y-auto pb-1">
+                  <div className="px-3 py-2 text-[10px] text-zinc-500 uppercase tracking-wider bg-neutral-900/50 sticky top-0 border-b border-neutral-700 backdrop-blur-sm">
+                    {deityCategory} Songs
+                  </div>
+                  {devotionalSongs.length > 0 ? (
+                    <>
+                      {devotionalSongs.map((song, i) => (
+                        <button
+                          key={i}
+                          onClick={() => {
+                            setSongName(song.trackName);
+                            setSingers(song.artistName);
+                            setShowDevotionalSongDropdown(false);
+                          }}
+                          className="w-full text-left px-4 py-3 hover:bg-neutral-700 border-b border-neutral-700/50 last:border-0 transition-colors group"
+                        >
+                          <p className="font-medium text-zinc-200 group-hover:text-emerald-400 text-sm">{song.trackName}</p>
+                          <p className="text-[10px] text-zinc-500 truncate">{song.artistName}</p>
+                        </button>
+                      ))}
+                    </>
+                  ) : (
+                    <div className="px-4 py-4 text-center text-zinc-500 text-xs">
+                      {isLoadingDevotionalSongs ? 'Loading songs...' : `No ${deityCategory} songs found.`}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Manual Entry Fallback */}
+            <div className="mt-2 text-right">
+              <button
+                className="text-[10px] text-zinc-500 hover:text-emerald-500 underline"
+                onClick={() => {
+                  const manual = prompt("Enter song name manually:");
+                  if (manual) setSongName(manual);
+                }}
+              >
+                Song not listed? Enter manually
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs text-zinc-500 mb-1">Ringtone Name</label>
+            <input
+              type="text"
+              value={segmentName}
+              onChange={(e) => setSegmentName(e.target.value)}
+              placeholder="e.g., Pallavi, Charanam, BGM..."
+              className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3 text-zinc-100 focus:outline-none focus:border-emerald-500"
+            />
+          </div>
+
+          <ArtistAutocomplete
+            value={singers}
+            onChange={setSingers}
+            placeholder="Search or enter artist name..."
+            label="Artist / Singer"
+          />
+
+          <ArtistAutocomplete
+            value={musicDirector}
+            onChange={setMusicDirector}
+            placeholder="Search or enter music director..."
+            label="Music Director"
+          />
+
+          <div>
+            <label className="block text-xs text-zinc-500 mb-2">Tags</label>
+            <div className="space-y-4 bg-neutral-800/30 p-4 rounded-xl border border-neutral-800">
+              {Object.entries(getFilteredTagCategories()).map(([category, tags]) => (
+                <div key={category}>
+                  <p className="text-[10px] text-zinc-500 uppercase font-bold mb-2 tracking-wider">{category}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {tags.filter(t => !['BGM', 'Interlude'].includes(t)).map(tag => (
+                      <button
+                        key={tag}
+                        onClick={() => toggleTag(tag)}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${selectedTags.includes(tag)
+                          ? 'bg-emerald-500 border-emerald-500 text-neutral-900 shadow-[0_0_10px_rgba(16,185,129,0.3)]'
+                          : 'bg-transparent border-neutral-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200'
+                          }`}
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Slug Preview & Duplicate Error */}
+          <div className="space-y-2">
+            <label className="block text-xs text-zinc-500">SEO Slug Preview</label>
+            <input
+              type="text"
+              value={slug}
+              readOnly
+              className={`w-full bg-neutral-900 border ${duplicateError ? 'border-red-500 text-red-400' : 'border-neutral-800 text-zinc-500'} rounded-lg px-4 py-2 text-sm font-mono transition-colors`}
+            />
+            {duplicateError && (
+              <div className="flex items-center gap-2 text-red-500 text-xs">
+                <AlertCircle size={14} />
+                <span>{duplicateError}</span>
+              </div>
+            )}
+            {isCheckingDuplicate && (
+              <span className="text-xs text-zinc-600 flex items-center gap-1"><Loader2 size={10} className="animate-spin" /> Checking availability...</span>
+            )}
+          </div>
+
+          <div className="flex justify-between pt-4">
+            <button
+              onClick={() => setStep(1.8)}
+              className="text-zinc-400 hover:text-zinc-100 text-sm"
+            >
+              Back
+            </button>
+            <button
+              onClick={handleSubmit}
+              disabled={loading || !!duplicateError || !segmentName || !songName || !deityCategory}
               className="flex-1 ml-4 bg-emerald-500 text-neutral-900 font-bold py-4 rounded-xl hover:bg-emerald-400 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (

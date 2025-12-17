@@ -1,5 +1,5 @@
 import { RingtoneRepository } from '@/lib/repositories/ringtone.repository';
-import { cache, getCached, setCached } from '@/lib/cache/redis';
+import { getCached, setCached } from '@/lib/cache/redis';
 import { AppError } from '@/lib/errors/AppError';
 
 export class RingtoneService {
