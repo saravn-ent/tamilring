@@ -175,16 +175,22 @@ export const searchPerson = async (query: string): Promise<PersonResult | null> 
 
   try {
     const searchUrl = `${BASE_URL}/search/person?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&language=en-US&page=1&include_adult=false`;
-    // console.log(`🔍 Searching TMDB for: ${query}`); 
+
+    // Add timeout to prevent hanging
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
     const res = await fetch(searchUrl, {
-      next: { revalidate: 3600 }
+      next: { revalidate: 3600 },
+      signal: controller.signal
     });
+
+    clearTimeout(timeoutId);
 
     if (!res.ok) {
       const errText = await res.text();
       console.error(`❌ TMDB Error (${res.status}) for "${query}":`, errText);
-      throw new Error(`TMDB Error: ${res.status}`);
+      return null; // Return null instead of throwing
     }
 
     const data = await res.json();
@@ -192,13 +198,20 @@ export const searchPerson = async (query: string): Promise<PersonResult | null> 
 
     if (!result) {
       console.warn(`⚠️ No TMDB result found for: "${query}"`);
-    } else {
-      // console.log(`✅ Found TMDB result for "${query}": ${result.name}`);
     }
 
     return result;
-  } catch (error) {
-    console.warn(`Warning: Could not fetch artist "${query}" from TMDB.`, error);
-    return null;
+  } catch (error: any) {
+    // Detailed error logging for debugging
+    if (error.name === 'AbortError') {
+      console.warn(`⏱️ TMDB request timeout for "${query}"`);
+    } else if (error.cause?.code === 'ENOTFOUND') {
+      console.warn(`🌐 DNS resolution failed for TMDB (check internet connection)`);
+    } else if (error.cause?.code === 'ECONNREFUSED') {
+      console.warn(`🚫 Connection refused to TMDB (firewall/network issue)`);
+    } else {
+      console.warn(`⚠️ Could not fetch artist "${query}" from TMDB:`, error.message);
+    }
+    return null; // Always return null, never crash
   }
 };

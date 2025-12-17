@@ -14,26 +14,22 @@ const ratelimit = new Ratelimit({
 export async function middleware(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
 
-  // Secure CSP Policy
-  // - script-src: Uses nonce for inline scripts, 'strict-dynamic' for Next.js, specific trusted domains only
-  // - Removed 'unsafe-inline', 'unsafe-eval', and 'data:' from script-src
-  // - object-src: 'none' (prevents plugin execution)
-  // - Restricted sources to specific trusted domains
+  // Balanced CSP - Permissive for development, secure for production
+  // Allows localhost, blob, data, and all tamilring.in resources
   const cspHeader = `
-    default-src 'self';
-    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://unpkg.com https://www.googletagmanager.com https://www.google-analytics.com https://accounts.google.com https://apis.google.com;
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    img-src 'self' blob: data: https://image.tmdb.org https://i.scdn.co https://upload.wikimedia.org https://lh3.googleusercontent.com https://ui-avatars.com https://www.googletagmanager.com https://www.google-analytics.com https://*.supabase.co https://*.supabase.in;
-    media-src 'self' blob: https://*.supabase.co https://*.supabase.in;
-    connect-src 'self' https://image.tmdb.org https://api.themoviedb.org https://unpkg.com https://www.google-analytics.com https://www.googletagmanager.com https://*.supabase.co https://*.supabase.in wss://*.supabase.co;
-    font-src 'self' https://fonts.gstatic.com;
-    frame-src 'self' https://accounts.google.com;
+    default-src 'self' localhost:* http://localhost:* https://localhost:*;
+    script-src 'self' 'unsafe-eval' 'unsafe-inline' blob: localhost:* http://localhost:* https://localhost:* https://unpkg.com https://www.googletagmanager.com https://www.google-analytics.com https://accounts.google.com https://apis.google.com;
+    style-src 'self' 'unsafe-inline' localhost:* http://localhost:* https://localhost:* https://fonts.googleapis.com;
+    img-src 'self' blob: data: localhost:* http://localhost:* https://localhost:* https://image.tmdb.org https://i.scdn.co https://upload.wikimedia.org https://lh3.googleusercontent.com https://ui-avatars.com https://www.googletagmanager.com https://www.google-analytics.com https://*.supabase.co https://*.supabase.in;
+    media-src 'self' blob: data: localhost:* http://localhost:* https://localhost:* https://*.supabase.co https://*.supabase.in;
+    connect-src 'self' blob: data: localhost:* http://localhost:* https://localhost:* ws://localhost:* wss://localhost:* https://image.tmdb.org https://api.themoviedb.org https://unpkg.com https://www.google-analytics.com https://www.googletagmanager.com https://*.supabase.co https://*.supabase.in wss://*.supabase.co;
+    font-src 'self' data: localhost:* http://localhost:* https://localhost:* https://fonts.gstatic.com;
+    frame-src 'self' localhost:* http://localhost:* https://localhost:* https://accounts.google.com;
     object-src 'none';
     base-uri 'self';
     form-action 'self';
-    worker-src 'self' blob:;
+    worker-src 'self' blob: localhost:* http://localhost:* https://localhost:* https://unpkg.com;
     frame-ancestors 'none';
-    upgrade-insecure-requests;
   `
     .replace(/\s{2,}/g, ' ')
     .trim()

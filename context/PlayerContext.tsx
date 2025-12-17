@@ -83,6 +83,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         onTimeUpdate={handleTimeUpdate}
         className="hidden"
         preload="none"
+        crossOrigin="anonymous"
       />
     </PlayerContext.Provider>
   );

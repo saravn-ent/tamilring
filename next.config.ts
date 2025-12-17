@@ -22,6 +22,7 @@ const withPWA = withPWAInit({
 
 const nextConfig: NextConfig = {
   compress: true, // Enable Gzip/Brotli compression
+  productionBrowserSourceMaps: false, // Disable source maps to remove warnings
   turbopack: {},
   images: {
     qualities: [10, 75],
@@ -84,8 +85,8 @@ const nextConfig: NextConfig = {
             value: 'camera=(), microphone=(), geolocation=()',
           },
           {
-            key: 'Strict-Transport-Security',
-            value: 'max-age=63072000; includeSubDomains; preload'
+            key: 'StrictMode',
+            value: 'true'
           },
         ],
       },

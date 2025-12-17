@@ -106,6 +106,7 @@ export default async function RootLayout({
             gtag('config', 'G-07CW71VTGB');
           `}
         </Script>
+
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

@@ -8,8 +8,7 @@ import { getSongsByMovie, iTunesRing } from '@/lib/itunes';
 import { createBrowserClient } from '@supabase/ssr';
 import { notifyAdminOnUpload } from '@/app/actions';
 import Image from 'next/image';
-import type { FFmpeg } from '@ffmpeg/ffmpeg';
-// import { fetchFile, toBlobURL } from '@ffmpeg/util'; // Imported dynamically
+import Script from 'next/script';
 
 export default function UploadForm() {
   const supabase = createBrowserClient(
@@ -27,7 +26,7 @@ export default function UploadForm() {
   const [loadingMessage, setLoadingMessage] = useState('');
   const [userId, setUserId] = useState<string | null>(null);
 
-  const ffmpegRef = useRef<FFmpeg | null>(null);
+  const ffmpegRef = useRef<any>(null);
   const [ffmpegLoaded, setFfmpegLoaded] = useState(false);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
 
@@ -135,29 +134,31 @@ export default function UploadForm() {
   };
 
   const loadFFmpeg = async () => {
-    if (ffmpegRef.current && ffmpegRef.current.loaded) return;
-
-    const { FFmpeg } = await import('@ffmpeg/ffmpeg');
-    const { toBlobURL } = await import('@ffmpeg/util');
-
-    if (!ffmpegRef.current) {
-      ffmpegRef.current = new FFmpeg();
+    if (ffmpegRef.current && ffmpegRef.current.isLoaded()) {
+      setFfmpegLoaded(true);
+      return;
     }
 
-    const ffmpeg = ffmpegRef.current;
+    const FFmpeg = (window as any).FFmpeg;
+    if (!FFmpeg) return;
 
-    // Use local FFmpeg files to avoid CSP/Network issues
-    const baseURL = `${window.location.origin}/ffmpeg`;
     try {
-      await ffmpeg.load({
-        coreURL: `${baseURL}/ffmpeg-core.js`,
-        wasmURL: `${baseURL}/ffmpeg-core.wasm`,
-        // workerURL: `${baseURL}/ffmpeg-core.worker.js` // Not needed for single-threaded or if integrated
-      });
+      const { createFFmpeg } = FFmpeg;
+
+      if (!ffmpegRef.current) {
+        ffmpegRef.current = createFFmpeg({
+          log: true,
+          corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js',
+        });
+      }
+
+      const ffmpeg = ffmpegRef.current;
+      if (!ffmpeg.isLoaded()) {
+        await ffmpeg.load();
+      }
       setFfmpegLoaded(true);
     } catch (e) {
       console.error("FFmpeg load failed:", e);
-      // Fallback or alert to user - actually just let it fail later or retry
     }
   };
 
@@ -298,22 +299,15 @@ export default function UploadForm() {
   const convertAudio = async (inputFile: File, targetFormat: 'mp3' | 'm4r'): Promise<Blob> => {
     await loadFFmpeg();
     const ffmpeg = ffmpegRef.current!;
-    const { fetchFile } = await import('@ffmpeg/util');
-
-    // Logging Capture
-    const logs: string[] = [];
-    ffmpeg.on('log', ({ message }) => {
-      console.log('FFmpeg:', message);
-      logs.push(message);
-      if (logs.length > 20) logs.shift(); // Keep last 20 lines
-    });
+    const { fetchFile } = (window as any).FFmpeg;
 
     const fileExt = inputFile.name.split('.').pop()?.toLowerCase() || 'dat';
     const inputName = `input_${Date.now()}.${fileExt}`;
     const outputName = `output_${Date.now()}.${targetFormat}`;
 
     try {
-      await ffmpeg.writeFile(inputName, await fetchFile(inputFile));
+      // v0.11 FS API
+      ffmpeg.FS('writeFile', inputName, await fetchFile(inputFile));
 
       // Duration Calculation
       const duration = trimEnd - trimStart;
@@ -324,7 +318,6 @@ export default function UploadForm() {
       const t = duration.toFixed(2);
 
       // Using -ss before -i for faster seeking (input seeking)
-      // Note: Re-encoding is required for accurate cut after seeking
       const commonArgs = ['-ss', ss, '-i', inputName, '-t', t];
 
       if (targetFormat === 'm4r') {
@@ -335,19 +328,16 @@ export default function UploadForm() {
         args = [...commonArgs, '-c:a', 'libmp3lame', '-b:a', '320k', '-vn', '-f', 'mp3', outputName];
       }
 
-      const ret = await ffmpeg.exec(args);
-      if (ret !== 0) {
-        console.error('FFmpeg logs:', logs.join('\n'));
-        throw new Error(`FFmpeg error (code ${ret}): ${logs.slice(-3).join(', ')}`);
-      }
+      // v0.11 uses run() instead of exec()
+      await ffmpeg.run(...args);
 
-      const data = await ffmpeg.readFile(outputName);
-      return new Blob([data as any], { type: targetFormat === 'm4r' ? 'audio/x-m4r' : 'audio/mpeg' });
+      const data = ffmpeg.FS('readFile', outputName);
+      return new Blob([data.buffer], { type: targetFormat === 'm4r' ? 'audio/x-m4r' : 'audio/mpeg' });
     } finally {
-      // Cleanup
+      // Cleanup using v0.11 FS API
       try {
-        await ffmpeg.deleteFile(inputName);
-        await ffmpeg.deleteFile(outputName);
+        ffmpeg.FS('unlink', inputName);
+        ffmpeg.FS('unlink', outputName);
       } catch (e) { /* ignore cleanup errors */ }
     }
   };
@@ -829,6 +819,20 @@ export default function UploadForm() {
           </div>
         </div>
       )}
+
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `if (typeof SharedArrayBuffer === 'undefined') { window.SharedArrayBuffer = function() { throw new Error('Not supported'); }; }`
+        }}
+      />
+
+      <Script
+        src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.2/dist/ffmpeg.min.js"
+        strategy="afterInteractive"
+        onLoad={() => {
+          if ((window as any).FFmpeg) loadFFmpeg();
+        }}
+      />
     </div>
   );
 }
