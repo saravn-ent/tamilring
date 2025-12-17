@@ -4,46 +4,54 @@ import SortControl from '@/components/SortControl';
 import Image from 'next/image';
 import FavoriteButton from '@/components/FavoriteButton';
 import { Metadata } from 'next';
+import { cacheGetOrSet, CacheKeys, CacheTTL } from '@/lib/cache';
+import { generateMovieMetadata } from '@/lib/seo';
+import { generateMovieSchema, generateBreadcrumbSchema, combineSchemas } from '@/lib/seo';
+import StructuredData from '@/components/StructuredData';
 
 export async function generateMetadata({ params }: { params: Promise<{ movie_name: string }> }): Promise<Metadata> {
   const { movie_name } = await params;
   const movieName = decodeURIComponent(movie_name);
 
-  // Fetch 1 record to get movie details (year, composer, posters check)
-  const { data: movie } = await supabase
-    .from('ringtones')
-    .select('movie_year, music_director, poster_url')
-    .eq('status', 'approved')
-    .eq('movie_name', movieName)
-    .limit(1)
-    .maybeSingle();
+  // Fetch movie details with caching
+  const movieData = await cacheGetOrSet(
+    CacheKeys.movie.byName(movieName),
+    async () => {
+      const { data } = await supabase
+        .from('ringtones')
+        .select('movie_year, music_director, movie_director, poster_url')
+        .eq('status', 'approved')
+        .eq('movie_name', movieName)
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+    { ttl: CacheTTL.movie.details }
+  );
 
-  if (!movie) {
+  if (!movieData) {
     return {
       title: 'Movie Not Found | TamilRing',
       description: 'The requested movie ringtones could not be found.',
     };
   }
 
-  const title = `${movieName} Ringtones Download - Free BGM & Tamil Cuts | TamilRing`;
-  const description = `Download high-quality ${movieName} ringtones and BGM. Listen to the best flute, vocal, and instrumental cuts from ${movieName} for free on TamilRing.`;
+  // Get ringtone count
+  const { count } = await supabase
+    .from('ringtones')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'approved')
+    .eq('movie_name', movieName);
 
-  return {
-    title,
-    description,
-    openGraph: {
-      title,
-      description,
-      type: 'website',
-      images: movie.poster_url ? [{ url: movie.poster_url }] : [],
-    },
-    twitter: {
-      card: 'summary',
-      title,
-      description,
-      images: movie.poster_url ? [movie.poster_url] : [],
-    },
-  };
+  // Use our SEO metadata generator
+  return generateMovieMetadata({
+    name: movieName,
+    poster_url: movieData.poster_url,
+    year: movieData.movie_year,
+    director: movieData.movie_director,
+    music_director: movieData.music_director,
+    ringtone_count: count || 0,
+  });
 }
 
 export default async function MoviePage({
@@ -85,6 +93,26 @@ export default async function MoviePage({
 
   const movie = ringtones?.[0];
 
+  // Generate structured data
+  const movieSchema = movie ? generateMovieSchema({
+    name: movieName,
+    poster_url: movie.poster_url,
+    year: movie.movie_year,
+    director: movie.movie_director,
+    music_director: movie.music_director,
+    ringtones: ringtones?.slice(0, 10).map(r => ({ title: r.title, slug: r.slug })),
+  }) : null;
+
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: 'Movies', url: '/movies' },
+    { name: movieName, url: `/movie/${encodeURIComponent(movieName)}` },
+  ]);
+
+  const combinedSchema = movieSchema
+    ? combineSchemas(movieSchema, breadcrumbSchema)
+    : breadcrumbSchema;
+
   return (
     <div className="max-w-md mx-auto">
       {/* Hero Header */}
@@ -94,6 +122,9 @@ export default async function MoviePage({
             src={movie.backdrop_url}
             alt={movieName}
             fill
+            sizes="100vw"
+            quality={60}
+            priority
             className="object-cover opacity-50"
           />
         ) : (
@@ -118,7 +149,7 @@ export default async function MoviePage({
         <div className="absolute bottom-0 left-0 p-6 flex items-end gap-4">
           {movie?.poster_url && (
             <div className="relative w-24 h-36 rounded-lg overflow-hidden shadow-2xl border border-neutral-700">
-              <Image src={movie.poster_url} alt={movieName} fill className="object-cover" />
+              <Image src={movie.poster_url} alt={movieName} fill sizes="96px" quality={80} className="object-cover" />
             </div>
           )}
           <div className="mb-2">
@@ -145,6 +176,9 @@ export default async function MoviePage({
           </div>
         )}
       </div>
+
+      {/* Structured Data */}
+      <StructuredData data={combinedSchema} />
     </div>
   );
 }

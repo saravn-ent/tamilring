@@ -11,22 +11,30 @@ import VideoDownloadButton from './VideoDownloadButton';
 import StreamButtons from '@/components/StreamButtons';
 import { splitArtists } from '@/lib/utils';
 import { cache } from 'react';
-
 import ShareButton from '@/components/ShareButton';
-import { JsonLdScript } from '@/components/JsonLdScript';
+import { cacheGetOrSet, CacheKeys, CacheTTL } from '@/lib/cache';
+import { generateRingtoneMetadata } from '@/lib/seo';
+import { generateMusicRecordingSchema, generateBreadcrumbSchema, combineSchemas } from '@/lib/seo';
+import StructuredData from '@/components/StructuredData';
 
 interface Props {
   params: Promise<{ slug: string }>;
 }
 
-// Deduped data fetching
+// Deduped data fetching with Redis caching
 const getRingtone = cache(async (slug: string) => {
-  const { data: ringtone } = await supabase
-    .from('ringtones')
-    .select('*')
-    .eq('slug', slug)
-    .single();
-  return ringtone;
+  return cacheGetOrSet(
+    CacheKeys.ringtone.bySlug(slug),
+    async () => {
+      const { data: ringtone } = await supabase
+        .from('ringtones')
+        .select('*')
+        .eq('slug', slug)
+        .single();
+      return ringtone;
+    },
+    { ttl: CacheTTL.ringtone.details }
+  );
 });
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -35,23 +43,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!ringtone) return { title: 'Ringtone Not Found' };
 
-  const musicDir = ringtone.music_director || 'Unknown';
-
-  const cleanTitle = ringtone.title.replace(/\(From ".*?"\)/i, '').trim();
-
-  return {
-    title: `${cleanTitle} Ringtone Download - ${ringtone.movie_name} | ${musicDir} | Free MP3`,
-    description: `Download ${cleanTitle} ringtone by ${ringtone.singers} from the tamil movie ${ringtone.movie_name}. High quality 320kbps BGM, Cut Songs, and Mass Dialogues for mobile.`,
-    alternates: {
-      canonical: `/ringtone/${slug}`,
-    },
-    openGraph: {
-      title: `${cleanTitle} Ringtone Download`,
-      description: `Download ${cleanTitle} ringtone from ${ringtone.movie_name}.`,
-      images: ringtone.poster_url ? [{ url: ringtone.poster_url }] : [],
-      type: 'music.song',
-    },
-  };
+  // Use our SEO metadata generator
+  return generateRingtoneMetadata(ringtone);
 }
 
 export default async function RingtonePage({ params }: Props) {
@@ -60,85 +53,17 @@ export default async function RingtonePage({ params }: Props) {
 
   if (!ringtone) notFound();
 
-  // Strict AudioObject Schema for "Play" Button
   const cleanTitle = ringtone.title.replace(/\(From ".*?"\)/i, '').trim();
 
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@graph': [
-      // 1. Breadcrumb List
-      {
-        '@type': 'BreadcrumbList',
-        'itemListElement': [
-          {
-            '@type': 'ListItem',
-            'position': 1,
-            'name': 'Home',
-            'item': 'https://tamilring.in'
-          },
-          {
-            '@type': 'ListItem',
-            'position': 2,
-            'name': 'Tamil Ringtones',
-            'item': 'https://tamilring.in/tamil'
-          },
-          {
-            '@type': 'ListItem',
-            'position': 3,
-            'name': ringtone.movie_name,
-            'item': `https://tamilring.in/tamil/movies/${encodeURIComponent(ringtone.movie_name)}`
-          },
-          {
-            '@type': 'ListItem',
-            'position': 4,
-            'name': cleanTitle
-          }
-        ]
-      },
-      // 2. Audio Object (The Core Content)
-      {
-        '@type': 'AudioObject',
-        'name': `${cleanTitle} - ${ringtone.movie_name}`,
-        'description': `Download free ${cleanTitle} ringtone from the Tamil movie ${ringtone.movie_name}. Composed by ${ringtone.music_director}. Quality: 320kbps MP3/M4R.`,
-        'contentUrl': ringtone.audio_url,
-        'encodingFormat': 'audio/mpeg',
-        'duration': 'PT30S', // Changed to PT30S (ISO 8601 standard)
-        'thumbnailUrl': ringtone.poster_url,
-        'uploadDate': ringtone.created_at,
-        'interactionStatistic': {
-          '@type': 'InteractionCounter',
-          'interactionType': { '@type': 'DownloadAction' },
-          'userInteractionCount': ringtone.downloads
-        },
-        'isPartOf': {
-          '@type': 'MusicAlbum',
-          'name': ringtone.movie_name
-        }
-      },
-      // 3. FAQ Page (For AEO / Voice Search Answers)
-      {
-        '@type': 'FAQPage',
-        'mainEntity': [
-          {
-            '@type': 'Question',
-            'name': `How to download ${cleanTitle} ringtone?`,
-            'acceptedAnswer': {
-              '@type': 'Answer',
-              'text': `You can download the ${cleanTitle} ringtone for free on TamilRing.in. Click the 'Download' button to save it as an MP3 (for Android) or M4R (for iPhone).`
-            }
-          },
-          {
-            '@type': 'Question',
-            'name': `Which movie is the song ${cleanTitle} from?`,
-            'acceptedAnswer': {
-              '@type': 'Answer',
-              'text': `${cleanTitle} is a song from the Tamil movie '${ringtone.movie_name}', composed by ${ringtone.music_director || 'Unknown'}.`
-            }
-          }
-        ]
-      }
-    ]
-  };
+  // Generate structured data using our SEO system
+  const musicRecordingSchema = generateMusicRecordingSchema(ringtone);
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: 'Tamil Ringtones', url: '/tamil' },
+    { name: ringtone.movie_name, url: `/movie/${encodeURIComponent(ringtone.movie_name)}` },
+    { name: cleanTitle, url: `/ringtone/${ringtone.slug}` },
+  ]);
+  const combinedSchema = combineSchemas(musicRecordingSchema, breadcrumbSchema);
 
   return (
     <div className="max-w-md mx-auto min-h-screen bg-neutral-900 relative flex flex-col">
@@ -150,6 +75,8 @@ export default async function RingtonePage({ params }: Props) {
             alt={ringtone.movie_name}
             fill
             priority
+            quality={60}
+            sizes="100vw"
             className="object-cover mask-image-gradient"
           />
         )}
@@ -179,6 +106,8 @@ export default async function RingtonePage({ params }: Props) {
                 alt={ringtone.movie_name}
                 fill
                 priority
+                quality={85}
+                sizes="(max-width: 640px) 50vw, 128px"
                 className="object-cover"
               />
             ) : (
@@ -259,7 +188,7 @@ export default async function RingtonePage({ params }: Props) {
 
 
 
-      <JsonLdScript data={jsonLd} />
+      <StructuredData data={combinedSchema} />
     </div >
   );
 }

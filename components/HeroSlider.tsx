@@ -105,6 +105,7 @@ export default function HeroSlider({ ringtones, movieName, totalLikes }: HeroSli
                     className="object-cover"
                     priority={idx === currentIndex || idx === (currentIndex + 1) % ringtones.length || idx === (currentIndex - 1 + ringtones.length) % ringtones.length}
                     fetchPriority={idx === currentIndex ? "high" : "auto"}
+                    quality={85}
                     sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   />
                 ) : (

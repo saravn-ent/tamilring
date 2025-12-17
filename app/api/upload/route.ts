@@ -102,16 +102,14 @@ async function validateUpload(file: File): Promise<string | null> {
     return null; // Valid
 }
 
+import { ratelimit } from '@/lib/rate-limit';
+
 /**
  * Rate limiting check
- * TODO: Implement proper rate limiting with Redis/Upstash
  */
 async function checkRateLimit(userId: string): Promise<boolean> {
-    // For now, return true (allow)
-    // In production, implement:
-    // - Max 5 uploads per user per day
-    // - Max 50MB total per user per day
-    return true;
+    const { success } = await ratelimit.limit(`upload_limit:${userId}`);
+    return success;
 }
 
 export async function POST(request: NextRequest) {

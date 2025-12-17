@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Scissors, Music, Youtube, Upload, ArrowLeft } from 'lucide-react';
 import Script from 'next/script';
-import YouTubeImporter from '@/components/YouTubeImporter';
+
 import AudioTrimmer from '@/components/AudioTrimmer';
 
 export default function TrimPage() {
@@ -44,8 +44,8 @@ export default function TrimPage() {
                             <button
                                 onClick={() => setActiveTab('upload')}
                                 className={`p-4 font-bold text-sm flex items-center justify-center gap-2 transition-colors ${activeTab === 'upload'
-                                        ? 'bg-neutral-800 text-white'
-                                        : 'text-zinc-500 hover:text-zinc-300 hover:bg-neutral-800/50'
+                                    ? 'bg-neutral-800 text-white'
+                                    : 'text-zinc-500 hover:text-zinc-300 hover:bg-neutral-800/50'
                                     }`}
                             >
                                 <Upload size={18} /> Upload File
@@ -53,8 +53,8 @@ export default function TrimPage() {
                             <button
                                 onClick={() => setActiveTab('youtube')}
                                 className={`p-4 font-bold text-sm flex items-center justify-center gap-2 transition-colors ${activeTab === 'youtube'
-                                        ? 'bg-neutral-800 text-white'
-                                        : 'text-zinc-500 hover:text-zinc-300 hover:bg-neutral-800/50'
+                                    ? 'bg-neutral-800 text-white'
+                                    : 'text-zinc-500 hover:text-zinc-300 hover:bg-neutral-800/50'
                                     }`}
                             >
                                 <Youtube size={18} /> YouTube
@@ -82,7 +82,22 @@ export default function TrimPage() {
                                     </label>
                                 </div>
                             ) : (
-                                <YouTubeImporter onLoad={(f) => setFile(f)} />
+                                <div className="text-center space-y-4 py-10">
+                                    <div className="w-16 h-16 bg-neutral-800 rounded-full flex items-center justify-center mx-auto text-zinc-600">
+                                        <Youtube size={32} />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-bold text-zinc-300">YouTube Import Coming Soon</h3>
+                                        <p className="text-sm text-zinc-500 max-w-xs mx-auto mt-2">
+                                            We are upgrading our YouTube importer to provide a faster and more reliable experience.
+                                        </p>
+                                    </div>
+                                    <div className="pt-2">
+                                        <p className="text-xs text-emerald-500 font-mono bg-emerald-500/10 px-3 py-1 rounded-full inline-block">
+                                            ETA: Next Update
+                                        </p>
+                                    </div>
+                                </div>
                             )}
                         </div>
                     </div>

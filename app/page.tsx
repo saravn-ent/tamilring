@@ -15,8 +15,14 @@ import { splitArtists } from '@/lib/utils';
 import { getLevelTitle } from '@/lib/gamification';
 import AvatarRank from '@/components/AvatarRank';
 import { JsonLdScript } from '@/components/JsonLdScript';
+import { generateHomeMetadata } from '@/lib/seo';
+import { generateOrganizationSchema, generateWebSiteSchema, combineSchemas } from '@/lib/seo';
+import StructuredData from '@/components/StructuredData';
 
 export const revalidate = 3600; // Revalidate every hour
+
+// Generate SEO metadata for homepage
+export const metadata = generateHomeMetadata();
 
 const getTopArtists = unstable_cache(
   async () => {
@@ -248,22 +254,14 @@ export default async function Home() {
     level: c.level
   }));
 
-  // JSON-LD for WebSite
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'WebSite',
-    name: 'TamilRing',
-    url: 'https://tamilring.in',
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: 'https://tamilring.in/search?q={search_term_string}',
-      'query-input': 'required name=search_term_string'
-    }
-  };
+  // Generate structured data schemas
+  const organizationSchema = generateOrganizationSchema();
+  const websiteSchema = generateWebSiteSchema();
+  const combinedSchema = combineSchemas(organizationSchema, websiteSchema);
 
   return (
     <div className="w-full md:max-w-6xl mx-auto pb-20">
-      <JsonLdScript data={jsonLd} />
+      <StructuredData data={combinedSchema} />
 
       {/* Visual Hidden H1 for SEO */}
       <h1 className="sr-only">
@@ -308,7 +306,7 @@ export default async function Home() {
               <Link key={ringtone.id} href={`/ringtone/${ringtone.slug}`} className="snap-start shrink-0 w-32 group">
                 <div className="relative w-32 h-40 rounded-xl overflow-hidden mb-2 bg-zinc-200 dark:bg-neutral-800 shadow-lg group-hover:shadow-emerald-500/10 transition-all">
                   {ringtone.poster_url ? (
-                    <Image src={ringtone.poster_url} alt={ringtone.title} fill sizes="128px" className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <Image src={ringtone.poster_url} alt={ringtone.title} fill sizes="(max-width: 768px) 33vw, 128px" quality={75} loading="lazy" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 text-xs">No Img</div>
                   )}
@@ -437,7 +435,7 @@ export default async function Home() {
             <Link key={ringtone.id} href={`/ringtone/${ringtone.slug}`} className="snap-start shrink-0 w-32 group">
               <div className="relative w-32 h-40 rounded-xl overflow-hidden mb-2 bg-zinc-200 dark:bg-neutral-800 shadow-lg group-hover:shadow-emerald-500/10 transition-all">
                 {ringtone.poster_url ? (
-                  <Image src={ringtone.poster_url} alt={ringtone.title} fill sizes="128px" className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                  <Image src={ringtone.poster_url} alt={ringtone.title} fill sizes="(max-width: 768px) 33vw, 128px" quality={75} loading="lazy" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 text-xs">No Img</div>
                 )}

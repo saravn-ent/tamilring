@@ -26,8 +26,10 @@ export default function ImageWithFallback({
   fallbackText,
   sizes,
   priority = false
-}: ImageWithFallbackProps) {
+}: ImageWithFallbackProps & { quality?: number; loading?: 'lazy' | 'eager' }) {
   const [error, setError] = useState(false);
+
+  // ... (keep getInitials)
 
   const getInitials = (name: string) => {
     return name
@@ -56,6 +58,8 @@ export default function ImageWithFallback({
       fill={fill}
       sizes={sizes}
       priority={priority}
+      quality={arguments[0].quality || 75}
+      loading={arguments[0].loading || (priority ? 'eager' : 'lazy')}
       className={className}
       onError={() => setError(true)}
     />

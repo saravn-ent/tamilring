@@ -1,37 +1,16 @@
-import type { NextConfig } from "next"; // Trigger Rebuild
 
-import withPWAInit from "@ducanh2912/next-pwa";
-
-const withBundleAnalyzer = require('@next/bundle-analyzer')({
-  enabled: process.env.ANALYZE === 'true',
-});
-
-const withPWA = withPWAInit({
-  dest: "public",
-  cacheOnFrontEndNav: true,
-  aggressiveFrontEndNavCaching: true,
-  reloadOnOnline: true,
-
-  disable: process.env.NODE_ENV === "development",
-  workboxOptions: {
-    disableDevLogs: true,
-    skipWaiting: true,
-    clientsClaim: true,
-  },
-});
+import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  compress: true, // Enable Gzip/Brotli compression
-  productionBrowserSourceMaps: false, // Disable source maps to remove warnings
-  turbopack: {},
+  compress: true,
+  // productionBrowserSourceMaps: false, // Commented out to potentially help with debugging if needed, but defaults to false anyway
+
   images: {
-    qualities: [10, 75],
-    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048], // Removed 3840
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'image.tmdb.org',
+        pathname: '/t/p/**',
       },
       {
         protocol: 'https',
@@ -43,47 +22,50 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
-        hostname: 'lh3.googleusercontent.com',
-      },
-      {
-        protocol: 'https',
         hostname: 'ui-avatars.com',
       },
       {
         protocol: 'https',
         hostname: '*.supabase.co',
+        pathname: '/storage/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
       },
     ],
+    // CRITICAL: Reduce image sizes as requested
+    deviceSizes: [640, 750, 828, 1080, 1200],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    formats: ['image/webp'],
   },
+
   async headers() {
     return [
       {
         source: '/:path*',
         headers: [
           {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.vercel-insights.com https://va.vercel-scripts.com https://unpkg.com", // Added unpkg for ffmpeg
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: https: blob:", // https: wildcard needed for external images
+              "font-src 'self' data:",
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://unpkg.com https://api.cobalt.tools https://co.wuk.sh https://cobalt.api.kwiatekmiki.pl https://api.oxcdf.com https://pipedapi.kavin.rocks https://api.piped.privacy.com.de https://pipedapi.moomoo.me https://pipedapi.leptons.xyz https://pipedapi.smnz.de https://api.piped.projectsegfau.lt", // Added APIs for Youtube/FFmpeg
+              "media-src 'self' https://*.supabase.co blob:", // blob: for local preview
+              "frame-ancestors 'none'",
+              "worker-src 'self' blob:", // Needed for ffmpeg web workers
+            ].join('; '),
+          },
+          {
             key: 'X-Frame-Options',
-            value: 'SAMEORIGIN',
+            value: 'DENY',
           },
-          {
-            key: 'Cross-Origin-Opener-Policy',
-            value: 'same-origin',
-          },
-          {
-            key: 'Cross-Origin-Embedder-Policy',
-            value: 'require-corp',
-          },
-
           {
             key: 'X-Content-Type-Options',
             value: 'nosniff',
-          },
-          {
-            key: 'X-XSS-Protection',
-            value: '1; mode=block',
-          },
-          {
-            key: 'X-Permitted-Cross-Domain-Policies',
-            value: 'none',
           },
           {
             key: 'Referrer-Policy',
@@ -94,42 +76,23 @@ const nextConfig: NextConfig = {
             value: 'camera=(), microphone=(), geolocation=()',
           },
           {
-            key: 'StrictMode',
-            value: 'true'
+            key: 'Strict-Transport-Security',
+            value: 'max-age=31536000; includeSubDomains',
           },
-        ],
-      },
-      {
-        // Aggressive Caching for Static Assets (Images, Fonts, CSS, JS)
-        source: '/:all*(svg|jpg|jpeg|png|gif|webp|avif|ico|woff|woff2|ttf|eot|css|js)',
-        headers: [
+          // COOP/COEP required for ffmpeg.wasm / SharedArrayBuffer
           {
-            key: 'Cache-Control',
-            value: 'public, max-age=31536000, immutable',
+            key: 'Cross-Origin-Opener-Policy',
+            value: 'same-origin',
+          },
+          {
+            key: 'Cross-Origin-Embedder-Policy',
+            value: 'require-corp',
           },
         ],
       },
-    ];
-  },
-  async redirects() {
-    return [
-      {
-        source: '/sample-page',
-        destination: '/404',
-        permanent: true,
-      },
-      {
-        source: '/hello-world',
-        destination: '/404',
-        permanent: true,
-      },
-      {
-        source: '/wp-admin',
-        destination: '/admin',
-        permanent: true,
-      }
     ];
   },
 };
 
-export default withBundleAnalyzer(withPWA(nextConfig));
+export default nextConfig;
+

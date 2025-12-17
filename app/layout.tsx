@@ -8,7 +8,7 @@ import BottomNav from "@/components/BottomNav";
 import LegalFooter from "@/components/LegalFooter";
 import TopBar from "@/components/TopBar";
 import { ThemeProvider } from "@/components/ThemeProvider";
-
+import { generateBaseMetadata } from "@/lib/seo";
 
 import { Figtree } from "next/font/google";
 
@@ -26,33 +26,40 @@ export const viewport: Viewport = {
   userScalable: true,
 };
 
+// Enhanced metadata using our SEO system
 export const metadata: Metadata = {
-  metadataBase: new URL('https://tamilring.in'),
-  alternates: {
-    canonical: './',
-  },
-  title: {
-    default: "TamilRing - mobile ringtones",
-    template: "%s | TamilRing"
-  },
+  ...generateBaseMetadata(),
+  // Override with specific values
   description: "Download high quality Tamil ringtones, BGM, and love songs. தமிழ் ரிங்டோன் தரவிறக்கம்.",
   keywords: [
     "tamil ringtones", "bgm download", "tamil cut songs", "latest tamil ringtones", "iphone ringtones",
     "love bgm", "mass bgm", "ringtone tamil", "தமிழ் ரிங்டோன்", "தமிழ் பிஜிஎம்",
-    "tamil love songs", "south indian ringtones"
+    "tamil love songs", "south indian ringtones", "tamil movie ringtones", "devotional ringtones",
+    "tamil cinema music", "kollywood ringtones"
   ],
   openGraph: {
-    title: 'TamilRing',
-    description: 'Download high quality Tamil ringtones, BGM, and love songs.',
+    title: 'TamilRing - Tamil Ringtones & Music',
+    description: 'Download the latest Tamil movie ringtones, devotional songs, and music. High-quality ringtones from Tamil cinema.',
     url: 'https://tamilring.in',
     siteName: 'TamilRing',
-    locale: 'en_US',
+    locale: 'ta_IN',
     type: 'website',
+    images: [
+      {
+        url: 'https://tamilring.in/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'TamilRing - Tamil Ringtones',
+      },
+    ],
   },
   twitter: {
-    card: 'summary',
-    title: 'TamilRing',
-    description: 'Download high quality Tamil ringtones, BGM, and love songs.',
+    card: 'summary_large_image',
+    title: 'TamilRing - Tamil Ringtones & Music',
+    description: 'Download the latest Tamil movie ringtones, devotional songs, and music.',
+    images: ['https://tamilring.in/og-image.png'],
+    creator: '@tamilring',
+    site: '@tamilring',
   },
   appleWebApp: {
     capable: true,
@@ -61,6 +68,8 @@ export const metadata: Metadata = {
   },
   formatDetection: {
     telephone: false,
+    email: false,
+    address: false,
   },
   robots: {
     index: true,

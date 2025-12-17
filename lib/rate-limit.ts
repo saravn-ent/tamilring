@@ -1,29 +1,39 @@
-import { Ratelimit } from '@upstash/ratelimit';
-import { Redis } from '@upstash/redis';
+import { Ratelimit } from '@upstash/ratelimit'
+import { Redis } from '@upstash/redis'
 
-// Create a new ratelimiter, that allows 10 requests per 10 seconds
-let limiter: Ratelimit | null = null;
+// For development/testing without Upstash
+class InMemoryRateLimiter {
+    private requests: Map<string, number[]> = new Map()
 
-try {
-    if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-        limiter = new Ratelimit({
-            redis: Redis.fromEnv(),
-            limiter: Ratelimit.slidingWindow(20, '10 s'),
-            analytics: true,
-            prefix: '@upstash/ratelimit',
-        });
+    async limit(identifier: string) {
+        const now = Date.now()
+        const windowMs = 10000 // 10 seconds
+        const maxRequests = 10
+
+        const userRequests = this.requests.get(identifier) || []
+        const recentRequests = userRequests.filter(time => now - time < windowMs)
+
+        if (recentRequests.length >= maxRequests) {
+            return { success: false, limit: maxRequests, remaining: 0, reset: now + windowMs }
+        }
+
+        recentRequests.push(now)
+        this.requests.set(identifier, recentRequests)
+
+        return {
+            success: true,
+            limit: maxRequests,
+            remaining: maxRequests - recentRequests.length,
+            reset: now + windowMs
+        }
     }
-} catch (e) {
-    console.warn("Rate limit init failed (lib/rate-limit):", e);
 }
 
-export const ratelimit = limiter;
-
-// Helper for API usage
-export async function checkRateLimit(identifier: string) {
-    if (!ratelimit) {
-        return { success: true, limit: 100, reset: 0, remaining: 100 };
-    }
-    const { success, limit, reset, remaining } = await ratelimit.limit(identifier);
-    return { success, limit, reset, remaining };
-}
+// Use Upstash in production, in-memory for dev
+export const ratelimit = process.env.UPSTASH_REDIS_REST_URL
+    ? new Ratelimit({
+        redis: Redis.fromEnv(),
+        limiter: Ratelimit.slidingWindow(10, '10 s'),
+        analytics: true,
+    })
+    : new InMemoryRateLimiter()

@@ -148,7 +148,9 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
                 src={ringtone.poster_url || '/placeholder-cover.jpg'}
                 alt={ringtone.title}
                 fill
-                sizes="80px"
+                sizes="(max-width: 640px) 25vw, 80px"
+                quality={75}
+                loading="lazy"
                 className="object-cover transition-transform duration-700 group-hover:scale-110"
               />
 
