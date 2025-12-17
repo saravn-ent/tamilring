@@ -1,350 +1,337 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { Play, Pause, ZoomIn, ZoomOut, Scissors, RotateCcw } from 'lucide-react';
+import type WaveSurfer from 'wavesurfer.js';
+import type RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js';
 
-export default function AudioTrimmer({ file, onTrimChange }: { file: File, onTrimChange: (start: number, end: number) => void }) {
+export default function AudioTrimmer({ file, onRangeChange }: { file: File, onRangeChange?: (start: number, end: number) => void }) {
     const containerRef = useRef<HTMLDivElement>(null);
-    const wsRef = useRef<any>(null);
-    const regionsRef = useRef<any>(null);
+    const timelineRef = useRef<HTMLDivElement>(null);
+    const wsRef = useRef<WaveSurfer | null>(null);
+    const regionsRef = useRef<RegionsPlugin | null>(null);
+    const ffmpegRef = useRef<any>(null);
 
     const [isPlaying, setIsPlaying] = useState(false);
-    const [zoom, setZoom] = useState(0); // 0 = fit
+    const [zoom, setZoom] = useState(0);
     const [isReady, setIsReady] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
     const [localStart, setLocalStart] = useState(0);
     const [localEnd, setLocalEnd] = useState(30);
+    const MIN_DURATION = 10;
+    const [processing, setProcessing] = useState(false);
+    const [ffmpegLoaded, setFfmpegLoaded] = useState(false);
 
-    const updateRegion = (start: number, end: number) => {
-        if (!regionsRef.current) return;
-        regionsRef.current.clearRegions();
-        regionsRef.current.addRegion({
-            start,
-            end,
-            color: 'rgba(244, 63, 94, 0.4)',
-            drag: true,
-            resize: true
-        });
-        onTrimChange(start, end);
-    };
+    const loadingRef = useRef(false);
 
+    // Load FFmpeg
     useEffect(() => {
-        if (!containerRef.current || !file) return;
+        const loadFFmpeg = async () => {
+            const FFmpeg = (window as any).FFmpeg;
+            if (!FFmpeg) return;
 
-        let ws: any;
-        const initWaveSurfer = async () => {
+            if (loadingRef.current) return;
+            loadingRef.current = true;
+
+            try {
+                if (!ffmpegRef.current) {
+                    ffmpegRef.current = FFmpeg.createFFmpeg({
+                        log: true,
+                        corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js',
+                    });
+                }
+                if (!ffmpegRef.current.isLoaded()) {
+                    await ffmpegRef.current.load();
+                }
+                setFfmpegLoaded(true);
+            } catch (e) {
+                console.error("FFmpeg Error:", e);
+            } finally {
+                loadingRef.current = false;
+            }
+        };
+        loadFFmpeg();
+    }, []);
+
+    // Initialize WaveSurfer
+    useEffect(() => {
+        if (!containerRef.current || !timelineRef.current || !file) return;
+
+        let ws: WaveSurfer;
+        let wsRegions: RegionsPlugin;
+
+        const init = async () => {
             try {
                 const WaveSurferModule = await import('wavesurfer.js');
+                const Regions = await import('wavesurfer.js/dist/plugins/regions.esm.js');
+                const Timeline = await import('wavesurfer.js/dist/plugins/timeline.esm.js');
+
                 const WaveSurfer = WaveSurferModule.default || WaveSurferModule;
+                const RegionsPlugin = Regions.default || Regions;
+                const TimelinePlugin = Timeline.default || Timeline;
 
-                const RegionsPluginModule = await import('wavesurfer.js/dist/plugins/regions.esm.js');
-                const RegionsPlugin = RegionsPluginModule.default || RegionsPluginModule;
-
-                if (wsRef.current) {
-                    wsRef.current.destroy();
-                }
+                if (wsRef.current) wsRef.current.destroy();
 
                 ws = WaveSurfer.create({
                     container: containerRef.current!,
-                    waveColor: '#3f3f46',
-                    progressColor: '#059669',
-                    cursorColor: '#10b981',
-                    barWidth: 3,
+                    waveColor: '#52525b', // Zinc 600
+                    progressColor: '#10b981', // Emerald 500
+                    cursorColor: '#facc15',   // Yellow 400
+                    barWidth: 2,
                     barGap: 3,
                     barRadius: 3,
-                    height: 160,
+                    height: 120,
                     url: URL.createObjectURL(file), // Helper to create blob URL
                     normalize: true,
-                    minPxPerSec: 0,
+                    minPxPerSec: 50, // Minimum zoom for better visibility
+                    interact: true,
+                    hideScrollbar: false,
+                    plugins: [
+                        TimelinePlugin.create({
+                            container: timelineRef.current!,
+                            height: 20,
+                            style: {
+                                fontSize: '11px',
+                                color: '#a1a1aa',
+                            }
+                        }),
+                        wsRegions = RegionsPlugin.create()
+                    ]
                 });
 
-                // Initialize Regions
-                const wsRegions = ws.registerPlugin(RegionsPlugin.create());
+                wsRef.current = ws;
                 regionsRef.current = wsRegions;
 
-                // Event: Decoded (Waveform ready)
                 ws.on('decode', () => {
                     setIsReady(true);
-                    setupDefaultRegion(ws, wsRegions);
+                    initRegion(ws, wsRegions);
                 });
 
-                // Event: Ready (Fallback if decode doesn't trigger for some reason)
-                ws.on('ready', () => {
-                    if (!isReady) setIsReady(true);
-                });
-
-                // Event: Error
-                ws.on('error', (e: any) => {
-                    console.error("WaveSurfer Error:", e);
-                    // Force ready so user isn't stuck, but maybe show error
-                    setIsReady(true);
-                });
-
-                ws.on('timeupdate', (t: number) => {
-                    setCurrentTime(t);
-                });
-
+                ws.on('timeupdate', (t) => setCurrentTime(t));
                 ws.on('play', () => setIsPlaying(true));
                 ws.on('pause', () => setIsPlaying(false));
 
-                wsRegions.on('region-updated', (region: any) => {
-                    onTrimChange(region.start, region.end);
+                // Region Logic
+                wsRegions.on('region-updated', (region) => {
+                    // Enforce Minimum Duration
+                    if (region.end - region.start < MIN_DURATION) {
+                        if (Math.abs(region.start - localStart) > 0.1) {
+                            // Moved Start
+                            region.start = region.end - MIN_DURATION;
+                        } else {
+                            // Moved End
+                            region.end = region.start + MIN_DURATION;
+                        }
+                        // Hack to force update if needed, but usually modifying prop works
+                    }
                     setLocalStart(region.start);
                     setLocalEnd(region.end);
                 });
 
-                wsRegions.on('region-clicked', (region: any, e: any) => {
+                wsRegions.on('region-clicked', (region, e) => {
                     e.stopPropagation();
                     region.play();
                 });
 
-                wsRegions.on('region-out', (region: any) => {
-                    if (isPlaying) region.play();
-                });
-
-                wsRef.current = ws;
             } catch (err) {
-                console.error("WaveSurfer Init Error:", err);
+                console.error("WaveSurfer Init Error", err);
             }
         };
 
-        initWaveSurfer();
+        const initRegion = (wsInstance: any, regionsInstance: any) => {
+            const duration = wsInstance.getDuration();
+            // Center 30s
+            const start = Math.max(0, (duration / 2) - 15);
+            const end = Math.min(start + 30, duration);
+
+            regionsInstance.clearRegions();
+            regionsInstance.addRegion({
+                start,
+                end,
+                color: 'rgba(244, 63, 94, 0.3)',
+                drag: true,
+                resize: true,
+            });
+
+            setLocalStart(start);
+            setLocalEnd(end);
+
+            // Initial Zoom to fit reasonably
+            const fitZoom = containerRef.current!.clientWidth / duration;
+            setZoom(fitZoom);
+            wsInstance.zoom(fitZoom);
+        };
+
+        init();
 
         return () => {
             if (ws) ws.destroy();
         };
     }, [file]);
 
-    const setupDefaultRegion = (ws: any, wsRegions: any) => {
-        setTimeout(() => {
-            try {
-                if (!ws || !ws.backend || ws.isDestroyed) return;
 
-                // Debug Log
-                console.log("Setting up default region...", ws.getDuration());
+    const handleDownload = async (format: 'mp3' | 'm4r') => {
+        if (!ffmpegRef.current || !ffmpegLoaded) return;
+        setProcessing(true);
+        try {
+            const ffmpeg = ffmpegRef.current;
+            const { fetchFile } = (window as any).FFmpeg;
+            const inputName = 'input.audio';
+            const outputName = `ringtone.${format}`;
 
-                // Prevent double init
-                if (wsRegions.getRegions().length > 0) {
-                    console.log("Region already exists:", wsRegions.getRegions());
-                    return;
-                }
+            ffmpeg.FS('writeFile', inputName, await fetchFile(file));
 
-                const duration = ws.getDuration() || 30; // Fallback
+            const duration = localEnd - localStart;
+            let args = [];
 
-                // Center 30s
-                const start = Math.max(0, (duration / 2) - 15);
-                const end = Math.min(start + 30, duration);
-
-                console.log(`Adding region: ${start} - ${end}`);
-
-                const r = wsRegions.addRegion({
-                    start,
-                    end,
-                    color: 'rgba(244, 63, 94, 0.4)',
-                    drag: true,
-                    resize: true,
-                    content: 'Drag me'
-                });
-
-                console.log("Region added:", r);
-
-                // Enable drawing just in case
-                wsRegions.enableDragSelection({
-                    color: 'rgba(244, 63, 94, 0.4)',
-                });
-
-                // Zoom logic
-                const containerWidth = containerRef.current!.clientWidth;
-                const fitZoom = containerWidth / duration;
-                ws.zoom(fitZoom);
-                setZoom(Math.floor(fitZoom));
-                setZoom(Math.floor(fitZoom));
-                onTrimChange(start, end);
-                setLocalStart(start);
-                setLocalEnd(end);
-
-            } catch (e) {
-                console.error("WaveSurfer region setup error:", e);
+            if (format === 'm4r') {
+                // iPhone AAC
+                args = ['-ss', localStart.toString(), '-t', duration.toString(), '-i', inputName, '-c:a', 'aac', '-b:a', '192k', '-f', 'mp4', outputName];
+            } else {
+                // MP3
+                args = ['-ss', localStart.toString(), '-t', duration.toString(), '-i', inputName, '-c:a', 'libmp3lame', '-b:a', '192k', '-f', 'mp3', outputName];
             }
-        }, 100); // Small delay to ensure DOM is ready
-    };
 
-    const togglePlay = () => {
-        if (wsRef.current) {
-            wsRef.current.playPause();
+            await ffmpeg.run(...args);
+            const data = ffmpeg.FS('readFile', outputName);
+            const blob = new Blob([data.buffer], { type: format === 'm4r' ? 'audio/x-m4r' : 'audio/mpeg' });
+
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `tamilring_${Date.now()}.${format}`;
+            a.click();
+
+            ffmpeg.FS('unlink', inputName);
+            ffmpeg.FS('unlink', outputName);
+        } catch (e) {
+            console.error(e);
+            alert("Export failed");
+        } finally {
+            setProcessing(false);
         }
     };
 
-    const handleZoom = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const val = Number(e.target.value);
-        changeZoom(val);
-    };
+    // Propagate range changes
+    useEffect(() => {
+        if (onRangeChange) {
+            onRangeChange(localStart, localEnd);
+        }
+    }, [localStart, localEnd]);
 
-    const changeZoom = (val: number) => {
-        // Enforce fit as minimum
-        const duration = wsRef.current?.getDuration() || 1;
+    // Zoom Controls
+    const updateZoom = (newZoom: number) => {
+        if (!wsRef.current) return;
+        const duration = wsRef.current.getDuration() || 1;
         const width = containerRef.current?.clientWidth || 100;
         const minZoom = width / duration;
+        const appliedZoom = Math.max(minZoom, newZoom);
 
-        const newZoom = Math.max(minZoom, val);
-        setZoom(newZoom);
-        if (wsRef.current) wsRef.current.zoom(newZoom);
+        setZoom(appliedZoom);
+        wsRef.current.zoom(appliedZoom);
     };
 
-    const fitToScreen = () => {
-        if (wsRef.current) {
-            const duration = wsRef.current.getDuration();
-            const width = containerRef.current!.clientWidth;
-            const fitZoom = width / duration;
-            setZoom(fitZoom);
-            wsRef.current.zoom(fitZoom);
-        }
+    const updateRegionManual = (newStart: number, newEnd: number) => {
+        if (!regionsRef.current) return;
+        regionsRef.current.clearRegions();
+        regionsRef.current.addRegion({
+            start: newStart,
+            end: newEnd,
+            color: 'rgba(244, 63, 94, 0.3)',
+            drag: true,
+            resize: true
+        });
+        setLocalStart(newStart);
+        setLocalEnd(newEnd);
     }
 
     const formatTime = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
         const secs = Math.floor(seconds % 60);
-        return `${mins}:${secs.toString().padStart(2, '0')}`;
+        const ms = Math.floor((seconds % 1) * 10);
+        return `${mins}:${secs.toString().padStart(2, '0')}.${ms}`;
     };
 
     return (
-        <div className="bg-black/40 rounded-2xl border border-white/5 p-4 space-y-6 select-none backdrop-blur-sm">
-
-            {/* Waveform Container */}
-            <div className="relative group">
+        <div className="bg-zinc-900 rounded-2xl border border-white/5 p-4 space-y-6 select-none shadow-xl">
+            {/* Waveform Wrapper */}
+            <div className="relative bg-black/40 rounded-xl border border-white/5 p-4">
                 {!isReady && (
-                    <div className="absolute inset-0 flex items-center justify-center text-emerald-500 text-sm font-bold z-10 bg-black/50 rounded-xl">
-                        Loading Waveform...
+                    <div className="absolute inset-0 flex items-center justify-center text-emerald-500 font-bold z-20">
+                        Loading Audio...
                     </div>
                 )}
 
-                {/* Time Indicator */}
-                <div className="absolute top-2 right-2 z-10 bg-black/60 text-white text-[10px] px-2 py-1 rounded-md font-mono border border-white/10">
+                {/* Main Waveform */}
+                <div ref={containerRef} className="w-full" />
+
+                {/* Timeline */}
+                <div ref={timelineRef} className="w-full" />
+
+                <div className="absolute top-2 right-2 text-[10px] font-mono text-zinc-400 pointer-events-none">
                     {formatTime(currentTime)}
                 </div>
-
-                <div
-                    ref={containerRef}
-                    className={`rounded-xl overflow-hidden ${!isReady ? 'opacity-50' : 'opacity-100'} transition-opacity cursor-pointer`}
-                />
             </div>
 
-            {/* Manual Trim Controls (Prominent) */}
-            <div className="flex items-center justify-between gap-4 bg-neutral-800/50 p-3 rounded-xl border border-white/5">
+            {/* Controls */}
+            <div className="flex items-center justify-between gap-4 bg-neutral-800/30 p-3 rounded-xl border border-white/5">
                 <div className="flex flex-col">
-                    <label className="text-[10px] text-zinc-500 uppercase font-bold mb-1">Start (0.0s)</label>
+                    <label className="text-[10px] text-zinc-500 font-bold mb-1">START</label>
                     <input
-                        type="number"
-                        step="0.1"
-                        min="0"
-                        className="w-24 bg-black border border-neutral-700 rounded-lg px-3 py-2 text-center text-lg font-mono font-bold text-white focus:border-emerald-500 outline-none"
+                        type="number" step="0.1"
                         value={localStart.toFixed(1)}
-                        onChange={(e) => {
-                            const val = Math.max(0, Number(e.target.value));
-                            setLocalStart(val);
-                            updateRegion(val, localEnd);
-                        }}
+                        onChange={(e) => updateRegionManual(Number(e.target.value), localEnd)}
+                        className="w-20 bg-black border border-neutral-700 rounded-lg p-1 text-center text-sm font-mono text-white"
                     />
                 </div>
-
-                <div className="text-zinc-500 font-mono text-xs">TO</div>
-
+                <div className="text-rose-500 font-mono text-sm font-bold bg-rose-500/10 px-3 py-1 rounded">
+                    {(localEnd - localStart).toFixed(1)}s
+                </div>
                 <div className="flex flex-col items-end">
-                    <label className="text-[10px] text-zinc-500 uppercase font-bold mb-1">End (30.0s)</label>
+                    <label className="text-[10px] text-zinc-500 font-bold mb-1">END</label>
                     <input
-                        type="number"
-                        step="0.1"
-                        className="w-24 bg-black border border-neutral-700 rounded-lg px-3 py-2 text-center text-lg font-mono font-bold text-white focus:border-emerald-500 outline-none"
+                        type="number" step="0.1"
                         value={localEnd.toFixed(1)}
-                        onChange={(e) => {
-                            const val = Number(e.target.value);
-                            setLocalEnd(val);
-                            updateRegion(localStart, val);
-                        }}
+                        onChange={(e) => updateRegionManual(localStart, Number(e.target.value))}
+                        className="w-20 bg-black border border-neutral-700 rounded-lg p-1 text-center text-sm font-mono text-white"
                     />
                 </div>
             </div>
 
-            {/* Main Controls */}
-            <div className="flex flex-col gap-6">
-
-                {/* Play/Pause & Time */}
-                <div className="flex items-center justify-center gap-6">
-                    <button
-                        onClick={() => {
-                            if (wsRef.current) {
-                                wsRef.current.seekTo(0);
-                                wsRef.current.play();
-                            }
-                        }}
-                        className="p-3 rounded-full text-zinc-400 hover:text-white hover:bg-white/10 transition-colors"
-                        title="Restart"
-                        aria-label="Restart Audio"
-                    >
-                        <RotateCcw size={20} />
-                    </button>
-
-                    <button
-                        onClick={togglePlay}
-                        className="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center text-black hover:bg-emerald-400 transition-all shadow-lg shadow-emerald-500/20 active:scale-95"
-                        aria-label={isPlaying ? "Pause" : "Play"}
-                    >
-                        {isPlaying ? <Pause size={28} fill="currentColor" /> : <Play size={28} fill="currentColor" className="ml-1" />}
-                    </button>
-
-                    <div className="text-center w-20">
-                        {/* Placeholder for symmetry or secondary button */}
-                        <div className="text-[10px] text-zinc-500 uppercase tracking-widest font-bold">Zoom</div>
-                        <div className="flex items-center justify-center gap-1 mt-1">
-                            <button onClick={() => changeZoom(zoom - 10)} className="text-zinc-400 hover:text-emerald-500 p-1" aria-label="Zoom Out"><ZoomOut size={16} /></button>
-                            <button onClick={() => changeZoom(zoom + 10)} className="text-zinc-400 hover:text-emerald-500 p-1" aria-label="Zoom In"><ZoomIn size={16} /></button>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Range Slider for Zoom (Secondary) */}
-                <div className="flex items-center gap-3 px-2">
-                    <span className="text-[10px] text-zinc-600 font-bold uppercase">Detail</span>
-                    <input
-                        type="range"
-                        min="0"
-                        max="200"
-                        value={zoom}
-                        onChange={handleZoom}
-                        className="w-full accent-emerald-500 h-1.5 bg-neutral-800 rounded-lg appearance-none cursor-pointer"
-                        aria-label="Zoom Level"
-                    />
-                    <button onClick={fitToScreen} className="text-[10px] font-bold text-emerald-500 whitespace-nowrap hover:text-emerald-400 px-2 py-1 bg-emerald-500/10 rounded-md">
-                        FIT VIEW
-                    </button>
+            {/* Actions */}
+            <div className="flex justify-center gap-6">
+                <button onClick={() => { wsRef.current?.seekTo(0); wsRef.current?.play(); }} className="p-3 text-zinc-400 hover:text-white bg-white/5 rounded-full">
+                    <RotateCcw size={20} />
+                </button>
+                <button onClick={() => wsRef.current?.playPause()} className="w-14 h-14 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 transition">
+                    {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="ml-1" />}
+                </button>
+                <div className="flex gap-2">
+                    <button onClick={() => updateZoom(zoom - 10)} className="p-3 text-zinc-400 hover:text-emerald-500 bg-white/5 rounded-full"><ZoomOut size={20} /></button>
+                    <button onClick={() => updateZoom(zoom + 10)} className="p-3 text-zinc-400 hover:text-emerald-500 bg-white/5 rounded-full"><ZoomIn size={20} /></button>
                 </div>
             </div>
 
-            <div className="text-xs text-zinc-500 text-center border-t border-white/5 pt-3">
-                <span className="text-rose-500 font-bold">Tip: </span>
-                Drag the highlighted rose box to select the ringtone part.
+            <div className="grid grid-cols-2 gap-4 border-t border-white/5 pt-4">
+                <button onClick={() => handleDownload('mp3')} disabled={processing} className="flex justify-center items-center gap-2 bg-emerald-500 text-black font-bold py-3 rounded-xl hover:bg-emerald-400 disabled:opacity-50">
+                    <Scissors size={18} /> {processing ? 'Processing...' : 'Download MP3'}
+                </button>
+                <button onClick={() => handleDownload('m4r')} disabled={processing} className="flex justify-center items-center gap-2 bg-neutral-800 text-white border border-neutral-700 font-bold py-3 rounded-xl hover:bg-neutral-700 disabled:opacity-50">
+                    <Scissors size={18} /> {processing ? 'Processing...' : 'iPhone Audio'}
+                </button>
             </div>
 
-
-
+            {/* Styles for better Region Handles */}
             <style jsx global>{`
-                div[part="region"] {
-                    z-index: 99 !important;
-                    background-color: rgba(244, 63, 94, 0.4) !important;
-                    border: 1px solid rgba(244, 63, 94, 0.8) !important;
-                }
                 .wavesurfer-region {
-                    z-index: 99 !important;
-                    position: absolute !important;
-                    height: 100% !important;
-                    background-color: rgba(244, 63, 94, 0.4) !important;
+                    border: 1px solid rgba(244, 63, 94, 0.5) !important;
+                    z-index: 10;
                 }
+                /* Custom Handles via pseudo elements on the region class if accessible, 
+                   but standard WaveSurfer v7 regions handle interactions well without custom CSS handle hacks 
+                   if we just ensure the hit area is good. The border helps. 
+                */
             `}</style>
         </div>
     );
 }
-
-// Global CSS styles for WaveSurfer regions handles to make them mobile friendly
-// We can't easily inject this scoped, so we rely on global or style tag.
-// Since we are in comp, maybe we just assume standard wavesurfer region handles are okay,
-// but we really want them thicker.

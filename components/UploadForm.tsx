@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Upload, Search, Music, Check, Loader2, X, RefreshCw, AlertCircle, Film, ChevronDown, Wand2, ArrowRight, Sparkles, Heart, Pencil } from 'lucide-react';
+import { Upload, Search, Music, Check, Loader2, X, RefreshCw, AlertCircle, Film, ChevronDown, Wand2, ArrowRight, Sparkles, Heart, Pencil, Scissors } from 'lucide-react';
 import ArtistAutocomplete from './ArtistAutocomplete';
+import AudioTrimmer from './AudioTrimmer';
 import { searchMovies, MovieResult, getImageUrl, getMovieCredits, TMDB_GENRE_TO_TAG } from '@/lib/tmdb';
 import { getSongsByMovie, iTunesRing } from '@/lib/itunes';
 import { createBrowserClient } from '@supabase/ssr';
@@ -22,6 +23,8 @@ export default function UploadForm() {
 
   const [step, setStep] = useState(1);
   const [file, setFile] = useState<File | null>(null);
+  const [trimStart, setTrimStart] = useState(0);
+  const [trimEnd, setTrimEnd] = useState(0);
 
   // Content Type Selection
   const [contentType, setContentType] = useState<'movie' | 'album' | 'devotional'>('movie');
@@ -217,8 +220,8 @@ export default function UploadForm() {
       const selectedFile = e.target.files[0];
       setFile(selectedFile);
 
-      // Go to Content Type Selection
-      setStep(1.8);
+      // Go to Trimming Step
+      setStep(1.5);
       loadFFmpeg().catch(console.error);
     }
   };
@@ -355,7 +358,7 @@ export default function UploadForm() {
   }, [songName, manualMovieName, segmentName]);
 
 
-  const convertAudio = async (inputFile: File, targetFormat: 'mp3' | 'm4r'): Promise<Blob> => {
+  const convertAudio = async (inputFile: File, targetFormat: 'mp3' | 'm4r', startTime: number = 0, duration: number = 0): Promise<Blob> => {
     await loadFFmpeg();
     const ffmpeg = ffmpegRef.current!;
     const { fetchFile } = (window as any).FFmpeg;
@@ -371,6 +374,11 @@ export default function UploadForm() {
       // Command args
       let args: string[] = [];
       const commonArgs = ['-i', inputName];
+
+      // Add trimming if specified
+      if (duration > 0) {
+        commonArgs.unshift('-ss', startTime.toString(), '-t', duration.toString());
+      }
 
       if (targetFormat === 'm4r') {
         // Force mp4 container for m4r
@@ -420,9 +428,10 @@ export default function UploadForm() {
       setLoadingMessage('Optimizing audio...');
       console.log('Starting conversion...');
       try {
-        mp3Blob = await convertAudio(file, 'mp3');
+        const duration = (trimEnd > 0 && trimStart >= 0) ? (trimEnd - trimStart) : 0;
+        mp3Blob = await convertAudio(file, 'mp3', trimStart, duration);
         console.log('MP3 conversion done');
-        m4rBlob = await convertAudio(file, 'm4r');
+        m4rBlob = await convertAudio(file, 'm4r', trimStart, duration);
         console.log('M4R conversion done');
       } catch (convErr) {
         console.error('Conversion Error:', convErr);
@@ -635,6 +644,40 @@ export default function UploadForm() {
 
 
 
+
+      {/* Step 1.5: Trimming */}
+      {step === 1.5 && file && (
+        <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
+          <div className="flex items-center gap-2 mb-2">
+            <Scissors className="text-emerald-500" size={20} />
+            <h2 className="text-lg font-bold text-white">Trim Audio</h2>
+          </div>
+
+          <AudioTrimmer
+            file={file}
+            onRangeChange={(start, end) => {
+              setTrimStart(start);
+              setTrimEnd(end);
+            }}
+          />
+
+          <div className="flex justify-between pt-4">
+            <button
+              onClick={() => { setStep(1); setFile(null); }}
+              className="text-zinc-400 hover:text-zinc-100 text-sm"
+            >
+              Change File
+            </button>
+            <button
+              onClick={() => setStep(1.8)}
+              className="bg-emerald-500 text-neutral-900 font-bold py-3 px-8 rounded-xl hover:bg-emerald-400 transition-all flex items-center gap-2"
+            >
+              Next <ArrowRight size={18} />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Step 1.8: Content Type Selection */}
       {step === 1.8 && (
         <div className="space-y-6">
@@ -711,12 +754,12 @@ export default function UploadForm() {
             </button>
           </div>
 
-          <div className="pt-4">
+          <div className="pt-4 flex justify-between">
             <button
-              onClick={() => { setStep(1); setFile(null); }}
+              onClick={() => setStep(1.5)}
               className="text-zinc-400 hover:text-zinc-100 text-sm"
             >
-              Change File
+              Back to Trim
             </button>
           </div>
         </div>

@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@distube/ytdl-core": "^4.16.12",
     "@ducanh2912/next-pwa": "^10.2.9",
     "@next/bundle-analyzer": "^16.0.10",
     "@supabase/auth-helpers-nextjs": "^0.15.0",
