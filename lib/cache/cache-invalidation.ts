@@ -255,7 +255,7 @@ export async function onRingtoneStatsChanged(data: {
 }): Promise<void> {
     console.log('[Cache Invalidation] Ringtone stats changed - invalidating caches...');
 
-    const promises: Promise<void>[] = [
+    const promises: Promise<unknown>[] = [
         cacheDelete(CacheKeys.ringtone.stats(data.ringtoneId)),
         cacheDelete(CacheKeys.stats.trending()),
         cacheDelete(CacheKeys.stats.popular()),
