@@ -28,6 +28,9 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://tamilring.in'),
+  alternates: {
+    canonical: './',
+  },
   title: {
     default: "TamilRing - mobile ringtones",
     template: "%s | TamilRing"

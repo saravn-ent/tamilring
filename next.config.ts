@@ -1,7 +1,10 @@
 import type { NextConfig } from "next"; // Trigger Rebuild
 
-
 import withPWAInit from "@ducanh2912/next-pwa";
+
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+});
 
 const withPWA = withPWAInit({
   dest: "public",
@@ -22,6 +25,8 @@ const nextConfig: NextConfig = {
   turbopack: {},
   images: {
     qualities: [10, 75],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048], // Removed 3840
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     remotePatterns: [
       {
         protocol: 'https',
@@ -117,4 +122,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withPWA(nextConfig);
+export default withBundleAnalyzer(withPWA(nextConfig));

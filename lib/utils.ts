@@ -1,3 +1,10 @@
+import { type ClassValue, clsx } from "clsx"
+import { twMerge } from "tailwind-merge"
+
+export function cn(...inputs: ClassValue[]) {
+    return twMerge(clsx(inputs))
+}
+
 /**
  * Splits a string containing multiple artist names separated by commas, ampersands, or "and".
  * Returns an array of trimmed artist names.

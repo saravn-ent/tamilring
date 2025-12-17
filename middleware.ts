@@ -1,5 +1,15 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { Ratelimit } from '@upstash/ratelimit';
+import { Redis } from '@upstash/redis';
+
+const ratelimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(10, '10 s'),
+  analytics: true,
+  prefix: '@upstash/ratelimit',
+});
+
 
 export async function middleware(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
@@ -67,6 +77,24 @@ export async function middleware(request: NextRequest) {
       },
     }
   )
+
+  // Rate Limiting for API routes
+  if (request.nextUrl.pathname.startsWith('/api')) {
+    const ip = request.ip ?? request.headers.get('x-forwarded-for') ?? '127.0.0.1';
+    // Only rate limit write operations or heavy reads if needed.
+    // For now, lenient global rate limit on APIs
+    try {
+      const { success, pending, limit, reset, remaining } = await ratelimit.limit(ip);
+      // pending is a promise for analytics, we can ignore it or await it if critical
+
+      if (!success) {
+        return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
+      }
+    } catch (error) {
+      console.error('Rate limit error:', error);
+      // Fail open so we don't block users if Redis is down
+    }
+  }
 
   await supabase.auth.getUser()
 
