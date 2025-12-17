@@ -6,8 +6,10 @@ import { ratelimit } from '@/lib/rate-limit';
 
 // GET /api/ringtones?limit=10
 export async function GET(request: NextRequest) {
-    // 1. Rate Limit
-    const ip = request.ip ?? request.headers.get('x-forwarded-for') ?? 'unknown';
+    // 1. Rate Limit - Get IP from headers (Next.js 15+ doesn't have request.ip)
+    const ip = request.headers.get('x-forwarded-for') ??
+        request.headers.get('x-real-ip') ??
+        'unknown';
     const { success, limit, remaining, reset } = await ratelimit.limit(ip);
 
     if (!success) {
