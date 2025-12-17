@@ -17,17 +17,31 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const { artist_name } = await params;
     const artistName = decodeURIComponent(artist_name);
 
+    // Fetch image for OG tags (Cached)
+    const person = await searchPerson(artistName);
+    const imageUrl = person?.profile_path ? getImageUrl(person.profile_path, 'w500') : undefined;
+
+    const title = `${artistName} Ringtones Download - Free BGM & Tamil Cuts | TamilRing`;
+    const description = `Download high-quality ${artistName} ringtones and BGM. Listen to the best flute, vocal, and instrumental cuts composed by ${artistName} for free on TamilRing.`;
+
     return {
-        title: `${artistName} Hits Ringtones Download - Best ${artistName} Tamil BGM`,
-        description: `Download best ringtones composed by ${artistName}. High quality BGM, love themes, and mass FLutes from ${artistName} movies.`,
+        title,
+        description,
         alternates: {
             canonical: `/tamil/music-directors/${artist_name}`,
         },
         openGraph: {
-            title: `${artistName} Best BGM & Ringtones`,
-            description: `Download ${artistName} hits ringtones.`,
+            title,
+            description,
             type: 'music.playlist',
-        }
+            images: imageUrl ? [{ url: imageUrl }] : [],
+        },
+        twitter: {
+            card: 'summary',
+            title,
+            description,
+            images: imageUrl ? [imageUrl] : [],
+        },
     };
 }
 

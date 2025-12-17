@@ -3,6 +3,48 @@ import RingtoneCard from '@/components/RingtoneCard';
 import SortControl from '@/components/SortControl';
 import Image from 'next/image';
 import FavoriteButton from '@/components/FavoriteButton';
+import { Metadata } from 'next';
+
+export async function generateMetadata({ params }: { params: Promise<{ movie_name: string }> }): Promise<Metadata> {
+  const { movie_name } = await params;
+  const movieName = decodeURIComponent(movie_name);
+
+  // Fetch 1 record to get movie details (year, composer, posters check)
+  const { data: movie } = await supabase
+    .from('ringtones')
+    .select('movie_year, music_director, poster_url')
+    .eq('status', 'approved')
+    .eq('movie_name', movieName)
+    .limit(1)
+    .maybeSingle();
+
+  if (!movie) {
+    return {
+      title: 'Movie Not Found | TamilRing',
+      description: 'The requested movie ringtones could not be found.',
+    };
+  }
+
+  const title = `${movieName} Ringtones Download - Free BGM & Tamil Cuts | TamilRing`;
+  const description = `Download high-quality ${movieName} ringtones and BGM. Listen to the best flute, vocal, and instrumental cuts from ${movieName} for free on TamilRing.`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+      images: movie.poster_url ? [{ url: movie.poster_url }] : [],
+    },
+    twitter: {
+      card: 'summary',
+      title,
+      description,
+      images: movie.poster_url ? [movie.poster_url] : [],
+    },
+  };
+}
 
 export default async function MoviePage({
   params,

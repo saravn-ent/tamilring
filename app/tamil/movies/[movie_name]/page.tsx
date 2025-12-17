@@ -20,26 +20,40 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     // Fetch single row to get metadata (Year, MD)
     const { data: movie } = await supabase
         .from('ringtones')
-        .select('movie_year, music_director')
+        .select('movie_year, music_director, poster_url')
         .eq('status', 'approved')
         .eq('movie_name', movieName)
         .limit(1)
-        .single();
+        .maybeSingle();
 
-    const year = movie?.movie_year ? `(${movie.movie_year})` : '';
-    const md = movie?.music_director ? `- ${movie.music_director}` : '';
+    if (!movie) {
+        return {
+            title: 'Movie Not Found | TamilRing',
+            description: 'The requested movie ringtones could not be found.',
+        };
+    }
+
+    const title = `${movieName} Ringtones Download - Free BGM & Tamil Cuts | TamilRing`;
+    const description = `Download high-quality ${movieName} ringtones and BGM. Listen to the best flute, vocal, and instrumental cuts from ${movieName} for free on TamilRing.`;
 
     return {
-        title: `${movieName} ${year} Ringtones Download ${md} | TamilRing`,
-        description: `Download ${movieName} ${year} BGM, mass dialogue, and love theme ringtones. Best collection of ${movieName} tamil movie ringtones by ${movie?.music_director || 'all artists'} for mobile.`,
+        title,
+        description,
         alternates: {
             canonical: `/tamil/movies/${movie_name}`, // Self-referencing canonical
         },
         openGraph: {
-            title: `${movieName} ${year} BGM & Ringtones Download`,
-            description: `Download ${movieName} high quality ringtones and BGM.`,
+            title: `${movieName} BGM & Ringtones Download`,
+            description,
             type: 'music.album',
-        }
+            images: movie.poster_url ? [{ url: movie.poster_url }] : [],
+        },
+        twitter: {
+            card: 'summary',
+            title,
+            description,
+            images: movie.poster_url ? [movie.poster_url] : [],
+        },
     };
 }
 
