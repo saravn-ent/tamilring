@@ -21,7 +21,7 @@ export async function middleware(request: NextRequest) {
   // - Restricted sources to specific trusted domains
   const cspHeader = `
     default-src 'self';
-    script-src 'self' 'unsafe-eval' 'nonce-${nonce}' 'strict-dynamic' 'sha256-9xsy6/apLYZ0YvQVk+Yi9ZlSKW7tnhYBZWcTU9ERUlk=' https://unpkg.com https://www.googletagmanager.com https://www.google-analytics.com https://accounts.google.com https://apis.google.com;
+    script-src 'self' 'unsafe-eval' 'unsafe-inline' https://unpkg.com https://www.googletagmanager.com https://www.google-analytics.com https://accounts.google.com https://apis.google.com;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
     img-src 'self' blob: data: https://image.tmdb.org https://i.scdn.co https://upload.wikimedia.org https://lh3.googleusercontent.com https://ui-avatars.com https://www.googletagmanager.com https://www.google-analytics.com https://*.supabase.co https://*.supabase.in;
     media-src 'self' blob: https://*.supabase.co https://*.supabase.in;
