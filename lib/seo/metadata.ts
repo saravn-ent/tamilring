@@ -206,7 +206,7 @@ export function generateRingtoneMetadata(ringtone: {
         musicDirector,
         'tamil ringtone',
         'download ringtone',
-    ].filter(Boolean);
+    ].filter(Boolean) as string[];
 
     return generateMetadata({
         title,
@@ -243,7 +243,7 @@ export function generateMovieMetadata(movie: {
         movie.director,
         'tamil movie ringtones',
         'kollywood ringtones',
-    ].filter(Boolean);
+    ].filter(Boolean) as string[];
 
     return generateMetadata({
         title,
@@ -282,7 +282,7 @@ export function generateArtistMetadata(artist: {
         `tamil ${roleText.toLowerCase()}`,
         'tamil music',
         'tamil ringtones',
-    ].filter(Boolean);
+    ].filter(Boolean) as string[];
 
     return generateMetadata({
         title,
