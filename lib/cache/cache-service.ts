@@ -158,7 +158,7 @@ export async function cacheMGet<T>(keys: string[]): Promise<(T | null)[]> {
     }
 
     try {
-        const values = await redisClient.mget<T>(...keys);
+        const values = await redisClient.mget(...keys) as (T | null)[];
 
         values.forEach((value, index) => {
             if (value !== null) {
