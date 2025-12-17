@@ -169,19 +169,36 @@ export const searchPerson = async (query: string): Promise<PersonResult | null> 
 
   // 3. TMDB - Fail gracefully if no key
   if (!TMDB_API_KEY) {
-    console.warn("TMDB_API_KEY is missing, skipping TMDB search for: " + query);
+    console.error("❌ TMDB_API_KEY is missing in env!");
     return null;
   }
 
   try {
-    const res = await fetch(`${BASE_URL}/search/person?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&language=en-US&page=1&include_adult=false`, {
+    const searchUrl = `${BASE_URL}/search/person?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&language=en-US&page=1&include_adult=false`;
+    // console.log(`🔍 Searching TMDB for: ${query}`); 
+
+    const res = await fetch(searchUrl, {
       next: { revalidate: 3600 }
     });
-    if (!res.ok) throw new Error(`TMDB Error: ${res.status}`);
+
+    if (!res.ok) {
+      const errText = await res.text();
+      console.error(`❌ TMDB Error (${res.status}) for "${query}":`, errText);
+      throw new Error(`TMDB Error: ${res.status}`);
+    }
+
     const data = await res.json();
-    return data.results?.[0] || null; // Return the first match
+    const result = data.results?.[0] || null;
+
+    if (!result) {
+      console.warn(`⚠️ No TMDB result found for: "${query}"`);
+    } else {
+      // console.log(`✅ Found TMDB result for "${query}": ${result.name}`);
+    }
+
+    return result;
   } catch (error) {
-    console.warn(`Warning: Could not fetch artist "${query}" from TMDB. (Network/API Error)`);
+    console.warn(`Warning: Could not fetch artist "${query}" from TMDB.`, error);
     return null;
   }
 };

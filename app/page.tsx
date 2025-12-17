@@ -115,6 +115,7 @@ const getTopArtists = unstable_cache(
       const results = [];
       for (const stats of list) {
         const searchQuery = cleanName(stats.name);
+        // console.log(`Enriching: ${searchQuery}`);
         const person = await searchPerson(searchQuery);
         results.push({
           name: person?.name || searchQuery,
@@ -161,7 +162,7 @@ const getTopArtists = unstable_cache(
 
     return { topSingers, topMusicDirectors, topMovieDirectors };
   },
-  ['top-artists-home-v15'], // Bump version to force re-fetch
+  ['top-artists-home-v16'], // Bump version
   { revalidate: 3600, tags: ['homepage-artists'] }
 );
 

@@ -58,7 +58,6 @@ export default function ImageWithFallback({
       priority={priority}
       className={className}
       onError={() => setError(true)}
-      unoptimized
     />
   );
 }

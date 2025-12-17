@@ -27,7 +27,7 @@ export default function HeroCard({ name, image, href, subtitle, index = 0 }: Her
           src={image}
           alt={name}
           sizes="128px"
-          priority={index < 4}
+          priority={index < 6}
           className="object-cover transition-transform duration-700 group-hover:scale-110"
         />
       </div>
