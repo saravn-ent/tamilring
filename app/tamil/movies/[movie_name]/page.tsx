@@ -6,6 +6,7 @@ import Image from 'next/image';
 import FavoriteButton from '@/components/FavoriteButton';
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { JsonLdScript } from '@/components/JsonLdScript';
 
 interface Props {
     params: Promise<{ movie_name: string }>;
@@ -100,10 +101,7 @@ export default async function MovieSiloPage({ params, searchParams }: Props) {
 
     return (
         <div className="max-w-md mx-auto min-h-screen bg-neutral-900">
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-            />
+            <JsonLdScript data={jsonLd} />
 
             {/* Hero Header */}
             <div className="relative h-72 w-full">

@@ -14,19 +14,19 @@ const ratelimit = new Ratelimit({
 export async function middleware(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString('base64')
 
-  // Strict CSP Policy
-  // 1. script-src: 'self', 'nonce-...', 'strict-dynamic' (allows Next.js scripts), 'unsafe-eval' (required for Next.js/React hydration)
-  // 2. object-src: 'none' (as requested)
-  // 3. base-uri: 'self'
-  // 4. form-action: 'self'
+  // Secure CSP Policy
+  // - script-src: Uses nonce for inline scripts, 'strict-dynamic' for Next.js, specific trusted domains only
+  // - Removed 'unsafe-inline', 'unsafe-eval', and 'data:' from script-src
+  // - object-src: 'none' (prevents plugin execution)
+  // - Restricted sources to specific trusted domains
   const cspHeader = `
     default-src 'self';
-    script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://unpkg.com https://www.googletagmanager.com https://www.google-analytics.com https://accounts.google.com https://apis.google.com;
+    script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://unpkg.com https://www.googletagmanager.com https://www.google-analytics.com https://accounts.google.com https://apis.google.com;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-    img-src 'self' blob: data: https:;
-    media-src 'self' blob: data: https:;
-    connect-src 'self' blob: https: https://unpkg.com https://www.google-analytics.com https://www.googletagmanager.com https://*.supabase.co;
-    font-src 'self' data: https://fonts.gstatic.com;
+    img-src 'self' blob: data: https://www.googletagmanager.com https://www.google-analytics.com https://*.supabase.co https://*.supabase.in;
+    media-src 'self' blob: https://*.supabase.co https://*.supabase.in;
+    connect-src 'self' https://unpkg.com https://www.google-analytics.com https://www.googletagmanager.com https://*.supabase.co https://*.supabase.in wss://*.supabase.co;
+    font-src 'self' https://fonts.gstatic.com;
     frame-src 'self' https://accounts.google.com;
     object-src 'none';
     base-uri 'self';

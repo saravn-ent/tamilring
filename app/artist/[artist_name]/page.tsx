@@ -63,7 +63,7 @@ export default async function ArtistPage({
   // Fetch artist image from TMDB
   const person = await searchPerson(artistName);
   const artistImage = person?.profile_path
-    ? getImageUrl(person.profile_path, 'w500')
+    ? getImageUrl(person.profile_path, 'w185')
     : ringtones?.find(r => r.poster_url)?.poster_url;
 
   // Get artist bio

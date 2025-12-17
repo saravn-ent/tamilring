@@ -5,6 +5,8 @@ import RingtoneCard from '@/components/RingtoneCard';
 import SortControl from '@/components/SortControl';
 import { Metadata } from 'next';
 import { getArtistBio } from '@/lib/constants';
+import { JsonLdScript } from '@/components/JsonLdScript';
+import { sanitizeSQLInput } from '@/lib/sanitize';
 
 interface Props {
     params: Promise<{ actor_name: string }>;
@@ -67,7 +69,9 @@ export default async function ActorSiloPage({ params, searchParams }: Props) {
         query = query.in('movie_name', movieTitles);
     } else {
         // If TMDB fails, fallback to tags search
-        query = query.ilike('tags', `%${actorName}%`);
+        // SECURITY: Sanitize input to prevent SQL injection
+        const safeActorName = sanitizeSQLInput(actorName);
+        query = query.ilike('tags', `%${safeActorName}%`);
     }
 
     switch (sort) {
@@ -81,7 +85,7 @@ export default async function ActorSiloPage({ params, searchParams }: Props) {
 
     // Calculate Stats
     const totalLikes = ringtones?.reduce((sum, r) => sum + (r.likes || 0), 0) || 0;
-    const artistImage = person?.profile_path ? getImageUrl(person.profile_path) : null;
+    const artistImage = person?.profile_path ? getImageUrl(person.profile_path, 'w185') : null;
     const bio = getArtistBio(actorName);
 
     const jsonLd = {
@@ -102,10 +106,7 @@ export default async function ActorSiloPage({ params, searchParams }: Props) {
 
     return (
         <div className="max-w-md mx-auto min-h-screen bg-neutral-900 pb-20">
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-            />
+            <JsonLdScript data={jsonLd} />
 
             <CompactProfileHeader
                 name={actorName}

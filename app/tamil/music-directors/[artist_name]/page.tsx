@@ -5,6 +5,8 @@ import RingtoneCard from '@/components/RingtoneCard';
 import SortControl from '@/components/SortControl';
 import { Metadata } from 'next';
 import { getArtistBio } from '@/lib/constants';
+import { JsonLdScript } from '@/components/JsonLdScript';
+import { sanitizeSQLInput } from '@/lib/sanitize';
 
 interface Props {
     params: Promise<{ artist_name: string }>;
@@ -35,12 +37,15 @@ export default async function MusicDirectorSiloPage({ params, searchParams }: Pr
     const artistName = decodeURIComponent(artist_name);
 
     // Programmatic Query for Music Director
+    // SECURITY: Sanitize input to prevent SQL injection
+    const safeArtistName = sanitizeSQLInput(artistName);
+
     let query = supabase
         .from('ringtones')
         .select('*')
         .eq('status', 'approved')
         // Flexible search for MD name in music_director column
-        .ilike('music_director', `%${artistName}%`);
+        .ilike('music_director', `%${safeArtistName}%`);
 
     switch (sort) {
         case 'downloads': query = query.order('downloads', { ascending: false }); break;
@@ -56,7 +61,7 @@ export default async function MusicDirectorSiloPage({ params, searchParams }: Pr
 
     // Fetch TMDB Image
     const person = await searchPerson(artistName);
-    const artistImage = person?.profile_path ? getImageUrl(person.profile_path) : null;
+    const artistImage = person?.profile_path ? getImageUrl(person.profile_path, 'w185') : null;
     const bio = getArtistBio(artistName);
 
     const jsonLd = {
@@ -77,10 +82,7 @@ export default async function MusicDirectorSiloPage({ params, searchParams }: Pr
 
     return (
         <div className="max-w-md mx-auto min-h-screen bg-neutral-900 pb-20">
-            <script
-                type="application/ld+json"
-                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-            />
+            <JsonLdScript data={jsonLd} />
 
             <CompactProfileHeader
                 name={artistName}

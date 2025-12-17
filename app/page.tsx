@@ -14,6 +14,7 @@ import { unstable_cache } from 'next/cache';
 import { splitArtists } from '@/lib/utils';
 import { getLevelTitle } from '@/lib/gamification';
 import AvatarRank from '@/components/AvatarRank';
+import { JsonLdScript } from '@/components/JsonLdScript';
 
 export const revalidate = 3600; // Revalidate every hour
 
@@ -117,7 +118,7 @@ const getTopArtists = unstable_cache(
         name: person?.name || searchQuery,
         likes: stats.likes,
         count: stats.count,
-        image: person?.profile_path ? getImageUrl(person.profile_path, 'w500') : null
+        image: person?.profile_path ? getImageUrl(person.profile_path, 'w185') : null
       };
     };
 
@@ -255,10 +256,7 @@ export default async function Home() {
 
   return (
     <div className="w-full md:max-w-6xl mx-auto pb-20">
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <JsonLdScript data={jsonLd} />
 
       {/* Visual Hidden H1 for SEO */}
       <h1 className="sr-only">

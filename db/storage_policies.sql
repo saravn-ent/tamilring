@@ -9,11 +9,23 @@ INSERT INTO storage.buckets (id, name, public) VALUES ('avatars', 'avatars', tru
 -- Public Read
 CREATE POLICY "Public Access" ON storage.objects FOR SELECT USING (bucket_id = 'ringtones');
 
--- Auth Upload (Users can upload to their own folder? Or just generally authenticated?)
--- For simplicity, authenticated users can upload. Better: check file extension/size here if possible, but easier in app.
-CREATE POLICY "Auth Upload" ON storage.objects FOR INSERT WITH CHECK (
+-- Auth Upload with STRICT validation (SECURITY)
+-- Prevents shell uploads, oversized files, and malicious content
+CREATE POLICY "Auth Upload with Validation" ON storage.objects FOR INSERT WITH CHECK (
     bucket_id = 'ringtones' AND 
-    auth.role() = 'authenticated'
+    auth.role() = 'authenticated' AND
+    -- File size limit: 10MB (10,485,760 bytes)
+    (storage.foldername(name))[1] = auth.uid()::text AND
+    -- MIME type whitelist (audio files only)
+    (
+        (storage.extension(name) = 'mp3' AND (metadata->>'mimetype')::text = 'audio/mpeg') OR
+        (storage.extension(name) = 'm4a' AND (metadata->>'mimetype')::text IN ('audio/mp4', 'audio/x-m4a')) OR
+        (storage.extension(name) = 'm4r' AND (metadata->>'mimetype')::text IN ('audio/mp4', 'audio/x-m4a')) OR
+        (storage.extension(name) = 'wav' AND (metadata->>'mimetype')::text IN ('audio/wav', 'audio/x-wav')) OR
+        (storage.extension(name) = 'aac' AND (metadata->>'mimetype')::text = 'audio/aac')
+    ) AND
+    -- File size limit: 10MB
+    (metadata->>'size')::int < 10485760
 );
 
 -- Owner Update/Delete

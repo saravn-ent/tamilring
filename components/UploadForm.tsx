@@ -428,7 +428,7 @@ export default function UploadForm() {
           audio_url: mp3Url,
           audio_url_iphone: iphoneUrl || undefined,
           tags: selectedTags,
-          status: 'approved' // Auto-approve enabled
+          status: 'pending' // SECURITY: Require admin approval before publishing
         });
 
       if (dbError) throw dbError;
@@ -446,7 +446,7 @@ export default function UploadForm() {
         console.warn("Notification failed silently", notifyErr);
       }
 
-      alert('Ringtone uploaded successfully! It is now live on the site.');
+      alert('Ringtone uploaded successfully! It will be reviewed by our team and published shortly.');
       // Reset form
       setStep(1);
       setFile(null);

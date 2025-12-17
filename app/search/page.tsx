@@ -11,6 +11,7 @@ import { splitArtists } from '@/lib/utils';
 import { MOODS, ERAS } from '@/lib/constants';
 import ImageWithFallback from '@/components/ImageWithFallback';
 import NoResults from '@/components/NoResults';
+import { sanitizeSearchQuery } from '@/lib/sanitize';
 
 function SearchContent() {
   const searchParams = useSearchParams();
@@ -80,6 +81,9 @@ function SearchContent() {
         const matchedEra = ERAS.find(e => e.label.toLowerCase() === query.toLowerCase());
 
         const fetchRingtones = async () => {
+          // SECURITY: Sanitize user input to prevent SQL injection
+          const safeQuery = sanitizeSearchQuery(query);
+
           let dbQuery = supabase
             .from('ringtones')
             .select('*')
@@ -93,9 +97,9 @@ function SearchContent() {
               .order('downloads', { ascending: false }) // Sort by popularity for Eras
               .limit(20);
           } else {
-            // Text Search
+            // Text Search with sanitized input
             dbQuery = dbQuery
-              .ilike('title', `%${query}%`)
+              .ilike('title', `%${safeQuery}%`)
               .limit(10);
           }
 
@@ -104,6 +108,9 @@ function SearchContent() {
         };
 
         const fetchMovies = async () => {
+          // SECURITY: Sanitize user input to prevent SQL injection
+          const safeQuery = sanitizeSearchQuery(query);
+
           let dbQuery = supabase
             .from('ringtones')
             .select('movie_name, movie_year, poster_url')
@@ -116,7 +123,7 @@ function SearchContent() {
               .limit(50);
           } else {
             dbQuery = dbQuery
-              .ilike('movie_name', `%${query}%`)
+              .ilike('movie_name', `%${safeQuery}%`)
               .limit(20);
           }
 
@@ -142,11 +149,14 @@ function SearchContent() {
             return [];
           }
 
+          // SECURITY: Sanitize user input to prevent SQL injection
+          const safeQuery = sanitizeSearchQuery(query);
+
           const { data } = await supabase
             .from('ringtones')
             .select('singers, music_director')
             .eq('status', 'approved')
-            .or(`singers.ilike.%${query}%,music_director.ilike.%${query}%`)
+            .or(`singers.ilike.%${safeQuery}%,music_director.ilike.%${safeQuery}%`)
             .limit(20);
 
           const allArtists = new Set<string>();
@@ -155,7 +165,7 @@ function SearchContent() {
             splitArtists(r.music_director || '').forEach(s => allArtists.add(s));
           });
           return Array.from(allArtists)
-            .filter(s => s.toLowerCase().includes(query.toLowerCase()))
+            .filter(s => s.toLowerCase().includes(safeQuery.toLowerCase()))
             .map(s => ({ name: s }))
             .slice(0, 10);
         };

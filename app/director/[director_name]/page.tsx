@@ -16,7 +16,7 @@ export default async function DirectorPage({ params }: { params: Promise<{ direc
 
   // Fetch director image from TMDB
   const person = await searchPerson(directorName);
-  const directorImage = person?.profile_path ? getImageUrl(person.profile_path, 'w500') : null;
+  const directorImage = person?.profile_path ? getImageUrl(person.profile_path, 'w185') : null;
 
   return (
     <div className="max-w-md mx-auto">

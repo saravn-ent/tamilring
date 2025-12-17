@@ -32,10 +32,53 @@ export const searchMovies = async (query: string): Promise<MovieResult[]> => {
   }
 };
 
-export const getImageUrl = (path: string | null, size: 'w92' | 'w154' | 'w185' | 'w342' | 'w500' | 'w780' | 'original' = 'w500') => {
+export type TMDBImageSize = 'w92' | 'w154' | 'w185' | 'w342' | 'w500' | 'w780' | 'original';
+
+/**
+ * Get optimized TMDB image URL
+ * @param path - TMDB image path
+ * @param size - Image size (default: w342 for balance of quality/performance)
+ * @returns Full image URL
+ */
+export const getImageUrl = (
+  path: string | null,
+  size: TMDBImageSize = 'w342'
+): string => {
   if (!path) return '';
   if (path.startsWith('http://') || path.startsWith('https://')) return path;
   return `https://image.tmdb.org/t/p/${size}${path}`;
+};
+
+/**
+ * Get responsive image srcset for TMDB images
+ * Provides multiple sizes for browser to choose optimal one
+ */
+export const getImageSrcSet = (path: string | null): string => {
+  if (!path) return '';
+  if (path.startsWith('http://') || path.startsWith('https://')) return path;
+
+  const sizes: TMDBImageSize[] = ['w185', 'w342', 'w500', 'w780'];
+  return sizes
+    .map(size => `https://image.tmdb.org/t/p/${size}${path} ${size.slice(1)}w`)
+    .join(', ');
+};
+
+/**
+ * Context-aware image size selection for optimal LCP
+ */
+export const getOptimalImageSize = (context: 'hero' | 'card' | 'thumbnail' | 'profile'): TMDBImageSize => {
+  switch (context) {
+    case 'hero':
+      return 'w780'; // Large hero images
+    case 'card':
+      return 'w342'; // Standard cards (optimal balance)
+    case 'thumbnail':
+      return 'w185'; // Small thumbnails/mobile
+    case 'profile':
+      return 'w185'; // Artist profile images
+    default:
+      return 'w342';
+  }
 };
 
 export interface MovieCredits {

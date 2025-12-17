@@ -13,6 +13,7 @@ import { splitArtists } from '@/lib/utils';
 import { cache } from 'react';
 
 import ShareButton from '@/components/ShareButton';
+import { JsonLdScript } from '@/components/JsonLdScript';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -258,10 +259,7 @@ export default async function RingtonePage({ params }: Props) {
 
 
 
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
-      />
+      <JsonLdScript data={jsonLd} />
     </div >
   );
 }

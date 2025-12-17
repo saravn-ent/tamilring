@@ -67,7 +67,7 @@ export default async function ActorPage({
   // Fetch actor image from TMDB
   const person = await searchPerson(actorName);
   const actorImage = person?.profile_path
-    ? getImageUrl(person.profile_path, 'w500')
+    ? getImageUrl(person.profile_path, 'w185')
     : ringtones?.find(r => r.poster_url)?.poster_url;
 
   // Get actor bio
