@@ -109,17 +109,23 @@ const getTopArtists = unstable_cache(
       processRowRole(row.singers, 'singer');
     });
 
-    // Helper to fetch Person details (Parallelized)
+    // Helper to fetch Person details (Sequential to avoid Rate Limits)
     const cleanName = (n: string) => n.replace(/\(.*?\)/g, '').trim();
-    const enrichArtist = async (stats: { name: string; likes: number; count: number }) => {
-      const searchQuery = cleanName(stats.name);
-      const person = await searchPerson(searchQuery);
-      return {
-        name: person?.name || searchQuery,
-        likes: stats.likes,
-        count: stats.count,
-        image: person?.profile_path ? getImageUrl(person.profile_path, 'w185') : null
-      };
+    const enrichArtistsSequential = async (list: { name: string; likes: number; count: number }[]) => {
+      const results = [];
+      for (const stats of list) {
+        const searchQuery = cleanName(stats.name);
+        const person = await searchPerson(searchQuery);
+        results.push({
+          name: person?.name || searchQuery,
+          likes: stats.likes,
+          count: stats.count,
+          image: person?.profile_path ? getImageUrl(person.profile_path, 'w185') : null
+        });
+        // Small delay to be nice to TMDB
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      return results;
     };
 
     const allPeople = Array.from(peopleStats.values());
@@ -130,7 +136,7 @@ const getTopArtists = unstable_cache(
       .sort((a, b) => b.likes - a.likes)
       .slice(0, 10);
 
-    const topMusicDirectors = await Promise.all(topMDsList.map(enrichArtist));
+    const topMusicDirectors = await enrichArtistsSequential(topMDsList);
 
     // 2. Top Movie Directors (Filter by isDir)
     const topDirsList = allPeople
@@ -138,7 +144,7 @@ const getTopArtists = unstable_cache(
       .sort((a, b) => b.likes - a.likes)
       .slice(0, 10);
 
-    const topMovieDirectors = await Promise.all(topDirsList.map(enrichArtist));
+    const topMovieDirectors = await enrichArtistsSequential(topDirsList);
 
     // 3. Top Singers (Filter by isSinger, EXCLUDE if they are in top MD/Dir lists to keep variety)
     const excludeNames = new Set([
@@ -151,11 +157,11 @@ const getTopArtists = unstable_cache(
       .sort((a, b) => b.likes - a.likes)
       .slice(0, 10);
 
-    const topSingers = await Promise.all(topSingersList.map(enrichArtist));
+    const topSingers = await enrichArtistsSequential(topSingersList);
 
     return { topSingers, topMusicDirectors, topMovieDirectors };
   },
-  ['top-artists-home-v13'], // Bump version
+  ['top-artists-home-v15'], // Bump version to force re-fetch
   { revalidate: 3600, tags: ['homepage-artists'] }
 );
 

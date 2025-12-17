@@ -90,8 +90,8 @@ const nextConfig: NextConfig = {
         ],
       },
       {
-        // Aggressive Caching for Static Assets (Images, Fonts, etc.)
-        source: '/:all*(svg|jpg|jpeg|png|gif|webp|avif|ico|woff|woff2|ttf|eot)',
+        // Aggressive Caching for Static Assets (Images, Fonts, CSS, JS)
+        source: '/:all*(svg|jpg|jpeg|png|gif|webp|avif|ico|woff|woff2|ttf|eot|css|js)',
         headers: [
           {
             key: 'Cache-Control',

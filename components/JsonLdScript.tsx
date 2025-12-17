@@ -15,6 +15,7 @@ export async function JsonLdScript({ data }: JsonLdScriptProps) {
         <script
             type="application/ld+json"
             nonce={nonce}
+            suppressHydrationWarning
             dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
         />
     );
