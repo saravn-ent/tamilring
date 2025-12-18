@@ -64,22 +64,37 @@ export default function RingtoneManagement() {
         if (!confirm('Approve this ringtone?')) return;
         const { error } = await supabase.from('ringtones').update({ status: 'approved' }).eq('id', id);
         if (!error) {
-            setRingtones(prev => prev.map(r => r.id === id ? { ...r, status: 'approved' } : r));
-            // Gamification trigger could be here too
+            // Remove from list if we are in 'pending' tab
+            if (filter === 'pending') {
+                setRingtones(prev => prev.filter(r => r.id !== id));
+            } else {
+                setRingtones(prev => prev.map(r => r.id === id ? { ...r, status: 'approved' } : r));
+            }
+
             if (userId) {
                 const { awardPoints, checkUploadBadges, POINTS_PER_UPLOAD } = await import('@/lib/gamification');
                 await awardPoints(supabase, userId, POINTS_PER_UPLOAD);
                 await checkUploadBadges(supabase, userId);
             }
+        } else {
+            alert('Error approving ringtone');
         }
     };
 
     const handleReject = async (id: string) => {
-        const reason = prompt("Rejection Reason:");
-        if (!reason) return;
+        const reason = prompt("Rejection Reason (Optional):");
+        // We allow empty reason if user just wants to reject, but prompt returning null means cancel
+        if (reason === null) return;
+
         const { error } = await supabase.from('ringtones').update({ status: 'rejected', rejection_reason: reason }).eq('id', id);
         if (!error) {
-            setRingtones(prev => prev.map(r => r.id === id ? { ...r, status: 'rejected' } : r));
+            if (filter === 'pending') {
+                setRingtones(prev => prev.filter(r => r.id !== id));
+            } else {
+                setRingtones(prev => prev.map(r => r.id === id ? { ...r, status: 'rejected', rejection_reason: reason } : r));
+            }
+        } else {
+            alert('Error rejecting ringtone');
         }
     };
 

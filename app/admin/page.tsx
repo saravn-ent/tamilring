@@ -12,7 +12,8 @@ export default function AdminDashboard() {
         pendingRingtones: 0,
         totalUsers: 0,
         totalDownloads: 0,
-        pendingWithdrawals: 0
+        pendingWithdrawals: 0,
+        totalPaid: 0
     });
     const [recentUploads, setRecentUploads] = useState<any[]>([]);
 
@@ -33,14 +34,15 @@ export default function AdminDashboard() {
             // 3. Withdrawals Stats
             const { count: pendingPayments } = await supabase.from('withdrawals').select('*', { count: 'exact', head: true }).eq('status', 'pending');
 
-            // 3. Downloads (Sum of downloads column) - Approximate via simple query or RPC if heavy
-            // For now, let's just count total ringtones approx for downloads if column sum is heavy, but let's try RPC or small fetch
-            // Or just fetch `downloads` for top 1000 and sum? Better: Create an RPC function later. 
-            // For now, let's just hold '0' or implement a simple sum if needed. 
-            // Actually, let's just display "Total Likes" instead of downloads if downloads are not summed up easily without RPC.
-            // Let's use totalRings for now or just fetch "approved" count.
+            // 3. Downloads (Sum of downloads column)
+            const { data: downloadData } = await supabase.from('ringtones').select('downloads');
+            const totalDownloads = downloadData?.reduce((acc, curr) => acc + (curr.downloads || 0), 0) || 0;
 
-            // Recent Uploads
+            // 5. Total Payouts (Processed)
+            const { data: payoutData } = await supabase.from('withdrawals').select('amount').eq('status', 'completed');
+            const totalPaid = payoutData?.reduce((acc, curr) => acc + (curr.amount || 0), 0) || 0;
+
+            // 6. Recent Uploads
             const { data: recents } = await supabase
                 .from('ringtones')
                 .select('id, title, created_at, status, poster_url, user_id')
@@ -51,8 +53,9 @@ export default function AdminDashboard() {
                 totalRingtones: totalRings || 0,
                 pendingRingtones: pendingRings || 0,
                 totalUsers: totalUsers || 0,
-                totalDownloads: 0, // Placeholder until we have a proper sum function
-                pendingWithdrawals: pendingPayments || 0
+                totalDownloads: totalDownloads,
+                pendingWithdrawals: pendingPayments || 0,
+                totalPaid: totalPaid
             });
 
             if (recents) setRecentUploads(recents);
@@ -90,9 +93,18 @@ export default function AdminDashboard() {
     return (
         <div className="space-y-8">
             {/* Header */}
-            <div>
-                <h1 className="text-3xl font-bold text-white mb-2">Dashboard Overview</h1>
-                <p className="text-zinc-400">Welcome back, Admin. Here's what's happening today.</p>
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold text-white mb-2">Dashboard Overview</h1>
+                    <p className="text-zinc-400">Welcome back, Admin. Here's what's happening today.</p>
+                </div>
+                <button
+                    onClick={fetchStats}
+                    className="p-3 bg-neutral-900 border border-white/5 rounded-xl text-zinc-400 hover:text-emerald-500 hover:border-emerald-500/30 transition-all shadow-sm"
+                    title="Refresh Data"
+                >
+                    <RefreshCcw size={20} className={loading ? 'animate-spin' : ''} />
+                </button>
             </div>
 
             {/* Stats Grid */}
@@ -127,9 +139,16 @@ export default function AdminDashboard() {
                 <StatCard
                     title="Pending Payments"
                     value={stats.pendingWithdrawals}
-                    icon={TrendingUp}
+                    icon={Clock}
                     color="text-red-500"
                     href="/admin/withdrawals"
+                />
+                <StatCard
+                    title="Total Paid Out"
+                    value={`₹${stats.totalPaid}`}
+                    icon={TrendingUp}
+                    color="text-emerald-500"
+                    href="/admin/withdrawals?tab=completed"
                 />
             </div>
 
