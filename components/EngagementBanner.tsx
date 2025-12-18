@@ -61,11 +61,11 @@ export default function EngagementBanner() {
                     </div>
 
                     <div className="flex-1">
-                        <h3 className="text-white font-bold text-sm">Earn 15 Rep Points!</h3>
+                        <h3 className="text-white font-bold text-sm">Earn ₹15 immediately!</h3>
                         <p className="text-emerald-50 text-[10px] leading-tight">
                             {user
-                                ? "Upload your first ringtone and get 15 Rep immediately!"
-                                : "Join & Upload to earn 15 Rep for every approved ringtone!"}
+                                ? "Upload your first ringtone and get 15 Rep (₹15) instantly to your UPI!"
+                                : "Join & Upload to earn 15 Rep (₹15) for every approved ringtone!"}
                         </p>
                     </div>
 

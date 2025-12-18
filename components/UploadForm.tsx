@@ -541,7 +541,7 @@ export default function UploadForm() {
             const rewardRes = await handleUploadReward(userId);
             if (rewardRes.success && rewardRes.bonusGiven) {
               console.log('🎉 First upload bonus of 15 Rep Points credited!');
-              alert('🎉 Congratulations! You earned 15 Reputation Points (Rep) for your first upload. You can withdraw this immediately from your profile!');
+              alert('🎉 Congratulations! You earned 15 Reputation Points (Rep) worth ₹15 for your first upload. You can withdraw this instantly to your UPI from the profile page!');
             }
           } catch (rewardErr) {
             console.warn("Reward processing failed", rewardErr);

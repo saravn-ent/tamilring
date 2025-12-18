@@ -403,7 +403,7 @@ export default function ProfilePage() {
                     <Star className="text-amber-500" size={20} />
                     Reputation & Earnings
                   </h2>
-                  <p className="text-xs text-zinc-500">1 Rep Point = 1 Rupee</p>
+                  <p className="text-xs text-zinc-500">1 Rep Point = 1 Rupee (Withdrawable via UPI)</p>
                 </div>
                 <div className="text-right">
                   <span className="text-2xl font-black text-emerald-500">{profile?.points || 0}</span>
@@ -446,7 +446,7 @@ export default function ProfilePage() {
                       setSaving(true);
                       const res = await handleWithdrawal(user.id, profile.points, upiId);
                       if (res.success) {
-                        alert('Withdrawal request submitted successfully!');
+                        alert('Withdrawal request submitted! ₹' + profile.points + ' will be sent to your UPI ID: ' + upiId);
                         window.location.reload();
                       } else {
                         alert(res.error || 'Withdrawal failed');
@@ -455,13 +455,18 @@ export default function ProfilePage() {
                     }}
                     className="w-full py-3 bg-emerald-500 text-black font-black rounded-xl hover:bg-emerald-400 disabled:opacity-30 disabled:grayscale transition-all"
                   >
-                    Withdraw Rep
+                    Withdraw Rep as Rupees
                   </button>
                   <p className="text-[10px] text-center text-zinc-600">
                     {profile?.total_withdrawn_count === 0
-                      ? "First withdrawal available immediately at 15 Rep!"
-                      : `You need ${1000 - (profile?.points || 0)} more Rep to withdraw again.`}
+                      ? "First withdrawal (₹15) is sent to your UPI instantly after the first upload!"
+                      : `Minimum ₹1000 required for subsequent UPI withdrawals.`}
                   </p>
+                  {!upiId && (
+                    <p className="text-[10px] text-center text-amber-500/80 font-medium">
+                      ⚠️ Update your UPI ID in "Edit Profile" to enable withdrawals
+                    </p>
+                  )}
                 </div>
               </div>
             </section>
