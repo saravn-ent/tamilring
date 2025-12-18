@@ -7,7 +7,7 @@ import AudioTrimmer from './AudioTrimmer';
 import { searchMovies, MovieResult, getImageUrl, getMovieCredits, TMDB_GENRE_TO_TAG } from '@/lib/tmdb';
 import { getSongsByMovie, iTunesRing } from '@/lib/itunes';
 import { createBrowserClient } from '@supabase/ssr';
-import { notifyAdminOnUpload } from '@/app/actions';
+import { notifyAdminOnUpload, handleUploadReward } from '@/app/actions';
 import Image from 'next/image';
 import Script from 'next/script';
 
@@ -533,6 +533,19 @@ export default function UploadForm() {
           });
         } catch (notifyErr) {
           console.warn("Notification failed silently", notifyErr);
+        }
+
+        // 4. Handle First Upload Reward (15 Rep)
+        if (userId) {
+          try {
+            const rewardRes = await handleUploadReward(userId);
+            if (rewardRes.success && rewardRes.bonusGiven) {
+              console.log('🎉 First upload bonus of 15 Rep Points credited!');
+              alert('🎉 Congratulations! You earned 15 Reputation Points (Rep) for your first upload. You can withdraw this immediately from your profile!');
+            }
+          } catch (rewardErr) {
+            console.warn("Reward processing failed", rewardErr);
+          }
         }
 
         alert('Ringtone uploaded successfully! It will be reviewed by our team and published shortly.');

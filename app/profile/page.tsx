@@ -13,6 +13,7 @@ import PersonalCollections from '@/components/PersonalCollections';
 import AvatarRank from '@/components/AvatarRank';
 import { getLevelTitle, syncUserGamification, POINTS_PER_UPLOAD } from '@/lib/gamification';
 import { Ringtone } from '@/types';
+import { handleWithdrawal } from '@/app/actions';
 
 // Simple timeout helper
 const withTimeout = (promise: any, ms: number = 5000) => {
@@ -281,7 +282,7 @@ export default function ProfilePage() {
           <div className="w-px h-8 bg-neutral-800" />
           <div className="flex flex-col items-center">
             <span className="font-bold text-emerald-500 text-xl">{profile?.points || 0}</span>
-            <span className="text-zinc-500 font-medium text-[10px] uppercase tracking-wider">Reputation</span>
+            <span className="text-zinc-500 font-medium text-[10px] uppercase tracking-wider">Rep Points</span>
           </div>
           <div className="w-px h-8 bg-neutral-800" />
           <div className="flex flex-col items-center">
@@ -394,6 +395,77 @@ export default function ProfilePage() {
                 </div>
               </div>
             )}
+            {/* Reputation & Withdrawal Section */}
+            <section className="bg-neutral-900/50 border border-neutral-800 rounded-2xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                    <Star className="text-amber-500" size={20} />
+                    Reputation & Earnings
+                  </h2>
+                  <p className="text-xs text-zinc-500">1 Rep Point = 1 Rupee</p>
+                </div>
+                <div className="text-right">
+                  <span className="text-2xl font-black text-emerald-500">{profile?.points || 0}</span>
+                  <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">Total Rep</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="bg-black/40 rounded-xl p-4 border border-white/5">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-xs text-zinc-400">Withdrawal Threshold</span>
+                    <span className="text-xs font-bold text-white">
+                      {profile?.total_withdrawn_count === 0 ? '15 Rep' : '1000 Rep'}
+                    </span>
+                  </div>
+                  <div className="w-full bg-neutral-800 h-1.5 rounded-full overflow-hidden">
+                    <div
+                      className="bg-emerald-500 h-full transition-all duration-1000"
+                      style={{
+                        width: `${Math.min(100, ((profile?.points || 0) / (profile?.total_withdrawn_count === 0 ? 15 : 1000)) * 100)}%`
+                      }}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col gap-3">
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={upiId}
+                      onChange={(e) => setUpiId(e.target.value)}
+                      placeholder="Enter UPI ID (e.g. yourname@upi)"
+                      className="w-full bg-black/50 border border-neutral-800 rounded-xl px-4 py-3 text-sm focus:border-emerald-500 outline-none transition-colors"
+                    />
+                  </div>
+
+                  <button
+                    disabled={saving || (profile?.points || 0) < (profile?.total_withdrawn_count === 0 ? 15 : 1000) || !upiId}
+                    onClick={async () => {
+                      setSaving(true);
+                      const res = await handleWithdrawal(user.id, profile.points, upiId);
+                      if (res.success) {
+                        alert('Withdrawal request submitted successfully!');
+                        window.location.reload();
+                      } else {
+                        alert(res.error || 'Withdrawal failed');
+                      }
+                      setSaving(false);
+                    }}
+                    className="w-full py-3 bg-emerald-500 text-black font-black rounded-xl hover:bg-emerald-400 disabled:opacity-30 disabled:grayscale transition-all"
+                  >
+                    Withdraw Rep
+                  </button>
+                  <p className="text-[10px] text-center text-zinc-600">
+                    {profile?.total_withdrawn_count === 0
+                      ? "First withdrawal available immediately at 15 Rep!"
+                      : `You need ${1000 - (profile?.points || 0)} more Rep to withdraw again.`}
+                  </p>
+                </div>
+              </div>
+            </section>
+
             <PersonalCollections />
             <section>
               <h2 className="text-lg font-bold text-zinc-100 mb-4 flex items-center gap-2">

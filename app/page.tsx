@@ -18,6 +18,8 @@ import { JsonLdScript } from '@/components/JsonLdScript';
 import { generateHomeMetadata } from '@/lib/seo';
 import { generateOrganizationSchema, generateWebSiteSchema, combineSchemas } from '@/lib/seo';
 import StructuredData from '@/components/StructuredData';
+import { getTrendingRingtones, getTopAlbums } from '@/app/actions';
+import EngagementBanner from '@/components/EngagementBanner';
 
 export const revalidate = 3600; // Revalidate every hour
 
@@ -172,16 +174,6 @@ const getTopArtists = unstable_cache(
   { revalidate: 3600, tags: ['homepage-artists'] }
 );
 
-// Direct RPC calls for debugging and ensuring freshness
-async function getTopMoviesHero() {
-  const { data, error } = await supabase.rpc('get_top_movies_by_likes', { limit_count: 10 });
-  if (error) {
-    console.error('Error fetching top movies:', JSON.stringify(error, null, 2));
-    return [];
-  }
-  return data || [];
-}
-
 async function getTopContributorsList() {
   const { data, error } = await supabase.rpc('get_top_contributors', { limit_count: 10 });
   if (error) {
@@ -195,40 +187,37 @@ export default async function Home() {
   console.log('--- Homepage Render Start ---');
   // Parallel Fetching
   const [
-    topMoviesRaw,
-    trendingRes,
+    topAlbumsRaw,
+    trending,
     recentRes,
     nostalgiaRes,
     topArtistsData,
     topContributorsRaw
   ] = await Promise.all([
-    getTopMoviesHero(),
-    supabase.from('ringtones').select('*').eq('status', 'approved').order('created_at', { ascending: false }).limit(5),
+    getTopAlbums(10),
+    getTrendingRingtones(10),
     supabase.from('ringtones').select('*').eq('status', 'approved').order('created_at', { ascending: false }).limit(5),
     supabase.from('ringtones').select('*').eq('status', 'approved').lt('movie_year', '2015').order('likes', { ascending: false }).limit(10),
     getTopArtists(),
     getTopContributorsList()
   ]);
 
-  // 1. Process Top Movies
-  const heroRingtones = topMoviesRaw.map((m: any) => ({
-    id: m.ringtone_id,
-    title: m.ringtone_title,
-    slug: m.ringtone_slug,
+  // 1. Process Top Albums for Hero
+  const heroRingtones = topAlbumsRaw.map((m: any) => ({
+    id: m.latest_slug,
+    title: m.movie_name,
+    slug: m.latest_slug,
     movie_name: m.movie_name,
-    movie_year: m.ringtone_movie_year,
-    poster_url: m.ringtone_poster_url,
-    likes: m.total_likes,
+    movie_year: m.max_year,
+    poster_url: m.poster_url,
+    likes: m.total_engagement,
     downloads: 0,
     created_at: new Date().toISOString(),
     audio_url: '',
     waveform_url: '',
     backdrop_url: '',
-    singers: ''
+    singers: `${m.ringtone_count} ringtones`
   } as Ringtone));
-
-  // 2. Process Trending
-  const trending = trendingRes.data;
 
   // 3. Process Recent
   const recent = recentRes.data;
@@ -346,7 +335,7 @@ export default async function Home() {
       <div className="px-4 mb-10">
         <SectionHeader title="Just Added" />
         <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 mb-6">
-          {recent?.map(ringtone => (
+          {recent?.map((ringtone: Ringtone) => (
             <RingtoneCard key={ringtone.id} ringtone={ringtone} />
           ))}
         </div>
@@ -431,7 +420,7 @@ export default async function Home() {
           <SectionHeader title="Trending Ringtones" />
         </div>
         <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide snap-x">
-          {trending?.map(ringtone => (
+          {trending?.map((ringtone: Ringtone) => (
             <Link key={ringtone.id} href={`/ringtone/${ringtone.slug}`} className="snap-start shrink-0 w-32 group">
               <div className="relative w-32 h-40 rounded-xl overflow-hidden mb-2 bg-zinc-200 dark:bg-neutral-800 shadow-lg group-hover:shadow-emerald-500/10 transition-all">
                 {ringtone.poster_url ? (
@@ -448,7 +437,7 @@ export default async function Home() {
         </div>
       </div>
 
-
+      <EngagementBanner />
     </div>
   );
 }

@@ -139,3 +139,114 @@ export async function notifyAdminOnUpload(ringtoneData: {
     return { success: false }; // Fail silently for user
   }
 }
+
+export async function handleUploadReward(userId: string) {
+  const supabase = await getSupabase();
+
+  // 1. Check if first upload reward already given
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('is_first_upload_rewarded, points')
+    .eq('id', userId)
+    .single();
+
+  if (profile && !profile.is_first_upload_rewarded) {
+    // 2. Give 15 Rep bonus immediately
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        is_first_upload_rewarded: true,
+        points: (profile.points || 0) + 15
+      })
+      .eq('id', userId);
+
+    if (error) return { success: false, error };
+    return { success: true, bonusGiven: true };
+  }
+
+  return { success: true, bonusGiven: false };
+}
+
+export async function handleWithdrawal(userId: string, amount: number, upiId: string) {
+  const supabase = await getSupabase();
+
+  // 1. Get current profile stats
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('points, total_withdrawn_count')
+    .eq('id', userId)
+    .single();
+
+  if (!profile) return { success: false, error: 'User not found' };
+
+  // 2. Validate withdrawal logic
+  const minThreshold = profile.total_withdrawn_count === 0 ? 15 : 1000;
+
+  if (amount < minThreshold) {
+    return { success: false, error: `Minimum withdrawal is ${minThreshold} Rep` };
+  }
+
+  if (profile.points < amount) {
+    return { success: false, error: 'Insufficient Reputation Points' };
+  }
+
+  // 3. Process withdrawal (Atomic update)
+  const { error } = await supabase
+    .from('profiles')
+    .update({
+      points: profile.points - amount,
+      total_withdrawn_count: profile.total_withdrawn_count + 1,
+      upi_id: upiId // Ensure UPI ID is saved
+    })
+    .eq('id', userId);
+
+  if (error) return { success: false, error: error.message };
+
+  // 4. Log withdrawal (Optionally notify admin)
+  await notifyAdminOnWithdrawal(userId, amount, upiId);
+
+  return { success: true };
+}
+
+async function notifyAdminOnWithdrawal(userId: string, amount: number, upiId: string) {
+  const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+  if (!webhookUrl) return;
+
+  try {
+    await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        content: `💰 **Withdrawal Request**\nUser: ${userId}\nAmount: ${amount} Rep\nUPI ID: ${upiId}`,
+      })
+    });
+  } catch (e) {
+    console.error('Withdrawal notification failed', e);
+  }
+}
+
+export async function getTrendingRingtones(limit: number = 10) {
+  const supabase = await getSupabase();
+  const { data, error } = await supabase.rpc('get_trending_ringtones', { limit_count: limit });
+  if (error) {
+    console.warn('Trending RPC failed, falling back to recent', error);
+    const { data: fallback } = await supabase
+      .from('ringtones')
+      .select('*')
+      .eq('status', 'approved')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    return fallback || [];
+  }
+  return data || [];
+}
+
+export async function getTopAlbums(limit: number = 10) {
+  const supabase = await getSupabase();
+  const { data, error } = await supabase.rpc('get_top_albums_v2', { limit_count: limit });
+  if (error) {
+    console.warn('Top Albums RPC failed', error);
+    return [];
+  }
+  return data || [];
+}
