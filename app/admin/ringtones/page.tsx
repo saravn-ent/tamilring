@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { approveRingtone, rejectRingtone } from '@/app/actions';
 
 export default function RingtoneManagement() {
     const [ringtones, setRingtones] = useState<Ringtone[]>([]);
@@ -62,39 +63,39 @@ export default function RingtoneManagement() {
 
     const handleApprove = async (id: string, userId?: string) => {
         if (!confirm('Approve this ringtone?')) return;
-        const { error } = await supabase.from('ringtones').update({ status: 'approved' }).eq('id', id);
-        if (!error) {
-            // Remove from list if we are in 'pending' tab
-            if (filter === 'pending') {
-                setRingtones(prev => prev.filter(r => r.id !== id));
+        try {
+            const res = await approveRingtone(id, userId);
+            if (res.success) {
+                if (filter === 'pending') {
+                    setRingtones(prev => prev.filter(r => r.id !== id));
+                } else {
+                    setRingtones(prev => prev.map(r => r.id === id ? { ...r, status: 'approved' } : r));
+                }
             } else {
-                setRingtones(prev => prev.map(r => r.id === id ? { ...r, status: 'approved' } : r));
+                alert(res.error || 'Failed to approve ringtone');
             }
-
-            if (userId) {
-                const { awardPoints, checkUploadBadges, POINTS_PER_UPLOAD } = await import('@/lib/gamification');
-                await awardPoints(supabase, userId, POINTS_PER_UPLOAD);
-                await checkUploadBadges(supabase, userId);
-            }
-        } else {
-            alert('Error approving ringtone');
+        } catch (err) {
+            alert('An error occurred during approval');
         }
     };
 
     const handleReject = async (id: string) => {
         const reason = prompt("Rejection Reason (Optional):");
-        // We allow empty reason if user just wants to reject, but prompt returning null means cancel
         if (reason === null) return;
 
-        const { error } = await supabase.from('ringtones').update({ status: 'rejected', rejection_reason: reason }).eq('id', id);
-        if (!error) {
-            if (filter === 'pending') {
-                setRingtones(prev => prev.filter(r => r.id !== id));
+        try {
+            const res = await rejectRingtone(id, reason);
+            if (res.success) {
+                if (filter === 'pending') {
+                    setRingtones(prev => prev.filter(r => r.id !== id));
+                } else {
+                    setRingtones(prev => prev.map(r => r.id === id ? { ...r, status: 'rejected', rejection_reason: reason } : r));
+                }
             } else {
-                setRingtones(prev => prev.map(r => r.id === id ? { ...r, status: 'rejected', rejection_reason: reason } : r));
+                alert(res.error || 'Failed to reject ringtone');
             }
-        } else {
-            alert('Error rejecting ringtone');
+        } catch (err) {
+            alert('An error occurred during rejection');
         }
     };
 

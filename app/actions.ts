@@ -317,3 +317,55 @@ export async function updateWithdrawalStatus(withdrawalId: string, status: 'comp
 
   return { success: true };
 }
+export async function approveRingtone(id: string, userId?: string) {
+  const supabase = await getSupabase();
+
+  // 1. Update status to approved
+  const { error } = await supabase
+    .from('ringtones')
+    .update({ status: 'approved' })
+    .eq('id', id);
+
+  if (error) return { success: false, error: error.message };
+
+  // 2. Award points if userId provided
+  if (userId) {
+    try {
+      const { awardPoints, checkUploadBadges, POINTS_PER_UPLOAD } = await import('@/lib/gamification');
+      await awardPoints(supabase, userId, POINTS_PER_UPLOAD);
+      await checkUploadBadges(supabase, userId);
+    } catch (e) {
+      console.warn('Gamification failed during approval:', e);
+    }
+  }
+
+  // 3. Revalidate paths to update site immediately
+  revalidatePath('/', 'page');
+  revalidatePath('/recent', 'page');
+  revalidatePath(`/ringtone/[slug]`, 'page');
+  revalidateTag('homepage-artists'); // In case it affects stats
+
+  return { success: true };
+}
+
+export async function rejectRingtone(id: string, reason?: string) {
+  const supabase = await getSupabase();
+
+  // 1. Update status to rejected
+  const { error } = await supabase
+    .from('ringtones')
+    .update({
+      status: 'rejected',
+      rejection_reason: reason || null
+    })
+    .eq('id', id);
+
+  if (error) return { success: false, error: error.message };
+
+  // 2. Revalidate paths
+  revalidatePath('/', 'page');
+  revalidatePath('/recent', 'page');
+  revalidatePath(`/ringtone/[slug]`, 'page');
+
+  return { success: true };
+}
