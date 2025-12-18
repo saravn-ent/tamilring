@@ -202,7 +202,23 @@ export async function handleWithdrawal(userId: string, amount: number, upiId: st
 
   if (error) return { success: false, error: error.message };
 
-  // 4. Log withdrawal (Optionally notify admin)
+  // 4. Log withdrawal in the database for admin to see
+  const { error: logError } = await supabase
+    .from('withdrawals')
+    .insert({
+      user_id: userId,
+      amount: amount,
+      upi_id: upiId,
+      status: 'pending'
+    });
+
+  if (logError) {
+    console.error('Failed to log withdrawal to DB:', logError);
+    // Note: We don't fail the whole action because points were already subtracted.
+    // However, it's safer to have logged it.
+  }
+
+  // 5. Log withdrawal (Optionally notify admin via Discord)
   await notifyAdminOnWithdrawal(userId, amount, upiId);
 
   return { success: true };

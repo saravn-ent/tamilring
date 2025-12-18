@@ -11,7 +11,12 @@ import { notifyAdminOnUpload, handleUploadReward } from '@/app/actions';
 import Image from 'next/image';
 import Script from 'next/script';
 
-export default function UploadForm() {
+interface UploadFormProps {
+  userId?: string;
+  onComplete?: () => void;
+}
+
+export default function UploadForm({ userId: propUserId, onComplete }: UploadFormProps) {
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -34,14 +39,20 @@ export default function UploadForm() {
 
   const [loading, setLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
-  const [userId, setUserId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(propUserId || null);
 
   const ffmpegRef = useRef<any>(null);
   const [ffmpegLoaded, setFfmpegLoaded] = useState(false);
-  const [isAuthChecking, setIsAuthChecking] = useState(true);
+  const [isAuthChecking, setIsAuthChecking] = useState(!propUserId);
 
   useEffect(() => {
     const getUser = async () => {
+      if (propUserId) {
+        setUserId(propUserId);
+        setIsAuthChecking(false);
+        return;
+      }
+
       if (DEV_MODE) {
         // Development mode: Use demo user ID
         setUserId(DEMO_USER_ID);
@@ -55,7 +66,7 @@ export default function UploadForm() {
       }
     };
     getUser();
-  }, []);
+  }, [propUserId]);
 
   // Form Data
   const [songName, setSongName] = useState('');
@@ -535,20 +546,21 @@ export default function UploadForm() {
           console.warn("Notification failed silently", notifyErr);
         }
 
-        // 4. Handle First Upload Reward (15 Rep)
         if (userId) {
           try {
             const rewardRes = await handleUploadReward(userId);
             if (rewardRes.success && rewardRes.bonusGiven) {
-              console.log('🎉 First upload bonus of 15 Rep Points credited!');
-              alert('🎉 Congratulations! You earned 15 Reputation Points (Rep) worth ₹15 for your first upload. You can withdraw this instantly to your UPI from the profile page!');
+              alert('🎉 BINGO! You earned 15 Reputation Points (₹15) for your first upload! Go to your Profile to withdraw it instantly to your UPI.');
+            } else {
+              alert('Ringtone uploaded successfully! It will be reviewed by our team and published shortly.');
             }
           } catch (rewardErr) {
             console.warn("Reward processing failed", rewardErr);
+            alert('Ringtone uploaded successfully! It will be reviewed and published shortly.');
           }
+        } else {
+          alert('Ringtone uploaded successfully! It will be reviewed and published shortly.');
         }
-
-        alert('Ringtone uploaded successfully! It will be reviewed by our team and published shortly.');
       }
       // Reset form
       setStep(1);
@@ -567,6 +579,9 @@ export default function UploadForm() {
       setContentType('movie');
       setDeityCategory('');
 
+      if (onComplete) {
+        onComplete();
+      }
     } catch (error: any) {
       console.error('Upload failed:', error);
       const msg = error?.message || (typeof error === 'object' ? JSON.stringify(error) : String(error));
