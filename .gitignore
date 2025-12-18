@@ -37,3 +37,4 @@ Thumbs.db
 tmp_*
 temp_*
 *.tmp
+*-player-script.js
