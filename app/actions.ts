@@ -266,3 +266,54 @@ export async function getTopAlbums(limit: number = 10) {
   }
   return data || [];
 }
+
+export async function updateWithdrawalStatus(withdrawalId: string, status: 'completed' | 'rejected') {
+  const supabase = await getSupabase();
+
+  // 1. Get the withdrawal record to find the user and amount
+  const { data: withdrawal, error: fetchError } = await supabase
+    .from('withdrawals')
+    .select('*')
+    .eq('id', withdrawalId)
+    .single();
+
+  if (fetchError || !withdrawal) {
+    return { success: false, error: 'Withdrawal request not found' };
+  }
+
+  // 2. If rejecting, we must refund the points
+  if (status === 'rejected' && withdrawal.status === 'pending') {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('points')
+      .eq('id', withdrawal.user_id)
+      .single();
+
+    if (profile) {
+      const { error: refundError } = await supabase
+        .from('profiles')
+        .update({ points: (profile.points || 0) + withdrawal.amount })
+        .eq('id', withdrawal.user_id);
+
+      if (refundError) {
+        console.error('Failed to refund points for rejected withdrawal:', refundError);
+        return { success: false, error: 'Failed to refund points' };
+      }
+    }
+  }
+
+  // 3. Update the withdrawal status
+  const { error: updateError } = await supabase
+    .from('withdrawals')
+    .update({
+      status,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', withdrawalId);
+
+  if (updateError) {
+    return { success: false, error: updateError.message };
+  }
+
+  return { success: true };
+}

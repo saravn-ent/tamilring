@@ -11,7 +11,8 @@ export default function AdminDashboard() {
         totalRingtones: 0,
         pendingRingtones: 0,
         totalUsers: 0,
-        totalDownloads: 0
+        totalDownloads: 0,
+        pendingWithdrawals: 0
     });
     const [recentUploads, setRecentUploads] = useState<any[]>([]);
 
@@ -28,6 +29,9 @@ export default function AdminDashboard() {
 
             // 2. Users Stats
             const { count: totalUsers } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
+
+            // 3. Withdrawals Stats
+            const { count: pendingPayments } = await supabase.from('withdrawals').select('*', { count: 'exact', head: true }).eq('status', 'pending');
 
             // 3. Downloads (Sum of downloads column) - Approximate via simple query or RPC if heavy
             // For now, let's just count total ringtones approx for downloads if column sum is heavy, but let's try RPC or small fetch
@@ -47,7 +51,8 @@ export default function AdminDashboard() {
                 totalRingtones: totalRings || 0,
                 pendingRingtones: pendingRings || 0,
                 totalUsers: totalUsers || 0,
-                totalDownloads: 0 // Placeholder until we have a proper sum function
+                totalDownloads: 0, // Placeholder until we have a proper sum function
+                pendingWithdrawals: pendingPayments || 0
             });
 
             if (recents) setRecentUploads(recents);
@@ -119,6 +124,13 @@ export default function AdminDashboard() {
                     icon={Download}
                     color="text-emerald-500"
                 />
+                <StatCard
+                    title="Pending Payments"
+                    value={stats.pendingWithdrawals}
+                    icon={TrendingUp}
+                    color="text-red-500"
+                    href="/admin/withdrawals"
+                />
             </div>
 
             {/* Recent Activity */}
@@ -167,6 +179,13 @@ export default function AdminDashboard() {
                             <div className="text-left">
                                 <span className="block text-sm font-bold">Review Pending</span>
                                 <span className="block text-[10px] opacity-70">Approve or reject uploads</span>
+                            </div>
+                        </Link>
+                        <Link href="/admin/withdrawals" className="flex items-center gap-3 p-3 rounded-xl bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 transition-colors border border-emerald-500/20">
+                            <TrendingUp size={20} />
+                            <div className="text-left">
+                                <span className="block text-sm font-bold">Manage Payouts</span>
+                                <span className="block text-[10px] opacity-70">Process withdrawal requests</span>
                             </div>
                         </Link>
                         <button className="w-full flex items-center gap-3 p-3 rounded-xl bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition-colors border border-white/5">
