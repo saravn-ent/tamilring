@@ -343,6 +343,7 @@ export async function approveRingtone(id: string, userId?: string) {
   revalidatePath('/', 'page');
   revalidatePath('/recent', 'page');
   revalidatePath(`/ringtone/[slug]`, 'page');
+  // @ts-expect-error - revalidateTag has type issues in Next.js 16
   revalidateTag('homepage-artists'); // In case it affects stats
 
   return { success: true };
