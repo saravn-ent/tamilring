@@ -18,7 +18,7 @@ export default function UploadForm() {
   );
 
   // DEV MODE: Set to true to bypass auth for UI testing
-  const DEV_MODE = true;
+  const DEV_MODE = false;
   const DEMO_USER_ID = 'demo-user-123';
 
   const [step, setStep] = useState(1);
@@ -609,14 +609,6 @@ export default function UploadForm() {
 
   return (
     <div className="max-w-md mx-auto bg-neutral-900 p-6 rounded-2xl border border-neutral-800 pb-32">
-      {/* Dev Mode Banner */}
-      {DEV_MODE && (
-        <div className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-xl">
-          <p className="text-xs text-yellow-500 font-bold text-center">
-            🔧 DEV MODE - UI Testing Only (No data will be saved)
-          </p>
-        </div>
-      )}
 
       {/* Progress */}
       <div className="flex justify-between mb-8 text-[10px] font-medium text-zinc-500 uppercase tracking-widest">

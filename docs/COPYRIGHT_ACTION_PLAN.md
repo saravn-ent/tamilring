@@ -25,7 +25,7 @@
 - Full legal name
 - Physical mailing address
 - Phone number
-- Email: dmca@tamilring.in
+- Email: tamilring.in@gmail.com
 
 **Why Critical**: Without registration, NO safe harbor protection
 

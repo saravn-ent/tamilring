@@ -29,7 +29,7 @@ export default function DMCA() {
                 </p>
                 <div className="bg-neutral-800 p-4 rounded-lg space-y-2 text-sm font-mono">
                     <p><strong className="text-zinc-400">Name:</strong> DMCA Agent</p>
-                    <p><strong className="text-zinc-400">Email:</strong> dmca@tamilring.in</p>
+                    <p><strong className="text-zinc-400">Email:</strong> tamilring.in@gmail.com</p>
                     <p><strong className="text-zinc-400">Response Time:</strong> Within 24-48 hours</p>
                 </div>
                 <p className="text-zinc-500 text-xs mt-4">
@@ -131,7 +131,7 @@ export default function DMCA() {
             </section>
 
             <p className="text-zinc-500 text-sm">
-                Questions? Contact us at <a href="mailto:legal@tamilring.in" className="text-emerald-400 hover:underline">legal@tamilring.in</a>
+                Questions? Contact us at <a href="mailto:tamilring.in@gmail.com" className="text-emerald-400 hover:underline">tamilring.in@gmail.com</a>
             </p>
         </div>
     );
