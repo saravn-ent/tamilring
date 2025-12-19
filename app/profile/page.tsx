@@ -169,7 +169,6 @@ export default function ProfilePage() {
         twitter_handle: twitter,
         upi_id: upiId,
         btc_address: btcAddress,
-        updated_at: new Date().toISOString(),
       };
       const { error } = await supabase.from('profiles').upsert(updates);
       if (error) throw error;
@@ -431,8 +430,8 @@ export default function ProfilePage() {
                               <span className="text-zinc-600 text-[9px] tabular-nums font-medium">{new Date(w.created_at).toLocaleDateString()}</span>
                             </div>
                             <div className={`px-2 py-1 rounded-md font-black uppercase tracking-tighter text-[9px] border ${w.status === 'completed' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-                                w.status === 'rejected' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
-                                  'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                              w.status === 'rejected' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                                'bg-amber-500/10 text-amber-400 border-amber-500/20'
                               }`}>
                               {w.status}
                             </div>
@@ -485,8 +484,8 @@ export default function ProfilePage() {
                       <p className="text-sm font-bold text-zinc-100 truncate">{ringtone.title}</p>
                       <div className="flex items-center gap-2 mt-1.5">
                         <span className={`text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-tighter border ${ringtone.status === 'approved' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-                            ringtone.status === 'rejected' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
-                              'bg-amber-500/10 text-amber-400 border-amber-500/20'
+                          ringtone.status === 'rejected' ? 'bg-red-500/10 text-red-400 border-red-500/20' :
+                            'bg-amber-500/10 text-amber-400 border-amber-500/20'
                           }`}>
                           {ringtone.status}
                         </span>
