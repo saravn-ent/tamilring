@@ -39,6 +39,7 @@ export interface Profile {
   twitter_handle?: string;
   upi_id?: string;
   btc_address?: string;
+  created_at: string;
 }
 
 export interface Badge {

@@ -222,8 +222,12 @@ export async function handleWithdrawal(userId: string, amount: number, upiId: st
   }
 
   // 5. Revalidate
-  revalidatePath('/profile');
-  revalidatePath('/admin/withdrawals');
+  try {
+    revalidatePath('/profile');
+    revalidatePath('/admin/withdrawals');
+  } catch (e) {
+    console.warn('Revalidation failed, data might be stale:', e);
+  }
 
   // 6. Log withdrawal (Optionally notify admin via Discord)
   await notifyAdminOnWithdrawal(userId, withdrawAmount, upiId);
@@ -322,8 +326,12 @@ export async function updateWithdrawalStatus(withdrawalId: string, status: 'comp
     return { success: false, error: updateError.message };
   }
 
-  revalidatePath('/admin/withdrawals');
-  revalidatePath('/profile');
+  try {
+    revalidatePath('/admin/withdrawals');
+    revalidatePath('/profile');
+  } catch (e) {
+    console.warn('Revalidation failed:', e);
+  }
 
   return { success: true };
 }
@@ -350,11 +358,15 @@ export async function approveRingtone(id: string, userId?: string) {
   }
 
   // 3. Revalidate paths to update site immediately
-  revalidatePath('/', 'layout'); // Force clear all
-  revalidatePath('/admin/ringtones');
+  try {
+    revalidatePath('/', 'layout'); // Force clear all
+    revalidatePath('/admin/ringtones');
 
-  // @ts-expect-error - revalidateTag has type issues in Next.js 16
-  revalidateTag('homepage-artists'); // In case it affects stats
+    // @ts-expect-error - revalidateTag has type issues in Next.js 16
+    revalidateTag('homepage-artists'); // In case it affects stats
+  } catch (e) {
+    console.warn('Ringtone revalidation failed:', e);
+  }
 
   return { success: true };
 }
@@ -374,8 +386,12 @@ export async function rejectRingtone(id: string, reason?: string) {
   if (error) return { success: false, error: error.message };
 
   // 2. Revalidate paths
-  revalidatePath('/', 'layout');
-  revalidatePath('/admin/ringtones');
+  try {
+    revalidatePath('/', 'layout');
+    revalidatePath('/admin/ringtones');
+  } catch (e) {
+    console.warn('Rejection revalidation failed:', e);
+  }
 
   return { success: true };
 }

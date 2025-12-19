@@ -40,7 +40,7 @@ export default function AdminDashboard() {
 
             // 5. Total Payouts (Processed)
             const { data: payoutData } = await supabase.from('withdrawals').select('amount').eq('status', 'completed');
-            const totalPaid = payoutData?.reduce((acc, curr) => acc + (curr.amount || 0), 0) || 0;
+            const totalPaidValue = payoutData?.reduce((acc, curr) => acc + (curr.amount || 0), 0) || 0;
 
             // 6. Recent Uploads
             const { data: recents } = await supabase
@@ -55,7 +55,7 @@ export default function AdminDashboard() {
                 totalUsers: totalUsers || 0,
                 totalDownloads: totalDownloads,
                 pendingWithdrawals: pendingPayments || 0,
-                totalPaid: totalPaid
+                totalPaid: totalPaidValue
             });
 
             if (recents) setRecentUploads(recents);

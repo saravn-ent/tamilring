@@ -134,10 +134,8 @@ export default function UserManagement() {
                                         </div>
                                     </td>
                                     <td className="p-4">
-                                        {/* Assuming created_at exists on profile, if not specific field, maybe we don't display or use a timestamp if available */}
                                         <span className="text-xs text-zinc-500">
-                                            {/* {new Date(user.created_at).toLocaleDateString()}  -- Profile might not have created_at in types, let's check or skip */}
-                                            -
+                                            {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'Unknown'}
                                         </span>
                                     </td>
                                     <td className="p-4 text-right pr-6">
