@@ -20,6 +20,7 @@ export default function AdminWithdrawals() {
     const fetchWithdrawals = async () => {
         setLoading(true);
         try {
+            console.log("Fetching withdrawals for status:", filter);
             const { data, error } = await supabase
                 .from('withdrawals')
                 .select(`
@@ -34,13 +35,18 @@ export default function AdminWithdrawals() {
                 .order('created_at', { ascending: false });
 
             if (error) {
-                console.error("Supabase Error:", error);
+                console.error("Supabase Error Detail:", error);
+                // Specifically check for "not found"
+                if (error.code === 'PGRST116' || error.message.includes('not found')) {
+                    alert("Schema error: 'withdrawals' table not found in API. Please reload schema cache in Supabase.");
+                }
                 throw error;
             }
+            console.log("Withdrawals fetched:", data?.length || 0);
             setWithdrawals(data || []);
         } catch (error: any) {
             console.error("Error fetching withdrawals:", error);
-            alert(`Failed to load: ${error.message || 'Unknown error'}`);
+            // alert(`Failed to load: ${error.message || 'Unknown error'}`);
         } finally {
             setLoading(false);
         }

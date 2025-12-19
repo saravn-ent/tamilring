@@ -207,11 +207,31 @@ export default function AdminDashboard() {
                                 <span className="block text-[10px] opacity-70">Process withdrawal requests</span>
                             </div>
                         </Link>
-                        <button className="w-full flex items-center gap-3 p-3 rounded-xl bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition-colors border border-white/5">
+                        <button
+                            onClick={async () => {
+                                setLoading(true);
+                                try {
+                                    const res = await fetch('/api/admin/debug');
+                                    const debugData = await res.json();
+                                    console.log('Debug Data:', debugData);
+                                    if (debugData.role !== 'admin') {
+                                        alert('Warning: Your role is reported as ' + (debugData.role || 'none') + ' in the database.');
+                                    } else {
+                                        alert('System check passed. Reloading stats...');
+                                        await fetchStats();
+                                    }
+                                } catch (e) {
+                                    alert('Debug check failed');
+                                } finally {
+                                    setLoading(false);
+                                }
+                            }}
+                            className="w-full flex items-center gap-3 p-3 rounded-xl bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition-colors border border-white/5"
+                        >
                             <RefreshCcw size={20} />
                             <div className="text-left">
-                                <span className="block text-sm font-bold">Clear Cache</span>
-                                <span className="block text-[10px] opacity-70 font-mono">/api/revalidate</span>
+                                <span className="block text-sm font-bold">System Self-Check</span>
+                                <span className="block text-[10px] opacity-70 font-mono">Verify Admin & Schema</span>
                             </div>
                         </button>
                     </div>
