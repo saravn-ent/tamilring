@@ -381,25 +381,27 @@ export default function ProfilePage() {
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">Next Payout Goal</span>
                       <span className="text-[10px] font-black text-white">
-                        {profile?.total_withdrawn_count === 0 ? '₹15' : '₹1000'}
+                        {(!profile?.total_withdrawn_count || profile?.total_withdrawn_count === 0) ? '₹15' : '₹200'}
                       </span>
                     </div>
                     <div className="w-full bg-neutral-800 h-2 rounded-full overflow-hidden">
                       <div
                         className="bg-emerald-500 h-full transition-all duration-1000 shadow-[0_0_10px_rgba(16,185,129,0.5)]"
-                        style={{ width: `${Math.min(100, ((profile?.points || 0) / (profile?.total_withdrawn_count === 0 ? 15 : 1000)) * 100)}%` }}
+                        style={{ width: `${Math.min(100, ((profile?.points || 0) / ((!profile?.total_withdrawn_count || profile?.total_withdrawn_count === 0) ? 15 : 200)) * 100)}%` }}
                       />
                     </div>
                   </div>
 
                   <div className="flex flex-col gap-3">
                     <button
-                      disabled={saving || (profile?.points || 0) < (profile?.total_withdrawn_count === 0 ? 15 : 1000) || !upiId}
+                      disabled={saving || (profile?.points || 0) < ((!profile?.total_withdrawn_count || profile?.total_withdrawn_count === 0) ? 15 : 200) || !upiId}
                       onClick={async () => {
                         setSaving(true);
+                        const isFirstTime = (!profile?.total_withdrawn_count || profile?.total_withdrawn_count === 0);
+                        const withdrawAmount = isFirstTime ? 15 : profile.points;
                         const res = await handleWithdrawal(user.id, profile.points, upiId);
                         if (res.success) {
-                          alert(`Success! ₹${profile.points} requested to ${upiId}`);
+                          alert(`Success! ₹${withdrawAmount} requested to ${upiId}${isFirstTime ? ' (First test payout)' : ''}`);
                           window.location.reload();
                         } else {
                           alert(res.error || 'Withdrawal failed');

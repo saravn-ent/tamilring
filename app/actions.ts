@@ -180,22 +180,26 @@ export async function handleWithdrawal(userId: string, amount: number, upiId: st
   if (!profile) return { success: false, error: 'User not found' };
 
   // 2. Validate withdrawal logic
-  const minThreshold = profile.total_withdrawn_count === 0 ? 15 : 1000;
+  const isFirstTime = (profile.total_withdrawn_count || 0) === 0;
+  const minThreshold = isFirstTime ? 15 : 200;
 
   if (amount < minThreshold) {
     return { success: false, error: `Minimum withdrawal is ${minThreshold} Rep` };
   }
 
-  if (profile.points < amount) {
-    return { success: false, error: 'Insufficient Reputation Points' };
+  // Force first withdrawal to be exactly 15 Rep for safety/test
+  const withdrawAmount = isFirstTime ? 15 : amount;
+
+  if (profile.points < withdrawAmount) {
+    return { success: false, error: `Insufficient Reputation Points. Need ${withdrawAmount} Rep.` };
   }
 
   // 3. Process withdrawal (Atomic update)
   const { error } = await supabase
     .from('profiles')
     .update({
-      points: profile.points - amount,
-      total_withdrawn_count: profile.total_withdrawn_count + 1,
+      points: profile.points - withdrawAmount,
+      total_withdrawn_count: (profile.total_withdrawn_count || 0) + 1,
       upi_id: upiId // Ensure UPI ID is saved
     })
     .eq('id', userId);
@@ -207,19 +211,22 @@ export async function handleWithdrawal(userId: string, amount: number, upiId: st
     .from('withdrawals')
     .insert({
       user_id: userId,
-      amount: amount,
+      amount: withdrawAmount,
       upi_id: upiId,
       status: 'pending'
     });
 
   if (logError) {
     console.error('Failed to log withdrawal to DB:', logError);
-    // Note: We don't fail the whole action because points were already subtracted.
-    // However, it's safer to have logged it.
+    return { success: false, error: 'Failed to record withdrawal request. Please contact support.' };
   }
 
-  // 5. Log withdrawal (Optionally notify admin via Discord)
-  await notifyAdminOnWithdrawal(userId, amount, upiId);
+  // 5. Revalidate
+  revalidatePath('/profile');
+  revalidatePath('/admin/withdrawals');
+
+  // 6. Log withdrawal (Optionally notify admin via Discord)
+  await notifyAdminOnWithdrawal(userId, withdrawAmount, upiId);
 
   return { success: true };
 }
@@ -315,6 +322,9 @@ export async function updateWithdrawalStatus(withdrawalId: string, status: 'comp
     return { success: false, error: updateError.message };
   }
 
+  revalidatePath('/admin/withdrawals');
+  revalidatePath('/profile');
+
   return { success: true };
 }
 export async function approveRingtone(id: string, userId?: string) {
@@ -340,9 +350,9 @@ export async function approveRingtone(id: string, userId?: string) {
   }
 
   // 3. Revalidate paths to update site immediately
-  revalidatePath('/', 'page');
-  revalidatePath('/recent', 'page');
-  revalidatePath(`/ringtone/[slug]`, 'page');
+  revalidatePath('/', 'layout'); // Force clear all
+  revalidatePath('/admin/ringtones');
+
   // @ts-expect-error - revalidateTag has type issues in Next.js 16
   revalidateTag('homepage-artists'); // In case it affects stats
 
@@ -364,9 +374,8 @@ export async function rejectRingtone(id: string, reason?: string) {
   if (error) return { success: false, error: error.message };
 
   // 2. Revalidate paths
-  revalidatePath('/', 'page');
-  revalidatePath('/recent', 'page');
-  revalidatePath(`/ringtone/[slug]`, 'page');
+  revalidatePath('/', 'layout');
+  revalidatePath('/admin/ringtones');
 
   return { success: true };
 }

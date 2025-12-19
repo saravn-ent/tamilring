@@ -22,14 +22,25 @@ export default function AdminWithdrawals() {
         try {
             const { data, error } = await supabase
                 .from('withdrawals')
-                .select('*, profiles(full_name, avatar_url, points)')
+                .select(`
+                    *,
+                    profile:profiles!user_id (
+                        full_name,
+                        avatar_url,
+                        points
+                    )
+                `)
                 .eq('status', filter)
                 .order('created_at', { ascending: false });
 
-            if (error) throw error;
+            if (error) {
+                console.error("Supabase Error:", error);
+                throw error;
+            }
             setWithdrawals(data || []);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error fetching withdrawals:", error);
+            alert(`Failed to load: ${error.message || 'Unknown error'}`);
         } finally {
             setLoading(false);
         }
@@ -55,7 +66,7 @@ export default function AdminWithdrawals() {
 
     const filteredWithdrawals = withdrawals.filter(w =>
         w.upi_id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        w.profiles?.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
+        w.profile?.full_name?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     return (
@@ -113,8 +124,8 @@ export default function AdminWithdrawals() {
                             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                                 <div className="flex items-center gap-4">
                                     <div className="w-12 h-12 rounded-full overflow-hidden bg-neutral-800 shrink-0 border border-white/10">
-                                        {w.profiles?.avatar_url ? (
-                                            <Image src={w.profiles.avatar_url} alt="User" width={48} height={48} className="object-cover" />
+                                        {w.profile?.avatar_url ? (
+                                            <Image src={w.profile.avatar_url} alt="User" width={48} height={48} className="object-cover" />
                                         ) : (
                                             <div className="w-full h-full flex items-center justify-center text-zinc-600">
                                                 <User size={20} />
@@ -122,7 +133,7 @@ export default function AdminWithdrawals() {
                                         )}
                                     </div>
                                     <div>
-                                        <h3 className="font-bold text-white mb-0.5">{w.profiles?.full_name || 'Legacy User'}</h3>
+                                        <h3 className="font-bold text-white mb-0.5">{w.profile?.full_name || 'Legacy User'}</h3>
                                         <div className="flex items-center gap-3 text-xs">
                                             <span className="text-emerald-500 font-mono font-bold">UPI: {w.upi_id}</span>
                                             <span className="text-zinc-600">•</span>
