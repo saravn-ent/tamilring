@@ -85,3 +85,17 @@ export const userBadges = pgTable('user_badges', {
 }, (t) => ({
     uniqueUserBadge: unique('unique_user_badge').on(t.userId, t.badgeId),
 }));
+
+// Withdrawals Table
+export const withdrawals = pgTable('withdrawals', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id').references(() => profiles.id, { onDelete: 'cascade' }).notNull(),
+    amount: integer('amount').notNull(),
+    upiId: text('upi_id').notNull(),
+    status: text('status').default('pending').$type<'pending' | 'completed' | 'rejected'>(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
+}, (t) => ({
+    userIdIdx: index('idx_withdrawals_user_id').on(t.userId),
+    statusIdx: index('idx_withdrawals_status').on(t.status),
+}));
