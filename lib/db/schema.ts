@@ -62,7 +62,8 @@ export const ringtones = pgTable('ringtones', {
     slugIdx: index('idx_ringtones_slug').on(t.slug),
     userIdIdx: index('idx_ringtones_user_id').on(t.userId),
     statusIdx: index('idx_ringtones_status').on(t.status),
-    createdAtIdx: index('idx_ringtones_created_at').on(t.createdAt), // Fix: use t.createdAt instead of column name string for correctness in some versions, though created_at string works too. t.createdAt is safer.
+    movieYearIdx: index('idx_ringtones_movie_year').on(t.movieYear),
+    createdAtIdx: index('idx_ringtones_created_at').on(t.createdAt),
 }));
 
 // Badges Table

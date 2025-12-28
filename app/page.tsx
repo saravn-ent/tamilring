@@ -28,107 +28,25 @@ export const metadata = generateHomeMetadata();
 
 const getTopArtists = unstable_cache(
   async () => {
-    // 1. Fetch ALL approved ringtones
-    const { data } = await supabase
-      .from('ringtones')
-      .select('singers, music_director, movie_director, likes')
-      .eq('status', 'approved');
+    // 1. Fetch Aggregated Artist Stats from Database RPC
+    const { data: allPeople, error } = await supabase.rpc('get_all_people_stats');
 
-    if (!data) return { topSingers: [], topMusicDirectors: [], topMovieDirectors: [] };
-
-    const normalize = (n: string) =>
-      n.replace(/\(.*?\)/g, '')
-        .replace(/[^a-z0-9\s]/gi, '')
-        .replace(/\b(music|director|composer|singer|vocals|vocal|feat|ft)\b/gi, '')
-        .replace(/\s+/g, ' ')
-        .trim()
-        .toLowerCase();
-
-    // Track Global Stats for each Person
-    // { normName: { name, totalLikes, totalCount, isMD, isDir, isSinger } }
-    const peopleStats = new Map<string, {
-      name: string;
-      likes: number;
-      count: number;
-      isMD: boolean;
-      isDir: boolean;
-      isSinger: boolean;
-    }>();
-
-    const updateStats = (rawName: string, role: 'md' | 'dir' | 'singer', likes: number) => {
-      if (!rawName) return;
-      const norm = normalize(rawName);
-      if (!norm) return;
-
-      const existing = peopleStats.get(norm);
-      if (existing) {
-        existing.likes += likes;
-        existing.count += 1;
-        if (role === 'md') existing.isMD = true;
-        if (role === 'dir') existing.isDir = true;
-        if (role === 'singer') existing.isSinger = true;
-      } else {
-        peopleStats.set(norm, {
-          name: rawName.trim(), // Keep first encounter string
-          likes,
-          count: 1,
-          isMD: role === 'md',
-          isDir: role === 'dir',
-          isSinger: role === 'singer'
-        });
-      }
-    };
-
-    data.forEach((row: any) => {
-      const likes = Number(row.likes || 0);
-
-      // Process each role but ensure we don't double count the SAME person for the SAME ringtone
-      // (e.g. if they are both Singer and MD on the same track, it's 1 ringtone valid for them)
-
-      const distinctPeopleInRow = new Set<string>();
-
-      const processRowRole = (rawList: string | null, role: 'md' | 'dir' | 'singer') => {
-        if (!rawList) return;
-        splitArtists(rawList).forEach(rawName => {
-          const norm = normalize(rawName);
-          if (!norm) return;
-
-          // We record which role they played, but for count/likes we only add ONCE per row
-          const rowKey = `${norm}`;
-
-          if (!distinctPeopleInRow.has(rowKey)) {
-            distinctPeopleInRow.add(rowKey);
-            updateStats(rawName, role, likes);
-          } else {
-            // Already added stats for this person in this row? 
-            // Updating flags only
-            const p = peopleStats.get(norm);
-            if (p) {
-              if (role === 'md') p.isMD = true;
-              if (role === 'dir') p.isDir = true;
-              if (role === 'singer') p.isSinger = true;
-            }
-          }
-        });
-      };
-
-      processRowRole(row.music_director, 'md');
-      processRowRole(row.movie_director, 'dir');
-      processRowRole(row.singers, 'singer');
-    });
+    if (error || !allPeople) {
+      console.error('Error fetching artist stats:', error);
+      return { topSingers: [], topMusicDirectors: [], topMovieDirectors: [] };
+    }
 
     // Helper to fetch Person details (Sequential to avoid Rate Limits)
     const cleanName = (n: string) => n.replace(/\(.*?\)/g, '').trim();
-    const enrichArtistsSequential = async (list: { name: string; likes: number; count: number }[]) => {
+    const enrichArtistsSequential = async (list: any[]) => {
       const results = [];
       for (const stats of list) {
         const searchQuery = cleanName(stats.name);
-        // console.log(`Enriching: ${searchQuery}`);
         const person = await searchPerson(searchQuery);
         results.push({
           name: person?.name || searchQuery,
-          likes: stats.likes,
-          count: stats.count,
+          likes: Number(stats.total_likes),
+          count: Number(stats.total_count),
           image: person?.profile_path ? getImageUrl(person.profile_path, 'w185') : null
         });
         // Small delay to be nice to TMDB
@@ -137,36 +55,25 @@ const getTopArtists = unstable_cache(
       return results;
     };
 
-    const allPeople = Array.from(peopleStats.values());
+    // 2. Filter by Roles & Slice Top 10
+    const topMDsList = allPeople.filter((p: any) => p.is_md).slice(0, 10);
+    const topDirsList = allPeople.filter((p: any) => p.is_dir).slice(0, 10);
 
-    // 1. Top Music Directors (Filter by isMD)
-    const topMDsList = allPeople
-      .filter(p => p.isMD && p.count > 0)
-      .sort((a, b) => b.likes - a.likes)
-      .slice(0, 10);
-
-    const topMusicDirectors = await enrichArtistsSequential(topMDsList);
-
-    // 2. Top Movie Directors (Filter by isDir)
-    const topDirsList = allPeople
-      .filter(p => p.isDir && p.count > 0)
-      .sort((a, b) => b.likes - a.likes)
-      .slice(0, 10);
-
-    const topMovieDirectors = await enrichArtistsSequential(topDirsList);
-
-    // 3. Top Singers (Filter by isSinger, EXCLUDE if they are in top MD/Dir lists to keep variety)
-    const excludeNames = new Set([
-      ...topMDsList.map(p => normalize(p.name)),
-      ...topDirsList.map(p => normalize(p.name))
+    const excludeNormalized = new Set([
+      ...topMDsList.map((p: any) => p.normalized_name),
+      ...topDirsList.map((p: any) => p.normalized_name)
     ]);
 
     const topSingersList = allPeople
-      .filter(p => p.isSinger && !excludeNames.has(normalize(p.name)))
-      .sort((a, b) => b.likes - a.likes)
-      .slice(0, 10);
+      .filter((p: any) => p.is_singer && !excludeNormalized.has(p.normalized_name))
+      .slice(0, 12); // A bit more for singers
 
-    const topSingers = await enrichArtistsSequential(topSingersList);
+    // 3. Enrich with TMDB Data Parallelly across chunks but sequential per category
+    const [topMusicDirectors, topMovieDirectors, topSingers] = await Promise.all([
+      enrichArtistsSequential(topMDsList),
+      enrichArtistsSequential(topDirsList),
+      enrichArtistsSequential(topSingersList)
+    ]);
 
     return { topSingers, topMusicDirectors, topMovieDirectors };
   },
@@ -174,14 +81,36 @@ const getTopArtists = unstable_cache(
   { revalidate: 3600, tags: ['homepage-artists'] }
 );
 
-async function getTopContributorsList() {
-  const { data, error } = await supabase.rpc('get_top_contributors', { limit_count: 10 });
-  if (error) {
-    console.error('Error fetching top contributors:', JSON.stringify(error, null, 2));
-    return [];
-  }
-  return data || [];
-}
+const getRecentRingtones = unstable_cache(
+  async () => {
+    const { data } = await supabase.from('ringtones').select('*').eq('status', 'approved').order('created_at', { ascending: false }).limit(5);
+    return data || [];
+  },
+  ['recent-ringtones-v1'],
+  { revalidate: 3600, tags: ['recent'] }
+);
+
+const getNostalgiaRingtones = unstable_cache(
+  async () => {
+    const { data } = await supabase.from('ringtones').select('*').eq('status', 'approved').lt('movie_year', '2015').order('likes', { ascending: false }).limit(10);
+    return data || [];
+  },
+  ['nostalgia-ringtones-v1'],
+  { revalidate: 3600, tags: ['nostalgia'] }
+);
+
+const getTopContributorsList = unstable_cache(
+  async () => {
+    const { data, error } = await supabase.rpc('get_top_contributors', { limit_count: 10 });
+    if (error) {
+      console.error('Error fetching top contributors:', JSON.stringify(error, null, 2));
+      return [];
+    }
+    return data || [];
+  },
+  ['top-contributors-v1'],
+  { revalidate: 3600, tags: ['contributors'] }
+);
 
 export default async function Home() {
   console.log('--- Homepage Render Start ---');
@@ -189,15 +118,15 @@ export default async function Home() {
   const [
     topAlbumsRaw,
     trending,
-    recentRes,
-    nostalgiaRes,
+    recent,
+    nostalgia,
     topArtistsData,
     topContributorsRaw
   ] = await Promise.all([
     getTopAlbums(10),
     getTrendingRingtones(10),
-    supabase.from('ringtones').select('*').eq('status', 'approved').order('created_at', { ascending: false }).limit(5),
-    supabase.from('ringtones').select('*').eq('status', 'approved').lt('movie_year', '2015').order('likes', { ascending: false }).limit(10),
+    getRecentRingtones(),
+    getNostalgiaRingtones(),
     getTopArtists(),
     getTopContributorsList()
   ]);
@@ -219,11 +148,10 @@ export default async function Home() {
     singers: `${m.ringtone_count} ringtones`
   } as Ringtone));
 
-  // 3. Process Recent
-  const recent = recentRes.data;
 
-  // 4. Process Nostalgia
-  const nostalgia = nostalgiaRes.data;
+  // 3. Process Recent - (Now directly from cache)
+
+  // 4. Process Nostalgia - (Now directly from cache)
 
   // 5. Process Top Artists
   const { topSingers, topMusicDirectors, topMovieDirectors } = topArtistsData as {

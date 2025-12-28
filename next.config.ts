@@ -1,7 +1,8 @@
 
 import type { NextConfig } from "next";
+import withBundleAnalyzer from '@next/bundle-analyzer';
 
-const nextConfig: NextConfig = {
+const config: NextConfig = {
   compress: true,
   // productionBrowserSourceMaps: false, // Commented out to potentially help with debugging if needed, but defaults to false anyway
 
@@ -84,6 +85,10 @@ const nextConfig: NextConfig = {
     ];
   },
 };
+
+const nextConfig = withBundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
+})(config);
 
 export default nextConfig;
 

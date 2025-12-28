@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabaseClient';
+export const revalidate = 3600;
 import { searchPerson, getImageUrl } from '@/lib/tmdb';
 import RingtoneCard from '@/components/RingtoneCard';
 import CompactProfileHeader from '@/components/CompactProfileHeader';
@@ -9,6 +10,9 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Ringtone } from '@/types';
 import { unstable_cache } from 'next/cache';
+
+import { generateArtistMetadata } from '@/lib/seo';
+import { Metadata } from 'next';
 
 const getArtistRingtones = unstable_cache(
   async (artistName: string, sort: string = 'recent') => {
@@ -39,9 +43,38 @@ const getArtistRingtones = unstable_cache(
     const { data } = await query;
     return data;
   },
-  ['artist-ringtones'],
-  { revalidate: 60 }
+  ['artist-ringtones-v2'], // Base key
+  { revalidate: 3600 }
 );
+
+export async function generateMetadata({ params }: { params: Promise<{ artist_name: string }> }): Promise<Metadata> {
+  const { artist_name } = await params;
+  const artistName = decodeURIComponent(artist_name);
+
+  // Quick fetch for metadata (don't need sort)
+  const ringtones = await getArtistRingtones(artistName, 'recent');
+
+  // Try to find image from ringtones first to save TMDB call, or use generic logic
+  const poster = ringtones?.find(r => r.poster_url)?.poster_url;
+
+  // Determine role roughly
+  let role: 'singer' | 'music_director' | 'movie_director' = 'singer';
+  if (ringtones?.some(r => r.music_director?.toLowerCase().includes(artistName.toLowerCase()))) {
+    role = 'music_director';
+  } else if (ringtones?.some(r => r.movie_director?.toLowerCase().includes(artistName.toLowerCase()))) {
+    role = 'movie_director';
+  }
+
+  // We skip TMDB here for speed in metadata, or we could fetch it if critical.
+  // Using ringtone count from DB results.
+
+  return generateArtistMetadata({
+    name: artistName,
+    image_url: poster,
+    role,
+    ringtone_count: ringtones?.length || 0
+  });
+}
 
 export default async function ArtistPage({
   params,
@@ -129,7 +162,7 @@ export default async function ArtistPage({
             {currentView === 'movies' ? (
               /* Movies Grid View */
               <div className="grid grid-cols-2 gap-4">
-                {uniqueMovies.map((movie) => (
+                {uniqueMovies.map((movie, idx) => (
                   <Link
                     key={movie.movie_name}
                     href={`/movie/${encodeURIComponent(movie.movie_name)}`}
@@ -142,6 +175,7 @@ export default async function ArtistPage({
                         fill
                         className="object-cover transition-transform duration-500 group-hover:scale-110"
                         sizes="(max-width: 768px) 50vw, 33vw"
+                        priority={idx < 2}
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-zinc-600 font-bold">

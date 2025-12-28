@@ -88,14 +88,12 @@ import Background from "@/components/Background";
 import AuthCodeRedirect from "@/components/AuthCodeRedirect";
 import ReloadOnUpdate from "@/components/ReloadOnUpdate";
 import { Suspense } from "react";
-import { headers } from "next/headers";
 
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const nonce = (await headers()).get('x-nonce') || undefined;
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${figtree.variable} font-figtree antialiased scrollbar-hide bg-background text-foreground transition-colors duration-300`}>
@@ -106,7 +104,6 @@ export default async function RootLayout({
         <Script
           id="google-analytics"
           strategy="lazyOnload"
-          nonce={nonce}
         >
           {`
             window.dataLayer = window.dataLayer || [];
@@ -147,7 +144,6 @@ export default async function RootLayout({
           {/* Global Schema for AEO/SEO */}
           <script
             type="application/ld+json"
-            nonce={nonce}
             suppressHydrationWarning
             dangerouslySetInnerHTML={{
               __html: JSON.stringify({

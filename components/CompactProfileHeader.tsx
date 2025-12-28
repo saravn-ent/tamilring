@@ -74,6 +74,8 @@ export default function CompactProfileHeader({
                                 alt={name}
                                 className="object-cover object-top"
                                 fallbackClassName="bg-neutral-800 text-zinc-600 flex items-center justify-center p-4"
+                                priority={true}
+                                sizes="112px"
                             />
                         </div>
                         {/* Admin Upload Control */}

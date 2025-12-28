@@ -1,20 +1,15 @@
-import { headers } from 'next/headers';
-
 interface JsonLdScriptProps {
     data: Record<string, any>;
 }
 
 /**
- * Component for rendering JSON-LD structured data with CSP nonce support
- * This ensures compliance with Content Security Policy while maintaining SEO benefits
+ * Component for rendering JSON-LD structured data.
+ * Optimized for static rendering by avoiding dynamic headers.
  */
-export async function JsonLdScript({ data }: JsonLdScriptProps) {
-    const nonce = (await headers()).get('x-nonce') || undefined;
-
+export function JsonLdScript({ data }: JsonLdScriptProps) {
     return (
         <script
             type="application/ld+json"
-            nonce={nonce}
             suppressHydrationWarning
             dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }}
         />

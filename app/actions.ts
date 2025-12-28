@@ -2,6 +2,7 @@
 
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { revalidateTag, revalidatePath, unstable_cache } from 'next/cache'
 
 async function getSupabase() {
   const cookieStore = await cookies()
@@ -81,7 +82,6 @@ export async function incrementDownloads(ringtoneId: string) {
   return { success: true }
 }
 
-import { revalidateTag, revalidatePath } from 'next/cache'
 
 // ... imports
 
@@ -252,31 +252,40 @@ async function notifyAdminOnWithdrawal(userId: string, amount: number, upiId: st
   }
 }
 
-export async function getTrendingRingtones(limit: number = 10) {
-  const supabase = await getSupabase();
-  const { data, error } = await supabase.rpc('get_trending_ringtones', { limit_count: limit });
-  if (error) {
-    console.warn('Trending RPC failed, falling back to recent', error);
-    const { data: fallback } = await supabase
-      .from('ringtones')
-      .select('*')
-      .eq('status', 'approved')
-      .order('created_at', { ascending: false })
-      .limit(limit);
-    return fallback || [];
-  }
-  return data || [];
-}
 
-export async function getTopAlbums(limit: number = 10) {
-  const supabase = await getSupabase();
-  const { data, error } = await supabase.rpc('get_top_albums_v2', { limit_count: limit });
-  if (error) {
-    console.warn('Top Albums RPC failed', error);
-    return [];
-  }
-  return data || [];
-}
+export const getTrendingRingtones = unstable_cache(
+  async (limit: number = 10) => {
+    const supabase = await getSupabase();
+    const { data, error } = await supabase.rpc('get_trending_ringtones', { limit_count: limit });
+    if (error) {
+      console.warn('Trending RPC failed, falling back to recent', error);
+      const { data: fallback } = await supabase
+        .from('ringtones')
+        .select('*')
+        .eq('status', 'approved')
+        .order('created_at', { ascending: false })
+        .limit(limit);
+      return fallback || [];
+    }
+    return data || [];
+  },
+  ['trending-ringtones'],
+  { revalidate: 3600, tags: ['trending'] }
+);
+
+export const getTopAlbums = unstable_cache(
+  async (limit: number = 10) => {
+    const supabase = await getSupabase();
+    const { data, error } = await supabase.rpc('get_top_albums_v2', { limit_count: limit });
+    if (error) {
+      console.warn('Top Albums RPC failed', error);
+      return [];
+    }
+    return data || [];
+  },
+  ['top-albums'],
+  { revalidate: 3600, tags: ['top-albums'] }
+);
 
 export async function updateWithdrawalStatus(withdrawalId: string, status: 'completed' | 'rejected') {
   const supabase = await getSupabase();

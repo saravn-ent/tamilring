@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+export const revalidate = 3600;
 import { supabase } from '@/lib/supabaseClient';
 import { Ringtone } from '@/types';
 import Image from 'next/image';

@@ -6,7 +6,12 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { User, Heart, Music, Trash2, X, LayoutDashboard, UploadCloud, Star } from 'lucide-react';
-import UploadForm from '@/components/UploadForm';
+import dynamic from 'next/dynamic';
+
+const UploadForm = dynamic(() => import('@/components/UploadForm'), {
+  ssr: false,
+  loading: () => <div className="p-12 text-center animate-pulse text-zinc-500 font-mono text-xs">Preparing Workspace...</div>
+});
 import FavoritesList from '@/components/FavoritesList';
 import LoginButton from '@/components/LoginButton';
 import PersonalCollections from '@/components/PersonalCollections';

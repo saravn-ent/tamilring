@@ -1,6 +1,11 @@
-import UploadForm from '@/components/UploadForm';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
+
+const UploadForm = dynamic(() => import('@/components/UploadForm'), {
+  ssr: false,
+  loading: () => <div className="p-12 text-center animate-pulse text-zinc-500">Loading Form...</div>
+});
 
 export default function UploadPage() {
   return (

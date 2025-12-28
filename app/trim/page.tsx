@@ -4,7 +4,12 @@ import { useState } from 'react';
 import { Scissors, Music, Youtube, Upload, ArrowLeft } from 'lucide-react';
 import Script from 'next/script';
 
-import AudioTrimmer from '@/components/AudioTrimmer';
+import dynamic from 'next/dynamic';
+
+const AudioTrimmer = dynamic(() => import('@/components/AudioTrimmer'), {
+    ssr: false,
+    loading: () => <div className="p-12 text-center animate-pulse text-zinc-500">Initializing Audio Engine...</div>
+});
 
 export default function TrimPage() {
     const [file, setFile] = useState<File | null>(null);

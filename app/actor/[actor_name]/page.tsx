@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabaseClient';
+export const revalidate = 3600;
 import { searchPerson, getImageUrl } from '@/lib/tmdb';
 import RingtoneCard from '@/components/RingtoneCard';
 import CompactProfileHeader from '@/components/CompactProfileHeader';
@@ -110,7 +111,7 @@ export default async function ActorPage({
             {currentView === 'movies' ? (
               /* Movies Grid View */
               <div className="grid grid-cols-2 gap-4">
-                {uniqueMovies.map((movie) => (
+                {uniqueMovies.map((movie, idx) => (
                   <Link
                     key={movie.movie_name}
                     href={`/movie/${encodeURIComponent(movie.movie_name)}`}
@@ -123,6 +124,7 @@ export default async function ActorPage({
                         fill
                         className="object-cover transition-transform duration-500 group-hover:scale-110"
                         sizes="(max-width: 768px) 50vw, 33vw"
+                        priority={idx < 2}
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-zinc-600 font-bold">
