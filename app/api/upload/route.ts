@@ -205,9 +205,6 @@ export async function POST(request: NextRequest) {
     }
 }
 
-// Disable body parsing to handle file uploads
-export const config = {
-    api: {
-        bodyParser: false,
-    },
-};
+
+// Configuration handled automatically by App Router
+

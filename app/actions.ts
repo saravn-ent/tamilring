@@ -253,9 +253,20 @@ async function notifyAdminOnWithdrawal(userId: string, amount: number, upiId: st
 }
 
 
+
+// Helper for public data fetching (No cookies/auth) to be safe for unstable_cache
+import { createClient } from '@supabase/supabase-js';
+
+const getPublicSupabase = () => {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+};
+
 export const getTrendingRingtones = unstable_cache(
   async (limit: number = 10) => {
-    const supabase = await getSupabase();
+    const supabase = getPublicSupabase();
     const { data, error } = await supabase.rpc('get_trending_ringtones', { limit_count: limit });
     if (error) {
       console.warn('Trending RPC failed, falling back to recent', error);
@@ -275,7 +286,7 @@ export const getTrendingRingtones = unstable_cache(
 
 export const getTopAlbums = unstable_cache(
   async (limit: number = 10) => {
-    const supabase = await getSupabase();
+    const supabase = getPublicSupabase();
     const { data, error } = await supabase.rpc('get_top_albums_v2', { limit_count: limit });
     if (error) {
       console.warn('Top Albums RPC failed', error);

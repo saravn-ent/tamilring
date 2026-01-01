@@ -103,7 +103,43 @@ export async function middleware(request: NextRequest) {
   const isAuthApi = request.nextUrl.pathname.startsWith('/api/auth');
 
   if (isAuthRoute || isAuthApi) {
-    await supabase.auth.getUser();
+    const { data: { user }, error } = await supabase.auth.getUser();
+
+    // STRICT PROTECTION FOR /admin ROUTES
+    if (request.nextUrl.pathname.startsWith('/admin')) {
+      // 1. Unauthenticated users -> Redirect to Home
+      if (!user) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/';
+        return NextResponse.redirect(url);
+      }
+
+      // 2. Authorization Check (Role-based & Email-based)
+      // We check the 'profiles' table for the role.
+      // We also strictly allow 'saravn.ent@gmail.com' as a fail-safe.
+      let isAdmin = false;
+
+      if (user.email === 'saravn.ent@gmail.com') {
+        isAdmin = true;
+      } else {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+
+        if (profile?.role === 'admin') {
+          isAdmin = true;
+        }
+      }
+
+      // 3. Unauthorized users -> Redirect to Home
+      if (!isAdmin) {
+        const url = request.nextUrl.clone();
+        url.pathname = '/';
+        return NextResponse.redirect(url);
+      }
+    }
   }
 
   return response
