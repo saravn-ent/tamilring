@@ -45,13 +45,13 @@ test.describe('Core Website Logic', () => {
                 downloadButton.click()
             ]);
             console.log('Download started:', await download.path());
-        } catch (e) {
+        } catch (_e) {
             console.log('No browser download event caught (possibly direct link or already handled). Verifying page is still alive.');
         }
 
         // Verify we didn't crash
-        await expect(page).not.toHaveText('Application Error');
-        await expect(page).not.toHaveText('Internal Server Error');
+        await expect(page.locator('body')).not.toContainText('Application Error');
+        await expect(page.locator('body')).not.toContainText('Internal Server Error');
     });
 
     test('Artist Navigation Logic', async ({ page }) => {

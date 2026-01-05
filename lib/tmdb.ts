@@ -150,7 +150,7 @@ export const searchPerson = async (query: string): Promise<PersonResult | null> 
         known_for_department: 'Manual'
       };
     }
-  } catch (e) {
+  } catch (_e) {
     // Ignore DB errors
   }
 
