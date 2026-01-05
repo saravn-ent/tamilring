@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { approveRingtone, rejectRingtone } from '@/app/actions/admin';
+import { approveRingtone, rejectRingtone, deleteRingtone } from '@/app/actions/admin';
 
 export default function RingtoneManagement() {
     const [ringtones, setRingtones] = useState<Ringtone[]>([]);
@@ -96,11 +96,16 @@ export default function RingtoneManagement() {
 
     const handleDelete = async (id: string) => {
         if (!confirm('Are you sure you want to PERMANENTLY delete this ringtone? This action cannot be undone.')) return;
-        const { error } = await supabase.from('ringtones').delete().eq('id', id);
-        if (!error) {
-            setRingtones(prev => prev.filter(r => r.id !== id));
-        } else {
-            alert("Failed to delete. Check permissions.");
+
+        try {
+            const res = await deleteRingtone(id);
+            if (res.success) {
+                setRingtones(prev => prev.filter(r => r.id !== id));
+            } else {
+                alert(res.error || "Failed to delete ringtone");
+            }
+        } catch (err) {
+            alert("An error occurred during deletion");
         }
     };
 

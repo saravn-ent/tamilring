@@ -4,7 +4,9 @@ import { revalidatePath, revalidateTag } from 'next/cache'
 import { ensureAdmin } from '@/lib/auth-server'
 
 export async function approveRingtone(id: string, userId?: string) {
-    const { supabase } = await ensureAdmin();
+    await ensureAdmin();
+    const { getSupabaseAdmin } = await import('@/lib/auth-server');
+    const supabase = await getSupabaseAdmin();
 
     // 1. Update status to approved
     const { error } = await supabase
@@ -40,7 +42,9 @@ export async function approveRingtone(id: string, userId?: string) {
 }
 
 export async function rejectRingtone(id: string, reason?: string) {
-    const { supabase } = await ensureAdmin();
+    await ensureAdmin();
+    const { getSupabaseAdmin } = await import('@/lib/auth-server');
+    const supabase = await getSupabaseAdmin();
 
     // 1. Update status to rejected
     const { error } = await supabase
@@ -65,7 +69,9 @@ export async function rejectRingtone(id: string, reason?: string) {
 }
 
 export async function updateWithdrawalStatus(withdrawalId: string, status: 'completed' | 'rejected') {
-    const { supabase } = await ensureAdmin();
+    await ensureAdmin();
+    const { getSupabaseAdmin } = await import('@/lib/auth-server');
+    const supabase = await getSupabaseAdmin();
 
     // 1. Get the withdrawal record to find the user and amount
     const { data: withdrawal, error: fetchError } = await supabase
@@ -120,4 +126,36 @@ export async function updateWithdrawalStatus(withdrawalId: string, status: 'comp
     }
 
     return { success: true };
+}
+
+export async function deleteRingtone(id: string) {
+    try {
+        await ensureAdmin();
+        const { getSupabaseAdmin } = await import('@/lib/auth-server');
+        const supabase = await getSupabaseAdmin();
+
+        // 1. Get ringtone data first to delete from storage if needed
+        const { data: ringtone } = await supabase
+            .from('ringtones')
+            .select('audio_url, audio_url_iphone, poster_url')
+            .eq('id', id)
+            .single();
+
+        // 2. Delete from database (RLS bypass with admin client)
+        const { error } = await supabase
+            .from('ringtones')
+            .delete()
+            .eq('id', id);
+
+        if (error) return { success: false, error: error.message };
+
+        // 3. Clear cache
+        revalidatePath('/');
+        revalidatePath('/admin/ringtones');
+        revalidatePath('/recent');
+
+        return { success: true };
+    } catch (e: any) {
+        return { success: false, error: e.message || 'Failed to delete ringtone' };
+    }
 }
