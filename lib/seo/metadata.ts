@@ -96,7 +96,7 @@ export function generateMetadata(config: SEOConfig): Metadata {
     const canonicalUrl = canonical || fullUrl;
 
     const metadata: Metadata = {
-        title,
+        title: fullTitle,
         description,
         keywords: keywords.length > 0 ? keywords : undefined,
         authors: author ? [{ name: author }] : undefined,
@@ -157,7 +157,7 @@ export function generateMetadata(config: SEOConfig): Metadata {
  */
 export function generateHomeMetadata(): Metadata {
     return generateMetadata({
-        title: 'Tamil Ringtones & Music - Download Latest Tamil Movie Ringtones',
+        title: 'TamilRing - Download Best Tamil Ringtones & BGM',
         description: 'Download the latest Tamil movie ringtones, devotional songs, and music. Browse trending ringtones from Tamil cinema, independent artists, and devotional content. High-quality ringtones updated daily.',
         keywords: [
             'tamil ringtones',
