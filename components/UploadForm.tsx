@@ -302,10 +302,38 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       const fetchSongs = async () => {
         setIsLoadingSongs(true);
         try {
-          const songs = await getSongsByMovie(selectedMovie.title);
-          setMovieSongs(songs);
+          // 1. Fetch from iTunes (External)
+          const itunesSongs = await getSongsByMovie(selectedMovie.title);
+
+          // 2. Fetch from Community (Internal database)
+          // We look for approved ringtones in this movie to see what names others used
+          const { data: communityData } = await supabase
+            .from('ringtones')
+            .select('song_name, singers')
+            .eq('movie_name', selectedMovie.title)
+            .not('song_name', 'is', null);
+
+          // 3. Merge & Deduplicate
+          // Convert community records to iTunes-like format for the dropdown
+          const communitySongs: iTunesRing[] = (communityData || []).map(item => ({
+            trackName: item.song_name,
+            artistName: item.singers || 'Community Upload',
+            collectionName: selectedMovie.title,
+            previewUrl: ''
+          }));
+
+          // Deduplicate by track name (case insensitive)
+          const seen = new Set();
+          const merged = [...itunesSongs, ...communitySongs].filter(song => {
+            const lowerName = song.trackName.toLowerCase().trim();
+            if (seen.has(lowerName)) return false;
+            seen.add(lowerName);
+            return true;
+          });
+
+          setMovieSongs(merged);
         } catch (e) {
-          console.error(e);
+          console.error('Failed to fetch songs:', e);
         } finally {
           setIsLoadingSongs(false);
         }
@@ -349,11 +377,27 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
     }
   }, [deityCategory, contentType, step]);
 
-  // Generate Slug & Check Duplicates SAME LOGIC
   useEffect(() => {
     const generateAndCheckSlug = async () => {
-      if (songName && manualMovieName && segmentName) {
-        const text = `${manualMovieName} ${songName} ${segmentName}`;
+      // Whitelist of tags that are high-value for SEO
+      const SEO_TAG_WHITELIST = ["BGM", "Vocal", "Instrumental", "Interlude", "Humming", "Dialogue", "Remix", "8D Audio"];
+      const activeSeoTags = selectedTags.filter(tag => SEO_TAG_WHITELIST.includes(tag));
+
+      const movieOrContextName = contentType === 'devotional' ? deityCategory : manualMovieName;
+
+      if (movieOrContextName && segmentName) {
+        let textParts = [movieOrContextName];
+        if (songName) textParts.push(songName);
+        textParts.push(segmentName);
+
+        // Append important tags if they are not already in the segment name
+        activeSeoTags.forEach(tag => {
+          if (!segmentName.toLowerCase().includes(tag.toLowerCase())) {
+            textParts.push(tag);
+          }
+        });
+
+        const text = textParts.join(' ');
         const newSlug = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
         setSlug(newSlug);
 
@@ -361,26 +405,26 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
         setIsCheckingDuplicate(true);
         setDuplicateError(null);
         try {
-          const { data, error } = await supabase
+          const { data } = await supabase
             .from('ringtones')
             .select('id')
             .eq('slug', newSlug)
             .single();
 
           if (data) {
-            setDuplicateError('A ringtone with this name already exists!');
+            setDuplicateError('A ringtone with this exact identity already exists!');
           }
         } catch (err) {
-          // Good
+          // No duplicate found
         } finally {
           setIsCheckingDuplicate(false);
         }
       }
     };
 
-    const timer = setTimeout(generateAndCheckSlug, 500); // Debounce
+    const timer = setTimeout(generateAndCheckSlug, 500);
     return () => clearTimeout(timer);
-  }, [songName, manualMovieName, segmentName]);
+  }, [songName, manualMovieName, segmentName, contentType, deityCategory, selectedTags]);
 
 
   const convertAudio = async (inputFile: File, targetFormat: 'mp3' | 'm4r', startTime: number = 0, duration: number = 0, applyFade: boolean = true): Promise<Blob> => {
@@ -434,17 +478,13 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
   };
 
   const handleSubmit = async () => {
-    // Validation based on content type
+    // Validation: Song Name is now OPTIONAL for better flexibility
     if (!file) {
       alert('Please select an audio file first.');
       return;
     }
-    if (!songName) {
-      alert('Please select or enter a Song Name.');
-      return;
-    }
     if (!segmentName) {
-      alert('Please enter a Ringtone Name (e.g. Pallavi, BGM).');
+      alert('Please enter a Ringtone Name (e.g. BGM, Whistle).');
       return;
     }
     if (duplicateError) {
@@ -456,19 +496,29 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       alert('Please select a movie.');
       return;
     }
-    if (contentType === 'album' && !manualMovieName) {
-      alert('Please enter the album name.');
-      return;
-    }
-    if (contentType === 'devotional' && !deityCategory) {
-      alert('Please select a deity.');
-      return;
-    }
 
+    // ... rest of validation logic ...
     setLoading(true);
     setLoadingMessage('Initializing...');
 
-    const finalTitle = `${songName} - ${segmentName}`;
+    const movieOrContextName = contentType === 'devotional' ? deityCategory : manualMovieName;
+
+    // Build SEO dynamic title including whitelist tags
+    const SEO_TAG_WHITELIST = ["BGM", "Vocal", "Instrumental", "Interlude", "Humming", "Dialogue", "Remix", "8D Audio"];
+    const activeSeoTags = selectedTags.filter(tag => SEO_TAG_WHITELIST.includes(tag));
+
+    let titleParts = [movieOrContextName];
+    if (songName) titleParts.push(songName);
+    titleParts.push(segmentName);
+
+    // Only append tag to title if it's not already in the segment name
+    activeSeoTags.forEach(tag => {
+      if (!segmentName.toLowerCase().includes(tag.toLowerCase())) {
+        titleParts.push(tag);
+      }
+    });
+
+    const finalTitle = titleParts.join(' - ');
 
     try {
       let mp3Blob: Blob | File = file;
@@ -1075,7 +1125,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
             </button>
             <button
               onClick={handleSubmit}
-              disabled={loading || !!duplicateError || !segmentName || !songName || !manualMovieName}
+              disabled={loading || !!duplicateError || !segmentName || (contentType === 'movie' && !manualMovieName)}
               className="flex-1 ml-4 bg-emerald-500 text-neutral-900 font-bold py-4 rounded-xl hover:bg-emerald-400 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
@@ -1374,7 +1424,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
             </button>
             <button
               onClick={handleSubmit}
-              disabled={loading || !!duplicateError || !segmentName || !songName || !manualMovieName}
+              disabled={loading || !!duplicateError || !segmentName || !manualMovieName}
               className="flex-1 ml-4 bg-emerald-500 text-neutral-900 font-bold py-4 rounded-xl hover:bg-emerald-400 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
@@ -1564,7 +1614,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
             </button>
             <button
               onClick={handleSubmit}
-              disabled={loading || !!duplicateError || !segmentName || !songName || !deityCategory}
+              disabled={loading || !!duplicateError || !segmentName || !deityCategory}
               className="flex-1 ml-4 bg-emerald-500 text-neutral-900 font-bold py-4 rounded-xl hover:bg-emerald-400 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
