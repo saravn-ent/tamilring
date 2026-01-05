@@ -170,6 +170,9 @@ export default function AudioTrimmer({ file, onRangeChange }: { file: File, onRa
     }, [file]);
 
 
+    const [fadeIn, setFadeIn] = useState(false);
+    const [fadeOut, setFadeOut] = useState(false);
+
     const handleDownload = async (format: 'mp3' | 'm4r') => {
         if (!ffmpegRef.current || !ffmpegLoaded) return;
         setProcessing(true);
@@ -184,12 +187,23 @@ export default function AudioTrimmer({ file, onRangeChange }: { file: File, onRa
             const duration = localEnd - localStart;
             let args = [];
 
+            // Build filter chain for fading
+            let filters = [];
+            if (fadeIn) filters.push(`afade=t=in:ss=0:d=2`);
+            if (fadeOut) filters.push(`afade=t=out:st=${(duration - 2).toFixed(2)}:d=2`);
+
+            const filterStr = filters.length > 0 ? filters.join(',') : null;
+
             if (format === 'm4r') {
                 // iPhone AAC
-                args = ['-ss', localStart.toString(), '-t', duration.toString(), '-i', inputName, '-c:a', 'aac', '-b:a', '192k', '-f', 'mp4', outputName];
+                args = ['-ss', localStart.toString(), '-t', duration.toString(), '-i', inputName];
+                if (filterStr) args.push('-af', filterStr);
+                args.push('-c:a', 'aac', '-b:a', '192k', '-f', 'mp4', outputName);
             } else {
                 // MP3
-                args = ['-ss', localStart.toString(), '-t', duration.toString(), '-i', inputName, '-c:a', 'libmp3lame', '-b:a', '192k', '-f', 'mp3', outputName];
+                args = ['-ss', localStart.toString(), '-t', duration.toString(), '-i', inputName];
+                if (filterStr) args.push('-af', filterStr);
+                args.push('-c:a', 'libmp3lame', '-b:a', '192k', '-f', 'mp3', outputName);
             }
 
             await ffmpeg.run(...args);
@@ -299,16 +313,37 @@ export default function AudioTrimmer({ file, onRangeChange }: { file: File, onRa
             </div>
 
             {/* Actions */}
-            <div className="flex justify-center gap-6">
-                <button onClick={() => { wsRef.current?.seekTo(0); wsRef.current?.play(); }} className="p-3 text-zinc-400 hover:text-white bg-white/5 rounded-full">
-                    <RotateCcw size={20} />
-                </button>
-                <button onClick={() => wsRef.current?.playPause()} className="w-14 h-14 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 transition">
-                    {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="ml-1" />}
-                </button>
-                <div className="flex gap-2">
-                    <button onClick={() => updateZoom(zoom - 10)} className="p-3 text-zinc-400 hover:text-emerald-500 bg-white/5 rounded-full"><ZoomOut size={20} /></button>
-                    <button onClick={() => updateZoom(zoom + 10)} className="p-3 text-zinc-400 hover:text-emerald-500 bg-white/5 rounded-full"><ZoomIn size={20} /></button>
+            <div className="space-y-4">
+                <div className="flex justify-center gap-6 items-center">
+                    <div className="flex flex-col items-center gap-2">
+                        <button
+                            onClick={() => setFadeIn(!fadeIn)}
+                            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all border ${fadeIn ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-500' : 'bg-white/5 border-white/10 text-zinc-500'}`}
+                        >
+                            FADE IN
+                        </button>
+                    </div>
+
+                    <button onClick={() => { wsRef.current?.seekTo(0); wsRef.current?.play(); }} className="p-3 text-zinc-400 hover:text-white bg-white/5 rounded-full transition-colors">
+                        <RotateCcw size={20} />
+                    </button>
+                    <button onClick={() => wsRef.current?.playPause()} className="w-14 h-14 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 shadow-lg transition-all active:scale-95">
+                        {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="ml-1" />}
+                    </button>
+
+                    <div className="flex flex-col items-center gap-2">
+                        <button
+                            onClick={() => setFadeOut(!fadeOut)}
+                            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all border ${fadeOut ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-500' : 'bg-white/5 border-white/10 text-zinc-500'}`}
+                        >
+                            FADE OUT
+                        </button>
+                    </div>
+                </div>
+
+                <div className="flex justify-center gap-4">
+                    <button onClick={() => updateZoom(zoom - 10)} className="p-3 text-zinc-400 hover:text-emerald-500 bg-white/5 rounded-full transition-colors" title="Zoom Out"><ZoomOut size={18} /></button>
+                    <button onClick={() => updateZoom(zoom + 10)} className="p-3 text-zinc-400 hover:text-emerald-500 bg-white/5 rounded-full transition-colors" title="Zoom In"><ZoomIn size={18} /></button>
                 </div>
             </div>
 

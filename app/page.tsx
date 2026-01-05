@@ -194,7 +194,7 @@ export default async function Home() {
       {topSingers.length > 0 && (
         <div className="mb-10">
           <div className="px-4">
-            <SectionHeader title="The Voices You Love" />
+            <SectionHeader title="The Voices You Love" translationKey="voices" />
           </div>
           <div className="flex overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-6">
             {topSingers.map((singer, idx) => (
@@ -215,7 +215,7 @@ export default async function Home() {
       {nostalgia && nostalgia.length > 0 && (
         <div className="mb-10">
           <div className="px-4">
-            <SectionHeader title="Rewind: Memories" />
+            <SectionHeader title="Rewind: Memories" translationKey="memories" />
             <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-3 -mt-2">Rings that bring back the good times</p>
           </div>
           <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide snap-x">
@@ -243,8 +243,7 @@ export default async function Home() {
       {/* Browse by Mood (Filter Chips) */}
       <div className="mb-8">
         <div className="px-4 mb-3 flex justify-between items-end">
-          <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">Browse by Mood</h2>
-          <Link href="/categories" className="text-xs text-emerald-500 font-medium hover:text-emerald-400">View All</Link>
+          <SectionHeader title="Browse by Mood" translationKey="mood" href="/categories" />
         </div>
         <div className="flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide snap-x">
           {MOODS.map((mood, idx) => (
@@ -261,7 +260,7 @@ export default async function Home() {
 
       {/* Just Added (Responsive Grid) */}
       <div className="px-4 mb-10">
-        <SectionHeader title="Just Added" />
+        <SectionHeader title="Just Added" translationKey="justAdded" />
         <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 mb-6">
           {recent?.map((ringtone: Ringtone) => (
             <RingtoneCard key={ringtone.id} ringtone={ringtone} />
@@ -272,14 +271,14 @@ export default async function Home() {
           href="/recent"
           className="block w-full py-3 rounded-xl bg-zinc-100 dark:bg-neutral-800 text-zinc-600 dark:text-zinc-300 text-center text-sm font-bold hover:bg-zinc-200 dark:hover:bg-neutral-700 transition-colors border border-zinc-200 dark:border-neutral-700"
         >
-          View All New Ringtones
+          {recent.length > 0 ? "View All New Ringtones" : "No New Ringtones"}
         </Link>
       </div>
 
       {/* Top Contributors - Users who uploaded the most rings */}
       {topContributors && topContributors.length > 0 && (
         <div className="mb-10 px-4">
-          <SectionHeader title="Top Contributors" />
+          <SectionHeader title="Top Contributors" translationKey="contributors" />
           <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide snap-x pt-2">
             {topContributors.map((c, idx) => (
               <Link key={c.id} href={`/user/${encodeURIComponent(c.id)}`} className="snap-start shrink-0 flex flex-col items-center gap-3 w-24 group">
@@ -304,7 +303,7 @@ export default async function Home() {
       {topMusicDirectors.length > 0 && (
         <div className="mb-10">
           <div className="px-4">
-            <SectionHeader title="Music Directors" />
+            <SectionHeader title="Music Directors" translationKey="musicDirectors" />
           </div>
           <div className="flex overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-6">
             {topMusicDirectors.map((md, idx) => (
@@ -325,7 +324,7 @@ export default async function Home() {
       {topMovieDirectors.length > 0 && (
         <div className="mb-10">
           <div className="px-4">
-            <SectionHeader title="Movie Directors" />
+            <SectionHeader title="Movie Directors" translationKey="movieDirectors" />
           </div>
           <div className="flex overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-6">
             {topMovieDirectors.map((md, idx) => (
@@ -345,7 +344,7 @@ export default async function Home() {
       {/* Trending Section (Horizontal) - Moved Down */}
       <div className="mb-10">
         <div className="px-4">
-          <SectionHeader title="Trending Ringtones" />
+          <SectionHeader title="Trending Ringtones" translationKey="trending" />
         </div>
         <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide snap-x">
           {trending?.map((ringtone: Ringtone) => (

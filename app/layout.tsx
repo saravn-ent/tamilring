@@ -4,6 +4,7 @@ import Script from "next/script";
 import "./globals.css";
 import { PlayerProvider } from "@/context/PlayerContext";
 import { FavoritesProvider } from "@/context/FavoritesContext";
+import { LanguageProvider } from "@/context/LanguageContext";
 import BottomNav from "@/components/BottomNav";
 import LegalFooter from "@/components/LegalFooter";
 import TopBar from "@/components/TopBar";
@@ -115,9 +116,8 @@ export default async function RootLayout({
 
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
-          enableSystem={false}
-          forcedTheme="dark"
+          defaultTheme="system"
+          enableSystem={true}
           disableTransitionOnChange
         >
           <Suspense fallback={null}>
@@ -131,14 +131,16 @@ export default async function RootLayout({
 
           <PlayerProvider>
             <FavoritesProvider>
-              <TopBar />
-              <main className="min-h-screen pt-14 pb-32 relative z-0">
-                {children}
-              </main>
-              <div className="pb-24">
-                <LegalFooter />
-              </div>
-              <BottomNav />
+              <LanguageProvider>
+                <TopBar />
+                <main className="min-h-screen pt-14 pb-32 relative z-0">
+                  {children}
+                </main>
+                <div className="pb-24">
+                  <LegalFooter />
+                </div>
+                <BottomNav />
+              </LanguageProvider>
             </FavoritesProvider>
           </PlayerProvider>
           {/* Global Schema for AEO/SEO */}

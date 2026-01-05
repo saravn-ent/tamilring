@@ -154,3 +154,78 @@ export const getTopAlbums = unstable_cache(
     ['top-albums'],
     { revalidate: 3600, tags: ['top-albums'] }
 );
+
+/**
+ * AI Similar Ringtones Recommendation System
+ * Uses weighted content-based filtering (Tags, Mood, Music Director)
+ */
+export async function getSimilarRingtones(source: {
+    id: string;
+    tags?: string[];
+    mood?: string;
+    music_director?: string;
+    movie_name?: string;
+}, limit: number = 6) {
+    const supabase = getPublicSupabase();
+
+    try {
+        // Query candidates that share some key attributes
+        let query = supabase
+            .from('ringtones')
+            .select('*')
+            .eq('status', 'approved')
+            .neq('id', source.id);
+
+        // Build some filters for relevance
+        if (source.tags && source.tags.length > 0) {
+            query = query.overlaps('tags', source.tags);
+        } else if (source.movie_name) {
+            query = query.eq('movie_name', source.movie_name);
+        } else if (source.music_director) {
+            query = query.eq('music_director', source.music_director);
+        }
+
+        const { data, error } = await query.limit(20);
+        if (error) throw error;
+        if (!data || data.length === 0) {
+            // Final fallback: just get recent ones if no matches
+            const { data: recents } = await supabase
+                .from('ringtones')
+                .select('*')
+                .eq('status', 'approved')
+                .neq('id', source.id)
+                .order('created_at', { ascending: false })
+                .limit(limit);
+            return recents || [];
+        }
+
+        // Apply custom AI scoring logic on the candidates
+        const scored = data.map(item => {
+            let score = 0;
+            // Tag overlap score
+            const overlap = item.tags?.filter((t: string) => source.tags?.includes(t)).length || 0;
+            score += overlap * 10;
+
+            // Mood match
+            if (item.mood === source.mood && source.mood) score += 15;
+
+            // Same music director
+            if (item.music_director === source.music_director && source.music_director) score += 20;
+
+            // Same movie
+            if (item.movie_name === source.movie_name) score += 30;
+
+            return { item, score };
+        });
+
+        // Sort by score and return top results
+        return scored
+            .sort((a, b) => b.score - a.score)
+            .slice(0, limit)
+            .map(s => s.item);
+
+    } catch (e) {
+        console.error('Similarity search failed:', e);
+        return [];
+    }
+}

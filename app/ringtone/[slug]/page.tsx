@@ -17,6 +17,9 @@ import { cacheGetOrSet, CacheKeys, CacheTTL } from '@/lib/cache';
 import { generateRingtoneMetadata } from '@/lib/seo';
 import { generateMusicRecordingSchema, generateBreadcrumbSchema, combineSchemas } from '@/lib/seo';
 import StructuredData from '@/components/StructuredData';
+import WhatsAppShare from '@/components/WhatsAppShare';
+import SimilarRingtones from '@/components/SimilarRingtones';
+import { getSimilarRingtones } from '@/app/actions/ringtones';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -66,6 +69,9 @@ export default async function RingtonePage({ params }: Props) {
   ]);
   const combinedSchema = combineSchemas(musicRecordingSchema, breadcrumbSchema);
 
+  // Fetch similar ringtones (AI Recommendations)
+  const similarRingtones = await getSimilarRingtones(ringtone);
+
   return (
     <div className="max-w-md mx-auto min-h-screen bg-neutral-900 relative flex flex-col">
       {/* Backdrop */}
@@ -84,7 +90,7 @@ export default async function RingtonePage({ params }: Props) {
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-neutral-900" />
       </div>
 
-      <div className="relative z-10 p-4 pt-4 flex-1 pb-32">
+      <div className="relative z-10 p-4 pt-4 flex-1 pb-24">
         <div className="flex items-center justify-between mb-6">
           <Link href="/" className="inline-flex items-center gap-2 text-zinc-100 hover:text-emerald-500 bg-neutral-800 px-4 py-3 rounded-xl shadow-lg transition-all active:scale-95">
             <ArrowLeft size={24} strokeWidth={2.5} />
@@ -163,6 +169,15 @@ export default async function RingtonePage({ params }: Props) {
             />
           </div>
 
+          {/* WhatsApp Status Share */}
+          <div className="w-full max-w-sm px-4">
+            <WhatsAppShare
+              title={cleanTitle}
+              movie={ringtone.movie_name}
+              slug={ringtone.slug}
+            />
+          </div>
+
           <div className="w-full bg-neutral-800/50 p-6 rounded-2xl mt-8 text-left space-y-4">
             <h3 className="text-zinc-100 font-bold">Details</h3>
             <div className="grid grid-cols-2 gap-4 text-sm">
@@ -185,6 +200,9 @@ export default async function RingtonePage({ params }: Props) {
             </div>
           </div>
         </div>
+
+        {/* Similar Ringtones Section */}
+        <SimilarRingtones ringtones={similarRingtones} />
       </div>
 
 
