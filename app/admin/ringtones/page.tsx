@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { Ringtone } from '@/types';
 import {
@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { approveRingtone, rejectRingtone } from '@/app/actions';
+import { approveRingtone, rejectRingtone } from '@/app/actions/admin';
 
 export default function RingtoneManagement() {
     const [ringtones, setRingtones] = useState<Ringtone[]>([]);
@@ -22,11 +22,7 @@ export default function RingtoneManagement() {
     const [newTitle, setNewTitle] = useState('');
     const [saving, setSaving] = useState(false);
 
-    useEffect(() => {
-        fetchRingtones();
-    }, []);
-
-    const fetchRingtones = async () => {
+    const fetchRingtones = useCallback(async () => {
         setLoading(true);
 
         let result;
@@ -45,15 +41,14 @@ export default function RingtoneManagement() {
                 .limit(100);
         }
 
-        const { data, error } = result;
-        if (data) setRingtones(data as any);
+        const { data } = result;
+        if (data) setRingtones(data as Ringtone[]);
         setLoading(false);
-    };
+    }, [filter]);
 
-    // Re-fetch when filter changes
     useEffect(() => {
         fetchRingtones();
-    }, [filter]);
+    }, [fetchRingtones]);
 
     const filteredRingtones = ringtones.filter(r =>
         (r.title || '').toLowerCase().includes(search.toLowerCase()) ||

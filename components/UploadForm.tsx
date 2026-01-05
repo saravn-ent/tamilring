@@ -7,7 +7,8 @@ import AudioTrimmer from './AudioTrimmer';
 import { searchMovies, MovieResult, getImageUrl, getMovieCredits, TMDB_GENRE_TO_TAG } from '@/lib/tmdb';
 import { getSongsByMovie, iTunesRing } from '@/lib/itunes';
 import { createBrowserClient } from '@supabase/ssr';
-import { notifyAdminOnUpload, handleUploadReward } from '@/app/actions';
+import { notifyAdminOnUpload } from '@/app/actions/ringtones';
+import { handleUploadReward } from '@/app/actions/user';
 import Image from 'next/image';
 import Script from 'next/script';
 
@@ -41,6 +42,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
   const [loadingMessage, setLoadingMessage] = useState('');
   const [userId, setUserId] = useState<string | null>(propUserId || null);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const ffmpegRef = useRef<any>(null);
   const [ffmpegLoaded, setFfmpegLoaded] = useState(false);
   const [isAuthChecking, setIsAuthChecking] = useState(!propUserId);
@@ -142,7 +144,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
   // Smart Tagging Logic
   useEffect(() => {
-    let newTags = new Set<string>(selectedTags);
+    const newTags = new Set<string>(selectedTags);
 
     // 1. Tag by Movie Genre
     if (selectedMovie?.genre_ids) {

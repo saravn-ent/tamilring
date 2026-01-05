@@ -1,23 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { Loader2, TrendingUp, CheckCircle, XCircle, User, Clock, Search, AlertCircle } from 'lucide-react';
-import { updateWithdrawalStatus } from '@/app/actions';
+import { updateWithdrawalStatus } from '@/app/actions/admin';
 import Image from 'next/image';
 
 export default function AdminWithdrawals() {
     const [loading, setLoading] = useState(true);
-    const [withdrawals, setWithdrawals] = useState<any[]>([]);
+    const [withdrawals, setWithdrawals] = useState<any[]>([]); // Keeping any[] for data from supabase for now, but fixing catch blocks
     const [filter, setFilter] = useState<'pending' | 'completed' | 'rejected'>('pending');
     const [searchQuery, setSearchQuery] = useState('');
     const [processingId, setProcessingId] = useState<string | null>(null);
 
-    useEffect(() => {
-        fetchWithdrawals();
-    }, [filter]);
-
-    const fetchWithdrawals = async () => {
+    const fetchWithdrawals = useCallback(async () => {
         setLoading(true);
         try {
             console.log("Fetching withdrawals for status:", filter);
@@ -44,13 +40,17 @@ export default function AdminWithdrawals() {
             }
             console.log("Withdrawals fetched:", data?.length || 0);
             setWithdrawals(data || []);
-        } catch (error: any) {
+        } catch (error) {
             console.error("Error fetching withdrawals:", error);
             // alert(`Failed to load: ${error.message || 'Unknown error'}`);
         } finally {
             setLoading(false);
         }
-    };
+    }, [filter]);
+
+    useEffect(() => {
+        fetchWithdrawals();
+    }, [fetchWithdrawals]);
 
     const handleAction = async (id: string, status: 'completed' | 'rejected') => {
         if (!confirm(`Are you sure you want to mark this as ${status}?`)) return;

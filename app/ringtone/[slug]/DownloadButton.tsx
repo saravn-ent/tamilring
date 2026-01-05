@@ -3,7 +3,7 @@
 import { useState, useRef } from 'react';
 import { Download } from 'lucide-react';
 import { Ringtone } from '@/types';
-import { incrementDownloads } from '@/app/actions';
+import { incrementDownloads } from '@/app/actions/ringtones';
 
 interface DownloadButtonProps {
     ringtone: Ringtone;

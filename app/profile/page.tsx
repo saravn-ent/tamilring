@@ -17,16 +17,17 @@ import LoginButton from '@/components/LoginButton';
 import PersonalCollections from '@/components/PersonalCollections';
 import AvatarRank from '@/components/AvatarRank';
 import { getLevelTitle, syncUserGamification, POINTS_PER_UPLOAD } from '@/lib/gamification';
-import { Ringtone } from '@/types';
-import { handleWithdrawal } from '@/app/actions';
+import { Ringtone, Profile, UserBadge, Withdrawal } from '@/types';
+import { handleWithdrawal } from '@/app/actions/user';
+import { User as SupabaseUser } from '@supabase/supabase-js';
 
 // Simple timeout helper
-const withTimeout = (promise: any, ms: number = 5000) => {
+function withTimeout<T>(promise: Promise<T>, ms: number = 5000): Promise<T> {
   return Promise.race([
     promise,
     new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), ms))
-  ]);
-};
+  ]) as Promise<T>;
+}
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -37,11 +38,11 @@ export default function ProfilePage() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   ), []);
 
-  const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [uploads, setUploads] = useState<Ringtone[]>([]);
-  const [userBadges, setUserBadges] = useState<any[]>([]);
-  const [withdrawals, setWithdrawals] = useState<any[]>([]);
+  const [userBadges, setUserBadges] = useState<UserBadge[]>([]);
+  const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -83,17 +84,19 @@ export default function ProfilePage() {
         }
 
         // 2. Load fetching in parallel
-        const fetchProfile = withTimeout(supabase.from('profiles').select('*').eq('id', user.id).single())
-          .catch((e: any) => ({ error: e }));
+        type SupabaseRes<T> = { data: T | null; error: any };
 
-        const fetchUploads = withTimeout(supabase.from('ringtones').select('*').eq('user_id', user.id).order('created_at', { ascending: false }))
-          .catch((e: any) => ({ error: e }));
+        const fetchProfile = withTimeout(supabase.from('profiles').select('*').eq('id', user.id).single() as unknown as Promise<SupabaseRes<Profile>>)
+          .catch((e: unknown) => ({ data: null, error: e }));
 
-        const fetchBadges = withTimeout(supabase.from('user_badges').select('*, badge:badges(*)').eq('user_id', user.id))
-          .catch((e: any) => ({ error: e }));
+        const fetchUploads = withTimeout(supabase.from('ringtones').select('*').eq('user_id', user.id).order('created_at', { ascending: false }) as unknown as Promise<SupabaseRes<Ringtone[]>>)
+          .catch((e: unknown) => ({ data: null, error: e }));
 
-        const fetchWithdrawals = withTimeout(supabase.from('withdrawals').select('*').eq('user_id', user.id).order('created_at', { ascending: false }))
-          .catch((e: any) => ({ error: e }));
+        const fetchBadges = withTimeout(supabase.from('user_badges').select('*, badge:badges(*)').eq('user_id', user.id) as unknown as Promise<SupabaseRes<UserBadge[]>>)
+          .catch((e: unknown) => ({ data: null, error: e }));
+
+        const fetchWithdrawals = withTimeout(supabase.from('withdrawals').select('*').eq('user_id', user.id).order('created_at', { ascending: false }) as unknown as Promise<SupabaseRes<Withdrawal[]>>)
+          .catch((e: unknown) => ({ data: null, error: e }));
 
         const [profileRes, uploadsRes, badgesRes, withdrawalsRes] = await Promise.all([
           fetchProfile, fetchUploads, fetchBadges, fetchWithdrawals
@@ -104,10 +107,10 @@ export default function ProfilePage() {
         // Handle Uploads & Recalculate Points
         let currentPoints = 0;
         let currentLevel = 1;
-
         if (uploadsRes.data) {
-          setUploads(uploadsRes.data as any[]);
-          const approvedCount = (uploadsRes.data as any[]).filter(u => u.status === 'approved').length;
+          const uploadsData = uploadsRes.data as Ringtone[];
+          setUploads(uploadsData);
+          const approvedCount = uploadsData.filter(u => u.status === 'approved').length;
           currentPoints = approvedCount * POINTS_PER_UPLOAD;
           currentLevel = Math.floor(currentPoints / 500) + 1;
         }
@@ -134,14 +137,14 @@ export default function ProfilePage() {
 
         // Async Gamification Sync
         syncUserGamification(supabase, user.id)
-          .then(synced => {
-            if (synced && mounted) setProfile((prev: any) => ({ ...prev, ...synced }));
+          .then((synced: Partial<Profile> | null) => {
+            if (synced && mounted) setProfile((prev) => prev ? ({ ...prev, ...synced }) : null);
           })
           .catch(console.error);
 
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Fatal load error:', err);
-        if (mounted) setError(err.message || 'Failed to load profile');
+        if (mounted) setError(err instanceof Error ? err.message : 'Failed to load profile');
       } finally {
         if (mounted) setLoading(false);
       }
@@ -165,7 +168,7 @@ export default function ProfilePage() {
     if (!user) return;
     setSaving(true);
     try {
-      const updates = {
+      const updates: Partial<Profile> & { id: string } = {
         id: user.id,
         full_name: fullName,
         bio,
@@ -177,10 +180,10 @@ export default function ProfilePage() {
       };
       const { error } = await supabase.from('profiles').upsert(updates);
       if (error) throw error;
-      setProfile({ ...profile, ...updates });
+      setProfile(prev => prev ? ({ ...prev, ...updates }) : null);
       setIsEditing(false);
-    } catch (error: any) {
-      alert(`Error updating profile: ${error.message}`);
+    } catch (error: unknown) {
+      alert(`Error updating profile: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setSaving(false);
     }
@@ -401,8 +404,9 @@ export default function ProfilePage() {
                     <button
                       disabled={saving || (profile?.points || 0) < ((!profile?.total_withdrawn_count || profile?.total_withdrawn_count === 0) ? 15 : 200) || !upiId}
                       onClick={async () => {
+                        if (!profile || !user) return;
                         setSaving(true);
-                        const isFirstTime = (!profile?.total_withdrawn_count || profile?.total_withdrawn_count === 0);
+                        const isFirstTime = (!profile.total_withdrawn_count || profile.total_withdrawn_count === 0);
                         const withdrawAmount = isFirstTime ? 15 : profile.points;
                         const res = await handleWithdrawal(user.id, profile.points, upiId);
                         if (res.success) {
@@ -430,7 +434,7 @@ export default function ProfilePage() {
                     <div className="pt-6 border-t border-white/5">
                       <h3 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-4">Payout Audit Log</h3>
                       <div className="space-y-2">
-                        {withdrawals.map((w: any) => (
+                        {withdrawals.map((w) => (
                           <div key={w.id} className="flex items-center justify-between text-[11px] bg-black/40 rounded-xl p-3 border border-white/5">
                             <div className="flex flex-col gap-0.5">
                               <span className="text-zinc-200 font-black">₹{w.amount}</span>

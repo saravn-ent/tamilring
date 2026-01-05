@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { createBrowserClient } from '@supabase/auth-helpers-nextjs';
 import { Camera, Upload, X, Loader2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { revalidateArtistCache } from '@/app/actions';
+import { revalidateArtistCache } from '@/app/actions/ringtones';
 
 interface ArtistImageUploadProps {
     artistName: string;

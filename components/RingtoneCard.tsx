@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Play, Pause, Heart, ArrowRight, Share2, Plus, Download } from 'lucide-react';
 import { Ringtone } from '@/types';
 import { usePlayer } from '@/context/PlayerContext';
-import { incrementLikes, incrementDownloads } from '@/app/actions';
+import { incrementLikes, incrementDownloads } from '@/app/actions/ringtones';
 
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';

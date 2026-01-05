@@ -40,6 +40,7 @@ export interface Profile {
   upi_id?: string;
   btc_address?: string;
   created_at: string;
+  total_withdrawn_count?: number;
 }
 
 export interface Badge {
@@ -58,4 +59,15 @@ export interface UserBadge {
   badge_id: string;
   awarded_at: string;
   badge?: Badge;
+}
+
+export interface Withdrawal {
+  id: string;
+  user_id: string;
+  amount: number;
+  status: 'pending' | 'completed' | 'rejected';
+  upi_id: string;
+  created_at: string;
+  updated_at?: string;
+  profile?: Profile;
 }

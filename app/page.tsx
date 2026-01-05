@@ -18,7 +18,7 @@ import { JsonLdScript } from '@/components/JsonLdScript';
 import { generateHomeMetadata } from '@/lib/seo';
 import { generateOrganizationSchema, generateWebSiteSchema, combineSchemas } from '@/lib/seo';
 import StructuredData from '@/components/StructuredData';
-import { getTrendingRingtones, getTopAlbums } from '@/app/actions';
+import { getTrendingRingtones, getTopAlbums } from '@/app/actions/ringtones';
 import EngagementBanner from '@/components/EngagementBanner';
 
 export const revalidate = 3600; // Revalidate every hour
