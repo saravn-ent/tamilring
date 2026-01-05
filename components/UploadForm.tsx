@@ -200,12 +200,13 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
   const loadFFmpeg = async () => {
     if (ffmpegRef.current && ffmpegRef.current.isLoaded()) {
-      setFfmpegLoaded(true);
-      return;
+      return ffmpegRef.current;
     }
 
     const FFmpeg = (window as any).FFmpeg;
-    if (!FFmpeg) return;
+    if (!FFmpeg) {
+      throw new Error('Audio processor component not loaded. Please check your internet or refresh the page.');
+    }
 
     try {
       const { createFFmpeg } = FFmpeg;
@@ -222,8 +223,10 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
         await ffmpeg.load();
       }
       setFfmpegLoaded(true);
+      return ffmpeg;
     } catch (e) {
       console.error("FFmpeg load failed:", e);
+      throw new Error('Failed to start audio processing engine. Try disabling ad-blockers or using a different browser.');
     }
   };
 
@@ -233,8 +236,17 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       const selectedFile = e.target.files[0];
       setFile(selectedFile);
 
-      // Go to Trimming Step
-      setStep(1.5);
+      // Detect Duration
+      const audio = new Audio();
+      const objectUrl = URL.createObjectURL(selectedFile);
+      audio.src = objectUrl;
+      audio.onloadedmetadata = () => {
+        setTrimEnd(audio.duration);
+        URL.revokeObjectURL(objectUrl);
+      };
+
+      // Go directly to Content Type selection
+      setStep(1.8);
       loadFFmpeg().catch(console.error);
     }
   };
@@ -371,57 +383,87 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
   }, [songName, manualMovieName, segmentName]);
 
 
-  const convertAudio = async (inputFile: File, targetFormat: 'mp3' | 'm4r', startTime: number = 0, duration: number = 0): Promise<Blob> => {
-    await loadFFmpeg();
-    const ffmpeg = ffmpegRef.current!;
+  const convertAudio = async (inputFile: File, targetFormat: 'mp3' | 'm4r', startTime: number = 0, duration: number = 0, applyFade: boolean = true): Promise<Blob> => {
+    const ffmpeg = await loadFFmpeg();
     const { fetchFile } = (window as any).FFmpeg;
 
-    const fileExt = inputFile.name.split('.').pop()?.toLowerCase() || 'dat';
-    const inputName = `input_${Date.now()}.${fileExt}`;
+    const inputName = `input_${Date.now()}.audio`;
     const outputName = `output_${Date.now()}.${targetFormat}`;
 
     try {
-      // v0.11 FS API
       ffmpeg.FS('writeFile', inputName, await fetchFile(inputFile));
 
-      // Command args
-      let args: string[] = [];
-      const commonArgs = ['-i', inputName];
+      // Build filter chain for fading
+      // We apply 2s fade in and 2s fade out by default
+      const actualDuration = duration > 0 ? duration : (trimEnd - startTime);
+      let filters = [];
+      if (applyFade && actualDuration > 4) {
+        filters.push(`afade=t=in:ss=0:d=2`);
+        filters.push(`afade=t=out:st=${(actualDuration - 2).toFixed(2)}:d=2`);
+      }
 
-      // Add trimming if specified
-      if (duration > 0) {
-        commonArgs.unshift('-ss', startTime.toString(), '-t', duration.toString());
+      // Command args
+      let args: string[] = ['-i', inputName];
+
+      // Trimming
+      if (duration > 0 || startTime > 0) {
+        args.unshift('-ss', startTime.toString());
+        if (duration > 0) args.unshift('-t', duration.toString());
+      }
+
+      if (filters.length > 0) {
+        args.push('-af', filters.join(','));
       }
 
       if (targetFormat === 'm4r') {
-        // Force mp4 container for m4r
-        args = [...commonArgs, '-c:a', 'aac', '-b:a', '192k', '-vn', '-f', 'mp4', outputName];
+        args.push('-c:a', 'aac', '-b:a', '192k', '-vn', '-f', 'mp4', outputName);
       } else {
-        // Force mp3 container
-        args = [...commonArgs, '-c:a', 'libmp3lame', '-b:a', '320k', '-vn', '-f', 'mp3', outputName];
+        args.push('-c:a', 'libmp3lame', '-b:a', '320k', '-vn', '-f', 'mp3', outputName);
       }
 
-      // v0.11 uses run() instead of exec()
       await ffmpeg.run(...args);
 
       const data = ffmpeg.FS('readFile', outputName);
       return new Blob([data.buffer], { type: targetFormat === 'm4r' ? 'audio/x-m4r' : 'audio/mpeg' });
     } finally {
-      // Cleanup using v0.11 FS API
       try {
         ffmpeg.FS('unlink', inputName);
         ffmpeg.FS('unlink', outputName);
-      } catch (e) { /* ignore cleanup errors */ }
+      } catch (e) { /* ignore */ }
     }
   };
 
   const handleSubmit = async () => {
     // Validation based on content type
-    if (!file || !songName || !segmentName || duplicateError) return;
+    if (!file) {
+      alert('Please select an audio file first.');
+      return;
+    }
+    if (!songName) {
+      alert('Please select or enter a Song Name.');
+      return;
+    }
+    if (!segmentName) {
+      alert('Please enter a Ringtone Name (e.g. Pallavi, BGM).');
+      return;
+    }
+    if (duplicateError) {
+      alert(duplicateError);
+      return;
+    }
 
-    if (contentType === 'movie' && !manualMovieName) return;
-    if (contentType === 'album' && !manualMovieName) return;
-    if (contentType === 'devotional' && !deityCategory) return;
+    if (contentType === 'movie' && !manualMovieName) {
+      alert('Please select a movie.');
+      return;
+    }
+    if (contentType === 'album' && !manualMovieName) {
+      alert('Please enter the album name.');
+      return;
+    }
+    if (contentType === 'devotional' && !deityCategory) {
+      alert('Please select a deity.');
+      return;
+    }
 
     setLoading(true);
     setLoadingMessage('Initializing...');
@@ -433,22 +475,36 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       let m4rBlob: Blob | File | null = null;
       let iphoneUrl: string | null = null;
 
-      const fileExt = file.name.split('.').pop()?.toLowerCase();
       const baseName = `${slug}-${Date.now()}`;
 
       // Conversion Logic
-      // Always convert now since we support cross-platform compatibility
-      setLoadingMessage('Optimizing audio...');
-      console.log('Starting conversion...');
+      setLoadingMessage('Processing audio & auto-fading...');
+
+      const needsTrimming = (trimEnd > 0 && trimStart > 0);
+
       try {
-        const duration = (trimEnd > 0 && trimStart >= 0) ? (trimEnd - trimStart) : 0;
-        mp3Blob = await convertAudio(file, 'mp3', trimStart, duration);
-        console.log('MP3 conversion done');
-        m4rBlob = await convertAudio(file, 'm4r', trimStart, duration);
-        console.log('M4R conversion done');
-      } catch (convErr) {
-        console.error('Conversion Error:', convErr);
-        throw new Error('Audio processing failed. Please try a different file.');
+        // We ALWAYS try to process now to apply the auto-fade
+        try {
+          const duration = (trimEnd > trimStart) ? (trimEnd - trimStart) : 0;
+          mp3Blob = await convertAudio(file, 'mp3', trimStart, duration, true);
+          console.log('MP3 processing (with fade) successful');
+        } catch (mp3Err) {
+          console.error('MP3 Processing Error:', mp3Err);
+          console.log('Falling back to original file (no fade)');
+          mp3Blob = file;
+        }
+
+        // M4R (iPhone)
+        try {
+          const duration = (trimEnd > trimStart) ? (trimEnd - trimStart) : 0;
+          m4rBlob = await convertAudio(file, 'm4r', trimStart, duration, true);
+        } catch (m4rErr) {
+          console.warn('M4R processing failed', m4rErr);
+        }
+
+      } catch (convErr: any) {
+        console.error('General Audio Processing Error:', convErr);
+        throw new Error(`Audio processing failed: ${convErr?.message || 'The file might be unsupported or too large.'}`);
       }
 
       // 1. Upload MP3
@@ -667,38 +723,6 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
 
 
-      {/* Step 1.5: Trimming */}
-      {step === 1.5 && file && (
-        <div className="space-y-6 animate-in fade-in zoom-in-95 duration-300">
-          <div className="flex items-center gap-2 mb-2">
-            <Scissors className="text-emerald-500" size={20} />
-            <h2 className="text-lg font-bold text-white">Trim Audio</h2>
-          </div>
-
-          <AudioTrimmer
-            file={file}
-            onRangeChange={(start, end) => {
-              setTrimStart(start);
-              setTrimEnd(end);
-            }}
-          />
-
-          <div className="flex justify-between pt-4">
-            <button
-              onClick={() => { setStep(1); setFile(null); }}
-              className="text-zinc-400 hover:text-zinc-100 text-sm"
-            >
-              Change File
-            </button>
-            <button
-              onClick={() => setStep(1.8)}
-              className="bg-emerald-500 text-neutral-900 font-bold py-3 px-8 rounded-xl hover:bg-emerald-400 transition-all flex items-center gap-2"
-            >
-              Next <ArrowRight size={18} />
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Step 1.8: Content Type Selection */}
       {step === 1.8 && (
@@ -778,10 +802,10 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
           <div className="pt-4 flex justify-between">
             <button
-              onClick={() => setStep(1.5)}
+              onClick={() => { setStep(1); setFile(null); }}
               className="text-zinc-400 hover:text-zinc-100 text-sm"
             >
-              Back to Trim
+              Back
             </button>
           </div>
         </div>
@@ -908,8 +932,28 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                       ))}
                     </>
                   ) : (
-                    <div className="px-4 py-4 text-center text-zinc-500 text-xs">
-                      {isLoadingSongs ? 'Loading songs...' : 'No songs found for this movie on iTunes.'}
+                    <div className="px-4 py-6 text-center text-zinc-500 text-xs">
+                      {isLoadingSongs ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <Loader2 size={16} className="animate-spin" />
+                          <span>Searching iTunes...</span>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          <p>No songs found for this movie.</p>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const manual = prompt("Enter song name manually:");
+                              if (manual) setSongName(manual);
+                              setShowSongDropdown(false);
+                            }}
+                            className="bg-emerald-500/10 text-emerald-500 px-4 py-2 rounded-lg font-bold hover:bg-emerald-500/20 transition-all border border-emerald-500/20"
+                          >
+                            Enter Name Manually
+                          </button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -1031,7 +1075,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
             </button>
             <button
               onClick={handleSubmit}
-              disabled={loading || !!duplicateError || !segmentName}
+              disabled={loading || !!duplicateError || !segmentName || !songName || !manualMovieName}
               className="flex-1 ml-4 bg-emerald-500 text-neutral-900 font-bold py-4 rounded-xl hover:bg-emerald-400 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading ? (
