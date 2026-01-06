@@ -73,7 +73,7 @@ export default async function RingtonePage({ params }: Props) {
   const similarRingtones = await getSimilarRingtones(ringtone);
 
   return (
-    <div className="max-w-md mx-auto min-h-screen bg-neutral-900 relative flex flex-col">
+    <div className="max-w-md mx-auto min-h-screen bg-background relative flex flex-col transition-colors duration-300">
       {/* Backdrop */}
       <div className="absolute top-0 left-0 right-0 h-96 opacity-30 z-0">
         {(ringtone.backdrop_url || ringtone.poster_url) && (
@@ -87,12 +87,12 @@ export default async function RingtonePage({ params }: Props) {
             className="object-cover mask-image-gradient"
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-neutral-900" />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background" />
       </div>
 
       <div className="relative z-10 p-4 pt-4 flex-1 pb-24">
         <div className="flex items-center justify-between mb-6">
-          <Link href="/" className="inline-flex items-center gap-2 text-zinc-100 hover:text-emerald-500 bg-neutral-800 px-4 py-3 rounded-xl shadow-lg transition-all active:scale-95">
+          <Link href="/" className="inline-flex items-center gap-2 text-foreground dark:text-zinc-100 hover:text-emerald-500 bg-zinc-100 dark:bg-neutral-800 px-4 py-3 rounded-xl shadow-lg transition-all active:scale-95">
             <ArrowLeft size={24} strokeWidth={2.5} />
             <span className="text-base font-semibold">Back</span>
           </Link>
@@ -106,7 +106,7 @@ export default async function RingtonePage({ params }: Props) {
         </div>
 
         <div className="flex flex-col items-center text-center space-y-4 mt-2">
-          <div className="relative w-32 h-48 rounded-xl overflow-hidden shadow-2xl shadow-black/50 bg-neutral-800 flex items-center justify-center">
+          <div className="relative w-32 h-48 rounded-xl overflow-hidden shadow-2xl shadow-black/20 dark:shadow-black/50 bg-zinc-100 dark:bg-neutral-800 flex items-center justify-center">
             {ringtone.poster_url ? (
               <Image
                 src={ringtone.poster_url}
@@ -118,17 +118,17 @@ export default async function RingtonePage({ params }: Props) {
                 className="object-cover"
               />
             ) : (
-              <Music size={32} className="text-zinc-600" />
+              <Music size={32} className="text-zinc-400 dark:text-zinc-600" />
             )}
           </div>
 
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold text-zinc-100">{ringtone.title.replace(/\(From ".*?"\)/i, '').trim()}</h1>
-            <Link href={`/tamil/movies/${encodeURIComponent(ringtone.movie_name)}`} className="text-zinc-400 text-base hover:text-emerald-500 transition-colors block">
-              {ringtone.movie_name} <span className="text-zinc-600">({ringtone.movie_year})</span>
+            <h1 className="text-2xl font-bold text-foreground">{ringtone.title.replace(/\(From ".*?"\)/i, '').trim()}</h1>
+            <Link href={`/tamil/movies/${encodeURIComponent(ringtone.movie_name)}`} className="text-zinc-600 dark:text-zinc-400 text-base hover:text-emerald-500 transition-colors block">
+              {ringtone.movie_name} <span className="text-zinc-400 dark:text-zinc-600">({ringtone.movie_year})</span>
             </Link>
 
-            <div className="flex flex-wrap justify-center gap-1 text-emerald-500 font-medium text-sm">
+            <div className="flex flex-wrap justify-center gap-1 text-emerald-600 dark:text-emerald-500 font-medium text-sm">
               {splitArtists(ringtone.singers).map((singer: string, idx: number, arr: string[]) => (
                 <span key={idx} className="flex items-center">
                   <Link
@@ -144,7 +144,7 @@ export default async function RingtonePage({ params }: Props) {
 
             {ringtone.music_director && (
               <div className="text-zinc-500 text-xs mt-1">
-                Music: <Link href={`/tamil/music-directors/${encodeURIComponent(ringtone.music_director)}`} className="text-zinc-300 hover:text-emerald-500 transition-colors">{ringtone.music_director}</Link>
+                Music: <Link href={`/tamil/music-directors/${encodeURIComponent(ringtone.music_director)}`} className="text-zinc-700 dark:text-zinc-300 hover:text-emerald-500 transition-colors">{ringtone.music_director}</Link>
               </div>
             )}
           </div>
@@ -158,7 +158,7 @@ export default async function RingtonePage({ params }: Props) {
 
           {/* Streaming Section */}
           <div className="w-full max-w-sm space-y-2">
-            <h3 className="text-zinc-400 text-xs font-semibold text-center tracking-wide uppercase">
+            <h3 className="text-zinc-500 dark:text-zinc-400 text-xs font-semibold text-center tracking-wide uppercase">
               Stream Full Song
             </h3>
             <StreamButtons
@@ -178,24 +178,24 @@ export default async function RingtonePage({ params }: Props) {
             />
           </div>
 
-          <div className="w-full bg-neutral-800/50 p-6 rounded-2xl mt-8 text-left space-y-4">
-            <h3 className="text-zinc-100 font-bold">Details</h3>
+          <div className="w-full bg-zinc-50 dark:bg-neutral-800/50 p-6 rounded-2xl mt-8 text-left space-y-4 border border-zinc-100 dark:border-transparent">
+            <h3 className="text-foreground dark:text-zinc-100 font-bold">Details</h3>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <p className="text-zinc-500">Mood</p>
-                <p className="text-zinc-300">{ringtone.mood}</p>
+                <p className="text-zinc-700 dark:text-zinc-300">{ringtone.mood}</p>
               </div>
               <div>
                 <p className="text-zinc-500">Downloads</p>
-                <p className="text-zinc-300">{ringtone.downloads}</p>
+                <p className="text-zinc-700 dark:text-zinc-300">{ringtone.downloads}</p>
               </div>
               <div>
                 <p className="text-zinc-500">Quality</p>
-                <p className="text-zinc-300">320kbps</p>
+                <p className="text-zinc-700 dark:text-zinc-300">320kbps</p>
               </div>
               <div>
                 <p className="text-zinc-500">Format</p>
-                <p className="text-zinc-300">MP3 / M4R</p>
+                <p className="text-zinc-700 dark:text-zinc-300">MP3 / M4R</p>
               </div>
             </div>
           </div>
@@ -204,8 +204,6 @@ export default async function RingtonePage({ params }: Props) {
         {/* Similar Ringtones Section */}
         <SimilarRingtones ringtones={similarRingtones} />
       </div>
-
-
 
       <StructuredData data={combinedSchema} />
     </div >

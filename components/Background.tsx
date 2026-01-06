@@ -50,7 +50,7 @@ export default function Background() {
   }, [pathname]);
 
   return (
-    <div className="fixed inset-0 z-[-1] bg-[#050505] overflow-hidden transition-colors duration-1000">
+    <div className="fixed inset-0 z-[-1] overflow-hidden transition-colors duration-1000 dark:opacity-100 opacity-0">
       {/* Noise Texture - Removed for performance on mobile
        <div 
          className="absolute inset-0 opacity-[0.04] pointer-events-none mix-blend-overlay"

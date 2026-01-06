@@ -725,13 +725,13 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
   if (!userId) {
     return (
-      <div className="max-w-md mx-auto bg-neutral-900/50 p-8 rounded-2xl border border-neutral-800 text-center space-y-6">
-        <div className="w-20 h-20 bg-neutral-800 rounded-full flex items-center justify-center mx-auto text-emerald-500 mb-4">
+      <div className="max-w-md mx-auto bg-zinc-50 dark:bg-neutral-900/50 p-8 rounded-2xl border border-zinc-200 dark:border-neutral-800 text-center space-y-6">
+        <div className="w-20 h-20 bg-zinc-100 dark:bg-neutral-800 rounded-full flex items-center justify-center mx-auto text-emerald-500 mb-4">
           <Upload size={32} />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-white mb-2">Login Required</h2>
-          <p className="text-zinc-400 text-sm">You must be logged in to upload ringtones to TamilRing.</p>
+          <h2 className="text-2xl font-bold text-foreground mb-2">Login Required</h2>
+          <p className="text-zinc-500 dark:text-zinc-400 text-sm">You must be logged in to upload ringtones to TamilRing.</p>
         </div>
         <a
           href="/profile" // Profile page usually handles login if not logged in
@@ -744,7 +744,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
   }
 
   return (
-    <div className="max-w-md mx-auto bg-neutral-900 p-6 rounded-2xl border border-neutral-800 pb-32">
+    <div className="max-w-md mx-auto bg-background p-6 rounded-2xl border border-zinc-200 dark:border-neutral-800 pb-32 transition-colors duration-300">
 
       {/* Progress */}
       <div className="flex justify-between mb-8 text-[10px] font-medium text-zinc-500 uppercase tracking-widest">
@@ -755,14 +755,14 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
       {/* Step 1: File */}
       {step === 1 && (
-        <div className="border-2 border-dashed border-neutral-700 rounded-xl p-10 text-center hover:border-emerald-500 transition-colors">
+        <div className="border-2 border-dashed border-zinc-200 dark:border-neutral-700 rounded-xl p-10 text-center hover:border-emerald-500 transition-colors">
           <input type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.m4r" onChange={handleFileChange} className="hidden" id="audio-upload" />
           <label htmlFor="audio-upload" className="cursor-pointer flex flex-col items-center gap-4">
-            <div className="w-16 h-16 bg-neutral-800 rounded-full flex items-center justify-center text-emerald-500">
+            <div className="w-16 h-16 bg-zinc-100 dark:bg-neutral-800 rounded-full flex items-center justify-center text-emerald-500">
               <Upload size={32} />
             </div>
-            <p className="text-zinc-300">Drag & Drop or Click to Upload</p>
-            <p className="text-zinc-500 text-xs text-center px-4">
+            <p className="text-zinc-600 dark:text-zinc-300">Drag & Drop or Click to Upload</p>
+            <p className="text-zinc-400 dark:text-zinc-500 text-xs text-center px-4">
               MP3, M4R, WAV accepted.<br />
               <span className="text-emerald-500/70">Max duration 40s recommended for iPhone</span>
             </p>
@@ -778,11 +778,11 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       {step === 1.8 && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-lg font-bold text-white mb-2 flex items-center gap-2">
+            <h2 className="text-lg font-bold text-foreground mb-2 flex items-center gap-2">
               <Sparkles className="text-emerald-500" size={20} />
               What type of content is this?
             </h2>
-            <p className="text-xs text-zinc-500 mb-4">This helps us show the right form for your upload</p>
+            <p className="text-xs text-zinc-500 dark:text-zinc-500 mb-4">This helps us show the right form for your upload</p>
           </div>
 
           <div className="space-y-3">
@@ -791,16 +791,16 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
               onClick={() => { setContentType('movie'); setStep(2); }}
               className={`w-full p-4 rounded-xl border-2 transition-all text-left ${contentType === 'movie'
                 ? 'border-emerald-500 bg-emerald-500/10'
-                : 'border-neutral-700 bg-neutral-800/50 hover:border-neutral-600'
+                : 'border-zinc-200 dark:border-neutral-700 bg-zinc-50 dark:bg-neutral-800/50 hover:border-emerald-500/50'
                 }`}
             >
               <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${contentType === 'movie' ? 'bg-emerald-500 text-neutral-900' : 'bg-neutral-700 text-zinc-400'
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${contentType === 'movie' ? 'bg-emerald-500 text-white dark:text-neutral-900' : 'bg-zinc-200 dark:bg-neutral-700 text-zinc-500 dark:text-zinc-400'
                   }`}>
                   <Film size={20} />
                 </div>
                 <div className="flex-1">
-                  <p className="font-bold text-white">Movie Song</p>
+                  <p className="font-bold text-foreground">Movie Song</p>
                   <p className="text-xs text-zinc-500">From Tamil/Telugu/Malayalam movies</p>
                 </div>
                 {contentType === 'movie' && <Check className="text-emerald-500" size={20} />}
@@ -812,16 +812,16 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
               onClick={() => { setContentType('album'); setStep(3); }}
               className={`w-full p-4 rounded-xl border-2 transition-all text-left ${contentType === 'album'
                 ? 'border-emerald-500 bg-emerald-500/10'
-                : 'border-neutral-700 bg-neutral-800/50 hover:border-neutral-600'
+                : 'border-zinc-200 dark:border-neutral-700 bg-zinc-50 dark:bg-neutral-800/50 hover:border-emerald-500/50'
                 }`}
             >
               <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${contentType === 'album' ? 'bg-emerald-500 text-neutral-900' : 'bg-neutral-700 text-zinc-400'
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${contentType === 'album' ? 'bg-emerald-500 text-white dark:text-neutral-900' : 'bg-zinc-200 dark:bg-neutral-700 text-zinc-500 dark:text-zinc-400'
                   }`}>
                   <Music size={20} />
                 </div>
                 <div className="flex-1">
-                  <p className="font-bold text-white">Album / Independent Artist</p>
+                  <p className="font-bold text-foreground">Album / Independent Artist</p>
                   <p className="text-xs text-zinc-500">Non-movie songs, albums, singles</p>
                 </div>
                 {contentType === 'album' && <Check className="text-emerald-500" size={20} />}
@@ -833,16 +833,16 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
               onClick={() => { setContentType('devotional'); setStep(3); }}
               className={`w-full p-4 rounded-xl border-2 transition-all text-left ${contentType === 'devotional'
                 ? 'border-emerald-500 bg-emerald-500/10'
-                : 'border-neutral-700 bg-neutral-800/50 hover:border-neutral-600'
+                : 'border-zinc-200 dark:border-neutral-700 bg-zinc-50 dark:bg-neutral-800/50 hover:border-emerald-500/50'
                 }`}
             >
               <div className="flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${contentType === 'devotional' ? 'bg-emerald-500 text-neutral-900' : 'bg-neutral-700 text-zinc-400'
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center ${contentType === 'devotional' ? 'bg-emerald-500 text-white dark:text-neutral-900' : 'bg-zinc-200 dark:bg-neutral-700 text-zinc-500 dark:text-zinc-400'
                   }`}>
                   <Heart size={20} />
                 </div>
                 <div className="flex-1">
-                  <p className="font-bold text-white">Devotional Song</p>
+                  <p className="font-bold text-foreground">Devotional Song</p>
                   <p className="text-xs text-zinc-500">Hindu, Christian, Muslim devotional songs</p>
                 </div>
                 {contentType === 'devotional' && <Check className="text-emerald-500" size={20} />}

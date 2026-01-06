@@ -14,7 +14,7 @@ export default function TopBar() {
   useEffect(() => setMounted(true), []);
 
   return (
-    <div className="fixed top-0 left-0 right-0 bg-neutral-900/80 dark:bg-neutral-900/80 backdrop-blur-md z-40 border-b border-zinc-200 dark:border-neutral-800 transition-colors duration-300">
+    <div className="fixed top-0 left-0 right-0 bg-white/80 dark:bg-neutral-900/80 backdrop-blur-md z-40 border-b border-zinc-200 dark:border-neutral-800 transition-colors duration-300">
       <div className="max-w-md mx-auto px-4 h-14 flex items-center justify-between">
         <Link href="/" className="text-xl font-bold tracking-tighter text-emerald-500">
           Tamil<span className="text-zinc-900 dark:text-white">Ring</span>

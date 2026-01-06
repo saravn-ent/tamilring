@@ -89,6 +89,9 @@ import Background from "@/components/Background";
 import AuthCodeRedirect from "@/components/AuthCodeRedirect";
 import ReloadOnUpdate from "@/components/ReloadOnUpdate";
 import { Suspense } from "react";
+import ThemeFix from "@/components/ThemeFix";
+import GoogleOneTap from "@/components/GoogleOneTap";
+
 
 export default async function RootLayout({
   children,
@@ -97,7 +100,7 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${figtree.variable} font-figtree antialiased scrollbar-hide bg-background text-foreground transition-colors duration-300`}>
+      <body className={`${figtree.variable} font-figtree antialiased scrollbar-hide transition-colors duration-300 bg-background text-foreground`}>
         <Script
           strategy="lazyOnload"
           src={`https://www.googletagmanager.com/gtag/js?id=G-07CW71VTGB`}
@@ -120,6 +123,9 @@ export default async function RootLayout({
           enableSystem={true}
           disableTransitionOnChange
         >
+          <ThemeFix />
+          <GoogleOneTap />
+
           <Suspense fallback={null}>
             <AuthCodeRedirect />
             <ReloadOnUpdate />

@@ -290,8 +290,8 @@ export default async function Home() {
                 />
                 <div className="text-center w-full mt-3 flex flex-col items-center">
                   <span className="text-[10px] text-emerald-400 font-bold tracking-wider mb-0.5">{c.points} Rep</span>
-                  <p className="text-xs font-bold text-zinc-200 truncate w-full">{c.name}</p>
-                  <span className="text-[10px] text-amber-500 font-bold mt-1">{c.title}</span>
+                  <p className="text-xs font-bold text-foreground truncate w-full">{c.name}</p>
+                  <span className="text-[10px] text-amber-600 dark:text-amber-500 font-bold mt-1">{c.title}</span>
                 </div>
               </Link>
             ))}

@@ -130,14 +130,14 @@ export default function DiscoveryContainer({ featuredArtists }: DiscoveryContain
 
             {/* Search Input */}
             {/* Search Input Container */}
-            <div className="relative mb-6 sticky top-0 z-30 pt-2 bg-black/90 pb-2 backdrop-blur-xl -mx-4 px-4">
+            <div className="relative mb-6 sticky top-0 z-30 pt-2 bg-background/90 pb-2 backdrop-blur-xl -mx-4 px-4 transition-colors duration-300">
                 <div className="relative w-full">
                     <input
                         type="text"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         placeholder="Find rings, artists, or bgm..."
-                        className="w-full bg-neutral-800/80 border border-neutral-700 rounded-xl px-12 py-4 text-lg text-white focus:outline-none focus:border-emerald-500 transition-all shadow-lg focus:shadow-emerald-500/10"
+                        className="w-full bg-zinc-100 dark:bg-neutral-800/80 border border-zinc-200 dark:border-neutral-700 rounded-xl px-12 py-4 text-lg text-foreground focus:outline-none focus:border-emerald-500 transition-all shadow-lg focus:shadow-emerald-500/10"
                     />
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none" />
                     {loading && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-500 animate-spin" />}
@@ -151,8 +151,8 @@ export default function DiscoveryContainer({ featuredArtists }: DiscoveryContain
                                 key={tab}
                                 onClick={() => setActiveTab(tab as any)}
                                 className={`px-4 py-2 rounded-full text-xs font-bold capitalize whitespace-nowrap transition-colors border ${activeTab === tab
-                                    ? 'bg-emerald-500 text-neutral-900 border-emerald-500'
-                                    : 'bg-neutral-800 text-zinc-400 border-neutral-700 hover:border-zinc-500'
+                                    ? 'bg-emerald-500 text-white dark:text-neutral-900 border-emerald-500'
+                                    : 'bg-zinc-100 dark:bg-neutral-800 text-zinc-500 dark:text-zinc-400 border-zinc-200 dark:border-neutral-700 hover:border-emerald-500/50'
                                     }`}
                             >
                                 {tab}
@@ -176,12 +176,12 @@ export default function DiscoveryContainer({ featuredArtists }: DiscoveryContain
                                     <h3 className="font-bold text-zinc-500 text-xs uppercase tracking-wider mb-3 px-1">Matching Movies</h3>
                                     <div className="grid grid-cols-2 gap-3">
                                         {results.movies.map((item, idx) => (
-                                            <Link href={`/movie/${encodeURIComponent(item.movie_name)}`} key={idx} className="flex flex-col gap-2 p-2 bg-neutral-900 rounded-xl border border-neutral-800 hover:border-emerald-500/50 transition-colors group">
-                                                <div className="relative w-full aspect-[2/3] bg-neutral-800 rounded-lg overflow-hidden shrink-0">
+                                            <Link href={`/movie/${encodeURIComponent(item.movie_name)}`} key={idx} className="flex flex-col gap-2 p-2 bg-white dark:bg-neutral-900 rounded-xl border border-zinc-100 dark:border-neutral-800 hover:border-emerald-500/50 transition-colors group">
+                                                <div className="relative w-full aspect-[2/3] bg-zinc-100 dark:bg-neutral-800 rounded-lg overflow-hidden shrink-0">
                                                     {item.poster_url ? <Image src={item.poster_url} alt={item.movie_name} fill className="object-cover group-hover:scale-110 transition-transform duration-500" /> : null}
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-white text-sm truncate">{item.movie_name}</p>
+                                                    <p className="font-bold text-foreground text-sm truncate">{item.movie_name}</p>
                                                     <p className="text-[10px] text-zinc-500">{item.movie_year}</p>
                                                 </div>
                                             </Link>
@@ -196,11 +196,11 @@ export default function DiscoveryContainer({ featuredArtists }: DiscoveryContain
                                     <h3 className="font-bold text-zinc-500 text-xs uppercase tracking-wider mb-3 px-1">Artists</h3>
                                     <div className="flex flex-wrap gap-3">
                                         {results.artists.map((item, idx) => (
-                                            <Link href={`/artist/${encodeURIComponent(item.name)}`} key={idx} className="flex items-center gap-3 pr-4 pl-2 py-2 bg-neutral-900 rounded-full border border-neutral-800 hover:border-emerald-500/50 transition-colors">
-                                                <div className="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center text-emerald-500 font-bold border border-neutral-700">
+                                            <Link href={`/artist/${encodeURIComponent(item.name)}`} key={idx} className="flex items-center gap-3 pr-4 pl-2 py-2 bg-white dark:bg-neutral-900 rounded-full border border-zinc-100 dark:border-neutral-800 hover:border-emerald-500/50 transition-colors">
+                                                <div className="w-8 h-8 rounded-full bg-zinc-100 dark:bg-neutral-800 flex items-center justify-center text-emerald-600 dark:text-emerald-500 font-bold border border-zinc-200 dark:border-neutral-700">
                                                     {item.name.charAt(0)}
                                                 </div>
-                                                <p className="font-medium text-white text-sm">{item.name}</p>
+                                                <p className="font-medium text-foreground text-sm">{item.name}</p>
                                             </Link>
                                         ))}
                                     </div>

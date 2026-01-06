@@ -30,7 +30,7 @@ export async function middleware(request: NextRequest) {
     style-src 'self' 'unsafe-inline' localhost:* http://localhost:* https://localhost:* https://fonts.googleapis.com;
     img-src 'self' blob: data: localhost:* http://localhost:* https://localhost:* https://image.tmdb.org https://i.scdn.co https://upload.wikimedia.org https://lh3.googleusercontent.com https://ui-avatars.com https://www.googletagmanager.com https://www.google-analytics.com https://*.supabase.co https://*.supabase.in;
     media-src 'self' blob: data: localhost:* http://localhost:* https://localhost:* https://*.supabase.co https://*.supabase.in;
-    connect-src 'self' blob: data: localhost:* http://localhost:* https://localhost:* ws://localhost:* wss://localhost:* https://image.tmdb.org https://api.themoviedb.org https://unpkg.com https://www.google-analytics.com https://www.googletagmanager.com https://*.supabase.co https://*.supabase.in wss://*.supabase.co;
+    connect-src 'self' blob: data: localhost:* http://localhost:* https://localhost:* ws://localhost:* wss://localhost:* https://image.tmdb.org https://api.themoviedb.org https://unpkg.com https://www.google-analytics.com https://www.googletagmanager.com https://accounts.google.com https://*.supabase.co https://*.supabase.in wss://*.supabase.co;
     font-src 'self' data: localhost:* http://localhost:* https://localhost:* https://fonts.gstatic.com;
     frame-src 'self' localhost:* http://localhost:* https://localhost:* https://accounts.google.com;
     object-src 'none';
