@@ -150,11 +150,9 @@ export default async function RingtonePage({ params }: Props) {
           </div>
 
           {/* Play & Download Buttons (Share removed from here) */}
-          <div className="flex gap-4 w-full max-w-xs justify-center">
-            <PlayButton ringtone={ringtone} />
-            <DownloadButton ringtone={ringtone} />
-            <VideoDownloadButton ringtone={ringtone} />
-          </div>
+          <PlayButton ringtone={ringtone} />
+          <DownloadButton ringtone={ringtone} />
+          <VideoDownloadButton ringtone={ringtone} />
 
           {/* Streaming Section */}
           <div className="w-full max-w-sm space-y-2">

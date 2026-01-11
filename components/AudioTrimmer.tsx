@@ -37,15 +37,17 @@ export default function AudioTrimmer({ file, onRangeChange }: { file: File, onRa
                 if (!ffmpegRef.current) {
                     ffmpegRef.current = FFmpeg.createFFmpeg({
                         log: true,
-                        corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js',
+                        corePath: 'https://unpkg.com/@ffmpeg/core@0.11.2/dist/ffmpeg-core.js',
                     });
                 }
                 if (!ffmpegRef.current.isLoaded()) {
                     await ffmpegRef.current.load();
                 }
                 setFfmpegLoaded(true);
-            } catch (e) {
+            } catch (e: any) {
                 console.error("FFmpeg Error:", e);
+                // Fallback or Alert
+                alert(`Audio Engine Error: ${e.message}. Please try a different browser (Chrome/Edge recommended).`);
             } finally {
                 loadingRef.current = false;
             }

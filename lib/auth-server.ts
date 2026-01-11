@@ -31,9 +31,15 @@ export async function getSupabaseServer() {
  * Bypasses RLS - use only after strict ensureAdmin check.
  */
 export async function getSupabaseAdmin() {
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        console.warn('⚠️ SUPABASE_SERVICE_ROLE_KEY is missing. Using ANON KEY (RLS will apply). Admin actions might fail.');
+    }
+
     return createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        serviceRoleKey,
         {
             auth: {
                 autoRefreshToken: false,
