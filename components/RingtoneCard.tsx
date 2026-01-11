@@ -7,6 +7,7 @@ import { Play, Pause, Heart, ArrowRight, Share2, Plus, Download, Music } from 'l
 import { Ringtone } from '@/types';
 import { usePlayer } from '@/context/PlayerContext';
 import { incrementLikes, incrementDownloads } from '@/app/actions/ringtones';
+import { getImageUrl } from '@/lib/tmdb';
 
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
@@ -146,7 +147,7 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
             <div className="relative w-20 h-20 flex-shrink-0 rounded-2xl overflow-hidden shadow-lg bg-zinc-200 dark:bg-neutral-800">
               {ringtone.poster_url ? (
                 <Image
-                  src={ringtone.poster_url}
+                  src={getImageUrl(ringtone.poster_url)}
                   alt={ringtone.title}
                   fill
                   sizes="(max-width: 640px) 25vw, 80px"

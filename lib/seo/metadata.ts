@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { getImageUrl } from '@/lib/tmdb';
 
 /**
  * SEO Metadata Generation Utilities
@@ -183,6 +184,7 @@ export function generateRingtoneMetadata(ringtone: {
     singers?: string;
     music_director?: string;
     artwork_url?: string;
+    poster_url?: string;
     slug: string;
     created_at: string;
 }): Metadata {
@@ -212,7 +214,7 @@ export function generateRingtoneMetadata(ringtone: {
         title,
         description,
         keywords,
-        image: ringtone.artwork_url || DEFAULT_IMAGE,
+        image: getImageUrl(ringtone.poster_url || ringtone.artwork_url || null) || DEFAULT_IMAGE,
         url: `/ringtone/${ringtone.slug}`,
         type: 'music.song',
         publishedTime: ringtone.created_at,
@@ -249,7 +251,7 @@ export function generateMovieMetadata(movie: {
         title,
         description,
         keywords,
-        image: movie.poster_url || DEFAULT_IMAGE,
+        image: getImageUrl(movie.poster_url || null) || DEFAULT_IMAGE,
         url: `/movie/${encodeURIComponent(movie.name)}`,
         type: 'website',
         tags: keywords,
@@ -288,7 +290,7 @@ export function generateArtistMetadata(artist: {
         title,
         description,
         keywords,
-        image: artist.image_url || DEFAULT_IMAGE,
+        image: getImageUrl(artist.image_url || null) || DEFAULT_IMAGE,
         url: `/artist/${encodeURIComponent(artist.name)}`,
         type: 'profile',
         tags: keywords,

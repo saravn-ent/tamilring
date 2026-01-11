@@ -20,6 +20,7 @@ import StructuredData from '@/components/StructuredData';
 import WhatsAppShare from '@/components/WhatsAppShare';
 import SimilarRingtones from '@/components/SimilarRingtones';
 import { getSimilarRingtones } from '@/app/actions/ringtones';
+import { getImageUrl } from '@/lib/tmdb';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -78,7 +79,7 @@ export default async function RingtonePage({ params }: Props) {
       <div className="absolute top-0 left-0 right-0 h-96 opacity-30 z-0">
         {(ringtone.backdrop_url || ringtone.poster_url) && (
           <Image
-            src={ringtone.backdrop_url || ringtone.poster_url}
+            src={getImageUrl(ringtone.backdrop_url || ringtone.poster_url)}
             alt={ringtone.movie_name}
             fill
             priority
@@ -109,7 +110,7 @@ export default async function RingtonePage({ params }: Props) {
           <div className="relative w-32 h-48 rounded-xl overflow-hidden shadow-2xl shadow-black/20 dark:shadow-black/50 bg-zinc-100 dark:bg-neutral-800 flex items-center justify-center">
             {ringtone.poster_url ? (
               <Image
-                src={ringtone.poster_url}
+                src={getImageUrl(ringtone.poster_url)}
                 alt={ringtone.movie_name}
                 fill
                 priority

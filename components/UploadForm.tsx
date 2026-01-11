@@ -609,8 +609,8 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
           movie_name: manualMovieName,
           movie_year: selectedMovie?.release_date?.split('-')[0] || undefined,
           movie_director: movieDirector,
-          poster_url: selectedMovie?.poster_path || undefined,
-          backdrop_url: selectedMovie?.backdrop_path || undefined,
+          poster_url: selectedMovie?.poster_path ? getImageUrl(selectedMovie.poster_path, 'w342') : undefined,
+          backdrop_url: selectedMovie?.backdrop_path ? getImageUrl(selectedMovie.backdrop_path, 'w780') : undefined,
         };
       } else if (contentType === 'album') {
         insertData = {

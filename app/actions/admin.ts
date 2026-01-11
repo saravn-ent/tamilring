@@ -26,7 +26,25 @@ export async function approveRingtone(id: string, userId?: string) {
     if (userId) {
         try {
             const { awardPoints, checkUploadBadges, POINTS_PER_UPLOAD } = await import('@/lib/gamification');
+
+            // Standard Points
             await awardPoints(supabase, userId, POINTS_PER_UPLOAD);
+
+            // First Upload Bonus (15 Points)
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('is_first_upload_rewarded, points')
+                .eq('id', userId)
+                .single();
+
+            if (profile && !profile.is_first_upload_rewarded) {
+                await supabase.from('profiles').update({
+                    is_first_upload_rewarded: true,
+                    points: (profile.points || 0) + 15
+                }).eq('id', userId);
+            }
+
+            // Badges
             await checkUploadBadges(supabase, userId);
         } catch (e) {
             console.warn('Gamification failed during approval:', e);
@@ -42,6 +60,59 @@ export async function approveRingtone(id: string, userId?: string) {
         revalidateTag('homepage-artists'); // In case it affects stats
     } catch (e) {
         console.warn('Ringtone revalidation failed:', e);
+    }
+
+    return { success: true };
+}
+
+export async function bulkApproveRingtones(ids: string[]) {
+    try {
+        await ensureAdmin();
+    } catch (error: any) {
+        return { success: false, error: `Authentication Failed: ${error.message}` };
+    }
+
+    if (!ids.length) return { success: true };
+
+    const { getSupabaseAdmin } = await import('@/lib/auth-server');
+    const supabase = await getSupabaseAdmin();
+
+    // 1. Update status to approved for ALL ids
+    const { error } = await supabase
+        .from('ringtones')
+        .update({ status: 'approved' })
+        .in('id', ids);
+
+    if (error) return { success: false, error: error.message };
+
+    // 2. Award points - we need to fetch user_ids for these ringtones first
+    // This might be heavy, so we'll do it in a background-ish way or simplified
+    try {
+        const { data: ringtones } = await supabase
+            .from('ringtones')
+            .select('user_id')
+            .in('id', ids);
+
+        if (ringtones) {
+            const { awardPoints, POINTS_PER_UPLOAD } = await import('@/lib/gamification');
+            // Sequentially or parallel award points
+            // simple loop for now
+            for (const r of ringtones) {
+                if (r.user_id) {
+                    await awardPoints(supabase, r.user_id, POINTS_PER_UPLOAD).catch(() => { });
+                }
+            }
+        }
+    } catch (e) {
+        console.warn('Gamification failed during bulk approval:', e);
+    }
+
+    // 3. Revalidate
+    try {
+        revalidatePath('/', 'layout');
+        revalidatePath('/admin/ringtones');
+    } catch (e) {
+        console.warn('Revalidation failed:', e);
     }
 
     return { success: true };
@@ -212,6 +283,79 @@ export async function deleteRingtone(id: string) {
         return { success: true };
     } catch (e: any) {
         return { success: false, error: e.message || 'Failed to delete ringtone' };
+    }
+}
+
+export async function bulkDeleteRingtones(ids: string[]) {
+    try {
+        await ensureAdmin();
+    } catch (error: any) {
+        return { success: false, error: `Authentication Failed: ${error.message}` };
+    }
+
+    if (!ids.length) return { success: true };
+
+    const { getSupabaseAdmin } = await import('@/lib/auth-server');
+    const supabase = await getSupabaseAdmin();
+
+    // 1. Fetch all to get file paths
+    const { data: ringtones } = await supabase
+        .from('ringtones')
+        .select('audio_url, audio_url_iphone')
+        .in('id', ids);
+
+    if (ringtones) {
+        const filesToDelete: string[] = [];
+        const extractPath = (url: string) => {
+            const parts = url.split('/ringtone-files/');
+            return parts.length > 1 ? parts[1] : null;
+        };
+
+        ringtones.forEach(r => {
+            if (r.audio_url) { const p = extractPath(r.audio_url); if (p) filesToDelete.push(p); }
+            if (r.audio_url_iphone) { const p = extractPath(r.audio_url_iphone); if (p) filesToDelete.push(p); }
+        })
+
+        if (filesToDelete.length > 0) {
+            await supabase.storage.from('ringtone-files').remove(filesToDelete).catch(() => { });
+        }
+    }
+
+    // 2. Bulk Delete from DB
+    const { error } = await supabase
+        .from('ringtones')
+        .delete()
+        .in('id', ids);
+
+    if (error) return { success: false, error: error.message };
+
+    // 3. Revalidate
+    try {
+        revalidatePath('/', 'layout');
+        revalidatePath('/admin/ringtones');
+    } catch (e) {
+        console.warn('Revalidation failed:', e);
+    }
+
+    return { success: true };
+}
+
+export async function updateRingtoneMetadata(id: string, data: any) {
+    try {
+        await ensureAdmin();
+        const { getSupabaseAdmin } = await import('@/lib/auth-server');
+        const supabase = await getSupabaseAdmin();
+
+        const { error } = await supabase
+            .from('ringtones')
+            .update(data)
+            .eq('id', id);
+
+        if (error) throw error;
+        revalidatePath('/admin/ringtones');
+        return { success: true };
+    } catch (e: any) {
+        return { success: false, error: e.message };
     }
 }
 
