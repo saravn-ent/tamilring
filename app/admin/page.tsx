@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { Loader2, Music, Users, Download, Clock, TrendingUp, AlertCircle, RefreshCcw } from 'lucide-react';
+import { Loader2, Music, Users, Download, Clock, TrendingUp, AlertCircle, RefreshCcw, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 
 export default function AdminDashboard() {
@@ -12,8 +12,11 @@ export default function AdminDashboard() {
         pendingRingtones: 0,
         totalUsers: 0,
         totalDownloads: 0,
+        todayDownloads: 0,
+        weekDownloads: 0,
         pendingWithdrawals: 0,
-        totalPaid: 0
+        totalPaid: 0,
+        pendingRequests: 0
     });
     const [recentUploads, setRecentUploads] = useState<any[]>([]);
 
@@ -28,15 +31,44 @@ export default function AdminDashboard() {
             const { count: totalRings } = await supabase.from('ringtones').select('*', { count: 'exact', head: true });
             const { count: pendingRings } = await supabase.from('ringtones').select('*', { count: 'exact', head: true }).eq('status', 'pending');
 
+
             // 2. Users Stats
             const { count: totalUsers } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
 
             // 3. Withdrawals Stats
             const { count: pendingPayments } = await supabase.from('withdrawals').select('*', { count: 'exact', head: true }).eq('status', 'pending');
 
+            // Requests
+            const { count: pendingRequests } = await supabase.from('ringtone_requests').select('*', { count: 'exact', head: true }).eq('status', 'pending');
+
             // 3. Downloads (Sum of downloads column)
             const { data: downloadData } = await supabase.from('ringtones').select('downloads');
             const totalDownloads = downloadData?.reduce((acc, curr) => acc + (curr.downloads || 0), 0) || 0;
+
+            // Analytics (Try/Catch in case table missing)
+            let todayDownloads = 0;
+            let weekDownloads = 0;
+            try {
+                const now = new Date();
+                const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+                const startOfWeek = new Date(now.setDate(now.getDate() - 7)).toISOString();
+
+                const { count: todayCount, error: tErr } = await supabase
+                    .from('download_logs')
+                    .select('*', { count: 'exact', head: true })
+                    .gte('created_at', startOfDay);
+
+                if (!tErr) todayDownloads = todayCount || 0;
+
+                const { count: weekCount, error: wErr } = await supabase
+                    .from('download_logs')
+                    .select('*', { count: 'exact', head: true })
+                    .gte('created_at', startOfWeek);
+
+                if (!wErr) weekDownloads = weekCount || 0;
+            } catch (e) {
+                console.warn("Analytics table likely missing", e);
+            }
 
             // 5. Total Payouts (Processed)
             const { data: payoutData } = await supabase.from('withdrawals').select('amount').eq('status', 'completed');
@@ -54,8 +86,11 @@ export default function AdminDashboard() {
                 pendingRingtones: pendingRings || 0,
                 totalUsers: totalUsers || 0,
                 totalDownloads: totalDownloads,
+                todayDownloads,
+                weekDownloads,
                 pendingWithdrawals: pendingPayments || 0,
-                totalPaid: totalPaidValue
+                totalPaid: totalPaidValue,
+                pendingRequests: pendingRequests || 0
             });
 
             if (recents) setRecentUploads(recents);
@@ -75,7 +110,7 @@ export default function AdminDashboard() {
         );
     }
 
-    const StatCard = ({ title, value, icon: Icon, color, href }: any) => (
+    const StatCard = ({ title, value, subValue, icon: Icon, color, href }: any) => (
         <Link href={href || '#'} className="bg-neutral-900 border border-white/5 p-6 rounded-2xl hover:border-white/10 transition-all group relative overflow-hidden">
             <div className={`absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity ${color}`}>
                 <Icon size={64} />
@@ -86,6 +121,7 @@ export default function AdminDashboard() {
                 </div>
                 <h3 className="text-zinc-500 text-sm font-medium mb-1">{title}</h3>
                 <p className="text-3xl font-bold text-white tracking-tight">{value}</p>
+                {subValue && <p className="text-xs text-zinc-400 mt-2 font-mono">{subValue}</p>}
             </div>
         </Link>
     );
@@ -117,11 +153,18 @@ export default function AdminDashboard() {
                     href="/admin/ringtones"
                 />
                 <StatCard
-                    title="Pending Approval"
-                    value={stats.pendingRingtones}
-                    icon={AlertCircle}
-                    color="text-amber-500"
-                    href="/admin/ringtones?tab=pending"
+                    title="Downloads Activity"
+                    value={stats.totalDownloads || '-'}
+                    subValue={`Today: ${stats.todayDownloads} • Week: ${stats.weekDownloads}`}
+                    icon={Download}
+                    color="text-emerald-500"
+                />
+                <StatCard
+                    title="Requests Pending"
+                    value={stats.pendingRequests}
+                    icon={MessageSquare}
+                    color="text-pink-500"
+                    href="/requests"
                 />
                 <StatCard
                     title="Total Users"
@@ -131,10 +174,11 @@ export default function AdminDashboard() {
                     href="/admin/users"
                 />
                 <StatCard
-                    title="Total Downloads"
-                    value={stats.totalDownloads || '-'}
-                    icon={Download}
-                    color="text-emerald-500"
+                    title="Pending Approval"
+                    value={stats.pendingRingtones}
+                    icon={AlertCircle}
+                    color="text-amber-500"
+                    href="/admin/ringtones?tab=pending"
                 />
                 <StatCard
                     title="Pending Payments"
@@ -193,6 +237,13 @@ export default function AdminDashboard() {
                 <div className="bg-neutral-900 border border-white/5 rounded-2xl p-6">
                     <h3 className="text-lg font-bold text-white mb-6">Quick Actions</h3>
                     <div className="space-y-3">
+                        <Link href="/requests" className="flex items-center gap-3 p-3 rounded-xl bg-pink-500/10 text-pink-500 hover:bg-pink-500/20 transition-colors border border-pink-500/20">
+                            <MessageSquare size={20} />
+                            <div className="text-left">
+                                <span className="block text-sm font-bold">Manage Requests</span>
+                                <span className="block text-[10px] opacity-70">View & Fulfill User Requests</span>
+                            </div>
+                        </Link>
                         <Link href="/admin/ringtones?tab=pending" className="flex items-center gap-3 p-3 rounded-xl bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 transition-colors border border-amber-500/20">
                             <AlertCircle size={20} />
                             <div className="text-left">
@@ -207,33 +258,7 @@ export default function AdminDashboard() {
                                 <span className="block text-[10px] opacity-70">Process withdrawal requests</span>
                             </div>
                         </Link>
-                        <button
-                            onClick={async () => {
-                                setLoading(true);
-                                try {
-                                    const res = await fetch('/api/admin/debug');
-                                    const debugData = await res.json();
-                                    console.log('Debug Data:', debugData);
-                                    if (debugData.role !== 'admin') {
-                                        alert('Warning: Your role is reported as ' + (debugData.role || 'none') + ' in the database.');
-                                    } else {
-                                        alert('System check passed. Reloading stats...');
-                                        await fetchStats();
-                                    }
-                                } catch (e) {
-                                    alert('Debug check failed');
-                                } finally {
-                                    setLoading(false);
-                                }
-                            }}
-                            className="w-full flex items-center gap-3 p-3 rounded-xl bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition-colors border border-white/5"
-                        >
-                            <RefreshCcw size={20} />
-                            <div className="text-left">
-                                <span className="block text-sm font-bold">System Self-Check</span>
-                                <span className="block text-[10px] opacity-70 font-mono">Verify Admin & Schema</span>
-                            </div>
-                        </button>
+
                     </div>
                 </div>
             </div>

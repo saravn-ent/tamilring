@@ -5,10 +5,11 @@ import { supabase } from '@/lib/supabaseClient';
 import { Loader2, TrendingUp, CheckCircle, XCircle, User, Clock, Search, AlertCircle } from 'lucide-react';
 import { updateWithdrawalStatus } from '@/app/actions/admin';
 import Image from 'next/image';
+import { Withdrawal } from '@/types';
 
 export default function AdminWithdrawals() {
     const [loading, setLoading] = useState(true);
-    const [withdrawals, setWithdrawals] = useState<any[]>([]); // Keeping any[] for data from supabase for now, but fixing catch blocks
+    const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
     const [filter, setFilter] = useState<'pending' | 'completed' | 'rejected'>('pending');
     const [searchQuery, setSearchQuery] = useState('');
     const [processingId, setProcessingId] = useState<string | null>(null);
@@ -16,7 +17,6 @@ export default function AdminWithdrawals() {
     const fetchWithdrawals = useCallback(async () => {
         setLoading(true);
         try {
-            console.log("Fetching withdrawals for status:", filter);
             const { data, error } = await supabase
                 .from('withdrawals')
                 .select(`
@@ -30,19 +30,10 @@ export default function AdminWithdrawals() {
                 .eq('status', filter)
                 .order('created_at', { ascending: false });
 
-            if (error) {
-                console.error("Supabase Error Detail:", error);
-                // Specifically check for "not found"
-                if (error.code === 'PGRST116' || error.message.includes('not found')) {
-                    alert("Schema error: 'withdrawals' table not found in API. Please reload schema cache in Supabase.");
-                }
-                throw error;
-            }
-            console.log("Withdrawals fetched:", data?.length || 0);
-            setWithdrawals(data || []);
+            if (error) throw error;
+            setWithdrawals((data as unknown as Withdrawal[]) || []);
         } catch (error) {
             console.error("Error fetching withdrawals:", error);
-            // alert(`Failed to load: ${error.message || 'Unknown error'}`);
         } finally {
             setLoading(false);
         }

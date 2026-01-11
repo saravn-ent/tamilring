@@ -130,9 +130,9 @@ export default function RequestsPage() {
                                             </div>
                                             <div className={`shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-tight ${req.status === 'fulfilled'
                                                 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-500'
-                                                : 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-500'
+                                                : 'bg-blue-500/10 text-blue-600 dark:text-blue-500'
                                                 }`}>
-                                                {req.status}
+                                                {req.status === 'pending' ? 'Open' : req.status}
                                             </div>
                                         </div>
 

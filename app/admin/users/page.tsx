@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import { getLevelTitle } from '@/lib/gamification';
+import { toggleUserRole } from '@/app/actions/admin';
 
 export default function UserManagement() {
     const [users, setUsers] = useState<Profile[]>([]);
@@ -44,15 +45,16 @@ export default function UserManagement() {
 
         if (!confirm(`Are you sure you want to ${action} for ${user.full_name || user.email}?`)) return;
 
-        const { error } = await supabase
-            .from('profiles')
-            .update({ role: newRole })
-            .eq('id', user.id);
-
-        if (!error) {
-            setUsers(prev => prev.map(u => u.id === user.id ? { ...u, role: newRole } : u));
-        } else {
-            alert("Failed to update user role. Check RLS or permissions.");
+        try {
+            const res = await toggleUserRole(user.id, newRole);
+            if (res.success) {
+                setUsers(prev => prev.map(u => u.id === user.id ? { ...u, role: newRole } : u));
+            } else {
+                alert(res.error || "Failed to update user role.");
+            }
+        } catch (err: any) {
+            console.error(err);
+            alert(`Error: ${err.message || 'Unknown error'}`);
         }
     };
 

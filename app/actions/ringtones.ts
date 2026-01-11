@@ -63,6 +63,17 @@ export async function incrementDownloads(ringtoneId: string) {
 
     if (updateError) return { success: false, error: updateError }
 
+    // Log analytics (Fire & Forget mostly, but we await to ensure it happens)
+    try {
+        await supabase.from('download_logs').insert({
+            ringtone_id: ringtoneId,
+            // user_id will be null since this is public action usually, 
+            // unless we grab it from auth.getUser(), but let's keep it simple for speed
+        });
+    } catch (logErr) {
+        console.warn('Analytics log failed:', logErr);
+    }
+
     return { success: true }
 }
 
@@ -227,5 +238,30 @@ export async function getSimilarRingtones(source: {
     } catch (e) {
         console.error('Similarity search failed:', e);
         return [];
+    }
+}
+
+export async function processAutoApproval(userId: string) {
+    try {
+        const { getSupabaseAdmin } = await import('@/lib/auth-server');
+        const supabase = await getSupabaseAdmin();
+
+        const { awardPoints, checkUploadBadges, POINTS_PER_UPLOAD } = await import('@/lib/gamification');
+
+        // Award points
+        await awardPoints(supabase, userId, POINTS_PER_UPLOAD);
+
+        // Check for badges
+        await checkUploadBadges(supabase, userId);
+
+        // Revalidate to show new points immediately
+        // @ts-expect-error - revalidateTag has type issues in Next.js 16
+        revalidateTag('user-profile');
+        revalidatePath('/profile');
+
+        return { success: true };
+    } catch (e) {
+        console.error('Auto-approval gamification failed:', e);
+        return { success: false, error: 'Failed to award points' };
     }
 }

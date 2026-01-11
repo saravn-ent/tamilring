@@ -4,7 +4,13 @@ import { revalidatePath, revalidateTag } from 'next/cache'
 import { ensureAdmin } from '@/lib/auth-server'
 
 export async function approveRingtone(id: string, userId?: string) {
-    await ensureAdmin();
+    try {
+        await ensureAdmin();
+    } catch (error: any) {
+        console.error('Admin Check Failed:', error);
+        return { success: false, error: `Authentication Failed: ${error.message}` };
+    }
+
     const { getSupabaseAdmin } = await import('@/lib/auth-server');
     const supabase = await getSupabaseAdmin();
 
@@ -42,7 +48,12 @@ export async function approveRingtone(id: string, userId?: string) {
 }
 
 export async function rejectRingtone(id: string, reason?: string) {
-    await ensureAdmin();
+    try {
+        await ensureAdmin();
+    } catch (error: any) {
+        return { success: false, error: `Authentication Failed: ${error.message}` };
+    }
+
     const { getSupabaseAdmin } = await import('@/lib/auth-server');
     const supabase = await getSupabaseAdmin();
 
@@ -69,7 +80,12 @@ export async function rejectRingtone(id: string, reason?: string) {
 }
 
 export async function updateWithdrawalStatus(withdrawalId: string, status: 'completed' | 'rejected') {
-    await ensureAdmin();
+    try {
+        await ensureAdmin();
+    } catch (error: any) {
+        return { success: false, error: `Authentication Failed: ${error.message}` };
+    }
+
     const { getSupabaseAdmin } = await import('@/lib/auth-server');
     const supabase = await getSupabaseAdmin();
 
@@ -130,7 +146,12 @@ export async function updateWithdrawalStatus(withdrawalId: string, status: 'comp
 
 export async function deleteRingtone(id: string) {
     try {
-        await ensureAdmin();
+        try {
+            await ensureAdmin();
+        } catch (error: any) {
+            return { success: false, error: `Authentication Failed: ${error.message}` };
+        }
+
         const { getSupabaseAdmin } = await import('@/lib/auth-server');
         const supabase = await getSupabaseAdmin();
 
@@ -140,6 +161,40 @@ export async function deleteRingtone(id: string) {
             .select('audio_url, audio_url_iphone, poster_url')
             .eq('id', id)
             .single();
+
+        if (ringtone) {
+            const filesToDelete = [];
+
+            const extractPath = (url: string) => {
+                try {
+                    if (!url) return null;
+                    const parts = url.split('/ringtone-files/');
+                    return parts.length > 1 ? parts[1] : null;
+                } catch (e) { return null; }
+            };
+
+            if (ringtone.audio_url) {
+                const path = extractPath(ringtone.audio_url);
+                if (path) filesToDelete.push(path);
+            }
+            if (ringtone.audio_url_iphone) {
+                const path = extractPath(ringtone.audio_url_iphone);
+                if (path) filesToDelete.push(path);
+            }
+
+            // Note: Poster might be external or shared, implement specific logic if needed. 
+            // For now, only deleting audio files to be safe, or if it's stored in 'ringtone-files'
+            if (ringtone.poster_url && ringtone.poster_url.includes('/ringtone-files/')) {
+                const path = extractPath(ringtone.poster_url);
+                if (path) filesToDelete.push(path);
+            }
+
+            if (filesToDelete.length > 0) {
+                await supabase.storage
+                    .from('ringtone-files')
+                    .remove(filesToDelete);
+            }
+        }
 
         // 2. Delete from database (RLS bypass with admin client)
         const { error } = await supabase
@@ -158,4 +213,30 @@ export async function deleteRingtone(id: string) {
     } catch (e: any) {
         return { success: false, error: e.message || 'Failed to delete ringtone' };
     }
+}
+
+export async function toggleUserRole(userId: string, role: 'user' | 'admin') {
+    try {
+        await ensureAdmin();
+    } catch (error: any) {
+        return { success: false, error: `Authentication Failed: ${error.message}` };
+    }
+
+    const { getSupabaseAdmin } = await import('@/lib/auth-server');
+    const supabase = await getSupabaseAdmin();
+
+    const { error } = await supabase
+        .from('profiles')
+        .update({ role })
+        .eq('id', userId);
+
+    if (error) return { success: false, error: error.message };
+
+    try {
+        revalidatePath('/admin/users');
+    } catch (e) {
+        console.warn('Revalidation failed:', e);
+    }
+
+    return { success: true };
 }

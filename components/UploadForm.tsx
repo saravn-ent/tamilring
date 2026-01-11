@@ -7,7 +7,7 @@ import AudioTrimmer from './AudioTrimmer';
 import { searchMovies, MovieResult, getImageUrl, getMovieCredits, TMDB_GENRE_TO_TAG } from '@/lib/tmdb';
 import { getSongsByMovie, iTunesRing } from '@/lib/itunes';
 import { createBrowserClient } from '@supabase/ssr';
-import { notifyAdminOnUpload } from '@/app/actions/ringtones';
+import { notifyAdminOnUpload, processAutoApproval } from '@/app/actions/ringtones';
 import { handleUploadReward } from '@/app/actions/user';
 import Image from 'next/image';
 import Script from 'next/script';
@@ -598,7 +598,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
         audio_url: mp3Url,
         audio_url_iphone: iphoneUrl || undefined,
         tags: selectedTags,
-        status: 'pending' // SECURITY: Require admin approval before publishing
+        status: 'approved' // Auto-approval enabled
       };
 
       let insertData: any = baseData;
@@ -607,32 +607,25 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
         insertData = {
           ...baseData,
           movie_name: manualMovieName,
-          movie_year: selectedMovie?.release_date ? parseInt(selectedMovie.release_date.split('-')[0]) : null,
+          movie_year: selectedMovie?.release_date?.split('-')[0] || undefined,
           movie_director: movieDirector,
-          poster_url: selectedMovie?.poster_path ? getImageUrl(selectedMovie.poster_path) : null,
+          poster_url: selectedMovie?.poster_path || undefined,
+          backdrop_url: selectedMovie?.backdrop_path || undefined,
         };
       } else if (contentType === 'album') {
         insertData = {
           ...baseData,
-          movie_name: manualMovieName, // Using movie_name field for album name
-          movie_year: null,
-          movie_director: null,
-          poster_url: null,
+          movie_name: manualMovieName,
         };
       } else if (contentType === 'devotional') {
         insertData = {
           ...baseData,
-          movie_name: deityCategory, // Store deity as movie_name for now
-          movie_year: null,
-          movie_director: null,
-          poster_url: null,
+          movie_name: deityCategory,
         };
       }
 
       if (DEV_MODE) {
-        // Development mode: Skip database operations
-        console.log('🔧 DEV MODE: Skipping database insert. Data would be:', insertData);
-        alert('✅ DEV MODE: Upload form completed successfully!\n\nContent Type: ' + contentType + '\nThis is a UI test - no data was saved.');
+        // ...
       } else {
         // Production mode: Actually insert into database
         const { error: dbError } = await supabase
@@ -656,18 +649,22 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
         if (userId) {
           try {
+            // 1. Process Auto-Approval Rewards (Points + Badges)
+            await processAutoApproval(userId);
+
+            // 2. Check First Upload Reward
             const rewardRes = await handleUploadReward(userId);
             if (rewardRes.success && rewardRes.bonusGiven) {
               alert('🎉 BINGO! You earned 15 Reputation Points (₹15) for your first upload! Go to your Profile to withdraw it instantly to your UPI.');
             } else {
-              alert('Ringtone uploaded successfully! It will be reviewed by our team and published shortly.');
+              alert('Ringtone uploaded successfully! It is now live on the site.');
             }
           } catch (rewardErr) {
             console.warn("Reward processing failed", rewardErr);
-            alert('Ringtone uploaded successfully! It will be reviewed and published shortly.');
+            alert('Ringtone uploaded successfully! It is now live on the site.');
           }
         } else {
-          alert('Ringtone uploaded successfully! It will be reviewed and published shortly.');
+          alert('Ringtone uploaded successfully! It is now live on the site.');
         }
       }
       // Reset form

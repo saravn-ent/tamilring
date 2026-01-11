@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { Ringtone } from '@/types';
 import {
     Search, Filter, MoreVertical, Check, X, Trash2,
-    Play, Pause, Edit, ExternalLink, Loader2
+    Play, Pause, Edit, ExternalLink, Loader2, Music
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -69,8 +69,9 @@ export default function RingtoneManagement() {
             } else {
                 alert(res.error || 'Failed to approve ringtone');
             }
-        } catch (err) {
-            alert('An error occurred during approval');
+        } catch (err: any) {
+            console.error(err);
+            alert(`An error occurred during approval: ${err.message || 'Unknown error'}`);
         }
     };
 
@@ -89,8 +90,9 @@ export default function RingtoneManagement() {
             } else {
                 alert(res.error || 'Failed to reject ringtone');
             }
-        } catch (err) {
-            alert('An error occurred during rejection');
+        } catch (err: any) {
+            console.error(err);
+            alert(`An error occurred during rejection: ${err.message || 'Unknown error'}`);
         }
     };
 
@@ -104,8 +106,9 @@ export default function RingtoneManagement() {
             } else {
                 alert(res.error || "Failed to delete ringtone");
             }
-        } catch (err) {
-            alert("An error occurred during deletion");
+        } catch (err: any) {
+            console.error(err);
+            alert(`An error occurred during deletion: ${err.message || 'Unknown error'}`);
         }
     };
 
@@ -192,8 +195,14 @@ export default function RingtoneManagement() {
                                 <tr key={ringtone.id} className="hover:bg-white/[0.02] transition-colors group">
                                     <td className="p-4 pl-6">
                                         <div className="flex items-center gap-4">
-                                            <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-neutral-800 shrink-0">
-                                                <Image src={ringtone.poster_url || '/placeholder.png'} alt="poster" fill className="object-cover" />
+                                            <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-neutral-800 shrink-0 border border-white/5">
+                                                {ringtone.poster_url ? (
+                                                    <Image src={ringtone.poster_url} alt="poster" fill className="object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full flex items-center justify-center text-zinc-600">
+                                                        <Music size={20} />
+                                                    </div>
+                                                )}
                                                 <button
                                                     onClick={() => {
                                                         const audio = document.getElementById(`audio-${ringtone.id}`) as HTMLAudioElement;
@@ -207,7 +216,7 @@ export default function RingtoneManagement() {
                                                             setPlayingId(ringtone.id);
                                                         }
                                                     }}
-                                                    className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"
                                                 >
                                                     {playingId === ringtone.id ? <Pause size={16} className="text-white" /> : <Play size={16} className="text-white" />}
                                                 </button>

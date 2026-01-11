@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Play, Pause, Heart, ArrowRight, Share2, Plus, Download } from 'lucide-react';
+import { Play, Pause, Heart, ArrowRight, Share2, Plus, Download, Music } from 'lucide-react';
 import { Ringtone } from '@/types';
 import { usePlayer } from '@/context/PlayerContext';
 import { incrementLikes, incrementDownloads } from '@/app/actions/ringtones';
@@ -144,15 +144,21 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
           <div className="flex items-center gap-4">
             {/* Album Art */}
             <div className="relative w-20 h-20 flex-shrink-0 rounded-2xl overflow-hidden shadow-lg bg-zinc-200 dark:bg-neutral-800">
-              <Image
-                src={ringtone.poster_url || '/placeholder-cover.jpg'}
-                alt={ringtone.title}
-                fill
-                sizes="(max-width: 640px) 25vw, 80px"
-                quality={75}
-                loading="lazy"
-                className="object-cover transition-transform duration-700 group-hover:scale-110"
-              />
+              {ringtone.poster_url ? (
+                <Image
+                  src={ringtone.poster_url}
+                  alt={ringtone.title}
+                  fill
+                  sizes="(max-width: 640px) 25vw, 80px"
+                  quality={75}
+                  loading="lazy"
+                  className="object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-emerald-500/10 dark:bg-emerald-500/5">
+                  <Music size={32} className="text-emerald-500/50" />
+                </div>
+              )}
 
               {/* Status Badge */}
               {ringtone.status === 'pending' && (
