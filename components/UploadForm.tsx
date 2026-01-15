@@ -77,6 +77,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
   // Movie Data (Source of Truth)
   const [selectedMovie, setSelectedMovie] = useState<MovieResult | null>(null);
   const [manualMovieName, setManualMovieName] = useState(''); // Fallback or override
+  const [selectedArtwork, setSelectedArtwork] = useState<string | null>(null);
 
   // iTunes Data
   const [movieSongs, setMovieSongs] = useState<iTunesRing[]>([]);
@@ -355,6 +356,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
   const selectSong = (ring: iTunesRing) => {
     setSongName(cleanName(ring.trackName));
     setSingers(ring.artistName);
+    setSelectedArtwork(ring.artworkUrl100 || null);
     setShowSongDropdown(false);
   }
 
@@ -603,24 +605,41 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
       let insertData: any = baseData;
 
+      // Helper to determine poster URL
+      const getPosterUrl = () => {
+        // 1. Prefer Movie Poster (high quality)
+        if (contentType === 'movie' && selectedMovie?.poster_path) {
+          return getImageUrl(selectedMovie.poster_path, 'w342');
+        }
+        // 2. Use iTunes Artwork (upscaled)
+        if (selectedArtwork) {
+          return selectedArtwork.replace('100x100', '600x600');
+        }
+        return undefined;
+      };
+
+      const finalPosterUrl = getPosterUrl();
+
       if (contentType === 'movie') {
         insertData = {
           ...baseData,
           movie_name: manualMovieName,
           movie_year: selectedMovie?.release_date?.split('-')[0] || undefined,
           movie_director: movieDirector,
-          poster_url: selectedMovie?.poster_path ? getImageUrl(selectedMovie.poster_path, 'w342') : undefined,
+          poster_url: finalPosterUrl,
           backdrop_url: selectedMovie?.backdrop_path ? getImageUrl(selectedMovie.backdrop_path, 'w780') : undefined,
         };
       } else if (contentType === 'album') {
         insertData = {
           ...baseData,
           movie_name: manualMovieName,
+          poster_url: finalPosterUrl,
         };
       } else if (contentType === 'devotional') {
         insertData = {
           ...baseData,
           movie_name: deityCategory,
+          poster_url: finalPosterUrl,
         };
       }
 
@@ -1210,6 +1229,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                             setMusicDirector(song.artistName); // Default MD to Artist
                             setManualMovieName(song.collectionName.replace(/ - Single$/i, '').replace(/ - EP$/i, ''));
                             setAlbumSearchQuery('');
+                            setSelectedArtwork(song.artworkUrl100 || null);
                             setAlbumSongs([]); // Clear results
                             setShowAlbumSongDropdown(false);
                             setIsAlbumSongSelected(true);
@@ -1259,6 +1279,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                       setSingers('');
                       setMusicDirector('');
                       setManualMovieName('');
+                      setSelectedArtwork(null);
                       setManualEntryMode(false);
                     }}
                     className="p-1.5 bg-neutral-800 hover:bg-neutral-700 text-zinc-400 hover:text-red-400 rounded-lg transition-colors border border-neutral-700"
@@ -1341,6 +1362,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                   onClick={() => {
                     setIsAlbumSongSelected(false);
                     setManualEntryMode(false);
+                    setSelectedArtwork(null);
                   }}
                   className="text-xs text-red-400 hover:underline mt-2 text-right block w-full"
                 >
@@ -1500,6 +1522,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                           onClick={() => {
                             setSongName(song.trackName);
                             setSingers(song.artistName);
+                            setSelectedArtwork(song.artworkUrl100 || null);
                             setShowDevotionalSongDropdown(false);
                           }}
                           className="w-full text-left px-4 py-3 hover:bg-neutral-700 border-b border-neutral-700/50 last:border-0 transition-colors group"

@@ -257,7 +257,11 @@ export async function processAutoApproval(userId: string) {
         // Revalidate to show new points immediately
         // @ts-expect-error - revalidateTag has type issues in Next.js 16
         revalidateTag('user-profile');
+        revalidateTag('recent');
+        revalidateTag('trending');
         revalidatePath('/profile');
+        revalidatePath('/', 'page');
+        revalidatePath('/recent', 'page');
 
         return { success: true };
     } catch (e) {
