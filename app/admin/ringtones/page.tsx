@@ -7,7 +7,7 @@ import {
     Search, Filter, MoreVertical, Check, X, Trash2,
     Play, Pause, Edit, ExternalLink, Loader2, Music,
     Calendar, User, Tag, ChevronLeft, ChevronRight,
-    CheckSquare, Square, Volume2, Save, RefreshCw, BarChart, HardDrive
+    CheckSquare, Square, Volume2, Save, RefreshCw, BarChart, HardDrive, Film
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
