@@ -47,21 +47,7 @@ const config: NextConfig = {
       {
         source: '/:path*',
         headers: [
-          {
-            key: 'Content-Security-Policy',
-            value: [
-              "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.vercel-insights.com https://va.vercel-scripts.com https://unpkg.com https://accounts.google.com", // Added Google
-              "style-src 'self' 'unsafe-inline' https://accounts.google.com", // Added Google
-              "img-src 'self' data: https: blob:",
-              "font-src 'self' data:",
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://unpkg.com https://accounts.google.com https://api.cobalt.tools https://co.wuk.sh https://cobalt.api.kwiatekmiki.pl https://api.oxcdf.com https://pipedapi.kavin.rocks https://api.piped.privacy.com.de https://pipedapi.moomoo.me https://pipedapi.leptons.xyz https://pipedapi.smnz.de https://api.piped.projectsegfau.lt",
-              "media-src 'self' https://*.supabase.co blob:",
-              "frame-src 'self' https://accounts.google.com", // Added Google One Tap
-              "frame-ancestors 'none'",
-              "worker-src 'self' blob:",
-            ].join('; '),
-          },
+
           {
             key: 'X-Frame-Options',
             value: 'DENY',
@@ -84,11 +70,11 @@ const config: NextConfig = {
           },
           {
             key: 'Cross-Origin-Opener-Policy',
-            value: 'same-origin',
+            value: 'same-origin-allow-popups', // Allow Google Sign-In popups
           },
           {
             key: 'Cross-Origin-Embedder-Policy',
-            value: 'require-corp',
+            value: 'credentialless', // Less strict than require-corp, allows external resources
           },
         ],
       },

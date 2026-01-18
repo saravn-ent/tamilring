@@ -22,28 +22,7 @@ try {
 
 
 export async function middleware(request: NextRequest) {
-  // CSP - Permissive for development, secure for production
-  // Allows localhost, blob, data, and all tamilring.in resources
-  const cspHeader = `
-    default-src 'self' localhost:* http://localhost:* https://localhost:*;
-    script-src 'self' 'unsafe-eval' 'unsafe-inline' blob: localhost:* http://localhost:* https://localhost:* https://unpkg.com https://www.googletagmanager.com https://www.google-analytics.com https://accounts.google.com https://apis.google.com;
-    style-src 'self' 'unsafe-inline' localhost:* http://localhost:* https://localhost:* https://fonts.googleapis.com;
-    img-src 'self' blob: data: localhost:* http://localhost:* https://localhost:* https://image.tmdb.org https://i.scdn.co https://upload.wikimedia.org https://lh3.googleusercontent.com https://ui-avatars.com https://www.googletagmanager.com https://www.google-analytics.com https://*.supabase.co https://*.supabase.in;
-    media-src 'self' blob: data: localhost:* http://localhost:* https://localhost:* https://*.supabase.co https://*.supabase.in;
-    connect-src 'self' blob: data: localhost:* http://localhost:* https://localhost:* ws://localhost:* wss://localhost:* https://image.tmdb.org https://api.themoviedb.org https://unpkg.com https://www.google-analytics.com https://www.googletagmanager.com https://accounts.google.com https://*.supabase.co https://*.supabase.in wss://*.supabase.co;
-    font-src 'self' data: localhost:* http://localhost:* https://localhost:* https://fonts.gstatic.com;
-    frame-src 'self' localhost:* http://localhost:* https://localhost:* https://accounts.google.com;
-    object-src 'none';
-    base-uri 'self';
-    form-action 'self';
-    worker-src 'self' blob: localhost:* http://localhost:* https://localhost:* https://unpkg.com;
-    frame-ancestors 'none';
-  `
-    .replace(/\s{2,}/g, ' ')
-    .trim()
-
   const requestHeaders = new Headers(request.headers)
-  requestHeaders.set('Content-Security-Policy', cspHeader)
 
   let response = NextResponse.next({
     request: {
@@ -51,8 +30,7 @@ export async function middleware(request: NextRequest) {
     },
   })
 
-  // Set CSP on response so browser sees it
-  response.headers.set('Content-Security-Policy', cspHeader)
+
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -69,8 +47,7 @@ export async function middleware(request: NextRequest) {
               headers: requestHeaders,
             },
           })
-          // Re-set CSP on new response
-          response.headers.set('Content-Security-Policy', cspHeader)
+
 
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, options)
