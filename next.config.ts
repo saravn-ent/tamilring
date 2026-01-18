@@ -51,14 +51,15 @@ const config: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.vercel-insights.com https://va.vercel-scripts.com https://unpkg.com", // Added unpkg for ffmpeg
-              "style-src 'self' 'unsafe-inline'",
-              "img-src 'self' data: https: blob:", // https: wildcard needed for external images
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.vercel-insights.com https://va.vercel-scripts.com https://unpkg.com https://accounts.google.com", // Added Google
+              "style-src 'self' 'unsafe-inline' https://accounts.google.com", // Added Google
+              "img-src 'self' data: https: blob:",
               "font-src 'self' data:",
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://unpkg.com https://api.cobalt.tools https://co.wuk.sh https://cobalt.api.kwiatekmiki.pl https://api.oxcdf.com https://pipedapi.kavin.rocks https://api.piped.privacy.com.de https://pipedapi.moomoo.me https://pipedapi.leptons.xyz https://pipedapi.smnz.de https://api.piped.projectsegfau.lt", // Added APIs for Youtube/FFmpeg
-              "media-src 'self' https://*.supabase.co blob:", // blob: for local preview
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://unpkg.com https://accounts.google.com https://api.cobalt.tools https://co.wuk.sh https://cobalt.api.kwiatekmiki.pl https://api.oxcdf.com https://pipedapi.kavin.rocks https://api.piped.privacy.com.de https://pipedapi.moomoo.me https://pipedapi.leptons.xyz https://pipedapi.smnz.de https://api.piped.projectsegfau.lt",
+              "media-src 'self' https://*.supabase.co blob:",
+              "frame-src 'self' https://accounts.google.com", // Added Google One Tap
               "frame-ancestors 'none'",
-              "worker-src 'self' blob:", // Needed for ffmpeg web workers
+              "worker-src 'self' blob:",
             ].join('; '),
           },
           {

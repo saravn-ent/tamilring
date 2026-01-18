@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { useRouter, usePathname } from 'next/navigation';
 import Script from 'next/script';
@@ -18,8 +18,10 @@ export default function GoogleOneTap() {
         setMounted(true);
     }, []);
 
+    const initializationRef = useRef(false);
+
     const initializeOneTap = async () => {
-        if (!mounted) return;
+        if (!mounted || initializationRef.current) return;
 
         const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
         if (!clientId) {
@@ -35,6 +37,9 @@ export default function GoogleOneTap() {
 
         const google = (window as any).google;
         if (google) {
+            // Prevent multiple initializations
+            initializationRef.current = true;
+
             google.accounts.id.initialize({
                 client_id: clientId,
                 callback: async (response: any) => {
@@ -45,29 +50,29 @@ export default function GoogleOneTap() {
                         });
 
                         if (error) throw error;
-
-                        // Use window.location.reload() for a full state sync if needed,
-                        // or router.refresh() for a softer update.
                         router.refresh();
                     } catch (error) {
                         console.error('One Tap Login Error:', error);
                     }
                 },
-                auto_select: false, // Set to false by default for better UX (don't surprise guest users)
+                auto_select: false,
                 itp_support: true,
                 ux_mode: 'popup',
             });
 
-            // Delay the prompt slightly to ensure it doesn't fight other page animations
+            // Use a single prompt call with a slightly longer delay to avoid React strict mode double-invocations
             setTimeout(() => {
                 google.accounts.id.prompt((notification: any) => {
                     if (notification.isNotDisplayed()) {
                         console.log('One Tap not displayed:', notification.getNotDisplayedReason());
+                        initializationRef.current = false; // Reset on failure so we can try again if user navigates
                     } else if (notification.isSkippedMoment()) {
                         console.log('One Tap skipped:', notification.getSkippedReason());
+                        initializationRef.current = false;
                     }
+                    // Note: We don't reset on success immediately to prevent re-prompting during redirect
                 });
-            }, 2000);
+            }, 1000);
         }
     };
 
