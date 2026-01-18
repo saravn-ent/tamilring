@@ -15,12 +15,13 @@ export async function approveRingtone(id: string, userId?: string) {
     const supabase = await getSupabaseAdmin();
 
     // 1. Update status to approved
-    const { error } = await supabase
+    const { error, count } = await supabase
         .from('ringtones')
-        .update({ status: 'approved' })
+        .update({ status: 'approved' }, { count: 'exact' })
         .eq('id', id);
 
     if (error) return { success: false, error: error.message };
+    if (count === 0) return { success: false, error: 'Operation failed: Record not found or Permission Denied (Check Service Role Key)' };
 
     // 2. Award points if userId provided
     if (userId) {
@@ -78,12 +79,13 @@ export async function bulkApproveRingtones(ids: string[]) {
     const supabase = await getSupabaseAdmin();
 
     // 1. Update status to approved for ALL ids
-    const { error } = await supabase
+    const { error, count } = await supabase
         .from('ringtones')
-        .update({ status: 'approved' })
+        .update({ status: 'approved' }, { count: 'exact' })
         .in('id', ids);
 
     if (error) return { success: false, error: error.message };
+    if (count === 0 && ids.length > 0) return { success: false, error: 'Operation failed: No records updated (Check Service Role Key)' };
 
     // 2. Award points - we need to fetch user_ids for these ringtones first
     // This might be heavy, so we'll do it in a background-ish way or simplified
@@ -129,15 +131,16 @@ export async function rejectRingtone(id: string, reason?: string) {
     const supabase = await getSupabaseAdmin();
 
     // 1. Update status to rejected
-    const { error } = await supabase
+    const { error, count } = await supabase
         .from('ringtones')
         .update({
             status: 'rejected',
             rejection_reason: reason || null
-        })
+        }, { count: 'exact' })
         .eq('id', id);
 
     if (error) return { success: false, error: error.message };
+    if (count === 0) return { success: false, error: 'Operation failed: Record not found or Permission Denied (Check Service Role Key)' };
 
     // 2. Revalidate paths
     try {
@@ -268,12 +271,13 @@ export async function deleteRingtone(id: string) {
         }
 
         // 2. Delete from database (RLS bypass with admin client)
-        const { error } = await supabase
+        const { error, count } = await supabase
             .from('ringtones')
-            .delete()
+            .delete({ count: 'exact' })
             .eq('id', id);
 
         if (error) return { success: false, error: error.message };
+        if (count === 0) return { success: false, error: 'Operation failed: Record not found or Permission Denied (Check Service Role Key)' };
 
         // 3. Clear cache
         revalidatePath('/');
@@ -322,12 +326,13 @@ export async function bulkDeleteRingtones(ids: string[]) {
     }
 
     // 2. Bulk Delete from DB
-    const { error } = await supabase
+    const { error, count } = await supabase
         .from('ringtones')
-        .delete()
+        .delete({ count: 'exact' })
         .in('id', ids);
 
     if (error) return { success: false, error: error.message };
+    if (count === 0 && ids.length > 0) return { success: false, error: 'Operation failed: No records deleted (Check Service Role Key)' };
 
     // 3. Revalidate
     try {
@@ -346,12 +351,13 @@ export async function updateRingtoneMetadata(id: string, data: any) {
         const { getSupabaseAdmin } = await import('@/lib/auth-server');
         const supabase = await getSupabaseAdmin();
 
-        const { error } = await supabase
+        const { error, count } = await supabase
             .from('ringtones')
-            .update(data)
+            .update(data, { count: 'exact' })
             .eq('id', id);
 
         if (error) throw error;
+        if (count === 0) throw new Error('Operation failed: Record not found or Permission Denied (Check Service Role Key)');
         revalidatePath('/admin/ringtones');
         return { success: true };
     } catch (e: any) {
@@ -369,12 +375,13 @@ export async function toggleUserRole(userId: string, role: 'user' | 'admin') {
     const { getSupabaseAdmin } = await import('@/lib/auth-server');
     const supabase = await getSupabaseAdmin();
 
-    const { error } = await supabase
+    const { error, count } = await supabase
         .from('profiles')
-        .update({ role })
+        .update({ role }, { count: 'exact' })
         .eq('id', userId);
 
     if (error) return { success: false, error: error.message };
+    if (count === 0) return { success: false, error: 'Operation failed: User not found or Permission Denied (Check Service Role Key)' };
 
     try {
         revalidatePath('/admin/users');

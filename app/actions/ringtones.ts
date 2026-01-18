@@ -255,9 +255,11 @@ export async function processAutoApproval(userId: string) {
         await checkUploadBadges(supabase, userId);
 
         // Revalidate to show new points immediately
-        // @ts-expect-error - revalidateTag has type issues in Next.js 16
+        // @ts-ignore
         revalidateTag('user-profile');
+        // @ts-ignore
         revalidateTag('recent');
+        // @ts-ignore
         revalidateTag('trending');
         revalidatePath('/profile');
         revalidatePath('/', 'page');
