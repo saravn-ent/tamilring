@@ -6,6 +6,7 @@ import { Plus, Music, User, X, Search } from 'lucide-react';
 import { Ringtone } from '@/types';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { getImageUrl } from '@/lib/tmdb';
 
 interface CollectionItem {
     id: string;
@@ -72,24 +73,24 @@ export default function PersonalCollections() {
     return (
         <section>
             <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-bold text-zinc-100 flex items-center gap-2">
-                    <User size={20} className="text-emerald-500" />
+                <h2 className="text-lg font-bold text-[#15171A] flex items-center gap-2">
+                    <User size={20} className="text-[#3EB0EF]" />
                     For My
                 </h2>
                 <button
                     onClick={() => setIsAdding(!isAdding)}
-                    className="text-xs text-emerald-500 font-medium hover:underline flex items-center gap-1"
+                    className="text-xs text-[#3EB0EF] font-medium hover:underline flex items-center gap-1"
                 >
                     <Plus size={14} /> Add Person
                 </button>
             </div>
 
             {isAdding && (
-                <div className="mb-4 p-3 bg-neutral-800 rounded-xl border border-neutral-700 flex gap-2 items-center animate-in fade-in slide-in-from-top-2">
+                <div className="mb-4 p-3 bg-white rounded-xl border border-[#E5EBF1] flex gap-2 items-center animate-in fade-in slide-in-from-top-2 shadow-sm">
                     <select
                         value={newEmoji}
                         onChange={(e) => setNewEmoji(e.target.value)}
-                        className="bg-neutral-900 border border-neutral-700 rounded-lg px-2 py-2 text-lg focus:outline-none focus:border-emerald-500"
+                        className="bg-zinc-50 border border-[#E5EBF1] rounded-lg px-2 py-2 text-lg focus:outline-none focus:border-[#3EB0EF]"
                     >
                         {['👤', '❤️', '👨‍👩‍👧', '👶', '👵', '👴', '🐶', '🐱', '💼', '🔥', '⭐'].map(e => (
                             <option key={e} value={e}>{e}</option>
@@ -100,12 +101,12 @@ export default function PersonalCollections() {
                         value={newLabel}
                         onChange={(e) => setNewLabel(e.target.value)}
                         placeholder="Name (e.g. Uncle, Gym)"
-                        className="flex-1 bg-neutral-900 border border-neutral-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
+                        className="flex-1 bg-zinc-50 border border-[#E5EBF1] rounded-lg px-3 py-2 text-sm text-[#15171A] focus:outline-none focus:border-[#3EB0EF]"
                         autoFocus
                     />
                     <button
                         onClick={handleAdd}
-                        className="bg-emerald-500 text-black px-3 py-2 rounded-lg text-sm font-bold hover:bg-emerald-400"
+                        className="bg-[#3EB0EF] text-white px-3 py-2 rounded-lg text-sm font-bold hover:bg-blue-600"
                     >
                         Add
                     </button>
@@ -114,16 +115,16 @@ export default function PersonalCollections() {
 
             <div className="grid grid-cols-2 gap-3">
                 {collections.map((item) => (
-                    <div key={item.id} className="bg-neutral-900 border border-neutral-800 rounded-xl p-3 relative group">
+                    <div key={item.id} className="bg-white border border-[#E5EBF1] rounded-xl p-3 relative group hover:shadow-sm transition-shadow">
                         <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
                                 <span className="text-xl">{item.emoji}</span>
-                                <span className="font-medium text-zinc-200 text-sm truncate max-w-[80px]">{item.label}</span>
+                                <span className="font-medium text-zinc-700 text-sm truncate max-w-[80px]">{item.label}</span>
                             </div>
                             {!DEFAULT_COLLECTIONS.find(d => d.id === item.id) && (
                                 <button
                                     onClick={() => removeCollection(item.id)}
-                                    className="text-zinc-600 hover:text-red-500 transition-colors"
+                                    className="text-zinc-400 hover:text-red-500 transition-colors"
                                 >
                                     <X size={14} />
                                 </button>
@@ -131,19 +132,19 @@ export default function PersonalCollections() {
                         </div>
 
                         {item.ringtone ? (
-                            <div className="relative bg-neutral-800 rounded-lg p-2 flex gap-2 items-center group/card">
-                                <div className="relative w-10 h-10 rounded-md overflow-hidden shrink-0 bg-neutral-700">
+                            <div className="relative bg-zinc-50 rounded-lg p-2 flex gap-2 items-center group/card border border-transparent hover:border-[#E5EBF1]">
+                                <div className="relative w-10 h-10 rounded-md overflow-hidden shrink-0 bg-zinc-200">
                                     {item.ringtone.poster_url && (
-                                        <Image src={item.ringtone.poster_url} alt={item.ringtone.title} fill className="object-cover" />
+                                        <Image src={getImageUrl(item.ringtone.poster_url)} alt={item.ringtone.title} fill className="object-cover" />
                                     )}
                                 </div>
                                 <div className="min-w-0 flex-1">
-                                    <p className="text-xs font-bold text-white truncate">{item.ringtone.title}</p>
+                                    <p className="text-xs font-bold text-[#15171A] truncate">{item.ringtone.title}</p>
                                     <p className="text-[10px] text-zinc-500 truncate">{item.ringtone.movie_name}</p>
                                 </div>
                                 <button
                                     onClick={() => removeRingtone(item.id)}
-                                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover/card:opacity-100 transition-opacity"
+                                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover/card:opacity-100 transition-opacity shadow-sm"
                                 >
                                     <X size={10} />
                                 </button>
@@ -151,7 +152,7 @@ export default function PersonalCollections() {
                         ) : (
                             <Link
                                 href={`/search?assignTo=${item.id}&q=${item.label}`}
-                                className="block w-full py-2 rounded-lg border border-dashed border-neutral-700 text-zinc-500 text-xs text-center hover:bg-neutral-800 hover:text-emerald-500 hover:border-emerald-500/50 transition-all flex items-center justify-center gap-1"
+                                className="block w-full py-2 rounded-lg border border-dashed border-zinc-300 text-zinc-500 text-xs text-center hover:bg-zinc-50 hover:text-[#3EB0EF] hover:border-[#3EB0EF]/50 transition-all flex items-center justify-center gap-1"
                             >
                                 <Search size={12} /> Assign Ringtone
                             </Link>

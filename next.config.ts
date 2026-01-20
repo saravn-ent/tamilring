@@ -70,7 +70,7 @@ const config: NextConfig = {
           },
           {
             key: 'Cross-Origin-Opener-Policy',
-            value: 'same-origin-allow-popups', // Allow Google Sign-In popups
+            value: 'same-origin-allow-popups',
           },
           {
             key: 'Cross-Origin-Embedder-Policy',
@@ -96,5 +96,6 @@ const nextConfig = withBundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 })(config);
 
+// Force restart - clear cache - fix hydration mismatch
 export default nextConfig;
 

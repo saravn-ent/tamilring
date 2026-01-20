@@ -7,16 +7,16 @@ import { FavoritesProvider } from "@/context/FavoritesContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 import BottomNav from "@/components/BottomNav";
 import LegalFooter from "@/components/LegalFooter";
-import TopBar from "@/components/TopBar";
+import SiteHeader from "@/components/SiteHeader";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { generateBaseMetadata } from "@/lib/seo";
 
-import { Figtree } from "next/font/google";
+import { Outfit } from "next/font/google";
 
-const figtree = Figtree({
+const outfit = Outfit({
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-figtree',
+  variable: '--font-outfit',
 });
 
 export const viewport: Viewport = {
@@ -90,9 +90,11 @@ import AuthCodeRedirect from "@/components/AuthCodeRedirect";
 import ReloadOnUpdate from "@/components/ReloadOnUpdate";
 import { Suspense } from "react";
 import ThemeFix from "@/components/ThemeFix";
-import GoogleOneTap from "@/components/GoogleOneTap";
 
 
+
+
+// Force Rebuild - Fix Hydration V2
 export default async function RootLayout({
   children,
 }: Readonly<{
@@ -100,7 +102,7 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${figtree.variable} font-figtree antialiased scrollbar-hide transition-colors duration-300 bg-background text-foreground`}>
+      <body className={`${outfit.variable} font-display antialiased scrollbar-hide transition-colors duration-300 bg-background text-foreground`}>
         <Script
           strategy="lazyOnload"
           src={`https://www.googletagmanager.com/gtag/js?id=G-07CW71VTGB`}
@@ -119,12 +121,12 @@ export default async function RootLayout({
 
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem={true}
+          defaultTheme="light"
+          forcedTheme="light"
+          enableSystem={false}
           disableTransitionOnChange
         >
           <ThemeFix />
-          <GoogleOneTap />
 
           <Suspense fallback={null}>
             <AuthCodeRedirect />
@@ -138,7 +140,7 @@ export default async function RootLayout({
           <PlayerProvider>
             <FavoritesProvider>
               <LanguageProvider>
-                <TopBar />
+                <SiteHeader />
                 <main className="min-h-screen pt-14 pb-32 relative z-0">
                   {children}
                 </main>

@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { Profile } from '@/types';
 import {
-    Search, Shield, ShieldAlert, MoreVertical,
-    User as UserIcon, Loader2, Trophy, Star
+    Search, Shield,
+    User as UserIcon, Loader2
 } from 'lucide-react';
 import Image from 'next/image';
 import { getLevelTitle } from '@/lib/gamification';
@@ -20,18 +20,18 @@ export default function UserManagement() {
         fetchUsers();
     }, []);
 
-    const fetchUsers = async () => {
+    async function fetchUsers() {
         setLoading(true);
         // Fetch profiles - 100 limit for now
-        const { data, error } = await supabase
+        const { data } = await supabase
             .from('profiles')
             .select('*')
             .order('created_at', { ascending: false })
             .limit(100);
 
-        if (data) setUsers(data as any);
+        if (data) setUsers(data as Profile[]);
         setLoading(false);
-    };
+    }
 
     const filteredUsers = users.filter(u =>
         (u.full_name?.toLowerCase() || '').includes(search.toLowerCase()) ||

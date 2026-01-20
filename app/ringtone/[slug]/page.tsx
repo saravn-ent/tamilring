@@ -1,10 +1,10 @@
 import { notFound } from 'next/navigation';
 export const revalidate = 3600;
 import { supabase } from '@/lib/supabaseClient';
-import { Ringtone } from '@/types';
+
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowLeft, Download, Music } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Download, Music } from 'lucide-react';
 import { Metadata } from 'next';
 import PlayButton from './PlayButton';
 import DownloadButton from './DownloadButton';
@@ -12,12 +12,10 @@ import VideoDownloadButton from './VideoDownloadButton';
 import StreamButtons from '@/components/StreamButtons';
 import { splitArtists } from '@/lib/utils';
 import { cache } from 'react';
-import ShareButton from '@/components/ShareButton';
 import { cacheGetOrSet, CacheKeys, CacheTTL } from '@/lib/cache';
 import { generateRingtoneMetadata } from '@/lib/seo';
 import { generateMusicRecordingSchema, generateBreadcrumbSchema, combineSchemas } from '@/lib/seo';
 import StructuredData from '@/components/StructuredData';
-import WhatsAppShare from '@/components/WhatsAppShare';
 import SimilarRingtones from '@/components/SimilarRingtones';
 import { getSimilarRingtones } from '@/app/actions/ringtones';
 import { getImageUrl } from '@/lib/tmdb';
@@ -83,7 +81,6 @@ export default async function RingtonePage({ params }: Props) {
             alt={ringtone.movie_name}
             fill
             priority
-            quality={60}
             sizes="100vw"
             className="object-cover mask-image-gradient"
           />
@@ -92,22 +89,19 @@ export default async function RingtonePage({ params }: Props) {
       </div>
 
       <div className="relative z-10 p-4 pt-4 flex-1 pb-24">
+        {/* Top Right Buttons: Back & Video Download */}
         <div className="flex items-center justify-between mb-6">
-          <Link href="/" className="inline-flex items-center gap-2 text-foreground dark:text-zinc-100 hover:text-emerald-500 bg-zinc-100 dark:bg-neutral-800 px-4 py-3 rounded-xl shadow-lg transition-all active:scale-95">
+          <Link href="/" className="inline-flex items-center gap-2 text-brand-dark hover:text-brand-accent bg-white border border-brand-gray px-4 py-3 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-95">
             <ArrowLeft size={24} strokeWidth={2.5} />
             <span className="text-base font-semibold">Back</span>
           </Link>
 
-          {/* Top Right Share Button */}
-          <ShareButton
-            variant="icon"
-            title={`${cleanTitle} Ringtone`}
-            text={`Download ${cleanTitle} ringtone from ${ringtone.movie_name} on TamilRing!`}
-          />
+          {/* Video Download (Replaces Share) */}
+          <VideoDownloadButton ringtone={ringtone} />
         </div>
 
         <div className="flex flex-col items-center text-center space-y-4 mt-2">
-          <div className="relative w-32 h-48 rounded-xl overflow-hidden shadow-2xl shadow-black/20 dark:shadow-black/50 bg-zinc-100 dark:bg-neutral-800 flex items-center justify-center">
+          <div className="relative w-32 h-48 rounded-xl overflow-hidden shadow-2xl shadow-brand-dark/20 bg-brand-wash flex items-center justify-center">
             {ringtone.poster_url ? (
               <Image
                 src={getImageUrl(ringtone.poster_url)}
@@ -119,17 +113,18 @@ export default async function RingtonePage({ params }: Props) {
                 className="object-cover"
               />
             ) : (
-              <Music size={32} className="text-zinc-400 dark:text-zinc-600" />
+              <Music size={32} className="text-zinc-400" />
             )}
           </div>
 
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold text-foreground">{ringtone.title.replace(/\(From ".*?"\)/i, '').trim()}</h1>
-            <Link href={`/tamil/movies/${encodeURIComponent(ringtone.movie_name)}`} className="text-zinc-600 dark:text-zinc-400 text-base hover:text-emerald-500 transition-colors block">
-              {ringtone.movie_name} <span className="text-zinc-400 dark:text-zinc-600">({ringtone.movie_year})</span>
+            <h1 className="text-2xl font-bold text-black">{ringtone.title.replace(/\(From ".*?"\)/i, '').trim()}</h1>
+            <Link href={`/tamil/movies/${encodeURIComponent(ringtone.movie_name)}`} className="inline-flex items-center gap-1 text-brand-accent font-medium text-base hover:underline transition-colors block">
+              {ringtone.movie_name} <span className="text-zinc-400 font-normal">({ringtone.movie_year})</span>
+              <ChevronRight size={16} className="text-brand-accent/70" />
             </Link>
 
-            <div className="flex flex-wrap justify-center gap-1 text-emerald-600 dark:text-emerald-500 font-medium text-sm">
+            <div className="flex flex-wrap justify-center gap-1 text-brand-dark font-medium text-sm">
               {splitArtists(ringtone.singers).map((singer: string, idx: number, arr: string[]) => (
                 <span key={idx} className="flex items-center">
                   <Link
@@ -145,19 +140,28 @@ export default async function RingtonePage({ params }: Props) {
 
             {ringtone.music_director && (
               <div className="text-zinc-500 text-xs mt-1">
-                Music: <Link href={`/tamil/music-directors/${encodeURIComponent(ringtone.music_director)}`} className="text-zinc-700 dark:text-zinc-300 hover:text-emerald-500 transition-colors">{ringtone.music_director}</Link>
+                Music: <Link href={`/tamil/music-directors/${encodeURIComponent(ringtone.music_director)}`} className="text-zinc-700 hover:text-brand-accent transition-colors">{ringtone.music_director}</Link>
               </div>
             )}
           </div>
 
-          {/* Play & Download Buttons (Share removed from here) */}
-          <PlayButton ringtone={ringtone} />
-          <DownloadButton ringtone={ringtone} />
-          <VideoDownloadButton ringtone={ringtone} />
+          {/* Play & Download Buttons */}
+          <div className="flex flex-wrap items-center justify-center gap-3 w-full max-w-sm">
+            <PlayButton ringtone={ringtone} />
+            <div className="flex-1 min-w-[140px]">
+              <DownloadButton ringtone={ringtone} />
+            </div>
+          </div>
+
+          {/* Social Proof Badge */}
+          <div className="flex items-center justify-center gap-1.5 text-xs font-semibold text-zinc-500 mt-1 mb-2">
+            <Download size={14} className="text-brand-accent/80" />
+            <span><span className="text-brand-dark">{ringtone.downloads?.toLocaleString() || 0}</span> people downloaded this</span>
+          </div>
 
           {/* Streaming Section */}
           <div className="w-full max-w-sm space-y-2">
-            <h3 className="text-zinc-500 dark:text-zinc-400 text-xs font-semibold text-center tracking-wide uppercase">
+            <h3 className="text-zinc-500 text-xs font-semibold text-center tracking-wide uppercase">
               Stream Full Song
             </h3>
             <StreamButtons
@@ -168,36 +172,7 @@ export default async function RingtonePage({ params }: Props) {
             />
           </div>
 
-          {/* WhatsApp Status Share */}
-          <div className="w-full max-w-sm px-4">
-            <WhatsAppShare
-              title={cleanTitle}
-              movie={ringtone.movie_name}
-              slug={ringtone.slug}
-            />
-          </div>
 
-          <div className="w-full bg-zinc-50 dark:bg-neutral-800/50 p-6 rounded-2xl mt-8 text-left space-y-4 border border-zinc-100 dark:border-transparent">
-            <h3 className="text-foreground dark:text-zinc-100 font-bold">Details</h3>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <p className="text-zinc-500">Mood</p>
-                <p className="text-zinc-700 dark:text-zinc-300">{ringtone.mood}</p>
-              </div>
-              <div>
-                <p className="text-zinc-500">Downloads</p>
-                <p className="text-zinc-700 dark:text-zinc-300">{ringtone.downloads}</p>
-              </div>
-              <div>
-                <p className="text-zinc-500">Quality</p>
-                <p className="text-zinc-700 dark:text-zinc-300">320kbps</p>
-              </div>
-              <div>
-                <p className="text-zinc-500">Format</p>
-                <p className="text-zinc-700 dark:text-zinc-300">MP3 / M4R</p>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Similar Ringtones Section */}

@@ -95,7 +95,7 @@ export default async function MusicDirectorSiloPage({ params, searchParams }: Pr
     };
 
     return (
-        <div className="max-w-md mx-auto min-h-screen bg-neutral-900 pb-20">
+        <div className="max-w-md mx-auto min-h-screen bg-white pb-20">
             <JsonLdScript data={jsonLd} />
 
             <CompactProfileHeader
@@ -112,8 +112,8 @@ export default async function MusicDirectorSiloPage({ params, searchParams }: Pr
                 }}
             />
 
-            <div className="sticky top-[120px] z-30 bg-neutral-900/95 backdrop-blur-md border-b border-white/5 py-3 px-4 flex justify-between items-center">
-                <h2 className="text-sm font-bold text-zinc-400 uppercase tracking-wider">Top Hits</h2>
+            <div className="sticky top-[120px] z-30 bg-white/95 backdrop-blur-md border-b border-brand-border py-3 px-4 flex justify-between items-center transition-all shadow-sm">
+                <h2 className="text-sm font-bold text-zinc-500 uppercase tracking-wider">Top Hits</h2>
                 <SortControl />
             </div>
 
@@ -123,8 +123,9 @@ export default async function MusicDirectorSiloPage({ params, searchParams }: Pr
                         <RingtoneCard key={ringtone.id} ringtone={ringtone} />
                     ))
                 ) : (
-                    <div className="text-center py-20 text-zinc-500">
-                        No ringtones found for {artistName}
+                    <div className="text-center py-20 text-zinc-500 bg-brand-wash rounded-2xl border border-brand-border m-4">
+                        <p className="font-bold text-lg text-brand-dark mb-2">No melodies found</p>
+                        <span className="text-sm">We couldn't find ringtones for {artistName}</span>
                     </div>
                 )}
             </div>

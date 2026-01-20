@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { Loader2, Search, Upload, Trash2, Plus, Image as ImageIcon } from 'lucide-react';
+import { Loader2, Search, Upload, Trash2, Plus } from 'lucide-react';
 import Image from 'next/image';
 
 interface ArtistImage {
@@ -33,7 +33,7 @@ export default function ArtistManagement() {
             .select('*')
             .order('created_at', { ascending: false });
 
-        if (data) setArtists(data as any);
+        if (data) setArtists(data as ArtistImage[]);
         setLoading(false);
     };
 
@@ -72,7 +72,7 @@ export default function ArtistManagement() {
             if (dbError) throw dbError;
 
             if (inserted) {
-                setArtists(prev => [inserted as any, ...prev]);
+                setArtists(prev => [inserted as ArtistImage, ...prev]);
                 setNewArtistName('');
                 setFile(null);
                 alert('Artist image added successfully!');

@@ -2,13 +2,15 @@
 
 import { revalidatePath, revalidateTag } from 'next/cache'
 import { ensureAdmin } from '@/lib/auth-server'
+import { Ringtone } from '@/types'
 
 export async function approveRingtone(id: string, userId?: string) {
     try {
         await ensureAdmin();
-    } catch (error: any) {
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
         console.error('Admin Check Failed:', error);
-        return { success: false, error: `Authentication Failed: ${error.message}` };
+        return { success: false, error: `Authentication Failed: ${message}` };
     }
 
     const { getSupabaseAdmin } = await import('@/lib/auth-server');
@@ -69,8 +71,9 @@ export async function approveRingtone(id: string, userId?: string) {
 export async function bulkApproveRingtones(ids: string[]) {
     try {
         await ensureAdmin();
-    } catch (error: any) {
-        return { success: false, error: `Authentication Failed: ${error.message}` };
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        return { success: false, error: `Authentication Failed: ${message}` };
     }
 
     if (!ids.length) return { success: true };
@@ -123,8 +126,9 @@ export async function bulkApproveRingtones(ids: string[]) {
 export async function rejectRingtone(id: string, reason?: string) {
     try {
         await ensureAdmin();
-    } catch (error: any) {
-        return { success: false, error: `Authentication Failed: ${error.message}` };
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        return { success: false, error: `Authentication Failed: ${message}` };
     }
 
     const { getSupabaseAdmin } = await import('@/lib/auth-server');
@@ -156,8 +160,9 @@ export async function rejectRingtone(id: string, reason?: string) {
 export async function updateWithdrawalStatus(withdrawalId: string, status: 'completed' | 'rejected') {
     try {
         await ensureAdmin();
-    } catch (error: any) {
-        return { success: false, error: `Authentication Failed: ${error.message}` };
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        return { success: false, error: `Authentication Failed: ${message}` };
     }
 
     const { getSupabaseAdmin } = await import('@/lib/auth-server');
@@ -222,8 +227,9 @@ export async function deleteRingtone(id: string) {
     try {
         try {
             await ensureAdmin();
-        } catch (error: any) {
-            return { success: false, error: `Authentication Failed: ${error.message}` };
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Unknown error';
+            return { success: false, error: `Authentication Failed: ${message}` };
         }
 
         const { getSupabaseAdmin } = await import('@/lib/auth-server');
@@ -285,16 +291,18 @@ export async function deleteRingtone(id: string) {
         revalidatePath('/recent');
 
         return { success: true };
-    } catch (e: any) {
-        return { success: false, error: e.message || 'Failed to delete ringtone' };
+    } catch (e) {
+        const message = e instanceof Error ? e.message : 'Failed to delete ringtone';
+        return { success: false, error: message };
     }
 }
 
 export async function bulkDeleteRingtones(ids: string[]) {
     try {
         await ensureAdmin();
-    } catch (error: any) {
-        return { success: false, error: `Authentication Failed: ${error.message}` };
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        return { success: false, error: `Authentication Failed: ${message}` };
     }
 
     if (!ids.length) return { success: true };
@@ -345,7 +353,7 @@ export async function bulkDeleteRingtones(ids: string[]) {
     return { success: true };
 }
 
-export async function updateRingtoneMetadata(id: string, data: any) {
+export async function updateRingtoneMetadata(id: string, data: Partial<Ringtone>) {
     try {
         await ensureAdmin();
         const { getSupabaseAdmin } = await import('@/lib/auth-server');
@@ -360,16 +368,18 @@ export async function updateRingtoneMetadata(id: string, data: any) {
         if (count === 0) throw new Error('Operation failed: Record not found or Permission Denied (Check Service Role Key)');
         revalidatePath('/admin/ringtones');
         return { success: true };
-    } catch (e: any) {
-        return { success: false, error: e.message };
+    } catch (e) {
+        const message = e instanceof Error ? e.message : 'Unknown error';
+        return { success: false, error: message };
     }
 }
 
 export async function toggleUserRole(userId: string, role: 'user' | 'admin') {
     try {
         await ensureAdmin();
-    } catch (error: any) {
-        return { success: false, error: `Authentication Failed: ${error.message}` };
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        return { success: false, error: `Authentication Failed: ${message}` };
     }
 
     const { getSupabaseAdmin } = await import('@/lib/auth-server');

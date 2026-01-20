@@ -119,7 +119,7 @@ export default async function ActorSiloPage({ params, searchParams }: Props) {
     };
 
     return (
-        <div className="max-w-md mx-auto min-h-screen bg-neutral-900 pb-20">
+        <div className="max-w-md mx-auto min-h-screen bg-white pb-20">
             <JsonLdScript data={jsonLd} />
 
             <CompactProfileHeader
@@ -136,8 +136,8 @@ export default async function ActorSiloPage({ params, searchParams }: Props) {
                 }}
             />
 
-            <div className="sticky top-[120px] z-30 bg-neutral-900/95 backdrop-blur-md border-b border-white/5 py-3 px-4 flex justify-between items-center">
-                <h2 className="text-sm font-bold text-zinc-400 uppercase tracking-wider">Mass Hits</h2>
+            <div className="sticky top-[120px] z-30 bg-white/95 backdrop-blur-md border-b border-brand-border py-3 px-4 flex justify-between items-center transition-all shadow-sm">
+                <h2 className="text-sm font-bold text-zinc-500 uppercase tracking-wider">Mass Hits</h2>
                 <SortControl />
             </div>
 
@@ -147,9 +147,11 @@ export default async function ActorSiloPage({ params, searchParams }: Props) {
                         <RingtoneCard key={ringtone.id} ringtone={ringtone} />
                     ))
                 ) : (
-                    <div className="text-center py-20 text-zinc-500">
-                        No ringtones found for {actorName}. <br />
-                        <span className="text-xs text-zinc-600">(Try searching for specific movies)</span>
+                    <div className="text-center py-20 text-zinc-500 bg-brand-wash rounded-2xl border border-brand-border m-4">
+                        <p className="font-bold text-lg mb-2">No hits found</p>
+                        <span className="text-sm">We couldn't find any ringtones for {actorName}.</span>
+                        <br />
+                        <span className="text-xs text-zinc-400 mt-2 block">(Try searching for specific movies)</span>
                     </div>
                 )}
             </div>

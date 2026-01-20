@@ -2,6 +2,7 @@
 
 import { Share2, Check } from 'lucide-react';
 import { useState } from 'react';
+import { cn } from '@/lib/utils';
 
 interface ShareButtonProps {
     title: string;
@@ -46,12 +47,15 @@ export default function ShareButton({ title, text, url, className = '', variant 
         return (
             <button
                 onClick={handleShare}
-                className={`relative flex items-center justify-center p-3 bg-neutral-800/80 backdrop-blur-md text-zinc-100 rounded-full hover:bg-neutral-700 active:scale-95 transition-all shadow-lg border border-white/5 ${className}`}
+                className={cn(
+                    "relative flex items-center justify-center p-3 bg-white text-brand-dark rounded-xl hover:bg-brand-wash active:scale-95 transition-all shadow-sm border border-brand-border",
+                    className
+                )}
                 aria-label="Share"
             >
                 {copied ? <Check size={20} className="text-emerald-500" /> : <Share2 size={20} />}
                 {copied && (
-                    <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-black/80 text-white text-[10px] px-2 py-1 rounded shadow-lg animate-in fade-in zoom-in duration-200 whitespace-nowrap pointer-events-none">
+                    <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-black/80 text-white text-[10px] px-2 py-1 rounded shadow-lg animate-in fade-in zoom-in duration-200 whitespace-nowrap pointer-events-none z-50">
                         Copied!
                     </span>
                 )}
@@ -62,7 +66,10 @@ export default function ShareButton({ title, text, url, className = '', variant 
     return (
         <button
             onClick={handleShare}
-            className={`relative flex items-center justify-center gap-2 px-4 py-2.5 bg-neutral-800 text-zinc-100 rounded-xl font-medium hover:bg-neutral-700 active:scale-95 transition-all text-sm ${className}`}
+            className={cn(
+                "relative flex items-center justify-center gap-2 px-4 py-2.5 bg-neutral-800 text-zinc-100 rounded-xl font-medium hover:bg-neutral-700 active:scale-95 transition-all text-sm",
+                className
+            )}
             aria-label="Share"
         >
             {copied ? <Check size={18} className="text-emerald-500" /> : <Share2 size={18} />}

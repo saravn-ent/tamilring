@@ -60,7 +60,7 @@ export default function RequestForm({ onComplete }: { onComplete: () => void }) 
                         Movie Name
                     </label>
                     <div className="relative">
-                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">
                             <Film size={18} />
                         </div>
                         <input
@@ -69,7 +69,7 @@ export default function RequestForm({ onComplete }: { onComplete: () => void }) 
                             placeholder="e.g. Leo, Vikram, Ponniyin Selvan"
                             value={formData.movie_name}
                             onChange={(e) => setFormData(prev => ({ ...prev, movie_name: e.target.value }))}
-                            className="w-full bg-neutral-900 border border-neutral-800 rounded-xl py-3 pl-11 pr-4 text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all"
+                            className="w-full bg-white border border-brand-gray rounded-xl py-3 pl-11 pr-4 text-brand-dark focus:border-brand-accent focus:ring-1 focus:ring-brand-accent outline-none transition-all placeholder:text-zinc-300"
                         />
                     </div>
                 </div>
@@ -80,7 +80,7 @@ export default function RequestForm({ onComplete }: { onComplete: () => void }) 
                         Song / BGM Name
                     </label>
                     <div className="relative">
-                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500">
+                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">
                             <Music size={18} />
                         </div>
                         <input
@@ -89,7 +89,7 @@ export default function RequestForm({ onComplete }: { onComplete: () => void }) 
                             placeholder="e.g. Ordinary Person, Flute BGM"
                             value={formData.song_name}
                             onChange={(e) => setFormData(prev => ({ ...prev, song_name: e.target.value }))}
-                            className="w-full bg-neutral-900 border border-neutral-800 rounded-xl py-3 pl-11 pr-4 text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all"
+                            className="w-full bg-white border border-brand-gray rounded-xl py-3 pl-11 pr-4 text-brand-dark focus:border-brand-accent focus:ring-1 focus:ring-brand-accent outline-none transition-all placeholder:text-zinc-300"
                         />
                     </div>
                 </div>
@@ -100,21 +100,21 @@ export default function RequestForm({ onComplete }: { onComplete: () => void }) 
                         Specific Details (Optional)
                     </label>
                     <div className="relative">
-                        <div className="absolute left-3 top-4 text-zinc-500">
+                        <div className="absolute left-3 top-4 text-zinc-400">
                             <FileText size={18} />
                         </div>
                         <textarea
                             placeholder="e.g. Needs the whistle part from the climax..."
                             value={formData.description}
                             onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                            className="w-full bg-neutral-900 border border-neutral-800 rounded-xl py-3 pl-11 pr-4 text-white focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none transition-all min-h-[100px] resize-none"
+                            className="w-full bg-white border border-brand-gray rounded-xl py-3 pl-11 pr-4 text-brand-dark focus:border-brand-accent focus:ring-1 focus:ring-brand-accent outline-none transition-all min-h-[100px] resize-none placeholder:text-zinc-300"
                         />
                     </div>
                 </div>
             </div>
 
             {error && (
-                <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-500 text-sm">
+                <div className="p-3 rounded-lg bg-brand-accent/10 border border-brand-accent/20 text-brand-accent text-sm">
                     {error}
                 </div>
             )}
@@ -122,7 +122,7 @@ export default function RequestForm({ onComplete }: { onComplete: () => void }) 
             <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-emerald-500 hover:bg-emerald-400 disabled:bg-neutral-800 disabled:text-zinc-600 text-neutral-900 font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-emerald-500/20"
+                className="w-full bg-brand-accent hover:bg-brand-accent/90 disabled:bg-zinc-200 disabled:text-zinc-400 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-brand-accent/20"
             >
                 {loading ? <Loader2 className="animate-spin" /> : <Send size={18} />}
                 Submit Request

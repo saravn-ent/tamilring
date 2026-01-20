@@ -1,142 +1,89 @@
 @import "tailwindcss";
 
 @theme {
-  /* Map Tailwind's background/foreground to our custom CSS variables */
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  /* WideEye.co Theme Palette */
+  --color-brand-accent: #F92445;
+  /* Vibrant Pink/Red */
+  --color-brand-dark: #381C75;
+  /* Deep Indigo */
+  --color-brand-wash: #F5F3F9;
+  /* Light Purple/Indigo Tint */
+  --color-brand-border: #E6E1F0;
+  /* Subtle Indigo Border */
 
-  --color-emerald-500: #10b981;
-  --color-zinc-200: #e4e4e7;
-  --color-neutral-800: #262626;
-  --color-neutral-900: #171717;
+  /* Semantic Mappings */
+  --color-background: #FFFFFF;
+  --color-foreground: var(--color-brand-dark);
+
+  /* Alias brand-blue to accent for backward compatibility during refactor */
+  --color-brand-blue: var(--color-brand-accent);
+  --color-brand-gray: var(--color-brand-border);
+  --color-wash: var(--color-brand-wash);
+
+  /* Font */
+  --font-display: var(--font-outfit);
+
+  /* Animations */
+  --animate-aurora: aurora-1 15s infinite ease-in-out;
 }
 
-/* 
-   FORCE THEME COLORS 
-   Using multiple selectors and !important to ensure these win over any system/next.js defaults.
-*/
-
-:root,
-.light,
-[data-theme='light'] {
-  --background: #ffffff !important;
-  --foreground: #0a0a0a !important;
+/* Base Variables */
+:root {
+  --background: #FFFFFF;
+  --foreground: #381C75;
 }
 
-.dark,
 [data-theme='dark'] {
-  --background: #050505 !important;
-  --foreground: #fafafa !important;
+  /* WideEye doesn't really have a dark mode, but we'll invert optimally */
+  --background: #1A0B36;
+  /* Deepest Indigo */
+  --foreground: #FFFFFF;
+  --color-brand-wash: #2D1456;
+  --color-brand-border: #3F2073;
 }
 
+/* Layer Base to reset defaults */
 @layer base {
 
   html,
   body {
-    background-color: var(--background) !important;
-    color: var(--foreground) !important;
-    transition: background-color 0.3s ease, color 0.3s ease;
-    @apply antialiased;
+    @apply antialiased tracking-tight leading-relaxed bg-background text-foreground transition-colors duration-300;
   }
 
-  *,
-  ::after,
-  ::before {
-    border-color: var(--color-zinc-200);
+  /* Headings defaults - Clean & Professional */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-bold text-foreground;
+    letter-spacing: -0.02em;
   }
 
-  .dark *,
-  .dark ::after,
-  .dark ::before {
-    border-color: var(--color-neutral-800);
+  /* Focus rings for professional accessibility */
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand-blue/50 ring-offset-2;
   }
 }
 
-/* User Experience & Aesthetics */
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-
-.scrollbar-hide {
+/* Utilities */
+@utility scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
-}
 
-.scrollbar-thin {
-  scrollbar-width: thin;
-  scrollbar-color: #404040 transparent;
-}
-
-.scrollbar-thin::-webkit-scrollbar {
-  width: 6px;
-}
-
-.scrollbar-thin::-webkit-scrollbar-thumb {
-  background-color: #404040;
-  border-radius: 3px;
-}
-
-/* Glassmorphism */
-.glass {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-/* Aurora Orbs */
-@keyframes aurora-1 {
-
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-
-  33% {
-    transform: translate(30px, -50px) scale(1.1);
-  }
-
-  66% {
-    transform: translate(-20px, 20px) scale(0.9);
+  &::-webkit-scrollbar {
+    display: none;
   }
 }
 
-@keyframes aurora-2 {
+/* Glassmorphism Utility */
+@utility glass {
+  @apply bg-white/70 backdrop-blur-xl border border-white/50;
 
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-
-  33% {
-    transform: translate(-30px, 50px) scale(1.1);
-  }
-
-  66% {
-    transform: translate(20px, -20px) scale(0.9);
+  [data-theme='dark'] & {
+    @apply bg-brand-dark/70 border-white/10;
   }
 }
 
-@keyframes aurora-3 {
-
-  0%,
-  100% {
-    transform: translate(0, 0) scale(1);
-  }
-
-  50% {
-    transform: translate(50px, 50px) scale(1.2);
-  }
-}
-
-.animate-aurora-1 {
-  animation: aurora-1 15s infinite ease-in-out;
-}
-
-.animate-aurora-2 {
-  animation: aurora-2 20s infinite ease-in-out;
-}
-
-.animate-aurora-3 {
-  animation: aurora-3 25s infinite ease-in-out;
-}
+/* Force Rebuild */

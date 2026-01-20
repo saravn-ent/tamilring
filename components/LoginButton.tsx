@@ -9,12 +9,7 @@ export default function LoginButton() {
   const [user, setUser] = useState<any>(null);
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookieOptions: {
-        secure: process.env.NODE_ENV === 'production',
-      }
-    }
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
   const router = useRouter();
   const pathname = usePathname();

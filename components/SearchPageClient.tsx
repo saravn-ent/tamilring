@@ -11,6 +11,7 @@ import { splitArtists } from '@/lib/utils';
 import { MOODS, ERAS } from '@/lib/constants';
 import NoResults from '@/components/NoResults';
 import { sanitizeSearchQuery } from '@/lib/sanitize';
+import { getImageUrl } from '@/lib/tmdb';
 
 function SearchContent() {
     const searchParams = useSearchParams();
@@ -199,11 +200,11 @@ function SearchContent() {
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
                     placeholder="Search rings, movies, artists..."
-                    className="w-full bg-neutral-800 border border-neutral-700 rounded-xl px-12 py-4 text-lg text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                    className="w-full bg-white border border-brand-gray rounded-xl px-12 py-4 text-lg text-brand-dark focus:outline-none focus:border-brand-blue transition-colors shadow-sm placeholder:text-zinc-400"
                     autoFocus
                 />
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
-                {loading && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 text-emerald-500 animate-spin" />}
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
+                {loading && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-blue animate-spin" />}
             </div>
 
             {/* Tabs (Always Visible) */}
@@ -212,9 +213,9 @@ function SearchContent() {
                     <button
                         key={tab}
                         onClick={() => setActiveTab(tab as any)}
-                        className={`px-4 py-2 rounded-full text-sm font-medium capitalize whitespace-nowrap transition-colors ${activeTab === tab
-                            ? 'bg-emerald-500 text-neutral-900'
-                            : 'bg-neutral-800 text-zinc-400 border border-neutral-700'
+                        className={`px-4 py-2 rounded-full text-sm font-medium capitalize whitespace-nowrap transition-colors border ${activeTab === tab
+                            ? 'bg-brand-blue text-white border-brand-blue'
+                            : 'bg-white text-zinc-500 border-brand-gray hover:border-zinc-300'
                             }`}
                     >
                         {tab}
@@ -231,10 +232,10 @@ function SearchContent() {
                             {/* Movie Skeleton */}
                             {(activeTab === 'all' || activeTab === 'movies') && (
                                 <div className="space-y-3">
-                                    <div className="h-4 w-20 bg-neutral-800 rounded ml-1" />
+                                    <div className="h-4 w-20 bg-zinc-200 rounded ml-1" />
                                     <div className="grid grid-cols-2 gap-3">
                                         {[1, 2].map(i => (
-                                            <div key={i} className="aspect-[2/3] bg-neutral-800 rounded-xl border border-neutral-700/50" />
+                                            <div key={i} className="aspect-[2/3] bg-zinc-100 rounded-xl border border-brand-gray" />
                                         ))}
                                     </div>
                                 </div>
@@ -242,9 +243,9 @@ function SearchContent() {
                             {/* Ringtone Skeleton */}
                             {(activeTab === 'all' || activeTab === 'ringtones') && (
                                 <div className="space-y-3">
-                                    <div className="h-4 w-24 bg-neutral-800 rounded ml-1" />
+                                    <div className="h-4 w-24 bg-zinc-200 rounded ml-1" />
                                     {[1, 2, 3].map(i => (
-                                        <div key={i} className="h-20 bg-neutral-800 rounded-xl border border-neutral-700/50" />
+                                        <div key={i} className="h-20 bg-white rounded-xl border border-brand-gray" />
                                     ))}
                                 </div>
                             )}
@@ -254,17 +255,17 @@ function SearchContent() {
                             {/* Movies Section */}
                             {(activeTab === 'all' || activeTab === 'movies') && results.movies.length > 0 && (
                                 <section className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                                    <h3 className="font-bold text-zinc-400 text-xs uppercase tracking-wider mb-3 px-1">
+                                    <h3 className="font-bold text-zinc-500 text-xs uppercase tracking-wider mb-3 px-1">
                                         {ERAS.find(e => e.label.toLowerCase() === query.toLowerCase()) ? `${query} Movies` : (activeTab === 'all' ? 'Movies' : 'Matching Movies')}
                                     </h3>
                                     <div className="grid grid-cols-2 gap-3">
                                         {results.movies.map((item, idx) => (
-                                            <Link href={`/movie/${encodeURIComponent(item.movie_name)}`} key={idx} className="flex flex-col gap-2 p-2 bg-neutral-900 rounded-xl border border-neutral-800 hover:border-emerald-500/50 transition-colors group">
-                                                <div className="relative w-full aspect-[2/3] bg-neutral-800 rounded-lg overflow-hidden shrink-0">
-                                                    {item.poster_url ? <Image src={item.poster_url} alt={item.movie_name} fill className="object-cover group-hover:scale-110 transition-transform duration-500" /> : null}
+                                            <Link href={`/movie/${encodeURIComponent(item.movie_name)}`} key={idx} className="flex flex-col gap-2 p-2 bg-white rounded-xl border border-brand-gray hover:shadow-lg transition-all group">
+                                                <div className="relative w-full aspect-[2/3] bg-zinc-100 rounded-lg overflow-hidden shrink-0">
+                                                    {item.poster_url ? <Image src={getImageUrl(item.poster_url)} alt={item.movie_name} fill className="object-cover group-hover:scale-110 transition-transform duration-500" /> : null}
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-white text-sm truncate">{item.movie_name}</p>
+                                                    <p className="font-bold text-brand-dark text-sm truncate">{item.movie_name}</p>
                                                     <p className="text-[10px] text-zinc-500">{item.movie_year}</p>
                                                 </div>
                                             </Link>
@@ -276,14 +277,14 @@ function SearchContent() {
                             {/* Artists Section */}
                             {(activeTab === 'all' || activeTab === 'artists') && results.artists.length > 0 && (
                                 <section className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-100">
-                                    <h3 className="font-bold text-zinc-400 text-xs uppercase tracking-wider mb-3 px-1">Artists</h3>
+                                    <h3 className="font-bold text-zinc-500 text-xs uppercase tracking-wider mb-3 px-1">Artists</h3>
                                     <div className="flex flex-wrap gap-3">
                                         {results.artists.map((item, idx) => (
-                                            <Link href={`/artist/${encodeURIComponent(item.name)}`} key={idx} className="flex items-center gap-3 pr-4 pl-2 py-2 bg-neutral-900 rounded-full border border-neutral-800 hover:border-emerald-500/50 transition-colors">
-                                                <div className="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center text-emerald-500 font-bold border border-neutral-700">
+                                            <Link href={`/artist/${encodeURIComponent(item.name)}`} key={idx} className="flex items-center gap-3 pr-4 pl-2 py-2 bg-white rounded-full border border-brand-gray hover:border-brand-blue transition-colors">
+                                                <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-brand-blue font-bold border border-zinc-200">
                                                     {item.name.charAt(0)}
                                                 </div>
-                                                <p className="font-medium text-white text-sm">{item.name}</p>
+                                                <p className="font-medium text-brand-dark text-sm">{item.name}</p>
                                             </Link>
                                         ))}
                                     </div>
@@ -293,7 +294,7 @@ function SearchContent() {
                             {/* Ringtones Section */}
                             {(activeTab === 'all' || activeTab === 'ringtones') && results.ringtones.length > 0 && (
                                 <section className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-200">
-                                    <h3 className="font-bold text-zinc-400 text-xs uppercase tracking-wider mb-3 px-1">Ringtones</h3>
+                                    <h3 className="font-bold text-zinc-500 text-xs uppercase tracking-wider mb-3 px-1">Ringtones</h3>
                                     <div className="space-y-3">
                                         {results.ringtones.map((item) => (
                                             <RingtoneCard key={item.id} ringtone={item} assignTo={searchParams.get('assignTo') || undefined} />
@@ -313,15 +314,15 @@ function SearchContent() {
                         <>
                             {/* Browse by Mood */}
                             <section>
-                                <h2 className="text-lg font-bold text-white mb-3">Browse by Mood</h2>
+                                <h2 className="text-lg font-bold text-[#15171A] mb-3">Browse by Mood</h2>
                                 <div className="grid grid-cols-2 gap-3">
                                     {MOODS.map((mood) => (
                                         <Link
                                             key={mood}
                                             href={`/mood/${mood.toLowerCase()}`}
-                                            className="p-4 bg-neutral-800/50 border border-neutral-800 rounded-xl hover:bg-neutral-800 hover:border-emerald-500/50 transition-all group"
+                                            className="p-4 bg-white border border-[#E5EBF1] rounded-xl hover:shadow-md transition-all group"
                                         >
-                                            <span className="font-bold text-zinc-200 group-hover:text-emerald-400">{mood}</span>
+                                            <span className="font-bold text-zinc-600 group-hover:text-[#3EB0EF]">{mood}</span>
                                         </Link>
                                     ))}
                                 </div>
@@ -329,16 +330,16 @@ function SearchContent() {
 
                             {/* Browse by Era */}
                             <section>
-                                <h2 className="text-lg font-bold text-white mb-3">Browse by Era</h2>
+                                <h2 className="text-lg font-bold text-[#15171A] mb-3">Browse by Era</h2>
                                 <div className="grid grid-cols-2 gap-3">
                                     {ERAS.map((era) => (
                                         <Link
                                             key={era.label}
                                             href={`/search?q=${era.label}`}
-                                            className={`p-6 rounded-xl bg-gradient-to-br ${era.color} relative overflow-hidden group shadow-lg`}
+                                            className={`p-6 rounded-xl bg-gradient-to-br ${era.color} relative overflow-hidden group shadow-sm hover:shadow-lg transition-shadow`}
                                         >
-                                            <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
-                                            <span className="relative z-10 text-2xl font-black text-white italic tracking-tighter opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all block text-center">
+                                            <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
+                                            <span className="relative z-10 text-2xl font-black text-white italic tracking-tighter opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all block text-center shadow-sm">
                                                 {era.label}
                                             </span>
                                         </Link>
@@ -351,15 +352,15 @@ function SearchContent() {
                     {/* Default Populated Content for Specific Tabs */}
                     {activeTab === 'movies' && (
                         <section>
-                            <h3 className="font-bold text-zinc-400 text-xs uppercase tracking-wider mb-3 px-1">Popular Movies</h3>
+                            <h3 className="font-bold text-zinc-500 text-xs uppercase tracking-wider mb-3 px-1">Popular Movies</h3>
                             <div className="grid grid-cols-2 gap-3">
                                 {defaults.movies.map((item, idx) => (
-                                    <Link href={`/movie/${encodeURIComponent(item.movie_name)}`} key={idx} className="flex flex-col gap-2 p-2 bg-neutral-900 rounded-xl border border-neutral-800 hover:border-emerald-500/50 transition-colors group">
-                                        <div className="relative w-full aspect-[2/3] bg-neutral-800 rounded-lg overflow-hidden shrink-0">
-                                            {item.poster_url ? <Image src={item.poster_url} alt={item.movie_name} fill className="object-cover group-hover:scale-110 transition-transform duration-500" /> : null}
+                                    <Link href={`/movie/${encodeURIComponent(item.movie_name)}`} key={idx} className="flex flex-col gap-2 p-2 bg-white rounded-xl border border-[#E5EBF1] hover:shadow-lg transition-all group">
+                                        <div className="relative w-full aspect-[2/3] bg-zinc-100 rounded-lg overflow-hidden shrink-0">
+                                            {item.poster_url ? <Image src={getImageUrl(item.poster_url)} alt={item.movie_name} fill className="object-cover group-hover:scale-110 transition-transform duration-500" /> : null}
                                         </div>
                                         <div>
-                                            <p className="font-bold text-white text-sm truncate">{item.movie_name}</p>
+                                            <p className="font-bold text-[#15171A] text-sm truncate">{item.movie_name}</p>
                                             <p className="text-[10px] text-zinc-500">{item.movie_year}</p>
                                         </div>
                                     </Link>
@@ -370,14 +371,14 @@ function SearchContent() {
 
                     {activeTab === 'artists' && (
                         <section>
-                            <h3 className="font-bold text-zinc-400 text-xs uppercase tracking-wider mb-3 px-1">Top Artists</h3>
+                            <h3 className="font-bold text-zinc-500 text-xs uppercase tracking-wider mb-3 px-1">Top Artists</h3>
                             <div className="flex flex-wrap gap-3">
                                 {defaults.artists.map((item, idx) => (
-                                    <Link href={`/artist/${encodeURIComponent(item.name)}`} key={idx} className="flex items-center gap-3 pr-4 pl-2 py-2 bg-neutral-900 rounded-full border border-neutral-800 hover:border-emerald-500/50 transition-colors">
-                                        <div className="w-8 h-8 rounded-full bg-neutral-800 flex items-center justify-center text-emerald-500 font-bold border border-neutral-700">
+                                    <Link href={`/artist/${encodeURIComponent(item.name)}`} key={idx} className="flex items-center gap-3 pr-4 pl-2 py-2 bg-white rounded-full border border-[#E5EBF1] hover:border-[#3EB0EF] transition-colors">
+                                        <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-[#3EB0EF] font-bold border border-zinc-200">
                                             {item.name.charAt(0)}
                                         </div>
-                                        <p className="font-medium text-white text-sm">{item.name}</p>
+                                        <p className="font-medium text-[#15171A] text-sm">{item.name}</p>
                                     </Link>
                                 ))}
                             </div>

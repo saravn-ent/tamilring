@@ -149,7 +149,7 @@ export default async function ArtistPage({
       />
 
       {/* Sticky Controls Bar */}
-      <div className="sticky top-[120px] z-30 bg-neutral-900/95 backdrop-blur-md border-b border-white/5 px-4 py-3 shadow-lg flex items-center justify-between gap-2">
+      <div className="sticky top-[120px] z-30 bg-white/95 backdrop-blur-md border-b border-brand-border px-4 py-3 shadow-sm flex items-center justify-between gap-2">
         <ViewToggle />
         <div className="flex justify-end">
           <SortControl />
@@ -166,7 +166,7 @@ export default async function ArtistPage({
                   <Link
                     key={movie.movie_name}
                     href={`/movie/${encodeURIComponent(movie.movie_name)}`}
-                    className="group relative aspect-[2/3] rounded-xl overflow-hidden bg-neutral-800 border border-white/5 shadow-lg"
+                    className="group relative aspect-[2/3] rounded-xl overflow-hidden bg-brand-wash border border-brand-border shadow-md"
                   >
                     {movie.poster_url ? (
                       <Image
@@ -178,16 +178,16 @@ export default async function ArtistPage({
                         priority={idx < 2}
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-zinc-600 font-bold">
+                      <div className="w-full h-full flex items-center justify-center text-brand-dark/20 font-bold">
                         {movie.movie_name[0]}
                       </div>
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity" />
                     <div className="absolute bottom-0 left-0 right-0 p-3">
-                      <h3 className="text-white font-bold text-sm leading-tight line-clamp-2 mb-1 group-hover:text-emerald-400 transition-colors">
+                      <h3 className="text-white font-bold text-sm leading-tight line-clamp-2 mb-1 group-hover:text-brand-accent transition-colors">
                         {movie.movie_name}
                       </h3>
-                      <p className="text-zinc-400 text-xs font-medium">{movie.movie_year}</p>
+                      <p className="text-zinc-300 text-xs font-medium">{movie.movie_year}</p>
                     </div>
                   </Link>
                 ))}

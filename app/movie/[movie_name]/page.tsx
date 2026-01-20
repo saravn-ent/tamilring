@@ -161,8 +161,8 @@ export default async function MoviePage({
       </div>
 
       <div className="px-4 py-6">
-        <div className="flex items-center justify-between mb-4 sticky top-0 z-30 bg-neutral-900/95 backdrop-blur-md py-2 -mx-4 px-4 border-b border-white/5">
-          <h2 className="text-lg font-bold">All Ringtones</h2>
+        <div className="flex items-center justify-between mb-4 sticky top-0 z-30 bg-white/95 backdrop-blur-md py-2 -mx-4 px-4 border-b border-brand-border">
+          <h2 className="text-lg font-bold text-brand-dark">All Ringtones</h2>
           <SortControl />
         </div>
         {ringtones && ringtones.length > 0 ? (

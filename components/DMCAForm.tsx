@@ -59,30 +59,31 @@ Signed: ${formData.name}
     const isFormValid = formData.name && formData.email && formData.workDescription && formData.infringingUrls && legalChecks.goodFaith && legalChecks.accurate;
 
     return (
+
         <div className="space-y-8">
             {/* Traffic / Promotion Notice */}
-            <div className="bg-gradient-to-br from-neutral-800 to-neutral-900 border border-emerald-500/30 rounded-2xl p-6 relative overflow-hidden">
+            <div className="bg-brand-dark border border-brand-border/20 rounded-3xl p-6 relative overflow-hidden shadow-xl">
                 <div className="absolute top-0 right-0 p-4 opacity-10">
-                    <ExternalLink size={120} className="text-emerald-500" />
+                    <ExternalLink size={120} className="text-white" />
                 </div>
                 <div className="relative z-10">
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="bg-emerald-500/10 p-2.5 rounded-lg text-emerald-500">
+                        <div className="bg-white/10 p-2.5 rounded-xl text-brand-accent backdrop-blur-sm border border-white/10">
                             <Shield size={24} />
                         </div>
-                        <h2 className="text-xl font-bold text-white">Before you file a takedown...</h2>
+                        <h2 className="text-xl font-black text-white tracking-tight">Before you file a takedown...</h2>
                     </div>
 
-                    <div className="space-y-4 text-zinc-300 text-sm leading-relaxed">
+                    <div className="space-y-4 text-zinc-300 text-sm leading-relaxed font-medium">
                         <p>
-                            <span className="font-semibold text-white">We support artists!</span> We understand your rights, but we also want you to know that TamilRing acts as a <span className="text-emerald-400 font-bold">promotional platform</span> for your music.
+                            <span className="font-bold text-white">We support artists!</span> We understand your rights, but we also want you to know that TamilRing acts as a <span className="text-brand-accent font-black">promotional platform</span> for your music.
                         </p>
                         <p>
-                            Every ringtone page on our site includes direct, prominent links to stream the full song on <span className="text-white font-medium">Apple Music</span> and <span className="text-white font-medium">Spotify</span>.
+                            Every ringtone page on our site includes direct, prominent links to stream the full song on <span className="text-white font-bold">Apple Music</span> and <span className="text-white font-bold">Spotify</span>.
                         </p>
-                        <div className="bg-black/20 rounded-lg p-4 border border-white/5 my-2">
-                            <p className="font-medium text-emerald-400 mb-1">💡 Pro Tip:</p>
-                            <p>
+                        <div className="bg-white/5 rounded-2xl p-4 border border-white/10 my-2 backdrop-blur-sm">
+                            <p className="font-black text-brand-accent mb-1 uppercase tracking-wider text-xs">💡 Pro Tip:</p>
+                            <p className="text-zinc-200">
                                 Many copyright owners find that TamilRing is a significant source of <strong>free referral traffic</strong> to their official streaming profiles. Please check your analytics—we might be helping you earn more streams!
                             </p>
                         </div>
@@ -94,77 +95,77 @@ Signed: ${formData.name}
             </div>
 
             {/* DMCA Form */}
-            <div className="bg-neutral-900 border border-neutral-800 rounded-xl p-6 md:p-8 space-y-6">
+            <div className="bg-white border border-brand-border rounded-3xl p-6 md:p-8 space-y-6 shadow-sm">
                 <div>
-                    <h2 className="text-2xl font-bold text-white mb-1">Submit Takedown Request</h2>
-                    <p className="text-zinc-400 text-sm">Fill out the details below to generate a formal DMCA notice.</p>
+                    <h2 className="text-2xl font-black text-brand-dark mb-1 tracking-tight">Submit Takedown Request</h2>
+                    <p className="text-zinc-500 text-sm font-medium">Fill out the details below to generate a formal DMCA notice.</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-zinc-300">Full Name</label>
+                        <label className="text-xs font-black text-zinc-500 uppercase tracking-wider ml-1">Full Name</label>
                         <input
                             type="text"
                             name="name"
                             value={formData.name}
                             onChange={handleChange}
-                            className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                            className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:ring-2 focus:ring-brand-accent/20 focus:border-brand-accent outline-none transition-all placeholder:text-zinc-400 font-medium"
                             placeholder="Copyright Owner or Agent Name"
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-zinc-300">Email Address</label>
+                        <label className="text-xs font-black text-zinc-500 uppercase tracking-wider ml-1">Email Address</label>
                         <input
                             type="email"
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
-                            className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                            className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:ring-2 focus:ring-brand-accent/20 focus:border-brand-accent outline-none transition-all placeholder:text-zinc-400 font-medium"
                             placeholder="Where can we contact you?"
                         />
                     </div>
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-zinc-300">Phone Number</label>
+                    <label className="text-xs font-black text-zinc-500 uppercase tracking-wider ml-1">Phone Number</label>
                     <input
                         type="tel"
                         name="phone"
                         value={formData.phone}
                         onChange={handleChange}
-                        className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                        className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:ring-2 focus:ring-brand-accent/20 focus:border-brand-accent outline-none transition-all placeholder:text-zinc-400 font-medium"
                         placeholder="Contact number"
                     />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-zinc-300">Identify Copyrighted Work</label>
+                    <label className="text-xs font-black text-zinc-500 uppercase tracking-wider ml-1">Identify Copyrighted Work</label>
                     <textarea
                         name="workDescription"
                         value={formData.workDescription}
                         onChange={handleChange}
                         rows={3}
-                        className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all"
+                        className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:ring-2 focus:ring-brand-accent/20 focus:border-brand-accent outline-none transition-all placeholder:text-zinc-400 font-medium resize-none"
                         placeholder="Describe the copyrighted work (e.g., 'Song Name by Artist Name' or link to original work)."
                     />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-zinc-300">Infringing Material URL(s)</label>
+                    <label className="text-xs font-black text-zinc-500 uppercase tracking-wider ml-1">Infringing Material URL(s)</label>
                     <textarea
                         name="infringingUrls"
                         value={formData.infringingUrls}
                         onChange={handleChange}
                         rows={4}
-                        className="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none transition-all font-mono text-xs"
+                        className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:ring-2 focus:ring-brand-accent/20 focus:border-brand-accent outline-none transition-all font-mono text-xs placeholder:text-zinc-400"
                         placeholder="https://tamilring.in/ringtone/..."
                     />
-                    <p className="text-xs text-zinc-500">Please provide direct links to the content you want removed.</p>
+                    <p className="text-xs text-zinc-500 ml-1 font-medium">Please provide direct links to the content you want removed.</p>
                 </div>
 
-                <div className="pt-4 border-t border-neutral-800 space-y-4">
-                    <label className="flex items-start gap-3 cursor-pointer group">
-                        <div className="relative flex items-center">
+                <div className="pt-6 border-t border-brand-border space-y-4">
+                    <label className="flex items-start gap-3 cursor-pointer group bg-brand-wash/50 p-4 rounded-xl border border-transparent hover:border-brand-border transition-colors">
+                        <div className="relative flex items-center pt-0.5">
                             <input
                                 type="checkbox"
                                 name="goodFaith"
@@ -172,16 +173,16 @@ Signed: ${formData.name}
                                 onChange={handleCheckbox}
                                 className="peer sr-only"
                             />
-                            <div className="w-5 h-5 border-2 border-neutral-600 rounded bg-neutral-800 peer-checked:bg-emerald-500 peer-checked:border-emerald-500 transition-colors"></div>
-                            <CheckCircle2 size={12} className="absolute inset-0 m-auto text-black opacity-0 peer-checked:opacity-100 pointer-events-none" />
+                            <div className="w-5 h-5 border-2 border-zinc-300 rounded-md bg-white peer-checked:bg-brand-accent peer-checked:border-brand-accent transition-colors"></div>
+                            <CheckCircle2 size={12} className="absolute inset-0 m-auto text-white opacity-0 peer-checked:opacity-100 pointer-events-none" />
                         </div>
-                        <span className="text-sm text-zinc-400 group-hover:text-zinc-300 transition-colors">
+                        <span className="text-sm text-zinc-600 font-medium group-hover:text-brand-dark transition-colors leading-snug">
                             I have a good faith belief that the use of the material in the manner complained of is not authorized by the copyright owner, its agent, or the law.
                         </span>
                     </label>
 
-                    <label className="flex items-start gap-3 cursor-pointer group">
-                        <div className="relative flex items-center">
+                    <label className="flex items-start gap-3 cursor-pointer group bg-brand-wash/50 p-4 rounded-xl border border-transparent hover:border-brand-border transition-colors">
+                        <div className="relative flex items-center pt-0.5">
                             <input
                                 type="checkbox"
                                 name="accurate"
@@ -189,29 +190,29 @@ Signed: ${formData.name}
                                 onChange={handleCheckbox}
                                 className="peer sr-only"
                             />
-                            <div className="w-5 h-5 border-2 border-neutral-600 rounded bg-neutral-800 peer-checked:bg-emerald-500 peer-checked:border-emerald-500 transition-colors"></div>
-                            <CheckCircle2 size={12} className="absolute inset-0 m-auto text-black opacity-0 peer-checked:opacity-100 pointer-events-none" />
+                            <div className="w-5 h-5 border-2 border-zinc-300 rounded-md bg-white peer-checked:bg-brand-accent peer-checked:border-brand-accent transition-colors"></div>
+                            <CheckCircle2 size={12} className="absolute inset-0 m-auto text-white opacity-0 peer-checked:opacity-100 pointer-events-none" />
                         </div>
-                        <span className="text-sm text-zinc-400 group-hover:text-zinc-300 transition-colors">
+                        <span className="text-sm text-zinc-600 font-medium group-hover:text-brand-dark transition-colors leading-snug">
                             The information in this notification is accurate, and under penalty of perjury, I am authorized to act on behalf of the owner of an exclusive right that is allegedly infringed.
                         </span>
                     </label>
                 </div>
 
-                <div className="pt-4">
+                <div className="pt-2">
                     <button
                         onClick={handleDraftEmail}
                         disabled={!isFormValid}
-                        className={`w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${isFormValid
-                            ? 'bg-emerald-500 text-black hover:bg-emerald-400 shadow-lg shadow-emerald-500/20'
-                            : 'bg-neutral-800 text-zinc-500 cursor-not-allowed'
+                        className={`w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg active:scale-[0.98] ${isFormValid
+                            ? 'bg-brand-dark text-white hover:bg-neutral-800 shadow-brand-dark/20'
+                            : 'bg-zinc-100 text-zinc-400 cursor-not-allowed shadow-none'
                             }`}
                     >
                         <Mail size={20} />
                         <span>Draft Email Report</span>
                         {isFormValid && <ArrowRight size={18} />}
                     </button>
-                    <p className="text-center text-xs text-zinc-600 mt-3">
+                    <p className="text-center text-xs text-zinc-400 mt-3 font-medium">
                         This button will open your default email client with a pre-filled message.
                     </p>
                 </div>

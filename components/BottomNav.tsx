@@ -12,30 +12,30 @@ export default function BottomNav() {
   const isActive = (path: string) => pathname === path;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-md border-t border-zinc-200 dark:border-neutral-800 z-[100] pb-safe transition-colors duration-300">
+    <div suppressHydrationWarning className="bottom-nav-fixed fixed bottom-0 left-0 right-0 z-[100] bg-white/90 backdrop-blur-md border-t border-brand-gray pb-safe transition-colors duration-300">
       <div className="flex justify-around items-center h-16 max-w-md mx-auto px-6">
         {/* Home */}
-        <Link href="/" className={`flex flex-col items-center gap-1 transition-colors ${isActive('/') ? 'text-emerald-500' : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300'}`}>
+        <Link suppressHydrationWarning href="/" className={`flex flex-col items-center gap-1 transition-colors ${isActive('/') ? 'text-brand-blue' : 'text-zinc-500 hover:text-brand-dark'}`}>
           <Home size={22} strokeWidth={isActive('/') ? 2.5 : 2} />
-          <span className="text-[10px] font-medium">{t('home')}</span>
+          <span suppressHydrationWarning className="text-[10px] font-medium">{t('home')}</span>
         </Link>
 
         {/* Browse */}
-        <Link href="/categories" className={`flex flex-col items-center gap-1 transition-colors ${isActive('/categories') ? 'text-emerald-500' : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300'}`}>
+        <Link suppressHydrationWarning href="/categories" className={`flex flex-col items-center gap-1 transition-colors ${isActive('/categories') ? 'text-brand-blue' : 'text-zinc-500 hover:text-brand-dark'}`}>
           <Search size={22} strokeWidth={isActive('/categories') ? 2.5 : 2} />
-          <span className="text-[10px] font-medium">{t('search')}</span>
+          <span suppressHydrationWarning className="text-[10px] font-medium">{t('search')}</span>
         </Link>
 
         {/* Requests */}
-        <Link href="/requests" className={`flex flex-col items-center gap-1 transition-colors ${isActive('/requests') ? 'text-emerald-500' : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300'}`}>
+        <Link suppressHydrationWarning href="/requests" className={`flex flex-col items-center gap-1 transition-colors ${isActive('/requests') ? 'text-brand-blue' : 'text-zinc-500 hover:text-brand-dark'}`}>
           <MessageSquare size={22} strokeWidth={isActive('/requests') ? 2.5 : 2} />
-          <span className="text-[10px] font-medium">{t('requests')}</span>
+          <span suppressHydrationWarning className="text-[10px] font-medium">{t('requests')}</span>
         </Link>
 
         {/* Profile */}
-        <Link href="/profile" className={`flex flex-col items-center gap-1 transition-colors ${isActive('/profile') ? 'text-emerald-500' : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300'}`}>
+        <Link suppressHydrationWarning href="/profile" className={`flex flex-col items-center gap-1 transition-colors ${isActive('/profile') ? 'text-brand-blue' : 'text-zinc-500 hover:text-brand-dark'}`}>
           <User size={22} strokeWidth={isActive('/profile') ? 2.5 : 2} />
-          <span className="text-[10px] font-medium">{t('profile')}</span>
+          <span suppressHydrationWarning className="text-[10px] font-medium">{t('profile')}</span>
         </Link>
       </div>
     </div>

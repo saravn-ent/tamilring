@@ -269,47 +269,47 @@ export default function AudioTrimmer({ file, onRangeChange }: { file: File, onRa
     };
 
     return (
-        <div className="bg-zinc-900 rounded-2xl border border-white/5 p-4 space-y-6 select-none shadow-xl">
+        <div className="bg-white rounded-3xl border border-brand-border p-4 space-y-6 select-none shadow-xl shadow-brand-dark/5">
             {/* Waveform Wrapper */}
-            <div className="relative bg-black/40 rounded-xl border border-white/5 p-4">
+            <div className="relative bg-brand-wash rounded-2xl border border-brand-border p-4">
                 {!isReady && (
-                    <div className="absolute inset-0 flex items-center justify-center text-emerald-500 font-bold z-20">
+                    <div className="absolute inset-0 flex items-center justify-center text-brand-accent font-bold z-20 animate-pulse">
                         Loading Audio...
                     </div>
                 )}
 
                 {/* Main Waveform */}
-                <div ref={containerRef} className="w-full" />
+                <div ref={containerRef} className="w-full mix-blend-multiply opacity-80" />
 
                 {/* Timeline */}
-                <div ref={timelineRef} className="w-full" />
+                <div ref={timelineRef} className="w-full opacity-60" />
 
-                <div className="absolute top-2 right-2 text-[10px] font-mono text-zinc-400 pointer-events-none">
+                <div className="absolute top-2 right-2 text-[10px] font-mono text-zinc-500 pointer-events-none font-bold bg-white/50 px-1 rounded">
                     {formatTime(currentTime)}
                 </div>
             </div>
 
             {/* Controls */}
-            <div className="flex items-center justify-between gap-4 bg-neutral-800/30 p-3 rounded-xl border border-white/5">
+            <div className="flex items-center justify-between gap-4 bg-brand-wash/50 p-3 rounded-2xl border border-brand-border">
                 <div className="flex flex-col">
-                    <label className="text-[10px] text-zinc-500 font-bold mb-1">START</label>
+                    <label className="text-[9px] text-zinc-400 font-black uppercase tracking-widest mb-1.5 ml-1">START</label>
                     <input
                         type="number" step="0.1"
                         value={localStart.toFixed(1)}
                         onChange={(e) => updateRegionManual(Number(e.target.value), localEnd)}
-                        className="w-20 bg-black border border-neutral-700 rounded-lg p-1 text-center text-sm font-mono text-white"
+                        className="w-24 bg-white border border-brand-border rounded-xl p-2 text-center text-sm font-mono text-brand-dark outline-none focus:border-brand-accent transition-colors font-bold shadow-sm"
                     />
                 </div>
-                <div className="text-rose-500 font-mono text-sm font-bold bg-rose-500/10 px-3 py-1 rounded">
+                <div className="text-brand-accent font-mono text-sm font-black bg-white px-4 py-2 rounded-xl border border-brand-border shadow-sm">
                     {(localEnd - localStart).toFixed(1)}s
                 </div>
                 <div className="flex flex-col items-end">
-                    <label className="text-[10px] text-zinc-500 font-bold mb-1">END</label>
+                    <label className="text-[9px] text-zinc-400 font-black uppercase tracking-widest mb-1.5 mr-1">END</label>
                     <input
                         type="number" step="0.1"
                         value={localEnd.toFixed(1)}
                         onChange={(e) => updateRegionManual(localStart, Number(e.target.value))}
-                        className="w-20 bg-black border border-neutral-700 rounded-lg p-1 text-center text-sm font-mono text-white"
+                        className="w-24 bg-white border border-brand-border rounded-xl p-2 text-center text-sm font-mono text-brand-dark outline-none focus:border-brand-accent transition-colors font-bold shadow-sm"
                     />
                 </div>
             </div>
@@ -320,23 +320,23 @@ export default function AudioTrimmer({ file, onRangeChange }: { file: File, onRa
                     <div className="flex flex-col items-center gap-2">
                         <button
                             onClick={() => setFadeIn(!fadeIn)}
-                            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all border ${fadeIn ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-500' : 'bg-white/5 border-white/10 text-zinc-500'}`}
+                            className={`px-4 py-2 rounded-xl text-[10px] font-black tracking-wider transition-all border ${fadeIn ? 'bg-brand-accent text-white border-brand-accent shadow-md shadow-brand-accent/20' : 'bg-brand-wash border-brand-border text-zinc-400 hover:text-brand-dark hover:border-brand-dark/20'}`}
                         >
                             FADE IN
                         </button>
                     </div>
 
-                    <button onClick={() => { wsRef.current?.seekTo(0); wsRef.current?.play(); }} className="p-3 text-zinc-400 hover:text-white bg-white/5 rounded-full transition-colors">
+                    <button onClick={() => { wsRef.current?.seekTo(0); wsRef.current?.play(); }} className="p-4 text-zinc-400 hover:text-brand-dark bg-brand-wash hover:bg-white border border-transparent hover:border-brand-border rounded-full transition-all">
                         <RotateCcw size={20} />
                     </button>
-                    <button onClick={() => wsRef.current?.playPause()} className="w-14 h-14 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 shadow-lg transition-all active:scale-95">
-                        {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="ml-1" />}
+                    <button onClick={() => wsRef.current?.playPause()} className="w-16 h-16 bg-brand-dark text-white rounded-full flex items-center justify-center hover:scale-105 shadow-xl shadow-brand-dark/20 transition-all active:scale-95 hover:bg-neutral-800">
+                        {isPlaying ? <Pause size={28} fill="currentColor" /> : <Play size={28} fill="currentColor" className="ml-1" />}
                     </button>
 
                     <div className="flex flex-col items-center gap-2">
                         <button
                             onClick={() => setFadeOut(!fadeOut)}
-                            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all border ${fadeOut ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-500' : 'bg-white/5 border-white/10 text-zinc-500'}`}
+                            className={`px-4 py-2 rounded-xl text-[10px] font-black tracking-wider transition-all border ${fadeOut ? 'bg-brand-accent text-white border-brand-accent shadow-md shadow-brand-accent/20' : 'bg-brand-wash border-brand-border text-zinc-400 hover:text-brand-dark hover:border-brand-dark/20'}`}
                         >
                             FADE OUT
                         </button>
@@ -344,16 +344,16 @@ export default function AudioTrimmer({ file, onRangeChange }: { file: File, onRa
                 </div>
 
                 <div className="flex justify-center gap-4">
-                    <button onClick={() => updateZoom(zoom - 10)} className="p-3 text-zinc-400 hover:text-emerald-500 bg-white/5 rounded-full transition-colors" title="Zoom Out"><ZoomOut size={18} /></button>
-                    <button onClick={() => updateZoom(zoom + 10)} className="p-3 text-zinc-400 hover:text-emerald-500 bg-white/5 rounded-full transition-colors" title="Zoom In"><ZoomIn size={18} /></button>
+                    <button onClick={() => updateZoom(zoom - 10)} className="p-3 text-zinc-400 hover:text-brand-dark bg-brand-wash hover:bg-white border border-brand-border/50 hover:border-brand-border rounded-full transition-all" title="Zoom Out"><ZoomOut size={18} /></button>
+                    <button onClick={() => updateZoom(zoom + 10)} className="p-3 text-zinc-400 hover:text-brand-dark bg-brand-wash hover:bg-white border border-brand-border/50 hover:border-brand-border rounded-full transition-all" title="Zoom In"><ZoomIn size={18} /></button>
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 border-t border-white/5 pt-4">
-                <button onClick={() => handleDownload('mp3')} disabled={processing} className="flex justify-center items-center gap-2 bg-emerald-500 text-black font-bold py-3 rounded-xl hover:bg-emerald-400 disabled:opacity-50">
+            <div className="grid grid-cols-2 gap-4 border-t border-brand-border pt-6">
+                <button onClick={() => handleDownload('mp3')} disabled={processing} className="flex justify-center items-center gap-2 bg-brand-dark text-white font-black py-4 rounded-xl hover:bg-neutral-800 disabled:opacity-50 transition-all shadow-lg shadow-brand-dark/20 tracking-wide text-xs uppercase active:scale-[0.98]">
                     <Scissors size={18} /> {processing ? 'Processing...' : 'Download MP3'}
                 </button>
-                <button onClick={() => handleDownload('m4r')} disabled={processing} className="flex justify-center items-center gap-2 bg-neutral-800 text-white border border-neutral-700 font-bold py-3 rounded-xl hover:bg-neutral-700 disabled:opacity-50">
+                <button onClick={() => handleDownload('m4r')} disabled={processing} className="flex justify-center items-center gap-2 bg-brand-wash text-brand-dark border border-brand-border font-black py-4 rounded-xl hover:bg-white hover:border-brand-dark/20 disabled:opacity-50 transition-all tracking-wide text-xs uppercase active:scale-[0.98]">
                     <Scissors size={18} /> {processing ? 'Processing...' : 'iPhone Audio'}
                 </button>
             </div>
@@ -361,13 +361,11 @@ export default function AudioTrimmer({ file, onRangeChange }: { file: File, onRa
             {/* Styles for better Region Handles */}
             <style jsx global>{`
                 .wavesurfer-region {
-                    border: 1px solid rgba(244, 63, 94, 0.5) !important;
+                    border: 2px solid #F92445 !important;
                     z-index: 10;
+                    border-radius: 4px;
+                    background-color: rgba(249, 36, 69, 0.1) !important;
                 }
-                /* Custom Handles via pseudo elements on the region class if accessible, 
-                   but standard WaveSurfer v7 regions handle interactions well without custom CSS handle hacks 
-                   if we just ensure the hit area is good. The border helps. 
-                */
             `}</style>
         </div>
     );

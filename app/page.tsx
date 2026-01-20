@@ -3,7 +3,6 @@ import { searchPerson, getImageUrl } from '@/lib/tmdb';
 import RingtoneCard from '@/components/RingtoneCard';
 import SectionHeader from '@/components/SectionHeader';
 import HeroCard from '@/components/HeroCard';
-import HeroSlider from '@/components/HeroSlider';
 import ImageWithFallback from '@/components/ImageWithFallback';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -18,8 +17,8 @@ import { JsonLdScript } from '@/components/JsonLdScript';
 import { generateHomeMetadata } from '@/lib/seo';
 import { generateOrganizationSchema, generateWebSiteSchema, combineSchemas } from '@/lib/seo';
 import StructuredData from '@/components/StructuredData';
-import { getTrendingRingtones, getTopAlbums } from '@/app/actions/ringtones';
-import EngagementBanner from '@/components/EngagementBanner';
+import { getTrendingRingtones } from '@/app/actions/ringtones';
+
 
 export const revalidate = 3600; // Revalidate every hour
 
@@ -116,37 +115,18 @@ export default async function Home() {
   console.log('--- Homepage Render Start ---');
   // Parallel Fetching
   const [
-    topAlbumsRaw,
     trending,
     recent,
     nostalgia,
     topArtistsData,
     topContributorsRaw
   ] = await Promise.all([
-    getTopAlbums(10),
     getTrendingRingtones(10),
     getRecentRingtones(),
     getNostalgiaRingtones(),
     getTopArtists(),
     getTopContributorsList()
   ]);
-
-  // 1. Process Top Albums for Hero
-  const heroRingtones = topAlbumsRaw.map((m: any) => ({
-    id: m.latest_slug,
-    title: m.movie_name,
-    slug: m.latest_slug,
-    movie_name: m.movie_name,
-    movie_year: m.max_year,
-    poster_url: m.poster_url,
-    likes: m.total_engagement,
-    downloads: 0,
-    created_at: new Date().toISOString(),
-    audio_url: '',
-    waveform_url: '',
-    backdrop_url: '',
-    singers: `${m.ringtone_count} ringtones`
-  } as Ringtone));
 
 
   // 3. Process Recent - (Now directly from cache)
@@ -185,11 +165,6 @@ export default async function Home() {
         TamilRing - Download Best Tamil Ringtones & BGM (தமிழ் ரிங்டோன்)
       </h1>
 
-      {/* Hero Section - Top 10 Movies by Total Likes */}
-      <HeroSlider ringtones={heroRingtones || []} />
-
-
-
       {/* Top Singers (The Voices You Love) */}
       {topSingers.length > 0 && (
         <div className="mb-10">
@@ -212,28 +187,29 @@ export default async function Home() {
       )}
 
       {/* Nostalgia (Rewind: Memories) */}
+      {/* Nostalgia (Rewind: Memories) */}
       {nostalgia && nostalgia.length > 0 && (
         <div className="mb-10">
           <div className="px-4">
             <SectionHeader title="Rewind: Memories" translationKey="memories" />
-            <p className="text-xs text-zinc-600 dark:text-zinc-400 mb-3 -mt-2">Rings that bring back the good times</p>
+            <p className="text-xs text-zinc-500 mb-3 -mt-2">Rings that bring back the good times</p>
           </div>
           <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide snap-x">
             {nostalgia.map(ringtone => (
               <Link key={ringtone.id} href={`/ringtone/${ringtone.slug}`} className="snap-start shrink-0 w-32 group">
-                <div className="relative w-32 h-40 rounded-xl overflow-hidden mb-2 bg-zinc-200 dark:bg-neutral-800 shadow-lg group-hover:shadow-emerald-500/10 transition-all">
+                <div className="relative w-32 h-40 rounded-xl overflow-hidden mb-2 bg-brand-wash shadow-lg group-hover:shadow-brand-accent/10 transition-all">
                   {ringtone.poster_url ? (
                     <Image src={ringtone.poster_url} alt={ringtone.title} fill sizes="(max-width: 768px) 33vw, 128px" quality={75} loading="lazy" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 text-xs">No Img</div>
+                    <div className="w-full h-full flex items-center justify-center text-zinc-400 text-xs">No Img</div>
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-80" />
                   <div className="absolute bottom-2 right-2 bg-black/70 px-1.5 py-0.5 rounded text-[10px] text-white font-medium backdrop-blur-sm">
                     {ringtone.movie_year}
                   </div>
                 </div>
-                <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{ringtone.title}</p>
-                <p className="text-[10px] text-zinc-600 dark:text-zinc-400 truncate">{ringtone.movie_name}</p>
+                <p className="text-xs font-bold text-black truncate group-hover:text-brand-accent transition-colors">{ringtone.title}</p>
+                <p className="text-[10px] text-brand-dark truncate">{ringtone.movie_name}</p>
               </Link>
             ))}
           </div>
@@ -242,7 +218,7 @@ export default async function Home() {
 
       {/* Browse by Mood (Filter Chips) */}
       <div className="mb-8">
-        <div className="px-4 mb-3 flex justify-between items-end">
+        <div className="px-4">
           <SectionHeader title="Browse by Mood" translationKey="mood" href="/categories" />
         </div>
         <div className="flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide snap-x">
@@ -250,7 +226,7 @@ export default async function Home() {
             <Link
               key={idx}
               href={`/mood/${mood}`}
-              className="snap-start shrink-0 px-5 py-2 rounded-full border border-zinc-200 dark:border-neutral-700 bg-zinc-100 dark:bg-neutral-900/80 text-zinc-600 dark:text-zinc-300 text-sm font-medium hover:bg-emerald-500 hover:text-white dark:hover:text-neutral-900 hover:border-emerald-500 transition-all shadow-sm whitespace-nowrap"
+              className="snap-start shrink-0 px-5 py-2 rounded-full border border-brand-gray bg-white text-zinc-600 text-sm font-medium hover:bg-brand-blue hover:text-white hover:border-brand-blue transition-all shadow-sm whitespace-nowrap"
             >
               {mood}
             </Link>
@@ -269,7 +245,7 @@ export default async function Home() {
 
         <Link
           href="/recent"
-          className="block w-full py-3 rounded-xl bg-zinc-100 dark:bg-neutral-800 text-zinc-600 dark:text-zinc-300 text-center text-sm font-bold hover:bg-zinc-200 dark:hover:bg-neutral-700 transition-colors border border-zinc-200 dark:border-neutral-700"
+          className="block w-full py-3 rounded-xl bg-wash text-zinc-600 text-center text-sm font-bold hover:bg-brand-gray transition-colors border border-brand-gray"
         >
           {recent.length > 0 ? "View All New Ringtones" : "No New Ringtones"}
         </Link>
@@ -289,9 +265,9 @@ export default async function Home() {
                   size="md"
                 />
                 <div className="text-center w-full mt-3 flex flex-col items-center">
-                  <span className="text-[10px] text-emerald-400 font-bold tracking-wider mb-0.5">{c.points} Rep</span>
+                  <span className="text-[10px] text-brand-blue font-bold tracking-wider mb-0.5">{c.points} Rep</span>
                   <p className="text-xs font-bold text-foreground truncate w-full">{c.name}</p>
-                  <span className="text-[10px] text-amber-600 dark:text-amber-500 font-bold mt-1">{c.title}</span>
+                  <span className="text-[10px] text-amber-600 font-bold mt-1">{c.title}</span>
                 </div>
               </Link>
             ))}
@@ -349,22 +325,22 @@ export default async function Home() {
         <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide snap-x">
           {trending?.map((ringtone: Ringtone) => (
             <Link key={ringtone.id} href={`/ringtone/${ringtone.slug}`} className="snap-start shrink-0 w-32 group">
-              <div className="relative w-32 h-40 rounded-xl overflow-hidden mb-2 bg-zinc-200 dark:bg-neutral-800 shadow-lg group-hover:shadow-emerald-500/10 transition-all">
+              <div className="relative w-32 h-40 rounded-xl overflow-hidden mb-2 bg-brand-wash shadow-lg group-hover:shadow-brand-accent/10 transition-all">
                 {ringtone.poster_url ? (
                   <Image src={ringtone.poster_url} alt={ringtone.title} fill sizes="(max-width: 768px) 33vw, 128px" quality={75} loading="lazy" className="object-cover group-hover:scale-105 transition-transform duration-500" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-zinc-500 dark:text-zinc-400 text-xs">No Img</div>
+                  <div className="w-full h-full flex items-center justify-center text-zinc-500 text-xs">No Img</div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-80" />
               </div>
-              <p className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{ringtone.title}</p>
-              <p className="text-[10px] text-zinc-600 dark:text-zinc-400 truncate">{ringtone.movie_name}</p>
+              <p className="text-xs font-bold text-black truncate group-hover:text-brand-blue transition-colors">{ringtone.title}</p>
+              <p className="text-[10px] text-brand-dark truncate">{ringtone.movie_name}</p>
             </Link>
           ))}
         </div>
       </div>
 
-      <EngagementBanner />
+
     </div>
   );
 }

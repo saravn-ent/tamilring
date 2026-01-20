@@ -62,17 +62,17 @@ export default function AddToCollectionModal({ isOpen, onClose, ringtone }: AddT
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={onClose}>
             <div
-                className="bg-neutral-900 border border-neutral-800 w-full max-w-xs rounded-2xl p-4 shadow-2xl scale-100 animate-in zoom-in-95 duration-200"
+                className="bg-white border border-[#E5EBF1] w-full max-w-xs rounded-2xl p-4 shadow-2xl scale-100 animate-in zoom-in-95 duration-200"
                 onClick={e => e.stopPropagation()}
             >
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-bold text-white">For My</h3>
-                    <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors">
+                    <h3 className="text-lg font-bold text-[#15171A]">For My</h3>
+                    <button onClick={onClose} className="text-zinc-400 hover:text-[#15171A] transition-colors">
                         <X size={20} />
                     </button>
                 </div>
 
-                <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-neutral-700">
+                <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-zinc-300">
                     {collections.map((item) => {
                         const isAssigned = item.ringtone?.id === ringtone.id;
                         const justAssigned = assignedTo === item.id;
@@ -82,8 +82,8 @@ export default function AddToCollectionModal({ isOpen, onClose, ringtone }: AddT
                                 key={item.id}
                                 onClick={() => handleAssign(item.id)}
                                 className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all duration-200 ${isAssigned || justAssigned
-                                    ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-500'
-                                    : 'bg-neutral-800 border-neutral-700 text-zinc-300 hover:bg-neutral-700 hover:border-neutral-600'
+                                    ? 'bg-[#3EB0EF]/10 border-[#3EB0EF]/50 text-[#3EB0EF]'
+                                    : 'bg-zinc-50 border-[#E5EBF1] text-zinc-600 hover:bg-white hover:border-zinc-300 hover:shadow-sm'
                                     }`}
                             >
                                 <div className="flex items-center gap-3">
@@ -91,7 +91,7 @@ export default function AddToCollectionModal({ isOpen, onClose, ringtone }: AddT
                                     <span className="font-medium">{item.label}</span>
                                 </div>
                                 {justAssigned && <Check size={18} className="animate-in zoom-in" />}
-                                {isAssigned && !justAssigned && <span className="text-xs bg-emerald-500/20 px-2 py-0.5 rounded text-emerald-400">Current</span>}
+                                {isAssigned && !justAssigned && <span className="text-xs bg-[#3EB0EF]/20 px-2 py-0.5 rounded text-[#3EB0EF]">Current</span>}
                             </button>
                         );
                     })}

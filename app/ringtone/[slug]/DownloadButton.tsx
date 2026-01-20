@@ -10,18 +10,16 @@ interface DownloadButtonProps {
 }
 
 export default function DownloadButton({ ringtone }: DownloadButtonProps) {
-    const [downloadCount, setDownloadCount] = useState(ringtone.downloads || 0);
     const containerRef = useRef<HTMLDivElement>(null);
 
     const handleSmartDownload = async () => {
         try {
-            // 1. Increment Count (Optimistic)
-            setDownloadCount(prev => prev + 1);
+            // 1. Increment Count
             incrementDownloads(ringtone.id);
 
             // 2. Detect OS
             const userAgent = window.navigator.userAgent;
-            const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !(window as any).MSStream;
+            const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !('MSStream' in window);
 
             // 3. Select Format
             let targetUrl = ringtone.audio_url;
@@ -66,10 +64,10 @@ export default function DownloadButton({ ringtone }: DownloadButtonProps) {
         <div className="relative flex-1" ref={containerRef}>
             <button
                 onClick={handleSmartDownload}
-                className="w-full bg-neutral-800 text-white font-medium py-4 rounded-xl hover:bg-neutral-700 transition-all flex items-center justify-center gap-2 active:scale-95"
+                className="w-full bg-brand-wash text-black border border-brand-border font-normal py-2.5 px-4 rounded-lg hover:bg-white transition-all flex items-center justify-center gap-2 active:scale-95 shadow-sm"
             >
-                <Download size={20} />
-                <span>Download</span>
+                <Download size={18} strokeWidth={1.5} />
+                <span className="text-sm">Download</span>
             </button>
         </div>
     );

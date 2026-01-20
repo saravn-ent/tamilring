@@ -18,7 +18,7 @@ export default async function AdminLayout({
                 getAll() {
                     return cookieStore.getAll();
                 },
-                setAll(cookiesToSet) {
+                setAll(_cookiesToSet) {
                     // Middleware handles session maintenance
                 },
             },

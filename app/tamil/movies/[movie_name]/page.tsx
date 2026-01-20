@@ -114,22 +114,23 @@ export default async function MovieSiloPage({ params, searchParams }: Props) {
     };
 
     return (
-        <div className="max-w-md mx-auto min-h-screen bg-neutral-900">
+        <div className="max-w-md mx-auto min-h-screen bg-white">
             <JsonLdScript data={jsonLd} />
 
             {/* Hero Header */}
-            <div className="relative h-72 w-full">
+            <div className="relative h-72 w-full group">
                 {movie?.backdrop_url ? (
                     <Image
                         src={movie.backdrop_url}
                         alt={movieName}
                         fill
-                        className="object-cover opacity-50 mask-image-gradient-bottom"
+                        className="object-cover opacity-90 transition-transform duration-700 group-hover:scale-105"
                     />
                 ) : (
-                    <div className="w-full h-full bg-neutral-800" />
+                    <div className="w-full h-full bg-brand-dark" />
                 )}
-                <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 via-neutral-900/60 to-transparent" />
+                {/* Gradient Overlay for Text Readability */}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
 
                 {/* Favorite Button */}
                 <div className="absolute top-4 right-4 z-10">
@@ -141,27 +142,27 @@ export default async function MovieSiloPage({ params, searchParams }: Props) {
                             imageUrl: movie?.poster_url,
                             href: `/tamil/movies/${encodeURIComponent(movieName)}`
                         }}
-                        className="w-10 h-10 bg-black/20 backdrop-blur-md hover:bg-black/40"
+                        className="w-10 h-10 bg-white/20 backdrop-blur-md hover:bg-white/40 text-white border border-white/20"
                     />
                 </div>
 
-                <div className="absolute bottom-0 left-0 p-6 w-full">
+                <div className="absolute bottom-0 left-0 p-6 w-full translate-y-2 group-hover:translate-y-0 transition-transform duration-500">
                     <div className="flex items-end gap-5">
                         {movie?.poster_url && (
-                            <div className="relative w-28 h-40 rounded-lg overflow-hidden shadow-2xl border border-white/10 shrink-0">
+                            <div className="relative w-28 h-40 rounded-xl overflow-hidden shadow-2xl border-2 border-white/20 shrink-0 transform rotate-3 hover:rotate-0 transition-transform duration-300">
                                 <Image src={movie.poster_url} alt={movieName} fill className="object-cover" />
                             </div>
                         )}
-                        <div className="mb-1 flex-1 min-w-0">
-                            <h1 className="text-2xl md:text-3xl font-bold text-white leading-tight mb-2">
-                                Download {movieName} BGM & Ringtones
+                        <div className="mb-2 flex-1 min-w-0">
+                            <h1 className="text-2xl md:text-3xl font-black text-white leading-tight mb-2 tracking-tight drop-shadow-md">
+                                {movieName}
                             </h1>
-                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
-                                <span className="text-zinc-300 bg-white/10 px-2 py-0.5 rounded backdrop-blur-sm">{movie?.movie_year}</span>
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
+                                <span className="text-zinc-100 bg-white/20 px-2.5 py-0.5 rounded-lg backdrop-blur-md font-bold text-xs">{movie?.movie_year}</span>
                                 {musicDirector && (
                                     <Link
                                         href={`/tamil/music-directors/${encodeURIComponent(musicDirector)}`}
-                                        className="text-emerald-400 hover:text-emerald-300 font-medium hover:underline flex items-center gap-1"
+                                        className="text-brand-accent hover:text-white font-bold hover:underline flex items-center gap-1.5 bg-black/40 px-2 py-0.5 rounded-lg border border-white/10 transition-colors"
                                     >
                                         <span>🎵 {musicDirector}</span>
                                     </Link>
@@ -173,8 +174,8 @@ export default async function MovieSiloPage({ params, searchParams }: Props) {
             </div>
 
             <div className="px-4 py-6">
-                <div className="flex items-center justify-between mb-6 sticky top-14 z-20 bg-neutral-900/95 backdrop-blur-md py-3 -mx-4 px-4 border-b border-white/5">
-                    <h2 className="text-lg font-bold text-zinc-100">{ringtones?.length || 0} Ringtones</h2>
+                <div className="flex items-center justify-between mb-6 sticky top-[60px] z-20 bg-white/95 backdrop-blur-xl py-4 -mx-4 px-4 border-b border-brand-border shadow-sm transition-all">
+                    <h2 className="text-lg font-black text-brand-dark tracking-tight">{ringtones?.length || 0} Ringtones</h2>
                     <SortControl />
                 </div>
 

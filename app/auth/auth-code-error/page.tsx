@@ -25,15 +25,15 @@ function AuthCodeErrorContent() {
     }, []);
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center p-4 text-center">
-            <h1 className="text-2xl font-bold text-red-500 mb-2">Authentication Error</h1>
-            <p className="text-zinc-400 mb-4 max-w-sm">
+        <div className="min-h-screen flex flex-col items-center justify-center p-4 text-center bg-white">
+            <h1 className="text-2xl font-black text-red-600 mb-2 tracking-tight">Authentication Error</h1>
+            <p className="text-zinc-600 mb-4 max-w-sm font-medium">
                 {error || 'There was an issue signing you in. The verification code may have expired or is invalid.'}
             </p>
-            <p className="text-zinc-600 text-xs mb-8">
+            <p className="text-zinc-400 text-xs mb-8 uppercase tracking-wider font-bold">
                 Redirecting to home in {seconds} seconds...
             </p>
-            <Link href="/" className="bg-emerald-500 text-black font-bold px-6 py-2 rounded-full hover:bg-emerald-400 transition-colors">
+            <Link href="/" className="bg-brand-dark text-white font-bold px-8 py-3 rounded-xl hover:bg-neutral-800 transition-all shadow-lg shadow-brand-dark/20 active:scale-95">
                 Go Home Now
             </Link>
         </div>

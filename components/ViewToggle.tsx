@@ -15,25 +15,25 @@ export default function ViewToggle() {
     };
 
     return (
-        <div className="flex bg-neutral-800/50 p-1 rounded-xl border border-white/5 backdrop-blur-sm">
+        <div className="flex bg-brand-wash p-1 rounded-xl border border-brand-border backdrop-blur-sm shadow-inner">
             <button
                 onClick={() => handleToggle('movies')}
-                className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-sm font-bold transition-all ${currentView === 'movies'
-                        ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20'
-                        : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-bold transition-all ${currentView === 'movies'
+                    ? 'bg-brand-dark text-white shadow-md shadow-brand-dark/20'
+                    : 'text-zinc-500 hover:text-brand-dark hover:bg-white border border-transparent hover:border-brand-gray/50 hover:shadow-sm'
                     }`}
             >
-                <Clapperboard size={16} />
+                <Clapperboard size={16} strokeWidth={2.5} />
                 Movies
             </button>
             <button
                 onClick={() => handleToggle('rings')}
-                className={`flex-1 flex items-center justify-center gap-2 py-2 px-4 rounded-lg text-sm font-bold transition-all ${currentView === 'rings'
-                        ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20'
-                        : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-bold transition-all ${currentView === 'rings'
+                    ? 'bg-brand-dark text-white shadow-md shadow-brand-dark/20'
+                    : 'text-zinc-500 hover:text-brand-dark hover:bg-white border border-transparent hover:border-brand-gray/50 hover:shadow-sm'
                     }`}
             >
-                <Music size={16} />
+                <Music size={16} strokeWidth={2.5} />
                 Rings
             </button>
         </div>

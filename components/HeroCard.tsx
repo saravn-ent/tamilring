@@ -17,12 +17,11 @@ export default function HeroCard({ name, image, href, subtitle, index = 0 }: Her
       href={href}
       className="relative shrink-0 w-32 h-48 rounded-xl overflow-hidden group transition-transform duration-300 hover:z-10 hover:scale-105 hover:-translate-y-2 shadow-lg shadow-black/40 border border-white/5"
       style={{
-        marginLeft: index === 0 ? 0 : '-12px', // Overlap effect
         zIndex: index
       }}
     >
       {/* Full Bleed Image */}
-      <div className="absolute inset-0 bg-neutral-800">
+      <div className="absolute inset-0 bg-brand-wash">
         <ImageWithFallback
           src={image}
           alt={name}
@@ -38,12 +37,12 @@ export default function HeroCard({ name, image, href, subtitle, index = 0 }: Her
       {/* Content */}
       <div className="absolute bottom-0 left-0 right-0 p-3 flex flex-col justify-end h-full">
         <div className="h-9 flex items-center mb-0.5">
-          <h3 className="text-white font-bold text-sm leading-tight drop-shadow-md group-hover:text-emerald-400 transition-colors line-clamp-2">
+          <h3 className="text-white font-bold text-sm leading-tight drop-shadow-md group-hover:text-brand-accent transition-colors line-clamp-2">
             {name}
           </h3>
         </div>
         {subtitle && (
-          <p className="text-[10px] text-zinc-200 font-medium tracking-wider mt-0.5">
+          <p className="text-[10px] text-zinc-300 font-medium tracking-wider mt-0.5 opacity-90">
             {subtitle}
           </p>
         )}

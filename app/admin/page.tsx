@@ -2,8 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { Loader2, Music, Users, Download, Clock, TrendingUp, AlertCircle, RefreshCcw, MessageSquare } from 'lucide-react';
+import { LucideIcon, Loader2, Music, Users, Download, Clock, TrendingUp, AlertCircle, RefreshCcw, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
+
+interface RingtoneSummary {
+    id: string;
+    title: string;
+    created_at: string;
+    status: string;
+    poster_url: string | null;
+    user_id: string;
+}
 
 export default function AdminDashboard() {
     const [loading, setLoading] = useState(true);
@@ -18,7 +27,7 @@ export default function AdminDashboard() {
         totalPaid: 0,
         pendingRequests: 0
     });
-    const [recentUploads, setRecentUploads] = useState<any[]>([]);
+    const [recentUploads, setRecentUploads] = useState<RingtoneSummary[]>([]);
 
     useEffect(() => {
         fetchStats();
@@ -110,7 +119,16 @@ export default function AdminDashboard() {
         );
     }
 
-    const StatCard = ({ title, value, subValue, icon: Icon, color, href }: any) => (
+    interface StatCardProps {
+        title: string;
+        value: string | number;
+        subValue?: string;
+        icon: LucideIcon;
+        color: string;
+        href?: string;
+    }
+
+    const StatCard = ({ title, value, subValue, icon: Icon, color, href }: StatCardProps) => (
         <Link href={href || '#'} className="bg-neutral-900 border border-white/5 p-6 rounded-2xl hover:border-white/10 transition-all group relative overflow-hidden">
             <div className={`absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity ${color}`}>
                 <Icon size={64} />
@@ -132,7 +150,7 @@ export default function AdminDashboard() {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold text-white mb-2">Dashboard Overview</h1>
-                    <p className="text-zinc-400">Welcome back, Admin. Here's what's happening today.</p>
+                    <p className="text-zinc-400">Welcome back, Admin. Here&apos;s what&apos;s happening today.</p>
                 </div>
                 <button
                     onClick={fetchStats}

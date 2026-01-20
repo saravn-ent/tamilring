@@ -41,14 +41,14 @@ export default async function MoodPage({
   const { data: ringtones } = await query;
 
   return (
-    <div className="max-w-md mx-auto">
-      <div className="p-6 bg-gradient-to-b from-emerald-900/20 to-neutral-900">
-        <h1 className="text-3xl font-bold text-white capitalize">{tag}</h1>
-        <p className="text-zinc-400 text-sm mt-1">Best {tag} Ringtones</p>
+    <div className="max-w-md mx-auto min-h-screen bg-white">
+      <div className="p-6 pt-8 bg-gradient-to-b from-emerald-50 to-white">
+        <h1 className="text-3xl font-black text-brand-dark capitalize tracking-tight">{tag}</h1>
+        <p className="text-zinc-500 text-sm mt-1 font-medium">Best {tag} Ringtones</p>
       </div>
 
-      <div className="px-4 -mt-4">
-        <div className="flex justify-end mb-4 sticky top-0 z-30 bg-neutral-900/95 backdrop-blur-md py-2 -mx-4 px-4 border-b border-white/5">
+      <div className="px-4 -mt-2">
+        <div className="flex justify-end mb-4 sticky top-0 z-30 bg-white/95 backdrop-blur-md py-2 -mx-4 px-4 border-b border-brand-border shadow-sm">
           <SortControl />
         </div>
         {ringtones && ringtones.length > 0 ? (
@@ -58,7 +58,7 @@ export default async function MoodPage({
             ))}
           </div>
         ) : (
-          <div className="text-center py-20 text-zinc-500">
+          <div className="text-center py-20 text-zinc-500 font-medium">
             No ringtones found for this mood.
           </div>
         )}

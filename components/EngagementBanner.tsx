@@ -17,6 +17,13 @@ export default function EngagementBanner() {
     );
 
     useEffect(() => {
+        // 0. Check LocalStorage for dismissal
+        const dismissed = localStorage.getItem('engagement_banner_dismissed');
+        if (dismissed === 'true') {
+            setIsDismissed(true);
+            return;
+        }
+
         // 1. Check if user is logged in and already rewarded
         const checkUser = async () => {
             const { data: { user } } = await supabase.auth.getUser();
@@ -45,44 +52,51 @@ export default function EngagementBanner() {
         return () => clearTimeout(timer);
     }, [isDismissed, isRewarded]);
 
+    const handleDismiss = () => {
+        setIsDismissed(true);
+        localStorage.setItem('engagement_banner_dismissed', 'true');
+    };
+
     if (!isVisible || isDismissed || isRewarded) return null;
 
     return (
-        <div className="fixed bottom-20 left-4 right-4 z-50 animate-in slide-in-from-bottom-10 fade-in duration-500">
-            <div className="bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-4 shadow-2xl shadow-emerald-500/20 border border-emerald-400/30 relative overflow-hidden group">
-                {/* Background Sparkles */}
-                <div className="absolute top-0 right-0 p-2 opacity-20 group-hover:opacity-40 transition-opacity">
-                    <Sparkles size={48} className="text-white" />
-                </div>
+        <div className="fixed bottom-24 left-4 right-4 z-50 animate-in slide-in-from-bottom-10 fade-in duration-500">
+            <div className="bg-brand-dark rounded-2xl p-5 shadow-2xl shadow-brand-dark/40 border border-white/10 relative overflow-hidden group max-w-lg mx-auto">
+                {/* Background Decor */}
+                <div className="absolute -top-10 -right-10 w-32 h-32 bg-brand-accent/20 rounded-full blur-3xl pointer-events-none" />
 
                 <div className="flex items-center gap-4 relative z-10">
-                    <div className="w-12 h-12 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center shrink-0">
-                        <Upload className="text-white" size={24} />
+                    <div className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-xl flex items-center justify-center shrink-0 border border-white/10 shadow-inner">
+                        <Upload className="text-brand-accent" size={24} />
                     </div>
 
-                    <div className="flex-1">
-                        <h3 className="text-white font-bold text-sm">Earn ₹15 immediately!</h3>
-                        <p className="text-emerald-50 text-[10px] leading-tight">
+                    <div className="flex-1 min-w-0 pr-8">
+                        <h3 className="text-white font-bold text-base mb-0.5">Start Earning Money!</h3>
+                        <p className="text-zinc-300 text-xs leading-relaxed">
                             {user
-                                ? "Upload your first ringtone and get 15 Rep (₹15) instantly to your UPI!"
-                                : "Join & Upload to earn 15 Rep (₹15) for every approved ringtone!"}
+                                ? "Upload your first ringtone and get ₹15 instantly."
+                                : "Join & upload high-quality ringtones to earn ₹15 per approval."}
                         </p>
                     </div>
 
-                    <Link
-                        href={user ? "/profile?tab=upload" : "/profile"}
-                        className="bg-white text-emerald-600 px-4 py-2 rounded-full text-xs font-black flex items-center gap-1 hover:bg-emerald-50 transition-colors shadow-lg"
-                    >
-                        Start <ArrowRight size={14} />
-                    </Link>
-
-                    <button
-                        onClick={() => setIsDismissed(true)}
-                        className="absolute -top-1 -right-1 p-2 text-white/50 hover:text-white"
-                    >
-                        <X size={14} />
-                    </button>
+                    <div className="flex flex-col gap-2 shrink-0">
+                        <Link
+                            href={user ? "/profile?tab=upload" : "/profile"}
+                            className="bg-brand-accent text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 hover:bg-brand-accent/90 transition-all shadow-lg shadow-brand-accent/20 active:scale-95 whitespace-nowrap"
+                        >
+                            Start Now <ArrowRight size={16} />
+                        </Link>
+                    </div>
                 </div>
+
+                {/* Big Close Button */}
+                <button
+                    onClick={handleDismiss}
+                    className="absolute top-2 right-2 p-2 text-zinc-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-colors"
+                    aria-label="Dismiss banner"
+                >
+                    <X size={20} />
+                </button>
             </div>
         </div>
     );

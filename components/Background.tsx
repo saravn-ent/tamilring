@@ -1,53 +1,35 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { useEffect, useState } from 'react';
 
 export default function Background() {
   const pathname = usePathname();
-  const [colors, setColors] = useState({
-    orb1: 'bg-purple-900/20',
-    orb2: 'bg-emerald-900/10',
-    orb3: 'bg-blue-900/10'
-  });
+  // Decode pathname to handle URL encoded characters
+  const path = decodeURIComponent(pathname).toLowerCase();
 
-  useEffect(() => {
-    // Decode pathname to handle URL encoded characters
-    const path = decodeURIComponent(pathname).toLowerCase();
+  let orb1 = 'bg-purple-900/20';
+  let orb2 = 'bg-emerald-900/10';
+  let orb3 = 'bg-blue-900/10';
 
-    if (path.includes('mass') || path.includes('action') || path.includes('kuthu')) {
-      setColors({
-        orb1: 'bg-red-900/30',
-        orb2: 'bg-orange-900/20',
-        orb3: 'bg-amber-900/20'
-      });
-    } else if (path.includes('melody') || path.includes('love') || path.includes('romantic')) {
-      setColors({
-        orb1: 'bg-pink-900/30',
-        orb2: 'bg-rose-900/20',
-        orb3: 'bg-cyan-900/20'
-      });
-    } else if (path.includes('sad') || path.includes('emotional')) {
-      setColors({
-        orb1: 'bg-blue-900/30',
-        orb2: 'bg-indigo-900/20',
-        orb3: 'bg-slate-900/20'
-      });
-    } else if (path.includes('bgm') || path.includes('instrumental')) {
-      setColors({
-        orb1: 'bg-emerald-900/30',
-        orb2: 'bg-teal-900/20',
-        orb3: 'bg-cyan-900/20'
-      });
-    } else {
-      // Default
-      setColors({
-        orb1: 'bg-purple-900/20',
-        orb2: 'bg-emerald-900/10',
-        orb3: 'bg-blue-900/10'
-      });
-    }
-  }, [pathname]);
+  if (path.includes('mass') || path.includes('action') || path.includes('kuthu')) {
+    orb1 = 'bg-red-900/30';
+    orb2 = 'bg-orange-900/20';
+    orb3 = 'bg-amber-900/20';
+  } else if (path.includes('melody') || path.includes('love') || path.includes('romantic')) {
+    orb1 = 'bg-pink-900/30';
+    orb2 = 'bg-rose-900/20';
+    orb3 = 'bg-cyan-900/20';
+  } else if (path.includes('sad') || path.includes('emotional')) {
+    orb1 = 'bg-blue-900/30';
+    orb2 = 'bg-indigo-900/20';
+    orb3 = 'bg-slate-900/20';
+  } else if (path.includes('bgm') || path.includes('instrumental')) {
+    orb1 = 'bg-emerald-900/30';
+    orb2 = 'bg-teal-900/20';
+    orb3 = 'bg-cyan-900/20';
+  }
+
+  const colors = { orb1, orb2, orb3 };
 
   return (
     <div className="fixed inset-0 z-[-1] overflow-hidden transition-colors duration-1000 dark:opacity-100 opacity-0">

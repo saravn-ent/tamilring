@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
 import Image from 'next/image';
 import { splitArtists } from '@/lib/utils';
+import { getImageUrl } from '@/lib/tmdb';
 import { Ringtone } from '@/types';
 
 type Suggestions = {
@@ -121,7 +122,7 @@ export default function DiscoverySearch() {
         onChange={(e) => setSearchQuery(e.target.value)}
         onFocus={() => { if (searchQuery.length > 1) setShowDropdown(true); }}
         placeholder="Find rings, artists, or bgm..."
-        className="w-full bg-white dark:bg-neutral-800/50 backdrop-blur-md border border-zinc-200 dark:border-white/10 text-zinc-900 dark:text-white text-sm rounded-2xl py-4 pl-12 pr-12 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all shadow-lg shadow-black/5 dark:shadow-black/20 placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
+        className="w-full bg-white border border-zinc-200 text-zinc-900 text-sm rounded-2xl py-4 pl-12 pr-12 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 transition-all shadow-lg shadow-zinc-200/50 placeholder:text-zinc-400"
       />
       {loading && (
         <div className="absolute inset-y-0 right-4 flex items-center">
@@ -148,7 +149,7 @@ export default function DiscoverySearch() {
                 >
                   <div className="relative w-8 h-12 bg-neutral-800 rounded overflow-hidden shrink-0">
                     {movie.poster_url ? (
-                      <Image src={movie.poster_url} alt={movie.movie_name} fill className="object-cover" />
+                      <Image src={getImageUrl(movie.poster_url)} alt={movie.movie_name} fill className="object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-zinc-600 font-bold text-xs">{movie.movie_name[0]}</div>
                     )}

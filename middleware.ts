@@ -59,7 +59,7 @@ export async function middleware(request: NextRequest) {
 
   // 2. Rate Limiting for API routes
   if (request.nextUrl.pathname.startsWith('/api') && ratelimit) {
-    const ip = (request as any).ip ?? request.headers.get('x-forwarded-for') ?? '127.0.0.1';
+    const ip = (request as unknown as { ip?: string }).ip ?? request.headers.get('x-forwarded-for') ?? '127.0.0.1';
     try {
       const { success } = await ratelimit.limit(ip);
       if (!success) {
@@ -80,7 +80,7 @@ export async function middleware(request: NextRequest) {
   const isAuthApi = request.nextUrl.pathname.startsWith('/api/auth');
 
   if (isAuthRoute || isAuthApi) {
-    const { data: { user }, error } = await supabase.auth.getUser();
+    const { data: { user } } = await supabase.auth.getUser();
 
     // STRICT PROTECTION FOR /admin ROUTES
     if (request.nextUrl.pathname.startsWith('/admin')) {
