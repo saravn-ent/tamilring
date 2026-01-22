@@ -90,8 +90,10 @@ export default async function ArtistPage({
 
   const ringtones = await getArtistRingtones(artistName, sort);
 
-  // Calculate Total Likes
+  // Calculate Total Likes & Downloads
   const totalLikes = ringtones?.reduce((sum, ringtone) => sum + (ringtone.likes || 0), 0) || 0;
+  const totalDownloads = ringtones?.reduce((sum, ringtone) => sum + (ringtone.downloads || 0), 0) || 0;
+
 
   // Fetch artist image from TMDB
   const person = await searchPerson(artistName);
@@ -149,7 +151,10 @@ export default async function ArtistPage({
       />
 
       {/* Sticky Controls Bar */}
-      <div className="sticky top-[120px] z-30 bg-white/95 backdrop-blur-md border-b border-brand-border px-4 py-3 shadow-sm flex items-center justify-between gap-2">
+      <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-brand-border px-4 py-3 shadow-md flex items-center justify-between gap-2">
+
+
+
         <ViewToggle />
         <div className="flex justify-end">
           <SortControl />

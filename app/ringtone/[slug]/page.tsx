@@ -72,7 +72,7 @@ export default async function RingtonePage({ params }: Props) {
   const similarRingtones = await getSimilarRingtones(ringtone);
 
   return (
-    <div className="max-w-md mx-auto min-h-screen bg-background relative flex flex-col transition-colors duration-300">
+    <div className="max-w-md md:max-w-2xl lg:max-w-4xl mx-auto min-h-screen bg-background relative flex flex-col transition-colors duration-300">
       {/* Backdrop */}
       <div className="absolute top-0 left-0 right-0 h-96 opacity-30 z-0">
         {(ringtone.backdrop_url || ringtone.poster_url) && (

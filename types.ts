@@ -1,6 +1,7 @@
 export interface Ringtone {
   id: string;
   title: string;
+  song_name?: string;
   slug: string;
   movie_name: string;
   movie_year: string;

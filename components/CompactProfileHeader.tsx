@@ -1,14 +1,12 @@
 'use client';
 
-import { ArrowLeft, Heart } from 'lucide-react';
+import { ArrowLeft, Heart, BadgeCheck } from 'lucide-react';
 import Link from 'next/link';
 import ImageWithFallback from './ImageWithFallback';
 import { formatCount } from '@/lib/utils';
 import FavoriteButton from './FavoriteButton';
 import ShareButton from './ShareButton';
 import ArtistImageUpload from './ArtistImageUpload';
-
-// ...
 
 interface CompactProfileHeaderProps {
     name: string;
@@ -21,7 +19,6 @@ interface CompactProfileHeaderProps {
     shareMetadata?: { title: string; text: string };
 }
 
-// ... props ...
 export default function CompactProfileHeader({
     name,
     type,
@@ -33,92 +30,90 @@ export default function CompactProfileHeader({
     shareMetadata
 }: CompactProfileHeaderProps) {
     return (
-        <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-brand-gray/50 shadow-sm transition-all duration-300">
-            {/* Top Navigation Bar */}
-            <div className="flex items-center justify-between px-3 py-2 border-b border-brand-gray/50">
+        <div className="bg-white border-b border-zinc-200 transition-all duration-300">
+
+            {/* Top Navigation Bar - Role Centered */}
+            <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-100/50">
                 <Link
                     href="/"
-                    className="p-2 -ml-2 text-zinc-400 hover:text-brand-dark transition-colors"
+                    className="p-1 -ml-1 text-zinc-400 hover:text-brand-dark transition-colors"
                 >
-                    <ArrowLeft size={20} />
+                    <ArrowLeft size={18} />
                 </Link>
+
                 <div className="flex flex-col items-center">
-                    <span className="text-[10px] font-bold text-brand-accent uppercase tracking-[0.2em]">{type}</span>
+                    <span className="text-[10px] font-black text-brand-accent uppercase tracking-widest">{type}</span>
                 </div>
+
                 <div className="flex items-center gap-2">
-                    <FavoriteButton
-                        item={{
-                            id: name,
-                            name,
-                            type,
-                            imageUrl: imageUrl || undefined,
-                            href: type === 'Actor' ? `/actor/${encodeURIComponent(name)}` : `/artist/${encodeURIComponent(name)}`
-                        }}
-                        className="w-8 h-8 bg-brand-wash hover:bg-white text-zinc-400 hover:text-red-500 border border-transparent hover:border-brand-gray/50"
-                    />
+                    {shareMetadata && (
+                        <ShareButton
+                            variant="icon"
+                            title={shareMetadata.title}
+                            text={shareMetadata.text}
+                            className="w-10 h-10 !p-0 bg-transparent hover:bg-brand-wash border-none text-zinc-400 hover:text-brand-dark rounded-full"
+                        />
+                    )}
                 </div>
             </div>
 
-            <div className="max-w-md mx-auto px-4 py-4">
-                <div className="flex items-start gap-4">
-                    {/* Square-ish Avatar with rounded corners - Larger/Premium */}
-                    <div className="relative shrink-0 group">
-                        <div className={`
-                            relative w-28 h-40 rounded-xl border-2 shadow-xl overflow-hidden bg-brand-wash
-                            ${type === 'Music Director' || type === 'Movie Director' ? 'border-brand-accent/30 shadow-brand-accent/10' : 'border-white'}
-                        `}>
+            {/* Profile Content - Horizontal & Ultra Compact */}
+            <div className="px-5 py-4">
+                <div className="flex items-center gap-5">
+                    {/* Small Circular Avatar */}
+                    <div className="relative shrink-0">
+                        <div className="relative w-14 h-14 rounded-full border-2 border-white shadow-lg overflow-hidden bg-brand-wash ring-1 ring-brand-border">
                             <ImageWithFallback
                                 src={imageUrl || undefined}
                                 alt={name}
-                                className="object-cover object-top"
-                                fallbackClassName="bg-brand-wash text-zinc-400 flex items-center justify-center p-4"
+                                className="object-cover"
+                                fallbackClassName="bg-brand-wash text-zinc-300 flex items-center justify-center text-lg font-bold"
                                 priority={true}
-                                sizes="112px"
+                                sizes="56px"
                             />
                         </div>
-                        {/* Admin Upload Control */}
                         <ArtistImageUpload artistName={name} currentImage={imageUrl || undefined} />
                     </div>
 
-                    {/* Info */}
-                    <div className="flex-1 min-w-0 pt-1">
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                            <h1 className="text-2xl font-bold text-black leading-tight tracking-tight">{name}</h1>
-                            {shareMetadata && (
-                                <ShareButton
-                                    variant="icon"
-                                    title={shareMetadata.title}
-                                    text={shareMetadata.text}
-                                    className="shrink-0 w-8 h-8 !p-0 bg-brand-wash hover:bg-white border border-brand-gray/50 text-zinc-400 hover:text-brand-dark"
-                                />
-                            )}
+                    {/* Information Cluster */}
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                            <h1 className="text-xl font-black text-black leading-tight truncate tracking-tight">
+                                {name}
+                            </h1>
+                            <BadgeCheck size={16} className="text-blue-500 fill-blue-500/10 shrink-0" />
+
+                            <FavoriteButton
+                                item={{
+                                    id: name,
+                                    name,
+                                    type,
+                                    imageUrl: imageUrl || undefined,
+                                    href: type === 'Actor' ? `/actor/${encodeURIComponent(name)}` : `/artist/${encodeURIComponent(name)}`
+                                }}
+                                className="ml-1 w-7 h-7 !bg-white !text-red-500 border border-red-100 shadow-sm hover:scale-110"
+                            />
                         </div>
-                        <div className="flex flex-wrap gap-2 text-xs text-zinc-500">
-                            {movieCount !== undefined && movieCount > 0 && (
-                                <span className="flex items-center gap-1 bg-brand-wash px-2.5 py-1 rounded-md text-zinc-600 border border-brand-gray/50 font-medium">
-                                    <span className={type === 'Music Director' ? 'text-brand-accent' : 'text-zinc-500'}>{movieCount} Movies</span>
-                                </span>
-                            )}
-                            <span className="bg-brand-wash px-2.5 py-1 rounded-md text-zinc-600 border border-brand-gray/50">
-                                {ringtoneCount} Ringtones
-                            </span>
-                            <span className="flex items-center gap-1 bg-brand-wash px-2.5 py-1 rounded-md text-zinc-600 border border-brand-gray/50">
-                                <Heart size={10} className="fill-zinc-400 text-zinc-400" />
-                                {formatCount(totalLikes)} Likes
-                            </span>
+
+                        {/* Order: movies, ringtones, likes in lowercase */}
+                        <div className="flex items-center gap-4 text-zinc-500">
+                            <div className="flex items-baseline gap-1">
+                                <span className="text-xs font-bold text-zinc-900">{movieCount || 0}</span>
+                                <span className="text-[10px] lowercase font-medium">movies</span>
+                            </div>
+                            <div className="flex items-baseline gap-1 border-l border-zinc-200 pl-4">
+                                <span className="text-xs font-bold text-zinc-900">{ringtoneCount}</span>
+                                <span className="text-[10px] lowercase font-medium">ringtones</span>
+                            </div>
+                            <div className="flex items-baseline gap-1 border-l border-zinc-200 pl-4">
+                                <span className="text-xs font-bold text-zinc-900">{formatCount(totalLikes)}</span>
+                                <span className="text-[10px] lowercase font-medium">likes</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-
-                {/* Bio - Collapsible/Compact */}
-                {bio && (
-                    <div className="mt-4 pt-3 border-t border-[#E5EBF1]">
-                        <p className="text-sm text-zinc-500 line-clamp-3 leading-relaxed">
-                            {bio}
-                        </p>
-                    </div>
-                )}
             </div>
         </div>
     );
 }
+

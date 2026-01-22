@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { getImageUrl } from '@/lib/tmdb';
+import { ERAS, INSTRUMENTS } from '@/lib/constants';
 
 /**
  * SEO Metadata Generation Utilities
@@ -297,11 +298,17 @@ export function generateArtistMetadata(artist: {
     });
 }
 
+
 /**
  * Generate metadata for search page
  */
 export function generateSearchMetadata(query: string, resultCount?: number): Metadata {
-    const title = `Search Results for "${query}"`;
+    const q = query.toLowerCase();
+    const matchedEra = ERAS.find(e => e.label.toLowerCase() === q);
+    const matchedInstrument = INSTRUMENTS.find(i => i.query.toLowerCase() === q || i.label.toLowerCase() === q);
+
+    const title = matchedEra ? `${matchedEra.label} Ringtones` : matchedInstrument ? `${matchedInstrument.label} Ringtones` : `Search Results for "${query}"`;
+
     const description = resultCount !== undefined
         ? `Found ${resultCount} ringtones matching "${query}". Browse and download Tamil ringtones.`
         : `Search results for "${query}". Browse and download Tamil ringtones.`;

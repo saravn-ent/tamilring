@@ -13,10 +13,7 @@ export interface MovieResult {
 }
 
 export const TMDB_GENRE_TO_TAG: Record<number, string> = {
-  28: 'Mass', // Action
   10749: 'Love', // Romance
-  53: 'Mass', // Thriller
-  80: 'Mass', // Crime
 };
 
 export const searchMovies = async (query: string): Promise<MovieResult[]> => {

@@ -3,6 +3,7 @@ export type Language = 'en' | 'ta';
 export const translations = {
     en: {
         home: 'Home',
+        trim: 'Cutter',
         search: 'Search',
         profile: 'Profile',
         categories: 'Categories',
@@ -40,6 +41,7 @@ export const translations = {
     },
     ta: {
         home: 'முகப்பு',
+        trim: 'கட்டர்',
         search: 'தேடல்',
         profile: 'சுயவிவரம்',
         categories: 'வகைகள்',

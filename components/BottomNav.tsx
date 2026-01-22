@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, User, Search, MessageSquare } from 'lucide-react';
+import { Home, User, MessageSquare, Scissors } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 
 export default function BottomNav() {
@@ -12,7 +12,7 @@ export default function BottomNav() {
   const isActive = (path: string) => pathname === path;
 
   return (
-    <div suppressHydrationWarning className="bottom-nav-fixed fixed bottom-0 left-0 right-0 z-[100] bg-white/90 backdrop-blur-md border-t border-brand-gray pb-safe transition-colors duration-300">
+    <div suppressHydrationWarning className="bottom-nav-fixed fixed bottom-0 left-0 right-0 z-[100] bg-white/90 backdrop-blur-md border-t border-brand-gray pb-safe transition-colors duration-300 md:hidden">
       <div className="flex justify-around items-center h-16 max-w-md mx-auto px-6">
         {/* Home */}
         <Link suppressHydrationWarning href="/" className={`flex flex-col items-center gap-1 transition-colors ${isActive('/') ? 'text-brand-blue' : 'text-zinc-500 hover:text-brand-dark'}`}>
@@ -20,10 +20,10 @@ export default function BottomNav() {
           <span suppressHydrationWarning className="text-[10px] font-medium">{t('home')}</span>
         </Link>
 
-        {/* Browse */}
-        <Link suppressHydrationWarning href="/categories" className={`flex flex-col items-center gap-1 transition-colors ${isActive('/categories') ? 'text-brand-blue' : 'text-zinc-500 hover:text-brand-dark'}`}>
-          <Search size={22} strokeWidth={isActive('/categories') ? 2.5 : 2} />
-          <span suppressHydrationWarning className="text-[10px] font-medium">{t('search')}</span>
+        {/* Trim / Cutter */}
+        <Link suppressHydrationWarning href="/trim" className={`flex flex-col items-center gap-1 transition-colors ${isActive('/trim') ? 'text-brand-blue' : 'text-zinc-500 hover:text-brand-dark'}`}>
+          <Scissors size={22} strokeWidth={isActive('/trim') ? 2.5 : 2} />
+          <span suppressHydrationWarning className="text-[10px] font-medium">{t('trim')}</span>
         </Link>
 
         {/* Requests */}

@@ -52,3 +52,26 @@ export function formatCount(num: number): string {
 export function getInitials(name: string): string {
     return name ? name.substring(0, 2).toUpperCase() : 'TR';
 }
+/**
+ * Generates a fuzzy ILIKE pattern for better transliteration matching (e.g., varanam -> v%r%n%m).
+ * This handles common Tamil transliteration variations like a vs aa, i vs ee, etc.
+ * 
+ * @param query - The search query
+ * @returns A fuzzy pattern string
+ */
+export function fuzzySearchPattern(query: string): string {
+    if (!query) return '';
+
+    // 1. Lowercase and trim
+    const clean = query.toLowerCase().trim();
+
+    // 2. Replace all vowels with wildcard %
+    // We also collapse multiple wildcards for efficiency
+    let fuzzy = clean.replace(/[aeiou]/g, '%').replace(/%+/g, '%');
+
+    // 3. Optional: If the string doesn't start/end with %, add them for broader matching
+    if (!fuzzy.startsWith('%')) fuzzy = '%' + fuzzy;
+    if (!fuzzy.endsWith('%')) fuzzy = fuzzy + '%';
+
+    return fuzzy;
+}

@@ -17,6 +17,9 @@ import { JsonLdScript } from '@/components/JsonLdScript';
 import { generateHomeMetadata } from '@/lib/seo';
 import { generateOrganizationSchema, generateWebSiteSchema, combineSchemas } from '@/lib/seo';
 import StructuredData from '@/components/StructuredData';
+import HeroSearch from '@/components/HeroSearch';
+import CategoryGrid from '@/components/CategoryGrid';
+import EraAndInstruments from '@/components/EraAndInstruments';
 import { getTrendingRingtones } from '@/app/actions/ringtones';
 
 
@@ -157,8 +160,17 @@ export default async function Home() {
   const combinedSchema = combineSchemas(organizationSchema, websiteSchema);
 
   return (
-    <div className="w-full md:max-w-6xl mx-auto pb-20">
+    <div className="w-full max-w-md md:max-w-4xl lg:max-w-7xl mx-auto pb-20">
       <StructuredData data={combinedSchema} />
+
+      {/* Hero Section with Search */}
+      <HeroSearch />
+
+      {/* Collections Grid - Visual Categories */}
+      <CategoryGrid />
+
+      {/* By Era & Instruments */}
+      <EraAndInstruments />
 
       {/* Visual Hidden H1 for SEO */}
       <h1 className="sr-only">
@@ -216,28 +228,12 @@ export default async function Home() {
         </div>
       )}
 
-      {/* Browse by Mood (Filter Chips) */}
-      <div className="mb-8">
-        <div className="px-4">
-          <SectionHeader title="Browse by Mood" translationKey="mood" href="/categories" />
-        </div>
-        <div className="flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide snap-x">
-          {MOODS.map((mood, idx) => (
-            <Link
-              key={idx}
-              href={`/mood/${mood}`}
-              className="snap-start shrink-0 px-5 py-2 rounded-full border border-brand-gray bg-white text-zinc-600 text-sm font-medium hover:bg-brand-blue hover:text-white hover:border-brand-blue transition-all shadow-sm whitespace-nowrap"
-            >
-              {mood}
-            </Link>
-          ))}
-        </div>
-      </div>
+
 
       {/* Just Added (Responsive Grid) */}
       <div className="px-4 mb-10">
         <SectionHeader title="Just Added" translationKey="justAdded" />
-        <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 mb-6">
+        <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 md:gap-4 mb-6">
           {recent?.map((ringtone: Ringtone) => (
             <RingtoneCard key={ringtone.id} ringtone={ringtone} />
           ))}
@@ -251,29 +247,7 @@ export default async function Home() {
         </Link>
       </div>
 
-      {/* Top Contributors - Users who uploaded the most rings */}
-      {topContributors && topContributors.length > 0 && (
-        <div className="mb-10 px-4">
-          <SectionHeader title="Top Contributors" translationKey="contributors" />
-          <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide snap-x pt-2">
-            {topContributors.map((c, idx) => (
-              <Link key={c.id} href={`/user/${encodeURIComponent(c.id)}`} className="snap-start shrink-0 flex flex-col items-center gap-3 w-24 group">
-                <AvatarRank
-                  image={c.image}
-                  point={c.points}
-                  level={c.level || 1}
-                  size="md"
-                />
-                <div className="text-center w-full mt-3 flex flex-col items-center">
-                  <span className="text-[10px] text-brand-blue font-bold tracking-wider mb-0.5">{c.points} Rep</span>
-                  <p className="text-xs font-bold text-foreground truncate w-full">{c.name}</p>
-                  <span className="text-[10px] text-amber-600 font-bold mt-1">{c.title}</span>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
+
 
       {/* Music Directors (Real Data) - Moved Down */}
       {topMusicDirectors.length > 0 && (
@@ -339,6 +313,30 @@ export default async function Home() {
           ))}
         </div>
       </div>
+
+      {/* Top Contributors - Users who uploaded the most rings */}
+      {topContributors && topContributors.length > 0 && (
+        <div className="mb-10 px-4">
+          <SectionHeader title="Top Contributors" translationKey="contributors" />
+          <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide snap-x pt-2">
+            {topContributors.map((c, idx) => (
+              <Link key={c.id} href={`/user/${encodeURIComponent(c.id)}`} className="snap-start shrink-0 flex flex-col items-center gap-3 w-24 group">
+                <AvatarRank
+                  image={c.image}
+                  point={c.points}
+                  level={c.level || 1}
+                  size="md"
+                />
+                <div className="text-center w-full mt-3 flex flex-col items-center">
+                  <span className="text-[10px] text-brand-blue font-bold tracking-wider mb-0.5">{c.points} Rep</span>
+                  <p className="text-xs font-bold text-foreground truncate w-full">{c.name}</p>
+                  <span className="text-[10px] text-amber-600 font-bold mt-1">{c.title}</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
 
 
     </div>

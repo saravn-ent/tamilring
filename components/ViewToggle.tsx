@@ -15,26 +15,26 @@ export default function ViewToggle() {
     };
 
     return (
-        <div className="flex bg-brand-wash p-1 rounded-xl border border-brand-border backdrop-blur-sm shadow-inner">
+        <div className="flex bg-zinc-100 p-0.5 rounded-full border border-zinc-200/50">
             <button
                 onClick={() => handleToggle('movies')}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-bold transition-all ${currentView === 'movies'
-                    ? 'bg-brand-dark text-white shadow-md shadow-brand-dark/20'
-                    : 'text-zinc-500 hover:text-brand-dark hover:bg-white border border-transparent hover:border-brand-gray/50 hover:shadow-sm'
+                className={`flex items-center gap-1.5 py-1.5 px-3 rounded-full text-[11px] font-bold transition-all duration-300 ${currentView === 'movies'
+                    ? 'bg-white text-brand-dark shadow-sm'
+                    : 'text-zinc-500 hover:text-brand-dark'
                     }`}
             >
-                <Clapperboard size={16} strokeWidth={2.5} />
-                Movies
+                <Clapperboard size={12} strokeWidth={2.5} />
+                movies
             </button>
             <button
                 onClick={() => handleToggle('rings')}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-bold transition-all ${currentView === 'rings'
-                    ? 'bg-brand-dark text-white shadow-md shadow-brand-dark/20'
-                    : 'text-zinc-500 hover:text-brand-dark hover:bg-white border border-transparent hover:border-brand-gray/50 hover:shadow-sm'
+                className={`flex items-center gap-1.5 py-1.5 px-3 rounded-full text-[11px] font-bold transition-all duration-300 ${currentView === 'rings'
+                    ? 'bg-white text-brand-dark shadow-sm'
+                    : 'text-zinc-500 hover:text-brand-dark'
                     }`}
             >
-                <Music size={16} strokeWidth={2.5} />
-                Rings
+                <Music size={12} strokeWidth={2.5} />
+                rings
             </button>
         </div>
     );

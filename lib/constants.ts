@@ -9,15 +9,23 @@ export const COLLECTIONS = [
 ];
 
 export const ERAS = [
-  { label: "70s", query: "1970-1979", color: "from-amber-700 to-orange-900", startYear: 1970, endYear: 1979 },
-  { label: "80s", query: "1980-1989", color: "from-pink-700 to-rose-900", startYear: 1980, endYear: 1989 },
-  { label: "90s", query: "1990-1999", color: "from-purple-700 to-indigo-900", startYear: 1990, endYear: 1999 },
-  { label: "2ks", query: "2000-2009", color: "from-blue-700 to-cyan-900", startYear: 2000, endYear: 2009 },
-  { label: "2k10s", query: "2010-2019", color: "from-emerald-700 to-teal-900", startYear: 2010, endYear: 2019 },
-  { label: "2k20s", query: "2020-2029", color: "from-neutral-700 to-zinc-900", startYear: 2020, endYear: 2029 },
+  { label: "70s", query: "1970-1979", color: "from-yellow-600 via-orange-600 to-red-700", startYear: 1970, endYear: 1979 },
+  { label: "80s", query: "1980-1989", color: "from-fuchsia-500 via-purple-600 to-indigo-600", startYear: 1980, endYear: 1989 },
+  { label: "90s", query: "1990-1999", color: "from-blue-600 via-indigo-600 to-purple-700", startYear: 1990, endYear: 1999 },
+  { label: "2ks", query: "2000-2009", color: "from-cyan-500 via-blue-500 to-sky-600", startYear: 2000, endYear: 2009 },
+  { label: "2k10s", query: "2010-2019", color: "from-teal-500 via-emerald-500 to-green-600", startYear: 2010, endYear: 2019 },
+  { label: "2k20s", query: "2020-2029", color: "from-zinc-700 via-slate-800 to-zinc-950", startYear: 2020, endYear: 2029 },
+];
+
+export const INSTRUMENTS = [
+  { label: "Flute", query: "flute" },
+  { label: "Violin", query: "violin" },
+  { label: "Guitar", query: "guitar" },
+  { label: "Piano", query: "piano" }
 ];
 
 // Helper function to get artist bio (Placeholder for now as we don't have a bio DB)
 export function getArtistBio(artistName: string): string | undefined {
   return undefined;
 }
+

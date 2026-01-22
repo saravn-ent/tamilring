@@ -509,18 +509,8 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
     const SEO_TAG_WHITELIST = ["BGM", "Vocal", "Instrumental", "Interlude", "Humming", "Dialogue", "Remix", "8D Audio"];
     const activeSeoTags = selectedTags.filter(tag => SEO_TAG_WHITELIST.includes(tag));
 
-    let titleParts = [movieOrContextName];
-    if (songName) titleParts.push(songName);
-    titleParts.push(segmentName);
-
-    // Only append tag to title if it's not already in the segment name
-    activeSeoTags.forEach(tag => {
-      if (!segmentName.toLowerCase().includes(tag.toLowerCase())) {
-        titleParts.push(tag);
-      }
-    });
-
-    const finalTitle = titleParts.join(' - ');
+    // Use the user-entered Ringtone Name as the main title for the Ringtone Card
+    const finalTitle = segmentName;
 
     try {
       let mp3Blob: Blob | File = file;
@@ -594,6 +584,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       const baseData = {
         user_id: userId,
         title: finalTitle,
+        song_name: songName, // Keep song name for SEO and database context
         slug,
         singers,
         music_director: musicDirector,
@@ -1114,13 +1105,6 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
           {/* Slug Preview & Duplicate Error */}
           <div className="space-y-2">
-            <label className="block text-xs text-zinc-500 ml-1 font-bold uppercase tracking-wider">SEO Slug Preview</label>
-            <input
-              type="text"
-              value={slug}
-              readOnly
-              className={`w-full bg-brand-wash border ${duplicateError ? 'border-red-500 text-red-600 bg-red-50' : 'border-brand-border text-zinc-500'} rounded-xl px-4 py-2 text-sm font-mono transition-colors shadow-inner`}
-            />
             {duplicateError && (
               <div className="flex items-center gap-2 text-red-600 text-xs font-bold bg-red-50 p-2 rounded-lg border border-red-200">
                 <AlertCircle size={14} />
@@ -1416,13 +1400,6 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
           {/* Slug Preview & Duplicate Error */}
           <div className="space-y-2">
-            <label className="block text-xs text-zinc-500 ml-1 font-bold uppercase tracking-wider">SEO Slug Preview</label>
-            <input
-              type="text"
-              value={slug}
-              readOnly
-              className={`w-full bg-brand-wash border ${duplicateError ? 'border-red-500 text-red-600 bg-red-50' : 'border-brand-border text-zinc-500'} rounded-xl px-4 py-2 text-sm font-mono transition-colors shadow-inner`}
-            />
             {duplicateError && (
               <div className="flex items-center gap-2 text-red-600 text-xs font-bold bg-red-50 p-2 rounded-lg border border-red-200">
                 <AlertCircle size={14} />
@@ -1607,13 +1584,6 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
           {/* Slug Preview & Duplicate Error */}
           <div className="space-y-2">
-            <label className="block text-xs text-zinc-500 ml-1 font-bold uppercase tracking-wider">SEO Slug Preview</label>
-            <input
-              type="text"
-              value={slug}
-              readOnly
-              className={`w-full bg-brand-wash border ${duplicateError ? 'border-red-500 text-red-600 bg-red-50' : 'border-brand-border text-zinc-500'} rounded-xl px-4 py-2 text-sm font-mono transition-colors shadow-inner`}
-            />
             {duplicateError && (
               <div className="flex items-center gap-2 text-red-600 text-xs font-bold bg-red-50 p-2 rounded-lg border border-red-200">
                 <AlertCircle size={14} />

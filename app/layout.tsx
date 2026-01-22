@@ -141,7 +141,7 @@ export default async function RootLayout({
             <FavoritesProvider>
               <LanguageProvider>
                 <SiteHeader />
-                <main className="min-h-screen pt-14 pb-32 relative z-0">
+                <main className="min-h-screen pt-14 pb-32 md:pb-8 relative z-0">
                   {children}
                 </main>
                 <div className="pb-24">

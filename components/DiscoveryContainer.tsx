@@ -121,7 +121,7 @@ export default function DiscoveryContainer({ featuredArtists }: DiscoveryContain
     const hasResults = results.ringtones.length > 0 || results.movies.length > 0 || results.artists.length > 0;
 
     return (
-        <div className="max-w-md mx-auto p-4 pb-24 min-h-screen">
+        <div className="max-w-6xl mx-auto p-4 md:px-6 pb-24 md:pb-8 min-h-screen">
             {/* Header */}
             <div className="mb-6">
                 <h1 className="text-3xl font-bold text-[#15171A] mb-1">Discover</h1>
@@ -174,7 +174,7 @@ export default function DiscoveryContainer({ featuredArtists }: DiscoveryContain
                             {(activeTab === 'all' || activeTab === 'movies') && results.movies.length > 0 && (
                                 <section>
                                     <h3 className="font-bold text-zinc-500 text-xs uppercase tracking-wider mb-3 px-1">Matching Movies</h3>
-                                    <div className="grid grid-cols-2 gap-3">
+                                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                                         {results.movies.map((item, idx) => (
                                             <Link href={`/movie/${encodeURIComponent(item.movie_name)}`} key={idx} className="flex flex-col gap-2 p-2 bg-white rounded-xl border border-[#E5EBF1] hover:shadow-md transition-colors group">
                                                 <div className="relative w-full aspect-[2/3] bg-zinc-100 rounded-lg overflow-hidden shrink-0">
@@ -239,7 +239,7 @@ export default function DiscoveryContainer({ featuredArtists }: DiscoveryContain
                             <Clock size={16} className="text-[#3EB0EF]" />
                             <h2 className="text-lg font-bold text-[#15171A]">By Era</h2>
                         </div>
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                             {ERAS.map((era) => (
                                 <button
                                     key={era.label}
@@ -259,7 +259,7 @@ export default function DiscoveryContainer({ featuredArtists }: DiscoveryContain
                             <Music size={16} className="text-[#3EB0EF]" />
                             <h2 className="text-lg font-bold text-[#15171A]">Instruments</h2>
                         </div>
-                        <div className="grid grid-cols-4 md:grid-cols-8 gap-3">
+                        <div className="grid grid-cols-4 md:grid-cols-8 lg:grid-cols-12 gap-3">
                             {INSTRUMENTS.map((inst) => (
                                 <button
                                     key={inst.label}
