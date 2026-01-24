@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabaseClient';
 import { searchPerson, getImageUrl } from '@/lib/tmdb';
+import TMDBImage from '@/components/TMDBImage';
 import RingtoneCard from '@/components/RingtoneCard';
 import SectionHeader from '@/components/SectionHeader';
 import HeroCard from '@/components/HeroCard';
@@ -20,6 +21,7 @@ import StructuredData from '@/components/StructuredData';
 import HeroSearch from '@/components/HeroSearch';
 import CategoryGrid from '@/components/CategoryGrid';
 import EraAndInstruments from '@/components/EraAndInstruments';
+
 import { getTrendingRingtones } from '@/app/actions/ringtones';
 
 
@@ -113,6 +115,8 @@ const getTopContributorsList = unstable_cache(
   ['top-contributors-v1'],
   { revalidate: 3600, tags: ['contributors'] }
 );
+
+
 
 export default async function Home() {
   console.log('--- Homepage Render Start ---');
@@ -208,13 +212,16 @@ export default async function Home() {
           </div>
           <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide snap-x">
             {nostalgia.map(ringtone => (
-              <Link key={ringtone.id} href={`/ringtone/${ringtone.slug}`} className="snap-start shrink-0 w-32 group">
-                <div className="relative w-32 h-40 rounded-xl overflow-hidden mb-2 bg-brand-wash shadow-lg group-hover:shadow-brand-accent/10 transition-all">
-                  {ringtone.poster_url ? (
-                    <Image src={ringtone.poster_url} alt={ringtone.title} fill sizes="(max-width: 768px) 33vw, 128px" quality={75} loading="lazy" className="object-cover group-hover:scale-105 transition-transform duration-500" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-zinc-400 text-xs">No Img</div>
-                  )}
+              <Link key={ringtone.id} href={`/ringtone/${ringtone.slug}`} className="snap-start shrink-0 w-32 sm:w-36 md:w-40 group">
+                <div className="relative w-32 sm:w-36 md:w-40 h-44 sm:h-48 md:h-56 rounded-xl overflow-hidden mb-2 bg-brand-wash shadow-lg group-hover:shadow-brand-accent/10 transition-all">
+                  <TMDBImage
+                    path={ringtone.poster_url}
+                    alt={ringtone.title}
+                    fill
+                    sizes="(max-width: 768px) 33vw, 128px"
+                    quality={75}
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-80" />
                   <div className="absolute bottom-2 right-2 bg-black/70 px-1.5 py-0.5 rounded text-[10px] text-white font-medium backdrop-blur-sm">
                     {ringtone.movie_year}
@@ -233,7 +240,7 @@ export default async function Home() {
       {/* Just Added (Responsive Grid) */}
       <div className="px-4 mb-10">
         <SectionHeader title="Just Added" translationKey="justAdded" />
-        <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 md:gap-4 mb-6">
+        <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 mb-6">
           {recent?.map((ringtone: Ringtone) => (
             <RingtoneCard key={ringtone.id} ringtone={ringtone} />
           ))}
@@ -298,13 +305,16 @@ export default async function Home() {
         </div>
         <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide snap-x">
           {trending?.map((ringtone: Ringtone) => (
-            <Link key={ringtone.id} href={`/ringtone/${ringtone.slug}`} className="snap-start shrink-0 w-32 group">
-              <div className="relative w-32 h-40 rounded-xl overflow-hidden mb-2 bg-brand-wash shadow-lg group-hover:shadow-brand-accent/10 transition-all">
-                {ringtone.poster_url ? (
-                  <Image src={ringtone.poster_url} alt={ringtone.title} fill sizes="(max-width: 768px) 33vw, 128px" quality={75} loading="lazy" className="object-cover group-hover:scale-105 transition-transform duration-500" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-zinc-500 text-xs">No Img</div>
-                )}
+            <Link key={ringtone.id} href={`/ringtone/${ringtone.slug}`} className="snap-start shrink-0 w-32 sm:w-36 md:w-40 group">
+              <div className="relative w-32 sm:w-36 md:w-40 h-44 sm:h-48 md:h-56 rounded-xl overflow-hidden mb-2 bg-brand-wash shadow-lg group-hover:shadow-brand-accent/10 transition-all">
+                <TMDBImage
+                  path={ringtone.poster_url}
+                  alt={ringtone.title}
+                  fill
+                  sizes="(max-width: 768px) 33vw, 128px"
+                  quality={75}
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent opacity-80" />
               </div>
               <p className="text-xs font-bold text-black truncate group-hover:text-brand-blue transition-colors">{ringtone.title}</p>
@@ -316,7 +326,7 @@ export default async function Home() {
 
       {/* Top Contributors - Users who uploaded the most rings */}
       {topContributors && topContributors.length > 0 && (
-        <div className="mb-10 px-4">
+        <div className="mb-14 px-4">
           <SectionHeader title="Top Contributors" translationKey="contributors" />
           <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide snap-x pt-2">
             {topContributors.map((c, idx) => (
@@ -338,6 +348,7 @@ export default async function Home() {
         </div>
       )}
 
+      {/* Devotional & Spiritual Hub (Interactive Navigation) */}
 
     </div>
   );

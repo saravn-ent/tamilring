@@ -38,12 +38,14 @@ export type TMDBImageSize = 'w92' | 'w154' | 'w185' | 'w342' | 'w500' | 'w780' |
  * @returns Full image URL
  */
 export const getImageUrl = (
-  path: string | null,
+  path: string | null | undefined,
   size: TMDBImageSize = 'w342'
 ): string => {
-  if (!path) return '';
-  if (path.startsWith('http://') || path.startsWith('https://')) return path;
-  return `https://image.tmdb.org/t/p/${size}${path}`;
+  if (!path || path === 'null' || path === 'undefined') return '';
+  const cleanPath = path.trim();
+  if (cleanPath.startsWith('http://') || cleanPath.startsWith('https://')) return cleanPath;
+  const separator = cleanPath.startsWith('/') ? '' : '/';
+  return `https://image.tmdb.org/t/p/${size}${separator}${cleanPath}`;
 };
 
 /**

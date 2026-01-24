@@ -13,10 +13,10 @@ export default function UploadPage() {
   return (
     <div className="max-w-md mx-auto p-4">
       <header className="flex items-center gap-4 py-4 mb-6">
-        <Link href="/" className="p-2 bg-neutral-800 rounded-full text-zinc-400 hover:text-zinc-100">
+        <Link href="/" className="p-2 bg-zinc-100 rounded-full text-zinc-600 hover:text-brand-accent transition-colors">
           <ArrowLeft size={20} />
         </Link>
-        <h1 className="text-xl font-bold text-zinc-100">Upload Ringtone</h1>
+        <h1 className="text-xl font-black text-zinc-900">Upload Ringtone</h1>
       </header>
       <UploadForm />
     </div>

@@ -10,6 +10,7 @@ import { useSearchParams } from 'next/navigation';
 import { splitArtists, fuzzySearchPattern } from '@/lib/utils';
 import { sanitizeSearchQuery } from '@/lib/sanitize';
 import { getImageUrl } from '@/lib/tmdb';
+import TMDBImage from './TMDBImage';
 import { MOODS, ERAS, INSTRUMENTS } from '@/lib/constants';
 import NoResults from '@/components/NoResults';
 import SortControl from './SortControl';
@@ -397,7 +398,12 @@ function SearchContent() {
                                             {results.movies.map((item, idx) => (
                                                 <Link href={`/movie/${encodeURIComponent(item.movie_name)}`} key={idx} className="flex flex-col gap-2 p-2 bg-white rounded-xl border border-brand-gray hover:shadow-lg transition-all group">
                                                     <div className="relative w-full aspect-[2/3] bg-zinc-100 rounded-lg overflow-hidden shrink-0">
-                                                        {item.poster_url ? <Image src={getImageUrl(item.poster_url)} alt={item.movie_name} fill className="object-cover group-hover:scale-110 transition-transform duration-500" /> : null}
+                                                        <TMDBImage
+                                                            path={item.poster_url}
+                                                            alt={item.movie_name}
+                                                            fill
+                                                            className="object-cover group-hover:scale-110 transition-transform duration-500"
+                                                        />
                                                     </div>
                                                     <div>
                                                         <p className="font-bold text-brand-dark text-sm truncate">{item.movie_name}</p>
@@ -494,7 +500,12 @@ function SearchContent() {
                                     {defaults.movies.map((item, idx) => (
                                         <Link href={`/movie/${encodeURIComponent(item.movie_name)}`} key={idx} className="flex flex-col gap-2 p-2 bg-white rounded-xl border border-[#E5EBF1] hover:shadow-lg transition-all group">
                                             <div className="relative w-full aspect-[2/3] bg-zinc-100 rounded-lg overflow-hidden shrink-0">
-                                                {item.poster_url ? <Image src={getImageUrl(item.poster_url)} alt={item.movie_name} fill className="object-cover group-hover:scale-110 transition-transform duration-500" /> : null}
+                                                <TMDBImage
+                                                    path={item.poster_url}
+                                                    alt={item.movie_name}
+                                                    fill
+                                                    className="object-cover group-hover:scale-110 transition-transform duration-500"
+                                                />
                                             </div>
                                             <div>
                                                 <p className="font-bold text-[#15171A] text-sm truncate">{item.movie_name}</p>

@@ -1,0 +1,1 @@
+ALTER TABLE "ringtones" ADD COLUMN "song_name" text;

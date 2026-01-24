@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Wind, Guitar, Keyboard, AudioWaveform } from 'lucide-react';
+import { Wind, Guitar, Keyboard, AudioWaveform, Mic2, Music, Disc, Bell } from 'lucide-react';
 import SectionHeader from './SectionHeader';
 import { ERAS, INSTRUMENTS } from '@/lib/constants';
 
@@ -9,7 +9,11 @@ const ICON_MAP: Record<string, any> = {
     flute: Wind,
     violin: AudioWaveform,
     guitar: Guitar,
-    piano: Keyboard
+    piano: Keyboard,
+    whistle: Mic2,
+    saxophone: Music,
+    veena: Disc,
+    trumpet: Bell
 };
 
 
@@ -57,12 +61,12 @@ export default function EraAndInstruments() {
                 <div className="mb-4 px-1">
                     <h2 className="text-lg font-bold text-brand-dark">Instruments</h2>
                 </div>
-                <div className="grid grid-cols-4 gap-3">
+                <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x pt-1">
                     {INSTRUMENTS.map((inst) => (
                         <Link
                             key={inst.label}
                             href={`/search?q=${encodeURIComponent(inst.query)}&hideSearch=true`}
-                            className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-white border border-zinc-100 shadow-sm hover:shadow-md hover:border-brand-accent/30 transition-all"
+                            className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-white border border-zinc-100 shadow-sm hover:shadow-md hover:border-brand-accent/30 transition-all snap-start shrink-0 min-w-[85px]"
                         >
                             <div className="w-10 h-10 rounded-full bg-brand-wash flex items-center justify-center text-brand-accent">
                                 {ICON_MAP[inst.query] && (
@@ -74,7 +78,6 @@ export default function EraAndInstruments() {
                             </div>
                             <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-wide">{inst.label}</span>
                         </Link>
-
                     ))}
                 </div>
             </section>

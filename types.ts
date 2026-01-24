@@ -23,6 +23,7 @@ export interface Ringtone {
   status?: 'pending' | 'approved' | 'rejected';
   rejection_reason?: string;
   user_id?: string;
+  duration?: number;
   audio_url_iphone?: string;
 }
 

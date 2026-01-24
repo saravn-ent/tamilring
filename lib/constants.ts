@@ -21,8 +21,33 @@ export const INSTRUMENTS = [
   { label: "Flute", query: "flute" },
   { label: "Violin", query: "violin" },
   { label: "Guitar", query: "guitar" },
-  { label: "Piano", query: "piano" }
+  { label: "Piano", query: "piano" },
+  { label: "Whistle", query: "whistle" },
+  { label: "Sax", query: "saxophone" },
+  { label: "Veena", query: "veena" },
+  { label: "Trumpet", query: "trumpet" }
 ];
+
+export const DEITY_CATEGORIES = {
+  "Hindu": [
+    "Ayyappan",
+    "Murugan",
+    "Vinayagar",
+    "Siva",
+    "Vishnu",
+    "Amman",
+    "Krishna",
+    "Rama",
+    "Hanuman",
+    "Karuppusamy",
+    "Perumal",
+    "Mariamman",
+    "Kali"
+  ],
+  "Christian": ["Jesus", "Mary", "Saint"],
+  "Muslim": ["Allah"],
+  "Other": ["Buddha", "Mahavira", "Other"]
+};
 
 // Helper function to get artist bio (Placeholder for now as we don't have a bio DB)
 export function getArtistBio(artistName: string): string | undefined {

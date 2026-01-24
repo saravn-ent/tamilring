@@ -3,11 +3,13 @@
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Play, Pause, Heart, Share2, Music, Download } from 'lucide-react';
+import { Play, Pause, Heart, Share2, Music, Download, Clock } from 'lucide-react';
 import { Ringtone } from '@/types';
 import { usePlayer } from '@/context/PlayerContext';
 import { incrementLikes } from '@/app/actions/ringtones';
 import { getImageUrl } from '@/lib/tmdb';
+import TMDBImage from './TMDBImage';
+import { useFavorites } from '@/context/FavoritesContext';
 
 import { useRouter } from 'next/navigation';
 
@@ -19,10 +21,49 @@ interface RingtoneCardProps {
   assignTo?: string;
 }
 
+const TAGS_WHITELIST = [
+  'bgm', 'vocal', 'instrumental', 'interlude', 'humming', 'dialogue',
+  'remix', '8d audio', 'whistle', 'theme', 'background', 'flute',
+  'violin', 'guitar', 'piano', 'snippet', 'bit', 'cut'
+];
+
 export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) {
   const { currentRingtone, isPlaying, playRingtone, togglePlay, progress } = usePlayer();
+  const { isFavorite, addFavorite, removeFavorite } = useFavorites();
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(ringtone.likes || 0);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+    setIsLiked(isFavorite(ringtone.id));
+  }, [ringtone.id, isFavorite]);
+  const [loadedDuration, setLoadedDuration] = useState<number | null>(ringtone.duration || null);
+
+  useEffect(() => {
+    if (!loadedDuration && ringtone.audio_url) {
+      const audio = new Audio();
+      audio.src = ringtone.audio_url;
+      audio.preload = 'metadata';
+      const handler = () => {
+        if (audio.duration && audio.duration !== Infinity) {
+          setLoadedDuration(audio.duration);
+        }
+      };
+      audio.addEventListener('loadedmetadata', handler);
+      return () => {
+        audio.removeEventListener('loadedmetadata', handler);
+        audio.src = '';
+      };
+    }
+  }, [ringtone.audio_url, loadedDuration]);
+
+  const formatDuration = (seconds: number | null) => {
+    if (!seconds || isNaN(seconds)) return '';
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
 
   const router = useRouter();
@@ -93,10 +134,19 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
     if (!isLiked) {
       setLikesCount(prev => prev + 1);
       setIsLiked(true);
+      addFavorite({
+        id: ringtone.id,
+        name: ringtone.title,
+        type: 'Ringtone',
+        imageUrl: ringtone.poster_url,
+        href: `/ringtone/${ringtone.slug}`,
+        ringtoneData: ringtone
+      });
       await incrementLikes(ringtone.id);
     } else {
       setLikesCount(prev => prev - 1);
       setIsLiked(false);
+      removeFavorite(ringtone.id);
     }
   };
 
@@ -127,33 +177,56 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
   };
 
   // Extract the ringtone name (segmentName) from the title
-  // Format can be: "Song Name - Ringtone Name" or just "Ringtone Name"
+  // Focus on showing ONLY the unique ringtone name by stripping Movie and Song prefixes
   let displayName = ringtone.title;
 
-  // Strategy 1: If title contains " - ", split and take the part after the dash
-  // This handles "Chella Magale - en kai kulla malarnthava..." format
-  if (displayName.includes(' - ')) {
-    const parts = displayName.split(' - ');
-    // Take everything after the first dash
-    displayName = parts.slice(1).join(' - ').trim();
-  }
-  // Strategy 2: If there's a song_name in the database and the title starts with it, remove it
-  else if (ringtone.song_name && ringtone.title.toLowerCase().startsWith(ringtone.song_name.toLowerCase())) {
-    displayName = ringtone.title.substring(ringtone.song_name.length).trim();
-    // Remove leading dash or hyphen
-    displayName = displayName.replace(/^[-–—]\s*/, '').trim();
-  }
-
-  // Remove (From "Movie") pattern if present
-  displayName = displayName.replace(/\(From ".*?"\)/i, '').trim();
-
-  // Remove movie name if it's still present
+  // 1. Strip Movie Name prefix (e.g., "Movie - Song - Segment")
   if (ringtone.movie_name) {
-    displayName = displayName.replace(new RegExp(`\\s*[-|]?\\s*${ringtone.movie_name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*[-|]?\\s*`, 'i'), '').trim();
+    const escapedMovie = ringtone.movie_name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const moviePrefixRegex = new RegExp(`^${escapedMovie}\\s*[-–—:|]+\\s*`, 'i');
+    displayName = displayName.replace(moviePrefixRegex, '').trim();
   }
 
-  // Fallback: If cleaning removed everything (rare edge case), show original
-  if (!displayName) displayName = ringtone.title;
+  // 2. Clear known Song Name prefix if available
+  if (ringtone.song_name) {
+    const escapedSong = ringtone.song_name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const songPrefixRegex = new RegExp(`^${escapedSong}\\s*[-–—:|]+\\s*`, 'i');
+    displayName = displayName.replace(songPrefixRegex, '').trim();
+  }
+
+  // 3. SMART CLEANUP: If there's still a dash (e.g., "Song - Segment" or "Segment - Tag")
+  // Using a robust regex to handle various dash types and whitespace
+  const SEPARATOR_REGEX = /\s*[-–—:|]+\s*/;
+  let currentParts = displayName.split(SEPARATOR_REGEX).map(p => p.trim()).filter(Boolean);
+
+  if (currentParts.length >= 2) {
+    // A. Check if the LAST part is a tag (e.g., "Name - Vocal" -> "Name")
+    const pLast = currentParts[currentParts.length - 1].toLowerCase();
+    const isPLastTag = TAGS_WHITELIST.some(tag => pLast.includes(tag));
+
+    if (isPLastTag) {
+      currentParts = currentParts.slice(0, -1);
+      displayName = currentParts.join(' - ');
+    }
+  }
+
+  // B. Refresh parts and check if the FIRST part is redundant (e.g., "Song - Segment" -> "Segment")
+  currentParts = displayName.split(SEPARATOR_REGEX).map(p => p.trim()).filter(Boolean);
+  if (currentParts.length >= 2) {
+    const p1 = currentParts[0].toLowerCase();
+    const isP1Tag = TAGS_WHITELIST.some(tag => p1.includes(tag));
+
+    // If the first part is NOT a tag and is reasonably long, it's likely a redundant song/movie name
+    if (!isP1Tag && currentParts[0].length > 2) {
+      currentParts = currentParts.slice(1);
+      displayName = currentParts.join(' - ');
+    }
+  }
+
+  // Fallback: if we cleaned it too much, restore it
+  if (!displayName || !/[a-zA-Z0-9]/.test(displayName)) {
+    displayName = ringtone.title;
+  }
 
   return (
     <>
@@ -164,42 +237,43 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
       >
         <div className="flex items-center gap-3 sm:gap-4">
 
-          {/* 1. Album Art + Play Button */}
-          <div className="relative w-[72px] h-[72px] sm:w-20 sm:h-20 flex-shrink-0 rounded-lg overflow-hidden bg-zinc-100">
-            <Link href={`/ringtone/${ringtone.slug}`} className="block w-full h-full relative" onClick={(e) => e.stopPropagation()}>
-              {ringtone.poster_url ? (
-                <Image
-                  src={getImageUrl(ringtone.poster_url)}
-                  alt={ringtone.title}
-                  fill
-                  sizes="(max-width: 640px) 72px, 80px"
-                  className="object-cover transition-transform duration-500 group-hover:scale-105"
-                  priority={false}
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-zinc-100 text-zinc-300">
-                  <Music size={28} />
-                </div>
-              )}
-            </Link>
-
-            {/* Play Button Overlay - Larger touch target for mobile */}
-            <button
+          {/* 1. Left Section: Album Art + Play Button + Duration */}
+          <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
+            <div
               onClick={handlePlay}
-              className="absolute inset-0 flex items-center justify-center bg-black/10 active:bg-black/30 transition-colors z-10 touch-manipulation"
-              aria-label={isActive ? 'Pause' : 'Play'}
+              className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-brand-wash flex items-center justify-center border border-brand-border group/play cursor-pointer shadow-sm active:scale-95 transition-transform"
             >
-              <div className={`w-10 h-10 sm:w-11 sm:h-11 rounded-full flex items-center justify-center shadow-lg backdrop-blur-sm transition-all duration-200 ${isActive ? 'bg-brand-accent text-white scale-110' : 'bg-white text-zinc-900 active:scale-95'}`}>
-                {isActive ? <Pause size={18} fill="currentColor" /> : <Play size={18} fill="currentColor" className="ml-0.5" />}
+              <TMDBImage
+                path={ringtone.poster_url}
+                alt={ringtone.title}
+                fill
+                sizes="(max-width: 640px) 56px, 64px"
+                className="object-cover transition-transform duration-500 group-hover/play:scale-110"
+              />
+
+              {/* Play Button Overlay */}
+              <div className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${isActive ? 'bg-brand-accent/40' : 'bg-black/10 group-hover/play:bg-black/30'}`}>
+                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shadow-lg backdrop-blur-md transition-all duration-200 ${isActive ? 'bg-white text-brand-accent scale-110' : 'bg-white/90 text-zinc-900 group-hover/play:scale-110'}`}>
+                  {isActive ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" className="ml-0.5" />}
+                </div>
               </div>
-            </button>
+
+
+            </div>
+
+            {/* Duration Badge below Art (Only when NOT playing) */}
+            {!isActive && loadedDuration && (
+              <span className="text-[10px] font-black text-zinc-500 bg-zinc-100/50 border border-zinc-200/50 px-1.5 py-0.5 rounded-md leading-none shadow-sm">
+                {formatDuration(loadedDuration)}
+              </span>
+            )}
           </div>
 
           {/* 2. Content Info */}
           <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
             <div className="block">
               {/* Line 1: Ringtone Name (Segment Name) */}
-              <h3 className="text-base sm:text-[17px] font-bold text-zinc-900 truncate leading-tight">
+              <h3 className="text-base sm:text-[17px] font-bold text-zinc-900 line-clamp-2 whitespace-normal leading-tight">
                 {displayName}
               </h3>
 
@@ -216,26 +290,36 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
               </p>
             </div>
 
-            {/* Tags - Hidden on very small screens to save space */}
+            {/* Active Player Bar - Now Compact and Integrated */}
+            {isActive && (
+              <div className="mt-2.5 mb-1.5 flex flex-col w-full animate-in fade-in slide-in-from-top-1">
+                <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-brand-accent transition-all duration-100 ease-linear rounded-full"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+                <div className="w-full flex items-center justify-end text-[10px] font-black text-brand-accent mt-1.5 px-0.5">
+                  <span className="bg-brand-wash px-1 rounded">
+                    {formatDuration((progress / 100) * (loadedDuration || 0))} / {formatDuration(loadedDuration)}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Tags - Visible on all screens, but compact */}
             {ringtone.tags && ringtone.tags.length > 0 && (
-              <div className="hidden xs:flex flex-wrap gap-1.5 mt-1">
-                {ringtone.tags.slice(0, 2).map(tag => (
-                  <span key={tag} className="text-[10px] px-2 py-0.5 rounded-md bg-zinc-50 text-zinc-500 border border-zinc-100 truncate max-w-[70px]">
+              <div className="flex flex-wrap gap-1.5 mt-1.5">
+                {ringtone.tags.slice(0, 3).map(tag => (
+                  <span key={tag} className="text-[10px] px-2 py-0.5 rounded-md bg-brand-wash text-zinc-500 border border-brand-border/50 font-medium">
                     #{tag}
                   </span>
                 ))}
               </div>
             )}
 
-            {/* Progress or Stats */}
-            {isActive ? (
-              <div className="max-w-[160px] w-full h-1.5 bg-zinc-100 rounded-full mt-2 overflow-hidden">
-                <div
-                  className="h-full bg-brand-accent transition-all duration-100 ease-linear"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-            ) : (
+            {/* Stats (Only when NOT playing) */}
+            {!isActive && (
               <div className="flex items-center gap-2 mt-1.5 text-xs sm:text-[13px] font-medium text-zinc-400">
                 <span>
                   {ringtone.downloads > 0 ? (ringtone.downloads > 1000 ? `${(ringtone.downloads / 1000).toFixed(1)}k` : ringtone.downloads) : 0} Downloads
@@ -248,43 +332,41 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
             )}
           </div>
 
-          {/* 3. Actions (Right Side) - Optimized for mobile touch */}
-          <div className="flex flex-col sm:flex-row items-center gap-1.5 sm:gap-2">
+          {/* 3. Actions (Right Side) - Vertical Layout */}
+          <div className="flex flex-col items-center gap-0.5 sm:gap-1">
 
-            {/* Like - Larger touch target for mobile */}
+            {/* Like */}
             <button
               onClick={handleLike}
-              className={`min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 p-2.5 sm:p-2 rounded-full transition-all touch-manipulation active:scale-90 ${isLiked ? 'text-rose-500 bg-rose-50' : 'text-zinc-400 active:bg-zinc-100 hover:text-zinc-600 hover:bg-zinc-50'
+              className={`flex items-center justify-center w-10 h-10 rounded-full transition-all touch-manipulation active:scale-90 ${isLiked ? 'text-rose-500 bg-rose-50' : 'text-zinc-400 hover:text-rose-400 hover:bg-rose-50/50'
                 }`}
               aria-label={isLiked ? 'Unlike' : 'Like'}
             >
               <Heart size={20} className={isLiked ? 'fill-current' : ''} />
             </button>
 
-            {/* Assign Button */}
+            {/* Share */}
+            <button
+              onClick={handleShare}
+              className="flex items-center justify-center w-10 h-10 text-zinc-400 hover:text-brand-accent hover:bg-brand-wash rounded-full transition-all touch-manipulation active:scale-90"
+              aria-label="Share"
+            >
+              <Share2 size={18} />
+            </button>
+
+            {/* Assign Button - Only when assigning */}
             {assignTo && (
               <button
                 onClick={handleAssign}
-                className="min-h-[44px] px-5 py-2 bg-brand-accent text-white text-sm font-bold rounded-full hover:bg-brand-accent/90 active:scale-95 transition-transform touch-manipulation"
+                className="mt-1 h-7 px-3 bg-brand-accent text-white text-[10px] font-bold rounded-lg hover:bg-brand-accent/90 active:scale-95 transition-transform touch-manipulation"
               >
                 Assign
               </button>
             )}
 
-            {/* Share - Show on mobile too with icon only */}
-            <button
-              onClick={handleShare}
-              className="min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 p-2.5 sm:p-2 text-zinc-400 hover:text-zinc-700 active:bg-zinc-100 hover:bg-zinc-50 rounded-full transition-all touch-manipulation active:scale-90"
-              aria-label="Share"
-            >
-              <Share2 size={20} />
-            </button>
-
           </div>
         </div>
       </div>
-
-
     </>
   );
 }

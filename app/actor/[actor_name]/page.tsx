@@ -7,6 +7,7 @@ import ViewToggle from '@/components/ViewToggle';
 import { getArtistBio } from '@/lib/constants';
 import Link from 'next/link';
 import Image from 'next/image';
+import TMDBImage from '@/components/TMDBImage';
 import { Ringtone } from '@/types';
 import { unstable_cache } from 'next/cache';
 
@@ -116,20 +117,14 @@ export default async function ActorPage({
                     href={`/movie/${encodeURIComponent(movie.movie_name)}`}
                     className="group relative aspect-[2/3] rounded-xl overflow-hidden bg-brand-wash border border-brand-border shadow-md"
                   >
-                    {movie.poster_url ? (
-                      <Image
-                        src={movie.poster_url}
-                        alt={movie.movie_name}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-110"
-                        sizes="(max-width: 768px) 50vw, 33vw"
-                        priority={idx < 2}
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-brand-dark/20 font-bold">
-                        {movie.movie_name[0]}
-                      </div>
-                    )}
+                    <TMDBImage
+                      path={movie.poster_url}
+                      alt={movie.movie_name}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-110"
+                      sizes="(max-width: 768px) 50vw, 33vw"
+                      priority={idx < 2}
+                    />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity" />
                     <div className="absolute bottom-0 left-0 right-0 p-3">
                       <h3 className="text-white font-bold text-sm leading-tight line-clamp-2 mb-1 group-hover:text-brand-accent transition-colors">

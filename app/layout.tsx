@@ -20,7 +20,7 @@ const outfit = Outfit({
 });
 
 export const viewport: Viewport = {
-  themeColor: "#050505",
+  themeColor: "#F92445",
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
@@ -102,7 +102,10 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${outfit.variable} font-display antialiased scrollbar-hide transition-colors duration-300 bg-background text-foreground`}>
+      <body
+        className={`${outfit.variable} font-display antialiased scrollbar-hide transition-colors duration-300 bg-background text-foreground`}
+        suppressHydrationWarning
+      >
         <Script
           strategy="lazyOnload"
           src={`https://www.googletagmanager.com/gtag/js?id=G-07CW71VTGB`}

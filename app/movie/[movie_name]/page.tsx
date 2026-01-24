@@ -3,6 +3,7 @@ export const revalidate = 3600;
 import RingtoneCard from '@/components/RingtoneCard';
 import SortControl from '@/components/SortControl';
 import Image from 'next/image';
+import TMDBImage from '@/components/TMDBImage';
 import FavoriteButton from '@/components/FavoriteButton';
 import { Metadata } from 'next';
 import { cacheGetOrSet, CacheKeys, CacheTTL } from '@/lib/cache';
@@ -118,19 +119,16 @@ export default async function MoviePage({
     <div className="max-w-md mx-auto">
       {/* Hero Header */}
       <div className="relative h-64 w-full">
-        {movie?.backdrop_url ? (
-          <Image
-            src={movie.backdrop_url}
-            alt={movieName}
-            fill
-            sizes="100vw"
-            quality={60}
-            priority
-            className="object-cover opacity-50"
-          />
-        ) : (
-          <div className="w-full h-full bg-neutral-800" />
-        )}
+        <TMDBImage
+          path={movie?.backdrop_url}
+          alt={movieName}
+          fill
+          sizes="100vw"
+          quality={60}
+          priority
+          className="object-cover opacity-50"
+          size="w780"
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 via-neutral-900/60 to-transparent" />
 
         {/* Favorite Button */}
@@ -150,7 +148,14 @@ export default async function MoviePage({
         <div className="absolute bottom-0 left-0 p-6 flex items-end gap-4">
           {movie?.poster_url && (
             <div className="relative w-24 h-36 rounded-lg overflow-hidden shadow-2xl border border-neutral-700">
-              <Image src={movie.poster_url} alt={movieName} fill sizes="96px" quality={80} className="object-cover" />
+              <TMDBImage
+                path={movie.poster_url}
+                alt={movieName}
+                fill
+                sizes="96px"
+                quality={80}
+                className="object-cover"
+              />
             </div>
           )}
           <div className="mb-2">

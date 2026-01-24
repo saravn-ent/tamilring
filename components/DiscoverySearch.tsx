@@ -8,6 +8,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { splitArtists, fuzzySearchPattern } from '@/lib/utils';
 import { getImageUrl } from '@/lib/tmdb';
+import TMDBImage from './TMDBImage';
 import { Ringtone } from '@/types';
 
 type Suggestions = {
@@ -170,14 +171,16 @@ export default function DiscoverySearch({ className = "mb-8" }: { className?: st
                   onClick={() => setShowDropdown(false)}
                 >
                   <div className="relative w-8 h-12 bg-white rounded overflow-hidden shrink-0 border border-brand-gray/50">
-                    {movie.poster_url ? (
-                      <Image src={getImageUrl(movie.poster_url)} alt={movie.movie_name} fill className="object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-zinc-400 font-bold text-xs">{movie.movie_name[0]}</div>
-                    )}
+                    <TMDBImage
+                      path={movie.poster_url}
+                      alt={movie.movie_name}
+                      fill
+                      className="object-cover"
+                      size="w154"
+                    />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-brand-dark group-hover:text-brand-blue truncate">{movie.movie_name}</p>
+                    <p className="text-sm font-semibold text-zinc-900 group-hover:text-brand-blue truncate">{movie.movie_name}</p>
                     <p className="text-[10px] text-zinc-500">{movie.movie_year}</p>
                   </div>
                 </Link>
@@ -202,7 +205,7 @@ export default function DiscoverySearch({ className = "mb-8" }: { className?: st
                     <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center text-[10px] text-brand-blue font-bold shrink-0 border border-brand-gray">
                       {artist.name[0]}
                     </div>
-                    <span className="text-xs font-medium text-zinc-600 truncate">{artist.name}</span>
+                    <span className="text-xs font-semibold text-zinc-800 truncate">{artist.name}</span>
                   </Link>
                 ))}
               </div>
@@ -227,8 +230,8 @@ export default function DiscoverySearch({ className = "mb-8" }: { className?: st
                       <Music size={14} />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-brand-dark group-hover:text-brand-blue truncate">{ringtone.title}</p>
-                      <p className="text-[10px] text-zinc-500 truncate">{ringtone.movie_name}</p>
+                      <p className="text-sm font-semibold text-zinc-900 group-hover:text-brand-blue truncate">{ringtone.title}</p>
+                      <p className="text-[10px] text-zinc-600 truncate">{ringtone.movie_name}</p>
                     </div>
                   </div>
                 </Link>

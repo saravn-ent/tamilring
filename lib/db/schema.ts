@@ -28,6 +28,7 @@ export const ringtones = pgTable('ringtones', {
     slug: text('slug').unique().notNull(),
 
     // Metadata
+    songName: text('song_name'),
     movieName: text('movie_name'),
     movieYear: text('movie_year'),
     singers: text('singers'),
@@ -51,6 +52,7 @@ export const ringtones = pgTable('ringtones', {
     // Metrics
     downloads: integer('downloads').default(0),
     likes: integer('likes').default(0),
+    duration: integer('duration').default(0),
 
     // Status
     status: text('status').default('pending').$type<'pending' | 'approved' | 'rejected'>(),

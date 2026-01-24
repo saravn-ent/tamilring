@@ -5,7 +5,7 @@ import { createBrowserClient } from '@supabase/ssr';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { User, Heart, Music, Trash2, X, LayoutDashboard, UploadCloud, Star } from 'lucide-react';
+import { User, Heart, Music, Trash2, X, UploadCloud, Star } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 const UploadForm = dynamic(() => import('@/components/UploadForm'), {
@@ -15,10 +15,11 @@ const UploadForm = dynamic(() => import('@/components/UploadForm'), {
 import FavoritesList from '@/components/FavoritesList';
 import LoginButton from '@/components/LoginButton';
 import PersonalCollections from '@/components/PersonalCollections';
+import RingtoneCard from '@/components/RingtoneCard';
+import { useFavorites } from '@/context/FavoritesContext';
 import AvatarRank from '@/components/AvatarRank';
 import { getLevelTitle, syncUserGamification, POINTS_PER_UPLOAD } from '@/lib/gamification';
-import { Ringtone, Profile, UserBadge, Withdrawal } from '@/types';
-import { handleWithdrawal } from '@/app/actions/user';
+import { Ringtone, Profile, UserBadge } from '@/types';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 
 // Simple timeout helper
@@ -42,13 +43,12 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [uploads, setUploads] = useState<Ringtone[]>([]);
   const [userBadges, setUserBadges] = useState<UserBadge[]>([]);
-  const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Tab State
-  const [activeTab, setActiveTab] = useState<'overview' | 'uploads' | 'upload'>('overview');
+  const [activeTab, setActiveTab] = useState<'upload' | 'uploads' | 'liked'>('upload');
 
   // Edit State
   const [isEditing, setIsEditing] = useState(false);
@@ -95,11 +95,9 @@ export default function ProfilePage() {
         const fetchBadges = withTimeout(supabase.from('user_badges').select('*, badge:badges(*)').eq('user_id', user.id) as unknown as Promise<SupabaseRes<UserBadge[]>>)
           .catch((e: unknown) => ({ data: null, error: e }));
 
-        const fetchWithdrawals = withTimeout(supabase.from('withdrawals').select('*').eq('user_id', user.id).order('created_at', { ascending: false }) as unknown as Promise<SupabaseRes<Withdrawal[]>>)
-          .catch((e: unknown) => ({ data: null, error: e }));
 
-        const [profileRes, uploadsRes, badgesRes, withdrawalsRes] = await Promise.all([
-          fetchProfile, fetchUploads, fetchBadges, fetchWithdrawals
+        const [profileRes, uploadsRes, badgesRes] = await Promise.all([
+          fetchProfile, fetchUploads, fetchBadges
         ]);
 
         if (!mounted) return;
@@ -116,7 +114,6 @@ export default function ProfilePage() {
         }
 
         if (badgesRes.data) setUserBadges(badgesRes.data);
-        if (withdrawalsRes.data) setWithdrawals(withdrawalsRes.data);
 
         // Handle Profile
         if (profileRes.data) {
@@ -346,126 +343,23 @@ export default function ProfilePage() {
       {/* Tabs */}
       <div className="sticky top-14 z-20 bg-white/95 backdrop-blur-md border-b border-brand-border mb-6">
         <div className="flex w-full px-2">
-          {['overview', 'uploads', 'upload'].map((tab) => (
+          {['upload', 'uploads', 'liked'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab as any)}
               className={`flex-1 py-4 text-[10px] font-black uppercase tracking-widest border-b-2 transition-all flex items-center justify-center gap-2 ${activeTab === tab ? 'border-brand-accent text-brand-accent bg-brand-accent/5' : 'border-transparent text-zinc-400 hover:text-brand-dark'}`}
             >
-              {tab === 'overview' && <LayoutDashboard size={14} />}
+              {tab === 'liked' && <Heart size={14} />}
               {tab === 'uploads' && <Music size={14} />}
               {tab === 'upload' && <UploadCloud size={14} />}
-              <span>{tab === 'uploads' ? 'My Rings' : tab}</span>
+              <span>{tab === 'uploads' ? 'My Rings' : tab === 'liked' ? 'Liked' : tab}</span>
             </button>
           ))}
         </div>
       </div>
 
       <main className="flex-1 px-4">
-        {activeTab === 'overview' && (
-          <div className="animate-in slide-in-from-left-4 fade-in duration-300 space-y-8">
-            {/* Wallet Section */}
-            <section className="bg-brand-dark text-white rounded-3xl p-6 relative overflow-hidden group shadow-xl shadow-brand-dark/20">
-              <div className="absolute -top-4 -right-4 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                <Star size={120} />
-              </div>
-
-              <div className="relative z-10">
-                <div className="flex items-start justify-between mb-8">
-                  <div>
-                    <h2 className="text-xl font-black flex items-center gap-2 uppercase tracking-tighter text-white">
-                      <Star className="text-amber-400" size={20} fill="currentColor" />
-                      Earnings
-                    </h2>
-                    <p className="text-[10px] font-bold text-white/60 tracking-wider">1 REP = ₹1 (UPI Payout)</p>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-3xl font-black text-brand-accent tabular-nums">₹{profile?.points || 0}</span>
-                  </div>
-                </div>
-
-                <div className="space-y-6">
-                  <div className="bg-white/10 rounded-2xl p-4 border border-white/10 backdrop-blur-sm">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-[10px] font-bold text-white/60 uppercase tracking-widest">Next Payout Goal</span>
-                      <span className="text-[10px] font-black text-white">
-                        {(!profile?.total_withdrawn_count || profile?.total_withdrawn_count === 0) ? '₹15' : '₹200'}
-                      </span>
-                    </div>
-                    <div className="w-full bg-black/20 h-2 rounded-full overflow-hidden">
-                      <div
-                        className="bg-brand-accent h-full transition-all duration-1000 shadow-[0_0_10px_rgba(255,59,48,0.3)]"
-                        style={{ width: `${Math.min(100, ((profile?.points || 0) / ((!profile?.total_withdrawn_count || profile?.total_withdrawn_count === 0) ? 15 : 200)) * 100)}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-3">
-                    <button
-                      disabled={saving || (profile?.points || 0) < ((!profile?.total_withdrawn_count || profile?.total_withdrawn_count === 0) ? 15 : 200) || !upiId}
-                      onClick={async () => {
-                        if (!profile || !user) return;
-                        setSaving(true);
-                        const isFirstTime = (!profile.total_withdrawn_count || profile.total_withdrawn_count === 0);
-                        const withdrawAmount = isFirstTime ? 15 : profile.points;
-                        const res = await handleWithdrawal(user.id, profile.points, upiId);
-                        if (res.success) {
-                          alert(`Success! ₹${withdrawAmount} requested to ${upiId}${isFirstTime ? ' (First test payout)' : ''}`);
-                          window.location.reload();
-                        } else {
-                          alert(res.error || 'Withdrawal failed');
-                        }
-                        setSaving(false);
-                      }}
-                      className="w-full py-4 bg-white text-brand-dark font-black rounded-2xl hover:bg-gray-50 disabled:opacity-50 disabled:grayscale transition-all shadow-lg uppercase tracking-widest text-[11px]"
-                    >
-                      Withdraw Rep as Rupees
-                    </button>
-
-                    {!upiId && (
-                      <p className="text-[10px] text-center text-amber-300 font-bold bg-amber-400/10 py-2 rounded-lg border border-amber-400/20">
-                        ⚠️ ADD UPI ID IN PROFILE TO WITHDRAW
-                      </p>
-                    )}
-                  </div>
-
-                  {/* History */}
-                  {withdrawals.length > 0 && (
-                    <div className="pt-6 border-t border-white/10">
-                      <h3 className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-4">Payout Audit Log</h3>
-                      <div className="space-y-2">
-                        {withdrawals.map((w) => (
-                          <div key={w.id} className="flex items-center justify-between text-[11px] bg-white/5 rounded-xl p-3 border border-white/10">
-                            <div className="flex flex-col gap-0.5">
-                              <span className="text-white font-black">₹{w.amount}</span>
-                              <span className="text-white/40 text-[9px] tabular-nums font-medium">{new Date(w.created_at).toLocaleDateString()}</span>
-                            </div>
-                            <div className={`px-2 py-1 rounded-md font-black uppercase tracking-tighter text-[9px] border ${w.status === 'completed' ? 'bg-emerald-400/10 text-emerald-300 border-emerald-400/20' :
-                              w.status === 'rejected' ? 'bg-red-400/10 text-red-300 border-red-400/20' :
-                                'bg-amber-400/10 text-amber-300 border-amber-400/20'
-                              }`}>
-                              {w.status}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </section>
-
-            <PersonalCollections />
-
-            <section className="pb-10">
-              <h2 className="text-lg font-black text-brand-dark mb-6 flex items-center gap-3 uppercase tracking-tighter">
-                <Heart size={20} className="text-brand-accent" fill="currentColor" />
-                Hearted Classics
-              </h2>
-              <FavoritesList />
-            </section>
-          </div>
-        )}
+        {activeTab === 'liked' && <LikedTabContent />}
 
         {activeTab === 'uploads' && (
           <div className="animate-in slide-in-from-right-4 fade-in duration-300 space-y-4 pb-20">
@@ -515,12 +409,10 @@ export default function ProfilePage() {
 
         {activeTab === 'upload' && (
           <div className="animate-in zoom-in-95 fade-in duration-300 pb-20">
-            <div className="bg-white border border-brand-border rounded-[2.5rem] p-1 shadow-2xl overflow-hidden">
-              <UploadForm userId={user.id} onComplete={() => {
-                setActiveTab('uploads');
-                window.location.reload();
-              }} />
-            </div>
+            <UploadForm userId={user.id} onComplete={() => {
+              setActiveTab('uploads');
+              window.location.reload();
+            }} />
           </div>
         )}
       </main>
@@ -529,6 +421,46 @@ export default function ProfilePage() {
         <p className="text-[9px] text-zinc-400 font-black uppercase tracking-[0.2em]">Member since {new Date(user.created_at).getFullYear()}</p>
         <div className="w-12 h-0.5 bg-brand-border mt-2 rounded-full" />
       </div>
+    </div>
+  );
+}
+// Sub-component for Liked Tab Content
+function LikedTabContent() {
+  const { favorites } = useFavorites();
+  const likedRingtones = favorites.filter(fav => fav.type === 'Ringtone');
+  const likedArtists = favorites.filter(fav => fav.type !== 'Ringtone');
+
+  return (
+    <div className="animate-in slide-in-from-left-4 fade-in duration-300 space-y-8 pb-20">
+      <PersonalCollections />
+
+      {likedArtists.length > 0 && (
+        <section>
+          <h2 className="text-lg font-black text-brand-dark mb-4 flex items-center gap-3 uppercase tracking-tighter">
+            <User size={20} className="text-brand-accent" fill="currentColor" />
+            Artists & Movies
+          </h2>
+          <FavoritesList items={likedArtists} />
+        </section>
+      )}
+
+      <section>
+        <h2 className="text-lg font-black text-brand-dark mb-4 flex items-center gap-3 uppercase tracking-tighter">
+          <Heart size={20} className="text-brand-accent" fill="currentColor" />
+          Liked Ringtones
+        </h2>
+        {likedRingtones.length > 0 ? (
+          <div className="grid grid-cols-1 gap-3">
+            {likedRingtones.map((fav) => (
+              fav.ringtoneData && <RingtoneCard key={fav.id} ringtone={fav.ringtoneData} />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-10 bg-brand-wash rounded-2xl border border-dashed border-brand-border">
+            <p className="text-zinc-500 text-sm font-medium">No liked ringtones yet</p>
+          </div>
+        )}
+      </section>
     </div>
   );
 }

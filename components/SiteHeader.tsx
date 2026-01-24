@@ -1,21 +1,24 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
-import Link from 'next/link'; // Next.js Link component
+import Link from 'next/link';
 
 export default function SiteHeader() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const handleSurprise = async () => {
     try {
       setLoading(true);
 
-      // Fetch a random approved ringtone slug
-      // Using a simpler approach: get count, then select at random offset
       const { count } = await supabase
         .from('ringtones')
         .select('*', { count: 'exact', head: true })
@@ -37,12 +40,29 @@ export default function SiteHeader() {
     } catch (error) {
       console.error('Surprise failed:', error);
     } finally {
-      setTimeout(() => setLoading(false), 1000); // Visual feedback
+      setTimeout(() => setLoading(false), 1000);
     }
   };
 
+  // NUCLEAR FIX: On server, render a stable skeleton that matches the TAG structure of the client
+  if (!mounted) {
+    return (
+      <header className="fixed top-0 left-0 right-0 z-40 bg-white border-b border-brand-gray h-14">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 h-14 flex items-center justify-between">
+          <a href="/" className="text-xl font-bold tracking-tighter text-brand-blue">
+            <span>Tamil</span><span className="text-brand-dark">Ring</span>
+          </a>
+          <nav className="hidden md:flex items-center gap-6 flex-1 justify-center">
+            <div className="w-10 h-4" />
+          </nav>
+          <div className="w-10 h-10" />
+        </div>
+      </header>
+    );
+  }
+
   return (
-    <div suppressHydrationWarning className="fixed top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-b border-brand-gray transition-colors duration-300">
+    <header className="fixed top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-b border-brand-gray h-14">
       <div className="max-w-6xl mx-auto px-4 md:px-6 h-14 flex items-center justify-between">
         <Link href="/" className="text-xl font-bold tracking-tighter text-brand-blue">
           <span>Tamil</span><span className="text-brand-dark">Ring</span>
@@ -59,12 +79,15 @@ export default function SiteHeader() {
           <Link href="/requests" className="text-sm font-medium text-zinc-600 hover:text-brand-blue transition-colors">
             Requests
           </Link>
+          <Link href="/upload" className="px-4 py-1.5 bg-brand-blue text-white text-sm font-bold rounded-full hover:bg-brand-dark transition-all">
+            Upload
+          </Link>
           <Link href="/profile" className="text-sm font-medium text-zinc-600 hover:text-brand-blue transition-colors">
             Profile
           </Link>
         </nav>
 
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 min-w-[40px] justify-end">
           <button
             onClick={handleSurprise}
             disabled={loading}
@@ -84,6 +107,6 @@ export default function SiteHeader() {
           </button>
         </div>
       </div>
-    </div>
+    </header>
   );
 }

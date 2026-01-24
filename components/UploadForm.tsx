@@ -9,6 +9,7 @@ import { getSongsByMovie, iTunesRing } from '@/lib/itunes';
 import { createBrowserClient } from '@supabase/ssr';
 import { notifyAdminOnUpload, processAutoApproval } from '@/app/actions/ringtones';
 import { handleUploadReward } from '@/app/actions/user';
+import { MOODS, DEITY_CATEGORIES } from '@/lib/constants';
 import Image from 'next/image';
 import Script from 'next/script';
 
@@ -33,7 +34,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
   const [trimEnd, setTrimEnd] = useState(0);
 
   // Content Type Selection
-  const [contentType, setContentType] = useState<'movie' | 'album' | 'devotional'>('movie');
+  const [contentType, setContentType] = useState<'movie' | 'album' | 'devotional' | null>(null);
   const [deityCategory, setDeityCategory] = useState('');
 
 
@@ -120,26 +121,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
     "Instruments": ["Flute", "Violin", "Guitar", "Piano", "Keyboard", "Veena", "Drums", "Nadaswaram"]
   };
 
-  const DEITY_CATEGORIES = {
-    "Hindu": [
-      "Ayyappan",
-      "Murugan",
-      "Vinayagar",
-      "Siva",
-      "Vishnu",
-      "Amman",
-      "Krishna",
-      "Rama",
-      "Hanuman",
-      "Karuppusamy",
-      "Perumal",
-      "Mariamman",
-      "Kali"
-    ],
-    "Christian": ["Jesus", "Mary", "Saint"],
-    "Muslim": ["Allah"],
-    "Other": ["Buddha", "Mahavira", "Other"]
-  };
+
 
   const SEGMENT_SUGGESTIONS = ["Pallavi", "Charanam", "BGM", "Whistle", "Flute Version", "Violin Version", "Climax BGM", "Intro", "Interlude"];
 
@@ -580,17 +562,35 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
       setLoadingMessage('Finalizing...');
 
+      // Auto-fix: If song_name is empty but the entered Ringtone Name contains a dash
+      // Move the first part to song_name if it looks like one (not a tag)
+      let derivedSongName = songName;
+      let titleToSave = finalTitle;
+
+      if (!derivedSongName && titleToSave.includes(' - ')) {
+        const parts = titleToSave.split(/\s*[-–—:|]+\s*/);
+        const TAGS = ['bgm', 'vocal', 'instrumental', 'theme', 'interlude', 'humming', 'dialogue', 'remix', 'whistle', 'flute', 'violin'];
+        if (parts.length >= 2 && !TAGS.includes(parts[0].toLowerCase())) {
+          derivedSongName = parts[0];
+          titleToSave = parts.slice(1).join(' - ');
+        }
+      }
+
+      // Calculate final duration for DB
+      const finalDuration = (trimEnd > trimStart) ? (trimEnd - trimStart) : 0;
+
       // 3. Insert into Database - Different data based on content type
       const baseData = {
         user_id: userId,
-        title: finalTitle,
-        song_name: songName, // Keep song name for SEO and database context
+        title: titleToSave,
+        song_name: derivedSongName, // Use the corrected song name
         slug,
         singers,
         music_director: musicDirector,
         audio_url: mp3Url,
         audio_url_iphone: iphoneUrl || undefined,
         tags: selectedTags,
+        duration: Math.round(finalDuration), // Store in seconds
         status: 'approved' // Auto-approval enabled
       };
 
@@ -691,7 +691,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       setMovieDirector('');
       setSelectedTags([]);
 
-      setContentType('movie');
+      setContentType(null);
       setDeityCategory('');
 
       if (onComplete) {
@@ -726,13 +726,13 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
         // Vocals and Instruments categories removed
       };
     }
-    // For movie and album, return all categories
+    // For movie, album or initial null state, return all categories
     return TAG_CATEGORIES;
   };
 
   if (!userId) {
     return (
-      <div className="max-w-md mx-auto bg-white p-8 rounded-3xl border border-brand-border text-center space-y-6 shadow-xl">
+      <div className="w-full bg-white p-8 rounded-3xl border border-brand-border text-center space-y-6 shadow-sm">
         <div className="w-20 h-20 bg-brand-wash rounded-full flex items-center justify-center mx-auto text-brand-accent mb-4">
           <Upload size={32} />
         </div>
@@ -751,7 +751,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
   }
 
   return (
-    <div className="max-w-md mx-auto bg-white p-6 rounded-3xl border border-brand-border pb-32 transition-all shadow-xl shadow-brand-dark/5">
+    <div className="w-full bg-white p-6 rounded-3xl border border-brand-border pb-12 transition-all shadow-sm">
 
       {/* Progress */}
       <div className="flex justify-between mb-8 text-[10px] font-black text-zinc-400 uppercase tracking-widest">

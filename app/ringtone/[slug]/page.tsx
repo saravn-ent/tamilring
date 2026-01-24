@@ -19,6 +19,7 @@ import StructuredData from '@/components/StructuredData';
 import SimilarRingtones from '@/components/SimilarRingtones';
 import { getSimilarRingtones } from '@/app/actions/ringtones';
 import { getImageUrl } from '@/lib/tmdb';
+import TMDBImage from '@/components/TMDBImage';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -75,16 +76,15 @@ export default async function RingtonePage({ params }: Props) {
     <div className="max-w-md md:max-w-2xl lg:max-w-4xl mx-auto min-h-screen bg-background relative flex flex-col transition-colors duration-300">
       {/* Backdrop */}
       <div className="absolute top-0 left-0 right-0 h-96 opacity-30 z-0">
-        {(ringtone.backdrop_url || ringtone.poster_url) && (
-          <Image
-            src={getImageUrl(ringtone.backdrop_url || ringtone.poster_url)}
-            alt={ringtone.movie_name}
-            fill
-            priority
-            sizes="100vw"
-            className="object-cover mask-image-gradient"
-          />
-        )}
+        <TMDBImage
+          path={ringtone.backdrop_url || ringtone.poster_url}
+          alt={ringtone.movie_name}
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover mask-image-gradient"
+          size="w780"
+        />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background" />
       </div>
 
@@ -102,19 +102,15 @@ export default async function RingtonePage({ params }: Props) {
 
         <div className="flex flex-col items-center text-center space-y-4 mt-2">
           <div className="relative w-32 h-48 rounded-xl overflow-hidden shadow-2xl shadow-brand-dark/20 bg-brand-wash flex items-center justify-center">
-            {ringtone.poster_url ? (
-              <Image
-                src={getImageUrl(ringtone.poster_url)}
-                alt={ringtone.movie_name}
-                fill
-                priority
-                quality={85}
-                sizes="(max-width: 640px) 50vw, 128px"
-                className="object-cover"
-              />
-            ) : (
-              <Music size={32} className="text-zinc-400" />
-            )}
+            <TMDBImage
+              path={ringtone.poster_url}
+              alt={ringtone.movie_name}
+              fill
+              priority
+              quality={85}
+              sizes="(max-width: 640px) 50vw, 128px"
+              className="object-cover"
+            />
           </div>
 
           <div className="space-y-1">

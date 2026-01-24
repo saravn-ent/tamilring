@@ -6,15 +6,20 @@ import Link from 'next/link';
 import Image from 'next/image';
 import RingtoneCard from '@/components/RingtoneCard';
 import ShareProfileButton from '@/components/ShareProfileButton';
+import SortControl from '@/components/SortControl';
+import { Ringtone } from '@/types';
 
 export const revalidate = 60; // Cache for 60 seconds
 
 export default async function UserProfilePage({
-  params
+  params,
+  searchParams
 }: {
-  params: Promise<{ username: string }>
+  params: Promise<{ username: string }>,
+  searchParams: Promise<{ sort?: string }>
 }) {
   const { username } = await params;
+  const { sort } = await searchParams;
   const userId = decodeURIComponent(username);
 
   // Fetch Profile
@@ -32,13 +37,32 @@ export default async function UserProfilePage({
     );
   }
 
-  // Fetch Uploads
-  const { data: uploads } = await supabase
+  // Fetch Uploads with Sorting
+  let query = supabase
     .from('ringtones')
     .select('*')
     .eq('user_id', userId)
-    .eq('status', 'approved')
-    .order('created_at', { ascending: false });
+    .eq('status', 'approved');
+
+  // Apply Sorting
+  switch (sort) {
+    case 'downloads':
+      query = query.order('downloads', { ascending: false });
+      break;
+    case 'likes':
+      query = query.order('likes', { ascending: false });
+      break;
+    case 'year_desc':
+      query = query.order('movie_year', { ascending: false });
+      break;
+    case 'year_asc':
+      query = query.order('movie_year', { ascending: true });
+      break;
+    default: // recent
+      query = query.order('created_at', { ascending: false });
+  }
+
+  const { data: uploads } = await query;
 
   // Fetch Badges
   const { data: userBadges } = await supabase
@@ -220,12 +244,14 @@ export default async function UserProfilePage({
         </div>
       </div>
 
-      {/* Ringtones List */}
       <div>
-        <h2 className="text-lg font-bold text-brand-dark mb-4 flex items-center gap-2">
-          <Music size={20} className="text-brand-accent" />
-          Uploaded Ringtones
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-bold text-brand-dark flex items-center gap-2">
+            <Music size={20} className="text-brand-accent" />
+            Uploaded Ringtones
+          </h2>
+          <SortControl />
+        </div>
 
         {uploads && uploads.length > 0 ? (
           <div className="space-y-4">
