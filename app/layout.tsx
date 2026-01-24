@@ -11,12 +11,11 @@ import SiteHeader from "@/components/SiteHeader";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { generateBaseMetadata } from "@/lib/seo";
 
-import { Outfit } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 
-const outfit = Outfit({
+const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-outfit',
 });
 
 export const viewport: Viewport = {
@@ -103,9 +102,17 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${outfit.variable} font-display antialiased scrollbar-hide transition-colors duration-300 bg-background text-foreground`}
+        className={`${jakarta.className} font-sans antialiased scrollbar-hide transition-colors duration-300 bg-background text-foreground`}
         suppressHydrationWarning
       >
+        <style dangerouslySetInnerHTML={{
+          __html: `
+          :root {
+            --font-jakarta: ${jakarta.style.fontFamily};
+            --font-display: ${jakarta.style.fontFamily};
+            --font-sans: ${jakarta.style.fontFamily};
+          }
+        `}} />
         <Script
           strategy="lazyOnload"
           src={`https://www.googletagmanager.com/gtag/js?id=G-07CW71VTGB`}

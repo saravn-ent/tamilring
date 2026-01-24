@@ -64,7 +64,7 @@ export default function SiteHeader() {
   return (
     <header className="fixed top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-b border-brand-gray h-14">
       <div className="max-w-6xl mx-auto px-4 md:px-6 h-14 flex items-center justify-between">
-        <Link href="/" className="text-xl font-bold tracking-tighter text-brand-blue">
+        <Link href="/" className="text-xl font-display font-bold tracking-tighter text-brand-blue">
           <span>Tamil</span><span className="text-brand-dark">Ring</span>
         </Link>
 

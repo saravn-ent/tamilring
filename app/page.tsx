@@ -37,7 +37,7 @@ const getTopArtists = unstable_cache(
 
     if (error || !allPeople) {
       console.error('Error fetching artist stats:', error);
-      return { topSingers: [], topMusicDirectors: [], topMovieDirectors: [] };
+      return { topSingers: [], topMusicDirectors: [], topMovieDirectors: [], topActors: [] };
     }
 
     // Helper to fetch Person details (Sequential to avoid Rate Limits)
@@ -51,6 +51,7 @@ const getTopArtists = unstable_cache(
           name: person?.name || searchQuery,
           likes: Number(stats.total_likes),
           count: Number(stats.total_count),
+          movieCount: Number(stats.total_movies),
           image: person?.profile_path ? getImageUrl(person.profile_path, 'w185') : null
         });
         // Small delay to be nice to TMDB
@@ -59,13 +60,15 @@ const getTopArtists = unstable_cache(
       return results;
     };
 
-    // 2. Filter by Roles & Slice Top 10
+    // 2. Filter by Roles & Slice Top
     const topMDsList = allPeople.filter((p: any) => p.is_md).slice(0, 10);
     const topDirsList = allPeople.filter((p: any) => p.is_dir).slice(0, 10);
+    const topActorsList = allPeople.filter((p: any) => p.is_top_actor).slice(0, 10);
 
     const excludeNormalized = new Set([
       ...topMDsList.map((p: any) => p.normalized_name),
-      ...topDirsList.map((p: any) => p.normalized_name)
+      ...topDirsList.map((p: any) => p.normalized_name),
+      ...topActorsList.map((p: any) => p.normalized_name)
     ]);
 
     const topSingersList = allPeople
@@ -73,13 +76,14 @@ const getTopArtists = unstable_cache(
       .slice(0, 12); // A bit more for singers
 
     // 3. Enrich with TMDB Data Parallelly across chunks but sequential per category
-    const [topMusicDirectors, topMovieDirectors, topSingers] = await Promise.all([
+    const [topMusicDirectors, topMovieDirectors, topActors, topSingers] = await Promise.all([
       enrichArtistsSequential(topMDsList),
       enrichArtistsSequential(topDirsList),
+      enrichArtistsSequential(topActorsList),
       enrichArtistsSequential(topSingersList)
     ]);
 
-    return { topSingers, topMusicDirectors, topMovieDirectors };
+    return { topSingers, topMusicDirectors, topMovieDirectors, topActors };
   },
   ['top-artists-home-v16'], // Bump version
   { revalidate: 3600, tags: ['homepage-artists'] }
@@ -141,10 +145,11 @@ export default async function Home() {
   // 4. Process Nostalgia - (Now directly from cache)
 
   // 5. Process Top Artists
-  const { topSingers, topMusicDirectors, topMovieDirectors } = topArtistsData as {
-    topSingers: { name: string; likes: number; count: number; image: string | null }[];
-    topMusicDirectors: { name: string; likes: number; count: number; image: string | null }[];
-    topMovieDirectors: { name: string; likes: number; count: number; image: string | null }[];
+  const { topSingers, topMusicDirectors, topMovieDirectors, topActors } = topArtistsData as {
+    topSingers: { name: string; likes: number; count: number; movieCount: number; image: string | null }[];
+    topMusicDirectors: { name: string; likes: number; count: number; movieCount: number; image: string | null }[];
+    topMovieDirectors: { name: string; likes: number; count: number; movieCount: number; image: string | null }[];
+    topActors: { name: string; likes: number; count: number; movieCount: number; image: string | null }[];
   };
 
   // 6. Process Top Contributors
@@ -185,7 +190,7 @@ export default async function Home() {
       {topSingers.length > 0 && (
         <div className="mb-10">
           <div className="px-4">
-            <SectionHeader title="The Voices You Love" translationKey="voices" />
+            <SectionHeader title="The Voices You Love" translationKey={"voices" as any} />
           </div>
           <div className="flex overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-6">
             {topSingers.map((singer, idx) => (
@@ -196,6 +201,27 @@ export default async function Home() {
                 image={singer.image || ''}
                 href={`/artist/${encodeURIComponent(singer.name)}`}
                 subtitle={`${singer.count} rings`}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Top Actors */}
+      {topActors && topActors.length > 0 && (
+        <div className="mb-10">
+          <div className="px-4">
+            <SectionHeader title="Top Actors" translationKey={"actors" as any} />
+          </div>
+          <div className="flex overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-6">
+            {topActors.map((actor, idx) => (
+              <HeroCard
+                key={idx}
+                index={idx}
+                name={actor.name}
+                image={actor.image || ''}
+                href={`/artist/${encodeURIComponent(actor.name)}`}
+                subtitle={`${actor.movieCount} movies`}
               />
             ))}
           </div>

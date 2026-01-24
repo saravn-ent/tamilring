@@ -260,10 +260,10 @@ function SearchContent() {
         <div className="max-w-md mx-auto min-h-screen bg-white pb-24">
             {isSpecialSearch && (
                 <div className="p-6 pt-8 bg-gradient-to-b from-brand-wash to-white">
-                    <h1 className="text-3xl font-black text-brand-dark capitalize tracking-tight">
+                    <h1 className="text-3xl font-bold text-brand-dark capitalize tracking-tight">
                         {matchedEra ? matchedEra.label : matchedInstrument?.label}
                     </h1>
-                    <p className="text-zinc-500 text-sm mt-1 font-medium">
+                    <p className="text-zinc-600 text-sm mt-1 font-medium">
                         Best {matchedEra ? matchedEra.label : matchedInstrument?.label} Ringtones
                     </p>
                 </div>
@@ -279,10 +279,10 @@ function SearchContent() {
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
                                 placeholder="Search rings, movies, artists..."
-                                className="w-full bg-white border border-brand-gray rounded-xl px-12 py-4 text-lg text-brand-dark focus:outline-none focus:border-brand-blue transition-colors shadow-sm placeholder:text-zinc-400"
+                                className="w-full bg-white border border-brand-gray rounded-xl px-12 py-4 text-lg text-brand-dark focus:outline-none focus:border-brand-blue transition-colors shadow-sm placeholder:text-zinc-500"
                                 autoFocus
                             />
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" />
+                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
                             {loading && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-blue animate-spin" />}
                         </div>
                     )}
@@ -296,7 +296,7 @@ function SearchContent() {
                                     onClick={() => setActiveTab(tab as any)}
                                     className={`px-4 py-2 rounded-full text-sm font-medium capitalize whitespace-nowrap transition-colors border ${activeTab === tab
                                         ? 'bg-brand-blue text-white border-brand-blue'
-                                        : 'bg-white text-zinc-500 border-brand-gray hover:border-zinc-300'
+                                        : 'bg-white text-zinc-600 border-brand-gray hover:border-zinc-400'
                                         }`}
                                 >
                                     {tab}
@@ -391,7 +391,7 @@ function SearchContent() {
                                 {/* Movies Section */}
                                 {(activeTab === 'all' || activeTab === 'movies') && results.movies.length > 0 && (
                                     <section className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                                        <h3 className="font-bold text-zinc-500 text-xs uppercase tracking-wider mb-3 px-1">
+                                        <h3 className="font-bold text-zinc-600 text-xs uppercase tracking-wider mb-3 px-1">
                                             {ERAS.find(e => e.label.toLowerCase() === query.toLowerCase()) ? `${query} Movies` : (activeTab === 'all' ? 'Movies' : 'Matching Movies')}
                                         </h3>
                                         <div className="grid grid-cols-2 gap-3">
@@ -407,7 +407,7 @@ function SearchContent() {
                                                     </div>
                                                     <div>
                                                         <p className="font-bold text-brand-dark text-sm truncate">{item.movie_name}</p>
-                                                        <p className="text-[10px] text-zinc-500">{item.movie_year}</p>
+                                                        <p className="text-[10px] text-zinc-600">{item.movie_year}</p>
                                                     </div>
                                                 </Link>
                                             ))}
@@ -418,7 +418,7 @@ function SearchContent() {
                                 {/* Artists Section */}
                                 {(activeTab === 'all' || activeTab === 'artists') && results.artists.length > 0 && (
                                     <section className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-100">
-                                        <h3 className="font-bold text-zinc-500 text-xs uppercase tracking-wider mb-3 px-1">Artists</h3>
+                                        <h3 className="font-bold text-zinc-600 text-xs uppercase tracking-wider mb-3 px-1">Artists</h3>
                                         <div className="flex flex-wrap gap-3">
                                             {results.artists.map((item, idx) => (
                                                 <Link href={`/artist/${encodeURIComponent(item.name)}`} key={idx} className="flex items-center gap-3 pr-4 pl-2 py-2 bg-white rounded-full border border-brand-gray hover:border-brand-blue transition-colors">
@@ -436,7 +436,7 @@ function SearchContent() {
                                 {(activeTab === 'all' || activeTab === 'ringtones') && results.ringtones.length > 0 && (
                                     <section className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-200">
                                         {!isSpecialSearch && (
-                                            <h3 className="font-bold text-zinc-500 text-xs uppercase tracking-wider mb-3 px-1">Ringtones</h3>
+                                            <h3 className="font-bold text-zinc-600 text-xs uppercase tracking-wider mb-3 px-1">Ringtones</h3>
                                         )}
                                         <div className="space-y-3">
                                             {results.ringtones.map((item) => (
@@ -465,7 +465,7 @@ function SearchContent() {
                                                 href={`/mood/${mood.toLowerCase()}`}
                                                 className="p-4 bg-white border border-[#E5EBF1] rounded-xl hover:shadow-md transition-all group"
                                             >
-                                                <span className="font-bold text-zinc-600 group-hover:text-[#3EB0EF]">{mood}</span>
+                                                <span className="font-bold text-zinc-700 group-hover:text-brand-accent">{mood}</span>
                                             </Link>
                                         ))}
                                     </div>
@@ -495,7 +495,7 @@ function SearchContent() {
                         {/* Default Populated Content for Specific Tabs */}
                         {activeTab === 'movies' && (
                             <section>
-                                <h3 className="font-bold text-zinc-500 text-xs uppercase tracking-wider mb-3 px-1">Popular Movies</h3>
+                                <h3 className="font-bold text-zinc-600 text-xs uppercase tracking-wider mb-3 px-1">Popular Movies</h3>
                                 <div className="grid grid-cols-2 gap-3">
                                     {defaults.movies.map((item, idx) => (
                                         <Link href={`/movie/${encodeURIComponent(item.movie_name)}`} key={idx} className="flex flex-col gap-2 p-2 bg-white rounded-xl border border-[#E5EBF1] hover:shadow-lg transition-all group">
@@ -519,11 +519,11 @@ function SearchContent() {
 
                         {activeTab === 'artists' && (
                             <section>
-                                <h3 className="font-bold text-zinc-500 text-xs uppercase tracking-wider mb-3 px-1">Top Artists</h3>
+                                <h3 className="font-bold text-zinc-600 text-xs uppercase tracking-wider mb-3 px-1">Top Artists</h3>
                                 <div className="flex flex-wrap gap-3">
                                     {defaults.artists.map((item, idx) => (
-                                        <Link href={`/artist/${encodeURIComponent(item.name)}`} key={idx} className="flex items-center gap-3 pr-4 pl-2 py-2 bg-white rounded-full border border-[#E5EBF1] hover:border-[#3EB0EF] transition-colors">
-                                            <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-[#3EB0EF] font-bold border border-zinc-200">
+                                        <Link href={`/artist/${encodeURIComponent(item.name)}`} key={idx} className="flex items-center gap-3 pr-4 pl-2 py-2 bg-white rounded-full border border-[#E5EBF1] hover:border-brand-accent transition-colors">
+                                            <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-brand-blue font-bold border border-zinc-200">
                                                 {item.name.charAt(0)}
                                             </div>
                                             <p className="font-medium text-[#15171A] text-sm">{item.name}</p>

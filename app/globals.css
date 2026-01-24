@@ -21,7 +21,8 @@
   --color-wash: var(--color-brand-wash);
 
   /* Font */
-  --font-display: var(--font-outfit);
+  --font-display: var(--font-jakarta);
+  --font-sans: var(--font-jakarta);
 
   /* Animations */
   --animate-aurora: aurora-1 15s infinite ease-in-out;
@@ -48,7 +49,7 @@
 
   html,
   body {
-    @apply antialiased tracking-tight leading-relaxed bg-background text-foreground transition-colors duration-300;
+    @apply antialiased tracking-normal leading-relaxed bg-background text-foreground transition-colors duration-300;
   }
 
   /* Headings defaults - Clean & Professional */
@@ -58,8 +59,8 @@
   h4,
   h5,
   h6 {
-    @apply font-bold text-foreground;
-    letter-spacing: -0.02em;
+    @apply font-display font-bold text-foreground;
+    letter-spacing: -0.01em;
   }
 
   /* Focus rings for professional accessibility */

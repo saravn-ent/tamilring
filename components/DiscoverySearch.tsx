@@ -137,7 +137,7 @@ export default function DiscoverySearch({ className = "mb-8" }: { className?: st
   return (
     <form ref={wrapperRef} onSubmit={handleSearch} className={`relative group z-50 ${className}`}>
       <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-        <Search className="h-5 w-5 text-zinc-400 group-focus-within:text-brand-blue transition-colors" />
+        <Search className="h-5 w-5 text-zinc-500 group-focus-within:text-brand-blue transition-colors" />
       </div>
       <input
         type="text"
@@ -145,7 +145,7 @@ export default function DiscoverySearch({ className = "mb-8" }: { className?: st
         onChange={(e) => setSearchQuery(e.target.value)}
         onFocus={() => { if (searchQuery.length > 1) setShowDropdown(true); }}
         placeholder="Find rings, artists, or bgm..."
-        className="w-full bg-white border border-brand-gray text-zinc-900 text-sm rounded-2xl py-4 pl-12 pr-12 focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition-all shadow-sm placeholder:text-zinc-400"
+        className="w-full bg-white border border-brand-gray text-zinc-900 text-sm rounded-2xl py-4 pl-12 pr-12 focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition-all shadow-sm placeholder:text-zinc-500"
       />
       {loading && (
         <div className="absolute inset-y-0 right-4 flex items-center">
@@ -160,7 +160,7 @@ export default function DiscoverySearch({ className = "mb-8" }: { className?: st
           {/* Movies Section */}
           {suggestions.movies.length > 0 && (
             <div className="p-2">
-              <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider px-2 py-1 mb-1 flex items-center gap-1">
+              <h3 className="text-[10px] font-bold text-zinc-600 uppercase tracking-wider px-2 py-1 mb-1 flex items-center gap-1">
                 <Film size={10} /> Movies
               </h3>
               {suggestions.movies.map((movie, idx) => (
@@ -181,7 +181,7 @@ export default function DiscoverySearch({ className = "mb-8" }: { className?: st
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold text-zinc-900 group-hover:text-brand-blue truncate">{movie.movie_name}</p>
-                    <p className="text-[10px] text-zinc-500">{movie.movie_year}</p>
+                    <p className="text-[10px] text-zinc-600">{movie.movie_year}</p>
                   </div>
                 </Link>
               ))}
@@ -191,7 +191,7 @@ export default function DiscoverySearch({ className = "mb-8" }: { className?: st
           {/* Artists Section (Combined: Singers, Music Directors, Movie Directors) */}
           {suggestions.artists.length > 0 && (
             <div className="p-2 bg-brand-wash/30">
-              <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider px-2 py-1 mb-1 flex items-center gap-1">
+              <h3 className="text-[10px] font-bold text-zinc-600 uppercase tracking-wider px-2 py-1 mb-1 flex items-center gap-1">
                 <Mic size={10} /> Artists
               </h3>
               <div className="grid grid-cols-2 gap-1">
@@ -215,7 +215,7 @@ export default function DiscoverySearch({ className = "mb-8" }: { className?: st
           {/* Ringtones Section */}
           {suggestions.ringtones.length > 0 && (
             <div className="p-2">
-              <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider px-2 py-1 mb-1 flex items-center gap-1">
+              <h3 className="text-[10px] font-bold text-zinc-600 uppercase tracking-wider px-2 py-1 mb-1 flex items-center gap-1">
                 <Music size={10} /> Ringtones
               </h3>
               {suggestions.ringtones.map((ringtone) => (
@@ -231,7 +231,7 @@ export default function DiscoverySearch({ className = "mb-8" }: { className?: st
                     </div>
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-zinc-900 group-hover:text-brand-blue truncate">{ringtone.title}</p>
-                      <p className="text-[10px] text-zinc-600 truncate">{ringtone.movie_name}</p>
+                      <p className="text-[10px] text-zinc-700 truncate">{ringtone.movie_name}</p>
                     </div>
                   </div>
                 </Link>

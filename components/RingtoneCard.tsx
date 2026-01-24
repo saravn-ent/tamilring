@@ -228,6 +228,9 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
     displayName = ringtone.title;
   }
 
+  // Auto capitalize first letter
+  displayName = displayName.charAt(0).toUpperCase() + displayName.slice(1);
+
   return (
     <>
       <div
@@ -263,7 +266,7 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
 
             {/* Duration Badge below Art (Only when NOT playing) */}
             {!isActive && loadedDuration && (
-              <span className="text-[10px] font-black text-zinc-500 bg-zinc-100/50 border border-zinc-200/50 px-1.5 py-0.5 rounded-md leading-none shadow-sm">
+              <span className="text-[10px] font-black text-zinc-600 bg-zinc-100/50 border border-zinc-200/50 px-1.5 py-0.5 rounded-md leading-none shadow-sm">
                 {formatDuration(loadedDuration)}
               </span>
             )}
@@ -273,19 +276,19 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
           <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
             <div className="block">
               {/* Line 1: Ringtone Name (Segment Name) */}
-              <h3 className="text-base sm:text-[17px] font-bold text-zinc-900 line-clamp-2 whitespace-normal leading-tight">
+              <h3 className="text-sm sm:text-[15px] font-semibold text-zinc-900 line-clamp-2 whitespace-normal leading-tight">
                 {displayName}
               </h3>
 
               {/* Line 2: Song Name */}
               {ringtone.song_name && (
-                <p className="text-[13px] sm:text-sm text-zinc-600 truncate font-medium mt-0.5">
+                <p className="text-[13px] sm:text-sm text-zinc-700 truncate font-medium mt-0.5">
                   {ringtone.song_name}
                 </p>
               )}
 
               {/* Line 3: Movie Name */}
-              <p className="text-xs sm:text-[13px] text-zinc-500 truncate font-normal mt-0.5">
+              <p className="text-xs sm:text-[13px] text-zinc-600 truncate font-normal mt-0.5">
                 {ringtone.movie_name}
               </p>
             </div>
@@ -311,7 +314,7 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
             {ringtone.tags && ringtone.tags.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mt-1.5">
                 {ringtone.tags.slice(0, 3).map(tag => (
-                  <span key={tag} className="text-[10px] px-2 py-0.5 rounded-md bg-brand-wash text-zinc-500 border border-brand-border/50 font-medium">
+                  <span key={tag} className="text-[10px] px-2 py-0.5 rounded-md bg-brand-wash text-zinc-600 border border-brand-border/50 font-medium">
                     #{tag}
                   </span>
                 ))}
@@ -320,11 +323,11 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
 
             {/* Stats (Only when NOT playing) */}
             {!isActive && (
-              <div className="flex items-center gap-2 mt-1.5 text-xs sm:text-[13px] font-medium text-zinc-400">
+              <div className="flex items-center gap-2 mt-1.5 text-xs sm:text-[13px] font-medium text-zinc-500">
                 <span>
                   {ringtone.downloads > 0 ? (ringtone.downloads > 1000 ? `${(ringtone.downloads / 1000).toFixed(1)}k` : ringtone.downloads) : 0} Downloads
                 </span>
-                <span className="text-zinc-300">•</span>
+                <span className="text-zinc-400">•</span>
                 <span>
                   {likesCount > 0 ? (likesCount > 1000 ? `${(likesCount / 1000).toFixed(1)}k` : likesCount) : 0} Likes
                 </span>
@@ -348,7 +351,7 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
             {/* Share */}
             <button
               onClick={handleShare}
-              className="flex items-center justify-center w-10 h-10 text-zinc-400 hover:text-brand-accent hover:bg-brand-wash rounded-full transition-all touch-manipulation active:scale-90"
+              className="flex items-center justify-center w-10 h-10 text-zinc-500 hover:text-brand-accent hover:bg-brand-wash rounded-full transition-all touch-manipulation active:scale-90"
               aria-label="Share"
             >
               <Share2 size={18} />

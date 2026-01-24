@@ -21,7 +21,7 @@ const getArtistRingtones = unstable_cache(
       .from('ringtones')
       .select('*')
       .eq('status', 'approved')
-      .or(`singers.ilike.%${artistName}%,music_director.ilike.%${artistName}%,movie_director.ilike.%${artistName}%`);
+      .or(`singers.ilike.%${artistName}%,music_director.ilike.%${artistName}%,movie_director.ilike.%${artistName}%,cast_members.ilike.%${artistName}%`);
 
     // Apply Sorting
     switch (sort) {
@@ -41,8 +41,27 @@ const getArtistRingtones = unstable_cache(
         query = query.order('created_at', { ascending: false });
     }
 
-    const { data } = await query;
-    return data;
+    const { data } = await query.limit(200); // Fetch more for smart filtering
+    if (!data) return [];
+
+    // Exact Name Matching Only: No predictions, no substring matching
+    const searchLow = artistName.toLowerCase().trim();
+
+    const filtered = data.filter(r => {
+      const checkMatch = (str: string | null) => {
+        if (!str) return false;
+        // Split by exact separators used in sync (comma, ampersand)
+        const parts = str.split(/[,&]|\band\b/i).map(s => s.trim().toLowerCase());
+        return parts.includes(searchLow);
+      };
+
+      return checkMatch(r.singers) ||
+        checkMatch(r.music_director) ||
+        checkMatch(r.movie_director) ||
+        checkMatch(r.cast_members);
+    });
+
+    return filtered;
   },
   ['artist-ringtones-v2'], // Base key
   { revalidate: 3600 }
@@ -59,11 +78,14 @@ export async function generateMetadata({ params }: { params: Promise<{ artist_na
   const poster = ringtones?.find(r => r.poster_url)?.poster_url;
 
   // Determine role roughly
-  let role: 'singer' | 'music_director' | 'movie_director' = 'singer';
+  let role: 'singer' | 'music_director' | 'movie_director' | 'actor' = 'singer';
   if (ringtones?.some(r => r.music_director?.toLowerCase().includes(artistName.toLowerCase()))) {
     role = 'music_director';
   } else if (ringtones?.some(r => r.movie_director?.toLowerCase().includes(artistName.toLowerCase()))) {
     role = 'movie_director';
+  } else {
+    // Check if they are mentioned as an actor in tags or title
+    role = 'actor';
   }
 
   // We skip TMDB here for speed in metadata, or we could fetch it if critical.
@@ -115,11 +137,15 @@ export default async function ArtistPage({
     artistType = 'Actor';
   }
 
-  // Override based on ringtone data if TMDB is ambiguous (e.g. some music directors might be listed as Sound)
-  // Check if they appear frequently in music_director column
+  // Override based on ringtone data if TMDB is ambiguous
   const isMusicDirector = ringtones?.some(r => r.music_director?.toLowerCase().includes(artistName.toLowerCase()));
   if (isMusicDirector && artistType !== 'Movie Director') {
     artistType = 'Music Director';
+  } else if (!isMusicDirector && artistType === 'Singer' && ringtones && ringtones.length > 0) {
+    // If not a singer or director, and we have rings, they might be an actor (if not already labeled)
+    if (!ringtones.some(r => r.singers?.toLowerCase().includes(artistName.toLowerCase()))) {
+      artistType = 'Actor';
+    }
   }
 
   // Group by Movies for "Movies" view & Count

@@ -18,7 +18,7 @@ export default function SectionHeader({ title, href, translationKey }: SectionHe
 
   return (
     <div className="flex items-center justify-between mb-3 mt-6">
-      <h2 suppressHydrationWarning className="text-lg font-bold text-black">{displayTitle}</h2>
+      <h2 suppressHydrationWarning className="text-lg font-display font-bold text-black">{displayTitle}</h2>
       {href && (
         <Link suppressHydrationWarning href={href} className="text-xs text-brand-dark hover:text-brand-accent flex items-center hover:underline transition-colors font-medium">
           {t('viewAll')} <ChevronRight size={14} />

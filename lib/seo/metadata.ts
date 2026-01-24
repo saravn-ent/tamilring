@@ -266,14 +266,16 @@ export function generateMovieMetadata(movie: {
 export function generateArtistMetadata(artist: {
     name: string;
     image_url?: string;
-    role?: 'singer' | 'music_director' | 'movie_director';
+    role?: 'singer' | 'music_director' | 'movie_director' | 'actor';
     ringtone_count?: number;
 }): Metadata {
     const roleText = artist.role === 'singer'
         ? 'Singer'
         : artist.role === 'music_director'
             ? 'Music Director'
-            : 'Director';
+            : artist.role === 'movie_director'
+                ? 'Director'
+                : 'Actor';
 
     const title = `${artist.name} - Tamil ${roleText} Ringtones`;
 
