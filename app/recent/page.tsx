@@ -1,9 +1,10 @@
 import { supabase } from '@/lib/supabaseClient';
-import RingtoneCard from '@/components/RingtoneCard';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import SortControl from '@/components/SortControl';
-import { Ringtone } from '@/types';
+import RecentRingtonesList from '@/components/recent/RecentRingtonesList';
+import { Suspense } from 'react';
+import { RingtoneGridSkeleton } from '@/components/skeletons';
 
 export const revalidate = 0;
 
@@ -13,31 +14,6 @@ export default async function RecentPage({
   searchParams: Promise<{ sort?: string }>
 }) {
   const { sort } = await searchParams;
-
-  let query = supabase
-    .from('ringtones')
-    .select('*')
-    .eq('status', 'approved');
-
-  // Apply Sorting
-  switch (sort) {
-    case 'downloads':
-      query = query.order('downloads', { ascending: false });
-      break;
-    case 'likes':
-      query = query.order('likes', { ascending: false });
-      break;
-    case 'year_desc':
-      query = query.order('movie_year', { ascending: false });
-      break;
-    case 'year_asc':
-      query = query.order('movie_year', { ascending: true });
-      break;
-    default: // recent
-      query = query.order('created_at', { ascending: false });
-  }
-
-  const { data: recent } = await query.limit(50);
 
   return (
     <div className="max-w-md mx-auto p-4 pb-24">
@@ -52,11 +28,9 @@ export default async function RecentPage({
         <SortControl />
       </div>
 
-      <div className="space-y-4">
-        {recent?.map((ringtone: Ringtone) => (
-          <RingtoneCard key={ringtone.id} ringtone={ringtone} />
-        ))}
-      </div>
+      <Suspense fallback={<RingtoneGridSkeleton count={6} />}>
+        <RecentRingtonesList sort={sort} />
+      </Suspense>
     </div>
   );
 }

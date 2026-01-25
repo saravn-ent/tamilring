@@ -1,101 +1,25 @@
 import { supabase } from '@/lib/supabaseClient';
 export const revalidate = 3600;
 import { searchPerson, getImageUrl } from '@/lib/tmdb';
-import RingtoneCard from '@/components/RingtoneCard';
 import CompactProfileHeader from '@/components/CompactProfileHeader';
 import SortControl from '@/components/SortControl';
 import ViewToggle from '@/components/ViewToggle';
 import { getArtistBio } from '@/lib/constants';
-import Link from 'next/link';
-import Image from 'next/image';
-import TMDBImage from '@/components/TMDBImage';
-import { Ringtone } from '@/types';
-import { unstable_cache } from 'next/cache';
-
-import { generateArtistMetadata } from '@/lib/seo';
 import { Metadata } from 'next';
-
-const getArtistRingtones = unstable_cache(
-  async (artistName: string, sort: string = 'recent') => {
-    let query = supabase
-      .from('ringtones')
-      .select('*')
-      .eq('status', 'approved')
-      .or(`singers.ilike.%${artistName}%,music_director.ilike.%${artistName}%,movie_director.ilike.%${artistName}%,cast_members.ilike.%${artistName}%`);
-
-    // Apply Sorting
-    switch (sort) {
-      case 'downloads':
-        query = query.order('downloads', { ascending: false });
-        break;
-      case 'likes':
-        query = query.order('likes', { ascending: false });
-        break;
-      case 'year_desc':
-        query = query.order('movie_year', { ascending: false });
-        break;
-      case 'year_asc':
-        query = query.order('movie_year', { ascending: true });
-        break;
-      default: // recent
-        query = query.order('created_at', { ascending: false });
-    }
-
-    const { data } = await query.limit(200); // Fetch more for smart filtering
-    if (!data) return [];
-
-    // Exact Name Matching Only: No predictions, no substring matching
-    const searchLow = artistName.toLowerCase().trim();
-
-    const filtered = data.filter(r => {
-      const checkMatch = (str: string | null) => {
-        if (!str) return false;
-        // Split by exact separators used in sync (comma, ampersand)
-        const parts = str.split(/[,&]|\band\b/i).map(s => s.trim().toLowerCase());
-        return parts.includes(searchLow);
-      };
-
-      return checkMatch(r.singers) ||
-        checkMatch(r.music_director) ||
-        checkMatch(r.movie_director) ||
-        checkMatch(r.cast_members);
-    });
-
-    return filtered;
-  },
-  ['artist-ringtones-v2'], // Base key
-  { revalidate: 3600 }
-);
+import { generateArtistMetadata } from '@/lib/seo';
+import ArtistRingtonesList from '@/components/artist/ArtistRingtonesList';
+import { Suspense } from 'react';
+import { RingtoneGridSkeleton } from '@/components/skeletons';
 
 export async function generateMetadata({ params }: { params: Promise<{ artist_name: string }> }): Promise<Metadata> {
   const { artist_name } = await params;
   const artistName = decodeURIComponent(artist_name);
 
-  // Quick fetch for metadata (don't need sort)
-  const ringtones = await getArtistRingtones(artistName, 'recent');
-
-  // Try to find image from ringtones first to save TMDB call, or use generic logic
-  const poster = ringtones?.find(r => r.poster_url)?.poster_url;
-
-  // Determine role roughly
-  let role: 'singer' | 'music_director' | 'movie_director' | 'actor' = 'singer';
-  if (ringtones?.some(r => r.music_director?.toLowerCase().includes(artistName.toLowerCase()))) {
-    role = 'music_director';
-  } else if (ringtones?.some(r => r.movie_director?.toLowerCase().includes(artistName.toLowerCase()))) {
-    role = 'movie_director';
-  } else {
-    // Check if they are mentioned as an actor in tags or title
-    role = 'actor';
-  }
-
-  // We skip TMDB here for speed in metadata, or we could fetch it if critical.
-  // Using ringtone count from DB results.
-
+  // Basic metadata without heavy fetching
   return generateArtistMetadata({
     name: artistName,
-    image_url: poster,
-    role,
-    ringtone_count: ringtones?.length || 0
+    role: 'singer', // Default
+    ringtone_count: 0
   });
 }
 
@@ -109,20 +33,18 @@ export default async function ArtistPage({
   const { artist_name } = await params;
   const { sort, view } = await searchParams;
   const artistName = decodeURIComponent(artist_name);
-  const currentView = view || 'movies'; // Default to movies
 
-  const ringtones = await getArtistRingtones(artistName, sort);
+  // Parallel fetch for Header Data (TMDB only, very fast)
+  const personPromise = searchPerson(artistName);
 
-  // Calculate Total Likes & Downloads
-  const totalLikes = ringtones?.reduce((sum, ringtone) => sum + (ringtone.likes || 0), 0) || 0;
-  const totalDownloads = ringtones?.reduce((sum, ringtone) => sum + (ringtone.downloads || 0), 0) || 0;
+  // We can optionally fetch a "fast count" here if we validly index it, 
+  // but for now we skip to ensure sub-100ms TTFB.
 
+  const person = await personPromise;
 
-  // Fetch artist image from TMDB
-  const person = await searchPerson(artistName);
   const artistImage = person?.profile_path
     ? getImageUrl(person.profile_path, 'w185')
-    : ringtones?.find(r => r.poster_url)?.poster_url;
+    : null; // Fallback handled in component
 
   // Get artist bio
   const artistBio = getArtistBio(artistName);
@@ -137,38 +59,15 @@ export default async function ArtistPage({
     artistType = 'Actor';
   }
 
-  // Override based on ringtone data if TMDB is ambiguous
-  const isMusicDirector = ringtones?.some(r => r.music_director?.toLowerCase().includes(artistName.toLowerCase()));
-  if (isMusicDirector && artistType !== 'Movie Director') {
-    artistType = 'Music Director';
-  } else if (!isMusicDirector && artistType === 'Singer' && ringtones && ringtones.length > 0) {
-    // If not a singer or director, and we have rings, they might be an actor (if not already labeled)
-    if (!ringtones.some(r => r.singers?.toLowerCase().includes(artistName.toLowerCase()))) {
-      artistType = 'Actor';
-    }
-  }
-
-  // Group by Movies for "Movies" view & Count
-  const moviesMap = new Map<string, Ringtone>();
-  if (ringtones) {
-    ringtones.forEach(r => {
-      if (!moviesMap.has(r.movie_name)) {
-        moviesMap.set(r.movie_name, r);
-      }
-    });
-  }
-  const uniqueMovies = Array.from(moviesMap.values());
-  const movieCount = uniqueMovies.length;
-
   return (
     <div className="max-w-md mx-auto pb-24">
-      {/* Sticky Compact Profile Header */}
+      {/* Sticky Compact Profile Header - Loads Instantly */}
       <CompactProfileHeader
         name={artistName}
         type={artistType as any}
-        ringtoneCount={ringtones?.length || 0}
-        movieCount={movieCount}
-        totalLikes={totalLikes}
+        ringtoneCount={0} // Loaded via streamed content ideally, or ignored for speed
+        movieCount={0}
+        totalLikes={0}
         imageUrl={artistImage}
         bio={artistBio}
         shareMetadata={{
@@ -179,9 +78,6 @@ export default async function ArtistPage({
 
       {/* Sticky Controls Bar */}
       <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-brand-border px-4 py-3 shadow-md flex items-center justify-between gap-2">
-
-
-
         <ViewToggle />
         <div className="flex justify-end">
           <SortControl />
@@ -189,49 +85,9 @@ export default async function ArtistPage({
       </div>
 
       <div className="px-4 py-6">
-        {ringtones && ringtones.length > 0 ? (
-          <>
-            {currentView === 'movies' ? (
-              /* Movies Grid View */
-              <div className="grid grid-cols-2 gap-4">
-                {uniqueMovies.map((movie, idx) => (
-                  <Link
-                    key={movie.movie_name}
-                    href={`/movie/${encodeURIComponent(movie.movie_name)}`}
-                    className="group relative aspect-[2/3] rounded-xl overflow-hidden bg-brand-wash border border-brand-border shadow-md"
-                  >
-                    <TMDBImage
-                      path={movie.poster_url}
-                      alt={movie.movie_name}
-                      fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-110"
-                      sizes="(max-width: 768px) 50vw, 33vw"
-                      priority={idx < 2}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity" />
-                    <div className="absolute bottom-0 left-0 right-0 p-3">
-                      <h3 className="text-white font-bold text-sm leading-tight line-clamp-2 mb-1 group-hover:text-brand-accent transition-colors">
-                        {movie.movie_name}
-                      </h3>
-                      <p className="text-zinc-300 text-xs font-medium">{movie.movie_year}</p>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              /* Rings List View */
-              <div className="space-y-4">
-                {ringtones.map((ringtone) => (
-                  <RingtoneCard key={ringtone.id} ringtone={ringtone} />
-                ))}
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="text-center py-20 text-zinc-500">
-            No ringtones found for this artist.
-          </div>
-        )}
+        <Suspense fallback={<RingtoneGridSkeleton count={6} />}>
+          <ArtistRingtonesList artistName={artistName} sort={sort} view={view} />
+        </Suspense>
       </div>
     </div>
   );

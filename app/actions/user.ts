@@ -1,7 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { ensureAuthenticated } from '@/lib/auth-server'
+import { ensureAuthenticated, getSupabaseAdmin } from '@/lib/auth-server'
 
 // Internal helper for notifications
 async function notifyAdminOnWithdrawal(userId: string, amount: number, upiId: string) {
@@ -37,8 +37,10 @@ export async function handleUploadReward(userId: string) {
         .single();
 
     if (profile && !profile.is_first_upload_rewarded) {
+        const adminSupabase = await getSupabaseAdmin();
+
         // 2. Give 15 Rep bonus immediately
-        const { error } = await supabase
+        const { error } = await adminSupabase
             .from('profiles')
             .update({
                 is_first_upload_rewarded: true,
@@ -82,8 +84,10 @@ export async function handleWithdrawal(userId: string, amount: number, upiId: st
         return { success: false, error: `Insufficient Reputation Points. Need ${withdrawAmount} Rep.` };
     }
 
+    const adminSupabase = await getSupabaseAdmin();
+
     // 3. Process withdrawal (Atomic update)
-    const { error } = await supabase
+    const { error } = await adminSupabase
         .from('profiles')
         .update({
             points: profile.points - withdrawAmount,
@@ -95,7 +99,7 @@ export async function handleWithdrawal(userId: string, amount: number, upiId: st
     if (error) return { success: false, error: error.message };
 
     // 4. Log withdrawal in the database for admin to see
-    const { error: logError } = await supabase
+    const { error: logError } = await adminSupabase
         .from('withdrawals')
         .insert({
             user_id: userId,

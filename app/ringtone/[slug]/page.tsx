@@ -11,13 +11,13 @@ import DownloadButton from './DownloadButton';
 import VideoDownloadButton from './VideoDownloadButton';
 import StreamButtons from '@/components/StreamButtons';
 import { splitArtists } from '@/lib/utils';
-import { cache } from 'react';
+import { cache, Suspense } from 'react';
 import { cacheGetOrSet, CacheKeys, CacheTTL } from '@/lib/cache';
 import { generateRingtoneMetadata } from '@/lib/seo';
 import { generateMusicRecordingSchema, generateBreadcrumbSchema, combineSchemas } from '@/lib/seo';
 import StructuredData from '@/components/StructuredData';
-import SimilarRingtones from '@/components/SimilarRingtones';
-import { getSimilarRingtones } from '@/app/actions/ringtones';
+import SimilarRingtonesSection from '@/components/ringtone/SimilarRingtonesSection';
+import { RingtoneGridSkeleton } from '@/components/skeletons';
 import { getImageUrl } from '@/lib/tmdb';
 import TMDBImage from '@/components/TMDBImage';
 
@@ -68,9 +68,6 @@ export default async function RingtonePage({ params }: Props) {
     { name: cleanTitle, url: `/ringtone/${ringtone.slug}` },
   ]);
   const combinedSchema = combineSchemas(musicRecordingSchema, breadcrumbSchema);
-
-  // Fetch similar ringtones (AI Recommendations)
-  const similarRingtones = await getSimilarRingtones(ringtone);
 
   return (
     <div className="max-w-md md:max-w-2xl lg:max-w-4xl mx-auto min-h-screen bg-background relative flex flex-col transition-colors duration-300">
@@ -220,8 +217,10 @@ export default async function RingtonePage({ params }: Props) {
 
         </div>
 
-        {/* Similar Ringtones Section */}
-        <SimilarRingtones ringtones={similarRingtones} />
+        {/* Similar Ringtones Section - Suspended */}
+        <Suspense fallback={<RingtoneGridSkeleton count={4} />}>
+          <SimilarRingtonesSection ringtone={ringtone} />
+        </Suspense>
       </div>
 
       <StructuredData data={combinedSchema} />

@@ -129,21 +129,13 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
   useEffect(() => {
     const newTags = new Set<string>(selectedTags);
 
-    // 1. Tag by Movie Genre
-    if (selectedMovie?.genre_ids) {
-      selectedMovie.genre_ids.forEach(id => {
-        const mappedTag = TMDB_GENRE_TO_TAG[id];
-        if (mappedTag) newTags.add(mappedTag);
-      });
-    }
-
     // 2. Tag by Text Analysis (Song, Segment)
     const combinedText = `${songName} ${segmentName}`.toLowerCase();
 
-    // Moods
-    if (combinedText.includes('sad') || combinedText.includes('sogam') || combinedText.includes('pathos')) newTags.add('Sad');
-    if (combinedText.includes('love') || combinedText.includes('kadhal') || combinedText.includes('romantic')) newTags.add('Love');
-    if (combinedText.includes('mass') || combinedText.includes('kuthu') || combinedText.includes('hero')) newTags.add('Mass');
+    // Moods - DISABLED per user request (Manual selection only)
+    // if (combinedText.includes('sad') || combinedText.includes('sogam') || combinedText.includes('pathos')) newTags.add('Sad');
+    // if (combinedText.includes('love') || combinedText.includes('kadhal') || combinedText.includes('romantic')) newTags.add('Love');
+    // if (combinedText.includes('mass') || combinedText.includes('kuthu') || combinedText.includes('hero')) newTags.add('Mass');
 
     // Types
     if (combinedText.includes('bgm') || combinedText.includes('theme') || combinedText.includes('background')) {
@@ -977,7 +969,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
           </div>
 
           <div>
-            <label className="block text-xs text-zinc-500 mb-1">Song Name</label>
+            <label className="block text-xs text-zinc-500 mb-1">Song Name <span className="text-zinc-400 font-normal">(Optional)</span></label>
             <div className="relative">
               <div
                 onClick={() => setShowSongDropdown(!showSongDropdown)}
@@ -1061,30 +1053,17 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            {!singers && (
-              <div>
-                <label className="block text-xs text-zinc-500 mb-1 ml-1 font-bold uppercase tracking-wider">Singers</label>
-                <input
-                  type="text"
-                  value={singers}
-                  onChange={(e) => setSingers(e.target.value)}
-                  className="w-full bg-brand-wash border border-brand-border rounded-xl px-3 py-2 text-sm text-brand-dark focus:outline-none focus:border-brand-accent transition-colors font-medium"
-                />
-              </div>
-            )}
-            {!movieDirector && (
-              <div>
-                <label className="block text-xs text-zinc-500 mb-1 ml-1 font-bold uppercase tracking-wider">Director</label>
-                <input
-                  type="text"
-                  value={movieDirector}
-                  onChange={(e) => setMovieDirector(e.target.value)}
-                  className="w-full bg-brand-wash border border-brand-border rounded-xl px-3 py-2 text-sm text-brand-dark focus:outline-none focus:border-brand-accent transition-colors font-medium"
-                />
-              </div>
-            )}
-          </div>
+          {!movieDirector && (
+            <div>
+              <label className="block text-xs text-zinc-500 mb-1 ml-1 font-bold uppercase tracking-wider">Director</label>
+              <input
+                type="text"
+                value={movieDirector}
+                onChange={(e) => setMovieDirector(e.target.value)}
+                className="w-full bg-brand-wash border border-brand-border rounded-xl px-3 py-2 text-sm text-brand-dark focus:outline-none focus:border-brand-accent transition-colors font-medium"
+              />
+            </div>
+          )}
 
           {!musicDirector && (
             <div>
@@ -1157,7 +1136,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                 <>
                   <Check />
                   <span>Upload Ringtone</span>
-                  <span className="text-[10px] text-brand-dark bg-white px-2 py-0.5 rounded-full ml-1 font-bold">+15 Rep</span>
+
                 </>
               )}
             </button>
@@ -1337,7 +1316,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
               </div>
 
               <div>
-                <label className="block text-xs text-zinc-500 mb-1 ml-1 font-bold uppercase tracking-wider">Song Name</label>
+                <label className="block text-xs text-zinc-500 mb-1 ml-1 font-bold uppercase tracking-wider">Song Name <span className="text-zinc-400 font-normal normal-case">(Optional)</span></label>
                 <input
                   type="text"
                   value={songName}
@@ -1347,12 +1326,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                 />
               </div>
 
-              <ArtistAutocomplete
-                value={singers}
-                onChange={setSingers}
-                placeholder="Search artist..."
-                label="Artist / Singer"
-              />
+
 
               <ArtistAutocomplete
                 value={musicDirector}
@@ -1452,7 +1426,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                 <>
                   <Check />
                   <span>Upload Ringtone</span>
-                  <span className="text-[10px] text-brand-dark bg-white px-2 py-0.5 rounded-full ml-1 font-bold">+15 Rep</span>
+
                 </>
               )}
             </button>
@@ -1493,7 +1467,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
           </div>
 
           <div>
-            <label className="block text-xs text-zinc-500 mb-1 ml-1 font-bold uppercase tracking-wider">Song Name</label>
+            <label className="block text-xs text-zinc-500 mb-1 ml-1 font-bold uppercase tracking-wider">Song Name <span className="text-zinc-400 font-normal normal-case">(Optional)</span></label>
             <div className="relative">
               <div
                 onClick={() => setShowDevotionalSongDropdown(!showDevotionalSongDropdown)}
@@ -1563,12 +1537,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
             />
           </div>
 
-          <ArtistAutocomplete
-            value={singers}
-            onChange={setSingers}
-            placeholder="Search or enter artist name..."
-            label="Artist / Singer"
-          />
+
 
           <ArtistAutocomplete
             value={musicDirector}
@@ -1636,7 +1605,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                 <>
                   <Check />
                   <span>Upload Ringtone</span>
-                  <span className="text-[10px] text-brand-dark bg-white px-2 py-0.5 rounded-full ml-1 font-bold">+15 Rep</span>
+
                 </>
               )}
             </button>

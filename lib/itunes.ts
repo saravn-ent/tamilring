@@ -63,6 +63,12 @@ export const getSongsByMovie = async (movieName: string): Promise<iTunesRing[]> 
 
       const refined = data.results.filter((item: any) => {
         const collection = (item.collectionName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        const trackNameLow = (item.trackName || '').toLowerCase();
+
+        // Filter out Remixes and Altered Versions
+        const blacklist = ['remix', 'version', 'karaoke', 'instrumental', 'reprise', 'mix', 'lofi', 'slowed'];
+        if (blacklist.some(word => trackNameLow.includes(word))) return false;
+
         return collection.includes(normalizedMovie);
       }).map((item: any) => ({
         trackName: item.trackName,
