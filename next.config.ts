@@ -6,12 +6,9 @@ const config: NextConfig = {
   compress: true,
   // productionBrowserSourceMaps: false, // Commented out to potentially help with debugging if needed, but defaults to false anyway
 
-  // Enable Web Workers support
-  webpack: (config, { isServer }) => {
-    if (!isServer) {
-      config.output.globalObject = 'self';
-    }
-    return config;
+  // Turbopack configuration (Next.js 16+)
+  turbopack: {
+    // Empty config to enable Turbopack (Web Workers work out of the box)
   },
 
   images: {
