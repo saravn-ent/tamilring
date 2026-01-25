@@ -40,11 +40,15 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
 
   const handleTimeUpdate = () => {
     if (audioRef.current) {
-      const { currentTime, duration: audioDuration } = audioRef.current;
-      if (audioDuration) {
-        setDuration(audioDuration);
-        setProgress((currentTime / audioDuration) * 100);
-      }
+      // Throttle updates using requestAnimationFrame to avoid blocking
+      requestAnimationFrame(() => {
+        if (!audioRef.current) return;
+        const { currentTime, duration: audioDuration } = audioRef.current;
+        if (audioDuration) {
+          setDuration(audioDuration);
+          setProgress((currentTime / audioDuration) * 100);
+        }
+      });
     }
   };
 

@@ -6,6 +6,14 @@ const config: NextConfig = {
   compress: true,
   // productionBrowserSourceMaps: false, // Commented out to potentially help with debugging if needed, but defaults to false anyway
 
+  // Enable Web Workers support
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.output.globalObject = 'self';
+    }
+    return config;
+  },
+
   images: {
     remotePatterns: [
       {
