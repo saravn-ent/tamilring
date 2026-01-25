@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { createBrowserClient } from '@supabase/ssr';
 import { Ringtone } from '@/types';
 import {
     Search, Filter, MoreVertical, Check, X, Trash2,
@@ -42,6 +42,11 @@ export default function RingtoneManagement() {
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
+
+    const supabase = useMemo(() => createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    ), []);
 
     // Audio
     const [playingId, setPlayingId] = useState<string | null>(null);

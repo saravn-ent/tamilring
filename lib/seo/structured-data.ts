@@ -4,7 +4,7 @@
  */
 
 const SITE_NAME = 'TamilRing';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tamilring.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tamilring.in';
 
 /**
  * Base Organization schema
@@ -15,7 +15,7 @@ export function generateOrganizationSchema() {
         '@type': 'Organization',
         name: SITE_NAME,
         url: SITE_URL,
-        logo: `${SITE_URL}/logo.png`,
+        logo: `${SITE_URL}/og-image.png`,
         sameAs: [
             // Add social media profiles here
             // 'https://twitter.com/tamilring',

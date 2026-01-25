@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { useEffect, useState, useMemo } from 'react';
+import { createBrowserClient } from '@supabase/ssr';
 import { LucideIcon, Loader2, Music, Users, Download, Clock, TrendingUp, CircleAlert, RefreshCcw, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 
@@ -29,9 +29,14 @@ export default function AdminDashboard() {
     });
     const [recentUploads, setRecentUploads] = useState<RingtoneSummary[]>([]);
 
+    const supabase = useMemo(() => createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    ), []);
+
     useEffect(() => {
         fetchStats();
-    }, []);
+    }, [supabase]);
 
     const fetchStats = async () => {
         setLoading(true);

@@ -24,8 +24,8 @@ export interface SEOConfig {
 }
 
 const SITE_NAME = 'TamilRing';
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tamilring.com';
-const DEFAULT_IMAGE = `${SITE_URL}/og-image.png`;
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tamilring.in';
+const DEFAULT_IMAGE = `${SITE_URL}/og-image.png?v=3`;
 const TWITTER_HANDLE = '@tamilring';
 
 /**

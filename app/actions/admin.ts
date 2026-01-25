@@ -1,19 +1,19 @@
 'use server'
 
 import { revalidatePath, revalidateTag } from 'next/cache'
-import { ensureAdmin } from '@/lib/auth-server'
+import { ensureAdmin, getSupabaseAdmin } from '@/lib/auth-server'
 import { Ringtone } from '@/types'
+import { awardPoints, checkUploadBadges, POINTS_PER_UPLOAD } from '@/lib/gamification'
 
 export async function approveRingtone(id: string, userId?: string) {
     try {
         await ensureAdmin();
     } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';
-        console.error('Admin Check Failed:', error);
+        console.error('[AdminAction] approveRingtone: Auth Failed:', error);
         return { success: false, error: `Authentication Failed: ${message}` };
     }
 
-    const { getSupabaseAdmin } = await import('@/lib/auth-server');
     const supabase = await getSupabaseAdmin();
 
     // 1. Update status to approved
@@ -28,29 +28,29 @@ export async function approveRingtone(id: string, userId?: string) {
     // 2. Award points if userId provided
     if (userId) {
         try {
-            const { awardPoints, checkUploadBadges, POINTS_PER_UPLOAD } = await import('@/lib/gamification');
-
             // Standard Points
             await awardPoints(supabase, userId, POINTS_PER_UPLOAD);
 
             // First Upload Bonus (15 Points)
-            const { data: profile } = await supabase
+            const { data: profile, error: profileErr } = await supabase
                 .from('profiles')
                 .select('is_first_upload_rewarded, points')
                 .eq('id', userId)
                 .single();
 
             if (profile && !profile.is_first_upload_rewarded) {
-                await supabase.from('profiles').update({
+                const { error: updateErr } = await supabase.from('profiles').update({
                     is_first_upload_rewarded: true,
                     points: (profile.points || 0) + 15
                 }).eq('id', userId);
+
+                if (updateErr) console.error('[AdminAction] Failed to award first upload bonus:', updateErr);
             }
 
             // Badges
             await checkUploadBadges(supabase, userId);
         } catch (e) {
-            console.warn('Gamification failed during approval:', e);
+            console.warn('[AdminAction] Gamification failed during approval:', e);
         }
     }
 
@@ -99,7 +99,6 @@ export async function bulkApproveRingtones(ids: string[]) {
             .in('id', ids);
 
         if (ringtones) {
-            const { awardPoints, POINTS_PER_UPLOAD } = await import('@/lib/gamification');
             // Sequentially or parallel award points
             // simple loop for now
             for (const r of ringtones) {
@@ -109,7 +108,7 @@ export async function bulkApproveRingtones(ids: string[]) {
             }
         }
     } catch (e) {
-        console.warn('Gamification failed during bulk approval:', e);
+        console.warn('[AdminAction] Gamification failed during bulk approval:', e);
     }
 
     // 3. Revalidate
@@ -162,10 +161,10 @@ export async function updateWithdrawalStatus(withdrawalId: string, status: 'comp
         await ensureAdmin();
     } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';
+        console.error('[AdminAction] updateWithdrawalStatus: Auth Failed:', error);
         return { success: false, error: `Authentication Failed: ${message}` };
     }
 
-    const { getSupabaseAdmin } = await import('@/lib/auth-server');
     const supabase = await getSupabaseAdmin();
 
     // 1. Get the withdrawal record to find the user and amount
@@ -201,16 +200,22 @@ export async function updateWithdrawalStatus(withdrawalId: string, status: 'comp
     }
 
     // 3. Update the withdrawal status
-    const { error: updateError } = await supabase
+    const { error: updateError, count } = await supabase
         .from('withdrawals')
         .update({
             status,
             updated_at: new Date().toISOString()
-        })
+        }, { count: 'exact' })
         .eq('id', withdrawalId);
 
     if (updateError) {
+        console.error('[AdminAction] Failed to update withdrawal status:', updateError);
         return { success: false, error: updateError.message };
+    }
+
+    if (count === 0) {
+        console.error('[AdminAction] Withdrawal status update failed: No rows affected');
+        return { success: false, error: "Operation failed: Entry not found or already processed" };
     }
 
     try {

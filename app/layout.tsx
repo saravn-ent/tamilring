@@ -26,10 +26,11 @@ export const viewport: Viewport = {
   userScalable: true,
 };
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tamilring.in';
+
 // Enhanced metadata using our SEO system
 export const metadata: Metadata = {
   ...generateBaseMetadata(),
-  // Override with specific values
   description: "Download high quality Tamil ringtones, BGM, and love songs. தமிழ் ரிங்டோன் தரவிறக்கம்.",
   keywords: [
     "tamil ringtones", "bgm download", "tamil cut songs", "latest tamil ringtones", "iphone ringtones",
@@ -40,24 +41,15 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'TamilRing - Tamil Ringtones & Music',
     description: 'Download the latest Tamil movie ringtones, devotional songs, and music. High-quality ringtones from Tamil cinema.',
-    url: 'https://tamilring.in',
+    url: SITE_URL,
     siteName: 'TamilRing',
     locale: 'ta_IN',
     type: 'website',
-    images: [
-      {
-        url: 'https://tamilring.in/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'TamilRing - Tamil Ringtones',
-      },
-    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'TamilRing - Tamil Ringtones & Music',
     description: 'Download the latest Tamil movie ringtones, devotional songs, and music.',
-    images: ['https://tamilring.in/og-image.png'],
     creator: '@tamilring',
     site: '@tamilring',
   },

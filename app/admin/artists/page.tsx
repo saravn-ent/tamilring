@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { useState, useEffect, useMemo } from 'react';
+import { createBrowserClient } from '@supabase/ssr';
 import { Loader2, Search, Upload, Trash2, Plus } from 'lucide-react';
 import Image from 'next/image';
 
@@ -22,9 +22,14 @@ export default function ArtistManagement() {
     const [newArtistName, setNewArtistName] = useState('');
     const [file, setFile] = useState<File | null>(null);
 
+    const supabase = useMemo(() => createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    ), []);
+
     useEffect(() => {
         fetchArtists();
-    }, []);
+    }, [supabase]);
 
     const fetchArtists = async () => {
         setLoading(true);

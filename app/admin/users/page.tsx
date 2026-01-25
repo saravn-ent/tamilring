@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { useState, useEffect, useMemo } from 'react';
+import { createBrowserClient } from '@supabase/ssr';
 import { Profile } from '@/types';
 import {
     Search, Shield,
@@ -16,9 +16,14 @@ export default function UserManagement() {
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
 
+    const supabase = useMemo(() => createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    ), []);
+
     useEffect(() => {
         fetchUsers();
-    }, []);
+    }, [supabase]);
 
     async function fetchUsers() {
         setLoading(true);
