@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { useEffect, useState, useCallback, useMemo } from 'react';
+import { createBrowserClient } from '@supabase/ssr';
 import { Loader2, TrendingUp, CircleCheck, CircleX, User, Clock, Search, CircleAlert } from 'lucide-react';
 import { updateWithdrawalStatus } from '@/app/actions/admin';
 import Image from 'next/image';
@@ -13,6 +13,11 @@ export default function AdminWithdrawals() {
     const [filter, setFilter] = useState<'pending' | 'completed' | 'rejected'>('pending');
     const [searchQuery, setSearchQuery] = useState('');
     const [processingId, setProcessingId] = useState<string | null>(null);
+
+    const supabase = useMemo(() => createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    ), []);
 
     const fetchWithdrawals = useCallback(async () => {
         setLoading(true);

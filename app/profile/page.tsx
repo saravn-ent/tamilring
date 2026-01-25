@@ -111,34 +111,23 @@ export default function ProfilePage() {
 
         if (!mounted) return;
 
-        // Handle Uploads & Recalculate Points
-        let currentPoints = 0;
-        let currentLevel = 1;
-        if (uploadsRes.data) {
-          const uploadsData = uploadsRes.data as Ringtone[];
-          setUploads(uploadsData);
-          const approvedCount = uploadsData.filter(u => u.status === 'approved').length;
-          currentPoints = approvedCount * POINTS_PER_UPLOAD;
-          currentLevel = Math.floor(currentPoints / 500) + 1;
-        }
-
         if (badgesRes.data) setUserBadges(badgesRes.data);
 
         // Handle Profile
         if (profileRes.data) {
-          const profileData = {
-            ...profileRes.data,
-            points: currentPoints,
-            level: currentLevel
-          };
+          const profileData = profileRes.data;
           setProfile(profileData);
-          setFullName(profileRes.data.full_name || '');
-          setBio(profileRes.data.bio || '');
-          setWebsite(profileRes.data.website_url || '');
-          setInstagram(profileRes.data.instagram_handle || '');
-          setTwitter(profileRes.data.twitter_handle || '');
-          setUpiId(profileRes.data.upi_id || '');
-          setBtcAddress(profileRes.data.btc_address || '');
+          setFullName(profileData.full_name || '');
+          setBio(profileData.bio || '');
+          setWebsite(profileData.website_url || '');
+          setInstagram(profileData.instagram_handle || '');
+          setTwitter(profileData.twitter_handle || '');
+          setUpiId(profileData.upi_id || '');
+          setBtcAddress(profileData.btc_address || '');
+
+          if (uploadsRes.data) {
+            setUploads(uploadsRes.data as Ringtone[]);
+          }
         }
 
         // Async Gamification Sync

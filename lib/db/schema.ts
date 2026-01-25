@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, integer, timestamp, index, unique } from 'drizzle-orm/pg-core';
+import { pgTable, uuid, text, integer, timestamp, index, unique, boolean } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
 // Profiles Table
@@ -16,6 +16,8 @@ export const profiles = pgTable('profiles', {
     btcAddress: text('btc_address'),
     points: integer('points').default(0),
     level: integer('level').default(1),
+    isFirstUploadRewarded: boolean('is_first_upload_rewarded').default(false),
+    totalWithdrawnCount: integer('total_withdrawn_count').default(0),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 });

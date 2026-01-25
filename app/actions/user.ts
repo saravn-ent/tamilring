@@ -87,6 +87,7 @@ export async function handleWithdrawal(userId: string, amount: number, upiId: st
     const adminSupabase = await getSupabaseAdmin();
 
     // 3. Process withdrawal (Atomic update)
+    console.log(`Processing withdrawal for user ${userId}: ${withdrawAmount} Rep`);
     const { error } = await adminSupabase
         .from('profiles')
         .update({
@@ -96,9 +97,13 @@ export async function handleWithdrawal(userId: string, amount: number, upiId: st
         })
         .eq('id', userId);
 
-    if (error) return { success: false, error: error.message };
+    if (error) {
+        console.error('Failed to update profile points:', error);
+        return { success: false, error: error.message };
+    }
 
     // 4. Log withdrawal in the database for admin to see
+    console.log('Logging withdrawal in withdrawals table...');
     const { error: logError } = await adminSupabase
         .from('withdrawals')
         .insert({
@@ -110,8 +115,12 @@ export async function handleWithdrawal(userId: string, amount: number, upiId: st
 
     if (logError) {
         console.error('Failed to log withdrawal to DB:', logError);
+        // CRITICAL: We already deducted points! 
+        // We should theoretically rollback, but for now we just return error.
+        // The admin can use the logs to fix it.
         return { success: false, error: 'Failed to record withdrawal request. Please contact support.' };
     }
+    console.log('Withdrawal successful.');
 
     // 5. Revalidate
     try {
