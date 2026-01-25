@@ -43,6 +43,27 @@ const config: NextConfig = {
     unoptimized: true,
   },
 
+  async redirects() {
+    return [
+      // SEO Consolidation: Redirect legacy /tamil/* routes to canonical URLs
+      {
+        source: '/tamil/movies/:slug',
+        destination: '/movie/:slug',
+        permanent: true,
+      },
+      {
+        source: '/tamil/music-directors/:slug',
+        destination: '/artist/:slug',
+        permanent: true,
+      },
+      {
+        source: '/tamil/actors/:slug',
+        destination: '/artist/:slug',
+        permanent: true,
+      },
+    ];
+  },
+
   async headers() {
     return [
       {

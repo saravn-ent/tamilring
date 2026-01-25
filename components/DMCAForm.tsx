@@ -53,7 +53,13 @@ Signed: ${formData.name}
         `.trim();
 
         const mailtoLink = `mailto:tamilring.in@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-        window.location.href = mailtoLink;
+
+        // Create temporary link and click it - more reliable than window.location.href
+        const link = document.createElement('a');
+        link.href = mailtoLink;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     const isFormValid = formData.name && formData.email && formData.workDescription && formData.infringingUrls && legalChecks.goodFaith && legalChecks.accurate;
@@ -201,6 +207,7 @@ Signed: ${formData.name}
 
                 <div className="pt-2">
                     <button
+                        type="button"
                         onClick={handleDraftEmail}
                         disabled={!isFormValid}
                         className={`w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg active:scale-[0.98] ${isFormValid

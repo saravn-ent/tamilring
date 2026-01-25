@@ -63,7 +63,7 @@ export default async function RingtonePage({ params }: Props) {
   const musicRecordingSchema = generateMusicRecordingSchema(ringtone);
   const breadcrumbSchema = generateBreadcrumbSchema([
     { name: 'Home', url: '/' },
-    { name: 'Tamil Ringtones', url: '/tamil' },
+    { name: 'Tamil Ringtones', url: '/categories' },
     { name: ringtone.movie_name, url: `/movie/${encodeURIComponent(ringtone.movie_name)}` },
     { name: cleanTitle, url: `/ringtone/${ringtone.slug}` },
   ]);
@@ -161,7 +161,7 @@ export default async function RingtonePage({ params }: Props) {
                 </h1>
               );
             })()}
-            <Link href={`/tamil/movies/${encodeURIComponent(ringtone.movie_name)}`} className="inline-flex items-center gap-1 text-brand-accent font-medium text-base hover:underline transition-colors block">
+            <Link href={`/movie/${encodeURIComponent(ringtone.movie_name)}`} className="inline-flex items-center gap-1 text-brand-accent font-medium text-base hover:underline transition-colors block">
               {ringtone.movie_name} <span className="text-zinc-400 font-normal">({ringtone.movie_year})</span>
               <ChevronRight size={16} className="text-brand-accent/70" />
             </Link>
@@ -182,7 +182,7 @@ export default async function RingtonePage({ params }: Props) {
 
             {ringtone.music_director && (
               <div className="text-zinc-500 text-xs mt-1">
-                Music: <Link href={`/tamil/music-directors/${encodeURIComponent(ringtone.music_director)}`} className="text-zinc-700 hover:text-brand-accent transition-colors">{ringtone.music_director}</Link>
+                Music: <Link href={`/artist/${encodeURIComponent(ringtone.music_director)}`} className="text-zinc-700 hover:text-brand-accent transition-colors">{ringtone.music_director}</Link>
               </div>
             )}
           </div>

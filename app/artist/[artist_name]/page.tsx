@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabaseClient';
 export const revalidate = 3600;
-import { searchPerson, getImageUrl } from '@/lib/tmdb';
+import { searchPerson, getImageUrl, getPersonMovieCredits } from '@/lib/tmdb';
 import CompactProfileHeader from '@/components/CompactProfileHeader';
 import SortControl from '@/components/SortControl';
 import ViewToggle from '@/components/ViewToggle';
@@ -59,6 +59,22 @@ export default async function ArtistPage({
     artistType = 'Actor';
   }
 
+  // If Actor, fetch movie credits to find ringtones by movie association
+  let movieTitles: string[] = [];
+  if (artistType === 'Actor' && person) {
+    try {
+      const credits = await getPersonMovieCredits(person.id);
+      if (credits?.cast) {
+        movieTitles = credits.cast
+          .sort((a, b) => new Date(b.release_date || 0).getTime() - new Date(a.release_date || 0).getTime())
+          .slice(0, 100)
+          .map(m => m.title);
+      }
+    } catch (e) {
+      console.error('Failed to fetch credits', e);
+    }
+  }
+
   return (
     <div className="max-w-md mx-auto pb-24">
       {/* Sticky Compact Profile Header - Loads Instantly */}
@@ -86,7 +102,12 @@ export default async function ArtistPage({
 
       <div className="px-4 py-6">
         <Suspense fallback={<RingtoneGridSkeleton count={6} />}>
-          <ArtistRingtonesList artistName={artistName} sort={sort} view={view} />
+          <ArtistRingtonesList
+            artistName={artistName}
+            sort={sort}
+            view={view}
+            additionalMovieNames={movieTitles}
+          />
         </Suspense>
       </div>
     </div>

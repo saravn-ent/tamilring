@@ -15,6 +15,7 @@ export interface Ringtone {
   tags?: string[];
   mood?: string;
   cast?: string;
+  cast_members?: string;
   downloads: number;
   likes: number;
   apple_music_link?: string;

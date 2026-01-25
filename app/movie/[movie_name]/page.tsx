@@ -86,7 +86,7 @@ export default async function MoviePage({
 
   const breadcrumbSchema = generateBreadcrumbSchema([
     { name: 'Home', url: '/' },
-    { name: 'Movies', url: '/movies' },
+    { name: 'Categories', url: '/categories' },
     { name: movieName, url: `/movie/${encodeURIComponent(movieName)}` },
   ]);
 
