@@ -41,13 +41,6 @@ export async function generateMetadata({ params }: { params: Promise<{ movie_nam
     };
   }
 
-  // Get ringtone count
-  const { count } = await supabase
-    .from('ringtones')
-    .select('*', { count: 'exact', head: true })
-    .eq('status', 'approved')
-    .eq('movie_name', movieName);
-
   // Use our SEO metadata generator
   return generateMovieMetadata({
     name: movieName,
@@ -55,7 +48,6 @@ export async function generateMetadata({ params }: { params: Promise<{ movie_nam
     year: movieData.movie_year,
     director: movieData.movie_director,
     music_director: movieData.music_director,
-    ringtone_count: count || 0,
   });
 }
 

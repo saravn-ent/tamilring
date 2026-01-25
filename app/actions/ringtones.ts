@@ -3,6 +3,7 @@
 import { revalidateTag, revalidatePath, unstable_cache } from 'next/cache'
 import { getSupabaseServer } from '@/lib/auth-server'
 import { createClient } from '@supabase/supabase-js';
+import { headers } from 'next/headers';
 
 // Helper for public data fetching (No cookies/auth) to be safe for unstable_cache
 const getPublicSupabase = () => {
@@ -164,6 +165,99 @@ export const getTopAlbums = unstable_cache(
     },
     ['top-albums'],
     { revalidate: 3600, tags: ['top-albums'] }
+);
+
+export async function logSearch(query: string) {
+    if (!query || query.trim().length <= 2) return { success: false };
+
+    const normalized = query.toLowerCase().trim()
+        .replace(/ringtone|song|bgm|music/g, '') // Basic noise removal
+        .trim();
+
+    if (!normalized) return { success: false };
+
+    try {
+        const supabase = await getSupabaseServer();
+        const headerList = await headers();
+        const ip = headerList.get('x-forwarded-for') || 'unknown';
+
+        // Use Web Crypto API instead of Node.js crypto
+        const encoder = new TextEncoder();
+        const data = encoder.encode(ip);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const ipHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+        // Check for Auth User
+        const { data: { user } } = await supabase.auth.getUser();
+
+        await supabase.from('search_logs').insert({
+            query: query.trim(),
+            normalized_query: normalized,
+            ip_hash: ipHash,
+            user_id: user?.id || null
+        });
+
+        return { success: true };
+    } catch (e) {
+        // Fail silently to not disrupt user experience
+        console.error('Search log error:', e);
+        return { success: false };
+    }
+}
+
+export const getTrendingTags = unstable_cache(
+    async (limit: number = 8) => {
+        const supabase = getPublicSupabase();
+        const allTags = new Map<string, number>();
+
+        // 1. Fetch Search Trends (High Priority)
+        try {
+            const { data: searchTrends } = await supabase.rpc('get_trending_search_tags', { limit_count: 5 });
+            if (searchTrends) {
+                searchTrends.forEach((t: { tag: string, score: number }) => {
+                    if (t.tag) allTags.set(t.tag, (allTags.get(t.tag) || 0) + (t.score * 5)); // Higher weight for searches
+                });
+            }
+        } catch (e) {
+            console.warn('Search trends fetch failed', e);
+        }
+
+        // 2. Fetch Content Trends (Backup/Volume)
+        try {
+            const trendingRingtones = await getTrendingRingtones(20);
+            trendingRingtones.forEach((r: any) => {
+                // Use movie name and tags
+                if (r.tags && Array.isArray(r.tags)) {
+                    r.tags.forEach((t: string) => {
+                        allTags.set(t, (allTags.get(t) || 0) + 1);
+                    });
+                }
+                // Also add movie name as a potential tag
+                if (r.movie_name) {
+                    allTags.set(r.movie_name, (allTags.get(r.movie_name) || 0) + 2);
+                }
+            });
+        } catch (e) {
+            console.warn('Content trends fetch failed', e);
+        }
+
+        // Sort and cleanup
+        const sorted = Array.from(allTags.entries())
+            .sort((a, b) => b[1] - a[1])
+            .map(entry => entry[0])
+            .filter(tag => tag && tag.length > 2) // Filter short garbage
+            .slice(0, limit);
+
+        // Fallback if empty
+        if (sorted.length === 0) {
+            return ['Love', 'BGM', 'Anirudh', 'Vijay'];
+        }
+
+        return sorted;
+    },
+    ['trending-tags'],
+    { revalidate: 1800, tags: ['trending-tags'] } // Cache for 30 mins
 );
 
 /**

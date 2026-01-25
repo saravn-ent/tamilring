@@ -162,7 +162,6 @@ export function generatePersonSchema(artist: {
     image_url?: string;
     role?: 'singer' | 'music_director' | 'movie_director';
     description?: string;
-    ringtone_count?: number;
 }) {
     const jobTitle = artist.role === 'singer'
         ? 'Playback Singer'

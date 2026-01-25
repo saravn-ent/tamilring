@@ -15,6 +15,7 @@ import { MOODS, ERAS, INSTRUMENTS } from '@/lib/constants';
 import NoResults from '@/components/NoResults';
 import SortControl from './SortControl';
 import { hapticFeedback } from '@/lib/haptics';
+import { logSearch } from '@/app/actions/ringtones';
 
 
 function SearchContent() {
@@ -246,6 +247,16 @@ function SearchContent() {
 
         return () => clearTimeout(delayDebounceFn);
     }, [query, activeTab, sortBy]);
+
+    // Search Logging (Debounced 2s to capture final intent)
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (query && query.length > 2) {
+                logSearch(query);
+            }
+        }, 2000); // Only log after 2s of inactivity
+        return () => clearTimeout(timer);
+    }, [query]);
 
     const hasResults = results.ringtones.length > 0 || results.movies.length > 0 || results.artists.length > 0;
     const matchedEra = ERAS.find(e => e.label.toLowerCase() === query.toLowerCase());

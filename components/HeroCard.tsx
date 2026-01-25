@@ -1,4 +1,3 @@
-'use client';
 
 import Link from 'next/link';
 import ImageWithFallback from './ImageWithFallback';
@@ -9,9 +8,10 @@ interface HeroCardProps {
   href: string;
   subtitle?: string;
   index?: number;
+  priority?: boolean;
 }
 
-export default function HeroCard({ name, image, href, subtitle, index = 0 }: HeroCardProps) {
+export default function HeroCard({ name, image, href, subtitle, index = 0, priority = false }: HeroCardProps) {
   return (
     <Link
       href={href}
@@ -26,7 +26,7 @@ export default function HeroCard({ name, image, href, subtitle, index = 0 }: Her
           src={image}
           alt={name}
           sizes="128px"
-          priority={index < 6}
+          priority={priority}
           className="object-cover transition-transform duration-700 group-hover:scale-110"
         />
       </div>

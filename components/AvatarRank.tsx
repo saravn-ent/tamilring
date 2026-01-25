@@ -1,6 +1,4 @@
 
-'use client';
-
 import Image from 'next/image';
 import { User, Shield, Disc, Sparkles, Crown, Zap } from 'lucide-react';
 import { getLevelTitle } from '@/lib/gamification';

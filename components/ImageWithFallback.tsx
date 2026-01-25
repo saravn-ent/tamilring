@@ -63,6 +63,8 @@ export default function ImageWithFallback({
       quality={quality}
       loading={loading || (priority ? 'eager' : 'lazy')}
       className={className}
+      placeholder="blur"
+      blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2UwZTBlMCIvPjwvc3ZnPg=="
       onError={() => setError(true)}
     />
   );

@@ -19,7 +19,6 @@ export async function generateMetadata({ params }: { params: Promise<{ artist_na
   return generateArtistMetadata({
     name: artistName,
     role: 'singer', // Default
-    ringtone_count: 0
   });
 }
 
@@ -34,22 +33,10 @@ export default async function ArtistPage({
   const { sort, view } = await searchParams;
   const artistName = decodeURIComponent(artist_name);
 
-  // Parallel fetch for Header Data (TMDB only, very fast)
-  const personPromise = searchPerson(artistName);
+  // Fetch TMDB data first to determine artist type
+  const person = await searchPerson(artistName);
 
-  // We can optionally fetch a "fast count" here if we validly index it, 
-  // but for now we skip to ensure sub-100ms TTFB.
-
-  const person = await personPromise;
-
-  const artistImage = person?.profile_path
-    ? getImageUrl(person.profile_path, 'w185')
-    : null; // Fallback handled in component
-
-  // Get artist bio
-  const artistBio = getArtistBio(artistName);
-
-  // Determine Artist Type & Stats
+  // Determine Artist Type (needed for role-specific search)
   let artistType = 'Singer'; // Default
   if (person?.known_for_department === 'Sound' || person?.known_for_department === 'Composing') {
     artistType = 'Music Director';
@@ -57,10 +44,62 @@ export default async function ArtistPage({
     artistType = 'Movie Director';
   } else if (person?.known_for_department === 'Acting') {
     artistType = 'Actor';
+  } else if (person?.known_for_department === 'Writing') {
+    artistType = 'Lyricist';
   }
 
-  // If Actor, fetch movie credits to find ringtones by movie association
+  // Build role-specific query to avoid name collisions
+  // (e.g., "Vivek" the actor vs "Vivek" the lyricist)
+  let roleSpecificQuery;
+  if (artistType === 'Actor') {
+    // For actors, only search cast_members (we'll add movie-based ringtones separately)
+    roleSpecificQuery = `cast_members.ilike.%${artistName}%`;
+  } else if (artistType === 'Music Director') {
+    roleSpecificQuery = `music_director.ilike.%${artistName}%`;
+  } else if (artistType === 'Movie Director') {
+    roleSpecificQuery = `movie_director.ilike.%${artistName}%`;
+  } else if (artistType === 'Lyricist') {
+    roleSpecificQuery = `lyricist.ilike.%${artistName}%`;
+  } else {
+    // Singer or unknown - search singers field
+    roleSpecificQuery = `singers.ilike.%${artistName}%`;
+  }
+
+  // Query ringtones with role-specific filter
+  const { data: ringtoneData } = await supabase
+    .from('ringtones')
+    .select('*')
+    .eq('status', 'approved')
+    .or(roleSpecificQuery)
+    .limit(100);
+
+  // Filter precisely
+  const searchLow = artistName.toLowerCase().trim();
+  const ringtones = (ringtoneData || []).filter(r => {
+    const checkMatch = (str: string | undefined | null) => {
+      if (!str) return false;
+      const parts = str.split(/[,&]|\band\b/i).map(s => s.trim().toLowerCase());
+      return parts.includes(searchLow);
+    };
+
+    // Only check the role-specific field
+    if (artistType === 'Actor') {
+      return checkMatch(r.cast_members);
+    } else if (artistType === 'Music Director') {
+      return checkMatch(r.music_director);
+    } else if (artistType === 'Movie Director') {
+      return checkMatch(r.movie_director);
+    } else if (artistType === 'Lyricist') {
+      return checkMatch(r.lyricist);
+    } else {
+      return checkMatch(r.singers);
+    }
+  });
+
+  // If Actor, fetch movie credits to find additional ringtones by movie association
   let movieTitles: string[] = [];
+  let actorMovieRingtones: any[] = [];
+
   if (artistType === 'Actor' && person) {
     try {
       const credits = await getPersonMovieCredits(person.id);
@@ -69,11 +108,35 @@ export default async function ArtistPage({
           .sort((a, b) => new Date(b.release_date || 0).getTime() - new Date(a.release_date || 0).getTime())
           .slice(0, 100)
           .map(m => m.title);
+
+        // Fetch ringtones from actor's movies
+        if (movieTitles.length > 0) {
+          const { data } = await supabase
+            .from('ringtones')
+            .select('*')
+            .eq('status', 'approved')
+            .in('movie_name', movieTitles)
+            .limit(100);
+          actorMovieRingtones = data || [];
+        }
       }
     } catch (e) {
       console.error('Failed to fetch credits', e);
     }
   }
+
+  // Merge and deduplicate ringtones (same logic as ArtistRingtonesList)
+  const combined = [...ringtones, ...actorMovieRingtones];
+  const uniqueMap = new Map();
+  combined.forEach(item => uniqueMap.set(item.id, item));
+  const allRingtones = Array.from(uniqueMap.values());
+
+  const artistImage = person?.profile_path
+    ? getImageUrl(person.profile_path, 'w185')
+    : null;
+
+  // Get artist bio
+  const artistBio = getArtistBio(artistName);
 
   return (
     <div className="max-w-md mx-auto pb-24">
@@ -81,9 +144,6 @@ export default async function ArtistPage({
       <CompactProfileHeader
         name={artistName}
         type={artistType as any}
-        ringtoneCount={0} // Loaded via streamed content ideally, or ignored for speed
-        movieCount={0}
-        totalLikes={0}
         imageUrl={artistImage}
         bio={artistBio}
         shareMetadata={{

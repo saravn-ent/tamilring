@@ -11,11 +11,10 @@ import FavoriteButton from './FavoriteButton';
 interface ProfileHeaderProps {
   name: string;
   type: 'Actor' | 'Singer' | 'Music Director';
-  ringtoneCount: number;
   imageUrl?: string;
 }
 
-export default function ProfileHeader({ name, type, ringtoneCount, imageUrl }: ProfileHeaderProps) {
+export default function ProfileHeader({ name, type, imageUrl }: ProfileHeaderProps) {
 
   const [isFan, setIsFan] = useState(false);
 
@@ -73,7 +72,7 @@ export default function ProfileHeader({ name, type, ringtoneCount, imageUrl }: P
         {/* Info Card with Glassmorphism */}
         <div className="w-full max-w-xs bg-white/80 backdrop-blur-md border border-brand-gray rounded-2xl p-4 mb-6 flex flex-col items-center shadow-lg shadow-brand-dark/5">
           <h1 className="text-2xl font-bold text-black text-center mb-1 drop-shadow-sm">{name}</h1>
-          <p className="text-zinc-500 text-xs uppercase tracking-wider font-bold mb-3">{type} • {ringtoneCount} Rings</p>
+          <p className="text-zinc-500 text-xs uppercase tracking-wider font-bold mb-3">{type}</p>
         </div>
 
         {/* Join Fan Club Button */}

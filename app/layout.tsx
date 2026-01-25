@@ -94,6 +94,13 @@ export default async function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Facebook-style Resource Hints: Preconnect to external CDNs */}
+        <link rel="preconnect" href="https://image.tmdb.org" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://image.tmdb.org" />
+        <link rel="preconnect" href="https://api.themoviedb.org" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://api.themoviedb.org" />
+      </head>
       <body
         className={`${jakarta.className} font-sans antialiased scrollbar-hide transition-colors duration-300 bg-background text-foreground`}
         suppressHydrationWarning

@@ -263,11 +263,10 @@ export function generateMovieMetadata(movie: {
     year?: string;
     director?: string;
     music_director?: string;
-    ringtone_count?: number;
 }): Metadata {
     const title = `${movie.name} Ringtones${movie.year ? ` (${movie.year})` : ''}`;
 
-    const description = `Download ${movie.name} movie ringtones. ${movie.ringtone_count || 'Multiple'} high-quality ringtones from ${movie.name}${movie.music_director ? ` - Music by ${movie.music_director}` : ''}${movie.director ? `, Directed by ${movie.director}` : ''}. Free Tamil movie ringtones.`;
+    const description = `Download ${movie.name} movie ringtones. High-quality ringtones from ${movie.name}${movie.music_director ? ` - Music by ${movie.music_director}` : ''}${movie.director ? `, Directed by ${movie.director}` : ''}. Free Tamil movie ringtones.`;
 
     const keywords = [
         movie.name,
@@ -297,7 +296,6 @@ export function generateArtistMetadata(artist: {
     name: string;
     image_url?: string;
     role?: 'singer' | 'music_director' | 'movie_director' | 'actor';
-    ringtone_count?: number;
 }): Metadata {
     const roleText = artist.role === 'singer'
         ? 'Singer'
@@ -309,7 +307,7 @@ export function generateArtistMetadata(artist: {
 
     const title = `${artist.name} - Tamil ${roleText} Ringtones`;
 
-    const description = `Download ringtones featuring ${artist.name}, renowned Tamil ${roleText}. ${artist.ringtone_count || 'Multiple'} high-quality ringtones from ${artist.name}'s work. Free Tamil music ringtones.`;
+    const description = `Download ringtones featuring ${artist.name}, renowned Tamil ${roleText}. High-quality ringtones from ${artist.name}'s work. Free Tamil music ringtones.`;
 
     const keywords = [
         artist.name,
@@ -363,11 +361,10 @@ export function generateUserProfileMetadata(user: {
     username: string;
     display_name?: string;
     avatar_url?: string;
-    ringtone_count?: number;
 }): Metadata {
     const displayName = user.display_name || user.username;
     const title = `${displayName}'s Profile`;
-    const description = `View ${displayName}'s uploaded ringtones on TamilRing. ${user.ringtone_count || 0} ringtones uploaded.`;
+    const description = `View ${displayName}'s uploaded ringtones on TamilRing.`;
 
     return generateMetadata({
         title,

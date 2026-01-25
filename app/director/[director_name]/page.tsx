@@ -44,7 +44,7 @@ export default async function DirectorPage({ params }: { params: Promise<{ direc
           </div>
         )}
         <h1 className="text-2xl font-bold text-white text-center">{directorName}</h1>
-        <p className="text-zinc-400 text-sm mt-1">Director • {ringtones?.length || 0} Ringtones</p>
+        <p className="text-zinc-400 text-sm mt-1">Movie Director • {ringtones?.length || 0} Ringtones</p>
       </div>
 
       <div className="px-4 py-6">

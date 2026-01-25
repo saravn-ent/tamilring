@@ -25,7 +25,10 @@ export const INSTRUMENTS = [
   { label: "Whistle", query: "whistle" },
   { label: "Sax", query: "saxophone" },
   { label: "Veena", query: "veena" },
-  { label: "Trumpet", query: "trumpet" }
+  { label: "Trumpet", query: "trumpet" },
+  { label: "Keyboard", query: "keyboard" },
+  { label: "Drums", query: "drums" },
+  { label: "Nadaswaram", query: "nadaswaram" }
 ];
 
 export const DEITY_CATEGORIES = {

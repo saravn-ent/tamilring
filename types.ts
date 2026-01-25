@@ -8,6 +8,7 @@ export interface Ringtone {
   singers: string;
   music_director?: string;
   movie_director?: string;
+  lyricist?: string;
   poster_url: string;
   backdrop_url: string;
   audio_url: string;

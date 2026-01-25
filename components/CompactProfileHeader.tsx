@@ -10,10 +10,7 @@ import ArtistImageUpload from './ArtistImageUpload';
 
 interface CompactProfileHeaderProps {
     name: string;
-    type: 'Actor' | 'Singer' | 'Music Director' | 'Movie Director';
-    ringtoneCount: number;
-    movieCount?: number;
-    totalLikes: number;
+    type: 'Actor' | 'Singer' | 'Music Director' | 'Movie Director' | 'Lyricist';
     imageUrl?: string | null;
     bio?: string;
     shareMetadata?: { title: string; text: string };
@@ -22,9 +19,6 @@ interface CompactProfileHeaderProps {
 export default function CompactProfileHeader({
     name,
     type,
-    ringtoneCount,
-    movieCount,
-    totalLikes,
     imageUrl,
     bio,
     shareMetadata
@@ -93,22 +87,6 @@ export default function CompactProfileHeader({
                                 }}
                                 className="ml-1 w-7 h-7 !bg-white !text-red-500 border border-red-100 shadow-sm hover:scale-110"
                             />
-                        </div>
-
-                        {/* Order: movies, ringtones, likes in lowercase */}
-                        <div className="flex items-center gap-4 text-zinc-500">
-                            <div className="flex items-baseline gap-1">
-                                <span className="text-xs font-bold text-zinc-900">{movieCount || 0}</span>
-                                <span className="text-[10px] lowercase font-medium">movies</span>
-                            </div>
-                            <div className="flex items-baseline gap-1 border-l border-zinc-200 pl-4">
-                                <span className="text-xs font-bold text-zinc-900">{ringtoneCount}</span>
-                                <span className="text-[10px] lowercase font-medium">ringtones</span>
-                            </div>
-                            <div className="flex items-baseline gap-1 border-l border-zinc-200 pl-4">
-                                <span className="text-xs font-bold text-zinc-900">{formatCount(totalLikes)}</span>
-                                <span className="text-[10px] lowercase font-medium">likes</span>
-                            </div>
                         </div>
                     </div>
                 </div>

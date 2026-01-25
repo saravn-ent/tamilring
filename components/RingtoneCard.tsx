@@ -32,32 +32,14 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
   const { currentRingtone, isPlaying, playRingtone, togglePlay, progress } = usePlayer();
   const { isFavorite, addFavorite, removeFavorite } = useFavorites();
   const [isLiked, setIsLiked] = useState(false);
-  const [likesCount, setLikesCount] = useState(ringtone.likes || 0);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
     setIsLiked(isFavorite(ringtone.id));
   }, [ringtone.id, isFavorite]);
-  const [loadedDuration, setLoadedDuration] = useState<number | null>(ringtone.duration || null);
-
-  useEffect(() => {
-    if (!loadedDuration && ringtone.audio_url) {
-      const audio = new Audio();
-      audio.src = ringtone.audio_url;
-      audio.preload = 'metadata';
-      const handler = () => {
-        if (audio.duration && audio.duration !== Infinity) {
-          setLoadedDuration(audio.duration);
-        }
-      };
-      audio.addEventListener('loadedmetadata', handler);
-      return () => {
-        audio.removeEventListener('loadedmetadata', handler);
-        audio.src = '';
-      };
-    }
-  }, [ringtone.audio_url, loadedDuration]);
+  // We rely on either DB duration or the player's duration for performance
+  const [loadedDuration] = useState<number | null>(ringtone.duration || null);
 
   const formatDuration = (seconds: number | null) => {
     if (!seconds || isNaN(seconds)) return '';
@@ -135,7 +117,6 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
     hapticFeedback(15);
 
     if (!isLiked) {
-      setLikesCount(prev => prev + 1);
       setIsLiked(true);
       addFavorite({
         id: ringtone.id,
@@ -147,7 +128,6 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
       });
       await incrementLikes(ringtone.id);
     } else {
-      setLikesCount(prev => prev - 1);
       setIsLiked(false);
       removeFavorite(ringtone.id);
     }
@@ -328,7 +308,7 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
                 </span>
                 <span className="text-zinc-400">•</span>
                 <span>
-                  {likesCount > 0 ? (likesCount > 1000 ? `${(likesCount / 1000).toFixed(1)}k` : likesCount) : 0} Likes
+                  {ringtone.likes > 0 ? (ringtone.likes > 1000 ? `${(ringtone.likes / 1000).toFixed(1)}k` : ringtone.likes) : 0} Likes
                 </span>
               </div>
             )}

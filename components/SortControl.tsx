@@ -58,7 +58,7 @@ export default function SortControl() {
         {/* Trigger Button */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-brand-border text-xs font-bold text-zinc-600 hover:bg-brand-wash hover:text-brand-dark transition-all shadow-sm hover:shadow-md hover:border-brand-accent/30"
+          className="h-8 flex items-center gap-2 px-4 rounded-full bg-white border border-brand-border text-xs font-bold text-zinc-600 hover:bg-brand-wash hover:text-brand-dark transition-all shadow-sm hover:shadow-md hover:border-brand-accent/30"
         >
           Sort: <span className="text-brand-accent">{currentLabel}</span>
           <ChevronDown

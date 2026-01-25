@@ -32,15 +32,34 @@ const config: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: '**.mzstatic.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.apple.com',
+      },
+      {
+        protocol: 'https',
         hostname: 'lh3.googleusercontent.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'i.ytimg.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.tmdb.org',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.themoviedb.org',
+      },
     ],
-    // CRITICAL: Reduce image sizes as requested
     deviceSizes: [640, 750, 828, 1080, 1200],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     formats: ['image/webp'],
     qualities: [25, 75, 85],
-    unoptimized: true,
+    unoptimized: false,
   },
 
   async redirects() {

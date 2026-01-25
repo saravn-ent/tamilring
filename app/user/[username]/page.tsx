@@ -110,24 +110,6 @@ export default async function UserProfilePage({
           </p>
         )}
 
-        {/* Stats */}
-        <div className="flex items-center gap-6 mb-6 text-sm relative bg-brand-wash/50 px-6 py-3 rounded-2xl border border-brand-wash">
-          <div className="flex flex-col items-center">
-            <span className="font-black text-brand-dark text-xl">{uploads?.length || 0}</span>
-            <span className="text-zinc-400 font-bold text-[10px] uppercase tracking-wider">Rings</span>
-          </div>
-          <div className="w-px h-8 bg-black/5" />
-          <div className="flex flex-col items-center">
-            <span className="font-black text-brand-accent text-xl">{points}</span>
-            <span className="text-zinc-400 font-bold text-[10px] uppercase tracking-wider">Rep</span>
-          </div>
-          <div className="w-px h-8 bg-black/5" />
-          <div className="flex flex-col items-center">
-            <span className="font-black text-amber-500 text-xl">{getLevelTitle(level)}</span>
-            <span className="text-zinc-400 font-bold text-[10px] uppercase tracking-wider">Level</span>
-          </div>
-        </div>
-
         {/* Badges */}
         {userBadges && userBadges.length > 0 && (
           <div className="mb-6 w-full px-4 relative">

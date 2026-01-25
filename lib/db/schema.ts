@@ -36,6 +36,7 @@ export const ringtones = pgTable('ringtones', {
     singers: text('singers'),
     musicDirector: text('music_director'),
     movieDirector: text('movie_director'),
+    lyricist: text('lyricist'),
     castMembers: text('cast_members'),
     mood: text('mood'),
     tags: text('tags').array(),
@@ -103,4 +104,16 @@ export const withdrawals = pgTable('withdrawals', {
 }, (t) => ({
     userIdIdx: index('idx_withdrawals_user_id').on(t.userId),
     statusIdx: index('idx_withdrawals_status').on(t.status),
+}));
+
+// Search Logs Table
+export const searchLogs = pgTable('search_logs', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    query: text('query').notNull(),
+    normalizedQuery: text('normalized_query').notNull(),
+    userId: uuid('user_id').references(() => profiles.id, { onDelete: 'set null' }),
+    ipHash: text('ip_hash'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (t) => ({
+    normalizedIdx: index('idx_search_logs_normalized_time').on(t.normalizedQuery, t.createdAt),
 }));

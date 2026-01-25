@@ -101,6 +101,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
   const [singers, setSingers] = useState('');
   const [musicDirector, setMusicDirector] = useState('');
   const [movieDirector, setMovieDirector] = useState('');
+  const [lyricist, setLyricist] = useState('');
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [slug, setSlug] = useState('');
@@ -118,7 +119,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
     "Moods": ["Love", "Sad", "Mass", "BGM", "Motivational", "Devotional", "Funny"],
     "Types": ["Vocal", "Instrumental", "Interlude", "Humming", "Dialogue", "Remix", "8D Audio"],
     "Vocals": ["Male", "Female", "Duet"],
-    "Instruments": ["Flute", "Violin", "Guitar", "Piano", "Keyboard", "Veena", "Drums", "Nadaswaram"]
+    "Instruments": ["Flute", "Violin", "Guitar", "Piano", "Keyboard", "Whistle", "Saxophone", "Veena", "Drums", "Trumpet", "Nadaswaram"]
   };
 
 
@@ -266,8 +267,10 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
     if (credits) {
       const directors = credits.crew.filter(c => c.job === 'Director').map(c => c.name).join(', ');
       const musicDirectors = credits.crew.filter(c => c.job === 'Original Music Composer' || c.job === 'Music').map(c => c.name).join(', ');
+      const lyricists = credits.crew.filter(c => c.job === 'Lyricist' || c.job === 'Writer' || c.department === 'Writing').map(c => c.name).join(', ');
       setMovieDirector(directors);
       setMusicDirector(musicDirectors);
+      setLyricist(lyricists);
     }
 
     setStep(3);
@@ -599,6 +602,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
         slug,
         singers,
         music_director: musicDirector,
+        lyricist,
         audio_url: mp3Url,
         audio_url_iphone: iphoneUrl || undefined,
         tags: selectedTags,
@@ -701,6 +705,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       setSingers('');
       setMusicDirector('');
       setMovieDirector('');
+      setLyricist('');
       setSelectedTags([]);
 
       setContentType(null);

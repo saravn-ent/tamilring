@@ -3,10 +3,23 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search } from 'lucide-react';
-import DiscoverySearch from './DiscoverySearch';
+import dynamic from 'next/dynamic';
 
-export default function HeroSearch() {
+const DiscoverySearch = dynamic(() => import('./DiscoverySearch'), {
+    loading: () => <div className="h-14 w-full bg-zinc-100 rounded-2xl" />,
+    ssr: true
+});
+
+interface Props {
+    trendingTags?: string[];
+}
+
+export default function HeroSearch({ trendingTags = [] }: Props) {
     const router = useRouter();
+
+    const handleTagClick = (tag: string) => {
+        router.push(`/search?q=${encodeURIComponent(tag)}`);
+    };
 
     return (
         <div className="w-full px-4 pt-6 pb-8 md:pt-10 md:pb-12 bg-white rounded-b-[2.5rem] shadow-sm mb-6 border-b border-white/50">
@@ -27,13 +40,21 @@ export default function HeroSearch() {
                     <DiscoverySearch />
                 </div>
 
-                {/* Quick Tags - Optional but adds to 'density' */}
-                <div className="flex flex-wrap justify-center gap-2 text-xs text-zinc-600 font-medium">
-                    <span>Trending:</span>
-                    <button onClick={() => router.push('/mood/Love')} className="hover:text-brand-accent transition-colors">#Love</button>
-                    <button onClick={() => router.push('/category/bgm')} className="hover:text-brand-accent transition-colors">#BGM</button>
-                    <button onClick={() => router.push('/artist/Anirudh%20Ravichander')} className="hover:text-brand-accent transition-colors">#Anirudh</button>
-                </div>
+                {/* Quick Tags - Dynamic */}
+                {trendingTags.length > 0 && (
+                    <div className="flex flex-wrap justify-center gap-2 text-xs text-zinc-600 font-medium animate-in fade-in slide-in-from-bottom-1 duration-300">
+                        <span>Trending:</span>
+                        {trendingTags.map((tag) => (
+                            <button
+                                key={tag}
+                                onClick={() => handleTagClick(tag)}
+                                className="hover:text-brand-accent transition-colors capitalize"
+                            >
+                                #{tag}
+                            </button>
+                        ))}
+                    </div>
+                )}
 
             </div>
         </div>

@@ -8,12 +8,12 @@ import { Ringtone } from '@/types';
 
 const getArtistRingtones = unstable_cache(
     async (artistName: string, sort: string = 'recent', additionalMovieNames: string[] = []) => {
-        // Query 1: Direct matches on Artist Name (Singers, Directors, Cast)
+        // Query 1: Direct matches on Artist Name (Singers, Directors, Cast, Lyricists)
         let query1 = supabase
             .from('ringtones')
             .select('*')
             .eq('status', 'approved')
-            .or(`singers.ilike.%${artistName}%,music_director.ilike.%${artistName}%,movie_director.ilike.%${artistName}%,cast_members.ilike.%${artistName}%`);
+            .or(`singers.ilike.%${artistName}%,music_director.ilike.%${artistName}%,movie_director.ilike.%${artistName}%,cast_members.ilike.%${artistName}%,lyricist.ilike.%${artistName}%`);
 
         // Query 2: Matches on Movie Names (for Actors)
         let query2 = null;
@@ -73,7 +73,8 @@ const getArtistRingtones = unstable_cache(
             return checkMatch(r.singers) ||
                 checkMatch(r.music_director) ||
                 checkMatch(r.movie_director) ||
-                checkMatch(r.cast_members);
+                checkMatch(r.cast_members) ||
+                checkMatch(r.lyricist);
         });
 
         // Re-sort after merge (since we merged two sorted lists, order might be mixed)

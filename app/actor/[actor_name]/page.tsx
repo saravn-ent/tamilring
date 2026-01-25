@@ -62,9 +62,6 @@ export default async function ActorPage({
 
   const ringtones = await getActorRingtones(actorName, sort);
 
-  // Calculate Total Likes
-  const totalLikes = ringtones?.reduce((sum, ringtone) => sum + (ringtone.likes || 0), 0) || 0;
-
   // Fetch actor image from TMDB
   const person = await searchPerson(actorName);
   const actorImage = person?.profile_path
@@ -91,8 +88,6 @@ export default async function ActorPage({
       <CompactProfileHeader
         name={actorName}
         type="Actor"
-        ringtoneCount={ringtones?.length || 0}
-        totalLikes={totalLikes}
         imageUrl={actorImage}
         bio={actorBio}
       />

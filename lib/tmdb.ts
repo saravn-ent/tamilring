@@ -84,6 +84,7 @@ export interface MovieCredits {
   crew: {
     job: string;
     name: string;
+    department?: string;
   }[];
 }
 
@@ -177,7 +178,7 @@ export const searchPerson = async (query: string): Promise<PersonResult | null> 
 
     // Add timeout to prevent hanging
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+    const timeoutId = setTimeout(() => controller.abort(), 3000); // 3s timeout for faster fallback
 
     const res = await fetch(searchUrl, {
       next: { revalidate: 3600 },

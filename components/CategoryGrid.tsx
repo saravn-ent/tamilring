@@ -1,9 +1,5 @@
-'use client';
-
 import Link from 'next/link';
-import { Music, Heart, MessageCircle, Smile, Bell, Zap, Flame, Star, CloudRain } from 'lucide-react';
-import SectionHeader from './SectionHeader';
-import { hapticFeedback } from '@/lib/haptics';
+import { Music, Heart, MessageCircle, CloudRain, Flame, Zap, Star } from 'lucide-react';
 
 const CATEGORIES = [
     { id: 'bgm', label: 'BGM', icon: Music, className: 'bg-violet-100 text-violet-700 border-violet-200', href: '/category/bgm' },
@@ -19,17 +15,17 @@ const CATEGORIES = [
 export default function CategoryGrid() {
     return (
         <div className="mb-8">
-            <div className="px-4">
-                <SectionHeader title="Browse Collections" translationKey="categories" />
+            <div className="px-4 text-center mt-6">
+                {/* No translation key here to keep it server-side or pass title directly */}
+                <h2 className="text-lg font-display font-bold text-black">Browse Collections</h2>
             </div>
 
-            <div className="flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide snap-x">
+            <div className="flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide snap-x mt-4">
                 {CATEGORIES.map((cat) => (
                     <Link
                         key={cat.id}
                         href={cat.href}
-                        onClick={() => hapticFeedback(10)}
-                        className={`snap-start shrink-0 flex items-center gap-2 px-5 py-3 rounded-xl border border-opacity-50 transition-all active:scale-95 ${cat.className}`}
+                        className={`snap-start shrink-0 flex items-center gap-2 px-5 py-3 rounded-xl border border-opacity-50 transition-all hover:opacity-80 active:scale-95 ${cat.className}`}
                     >
                         <cat.icon size={16} strokeWidth={2.5} />
                         <span className="text-sm font-bold whitespace-nowrap">{cat.label}</span>
