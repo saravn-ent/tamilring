@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Mail, Shield, ExternalLink, CheckCircle2, AlertTriangle, ArrowRight } from 'lucide-react';
+import { Mail, Shield, ExternalLink, CircleCheckBig, TriangleAlert, ArrowRight } from 'lucide-react';
 
 export default function DMCAForm() {
     const [formData, setFormData] = useState({
@@ -174,7 +174,7 @@ Signed: ${formData.name}
                                 className="peer sr-only"
                             />
                             <div className="w-5 h-5 border-2 border-zinc-300 rounded-md bg-white peer-checked:bg-brand-accent peer-checked:border-brand-accent transition-colors"></div>
-                            <CheckCircle2 size={12} className="absolute inset-0 m-auto text-white opacity-0 peer-checked:opacity-100 pointer-events-none" />
+                            <CircleCheckBig size={12} className="absolute inset-0 m-auto text-white opacity-0 peer-checked:opacity-100 pointer-events-none" />
                         </div>
                         <span className="text-sm text-zinc-600 font-medium group-hover:text-brand-dark transition-colors leading-snug">
                             I have a good faith belief that the use of the material in the manner complained of is not authorized by the copyright owner, its agent, or the law.
@@ -191,7 +191,7 @@ Signed: ${formData.name}
                                 className="peer sr-only"
                             />
                             <div className="w-5 h-5 border-2 border-zinc-300 rounded-md bg-white peer-checked:bg-brand-accent peer-checked:border-brand-accent transition-colors"></div>
-                            <CheckCircle2 size={12} className="absolute inset-0 m-auto text-white opacity-0 peer-checked:opacity-100 pointer-events-none" />
+                            <CircleCheckBig size={12} className="absolute inset-0 m-auto text-white opacity-0 peer-checked:opacity-100 pointer-events-none" />
                         </div>
                         <span className="text-sm text-zinc-600 font-medium group-hover:text-brand-dark transition-colors leading-snug">
                             The information in this notification is accurate, and under penalty of perjury, I am authorized to act on behalf of the owner of an exclusive right that is allegedly infringed.

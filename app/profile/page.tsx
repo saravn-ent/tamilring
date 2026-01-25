@@ -5,7 +5,7 @@ import { createBrowserClient } from '@supabase/ssr';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { User, Heart, Music, Trash2, X, UploadCloud, Star } from 'lucide-react';
+import { User, Heart, Music, Trash2, X, CloudUpload, Star, ArrowUpRight, CircleCheckBig, Wallet, Coins, ArrowRight } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 const UploadForm = dynamic(() => import('@/components/UploadForm'), {
@@ -21,6 +21,8 @@ import AvatarRank from '@/components/AvatarRank';
 import { getLevelTitle, syncUserGamification, POINTS_PER_UPLOAD } from '@/lib/gamification';
 import { Ringtone, Profile, UserBadge } from '@/types';
 import { User as SupabaseUser } from '@supabase/supabase-js';
+import { handleWithdrawal } from '@/app/actions/user';
+
 
 // Simple timeout helper
 function withTimeout<T>(promise: Promise<T>, ms: number = 5000): Promise<T> {
@@ -60,6 +62,13 @@ export default function ProfilePage() {
   const [twitter, setTwitter] = useState('');
   const [upiId, setUpiId] = useState('');
   const [btcAddress, setBtcAddress] = useState('');
+
+  // Withdrawal Modal State
+  const [isWithdrawModalOpen, setIsWithdrawModalOpen] = useState(false);
+  const [withdrawAmount, setWithdrawAmount] = useState('');
+  const [isWithdrawing, setIsWithdrawing] = useState(false);
+  const [withdrawError, setWithdrawError] = useState<string | null>(null);
+  const [withdrawSuccess, setWithdrawSuccess] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -199,6 +208,61 @@ export default function ProfilePage() {
     }
   };
 
+  const onWithdraw = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!profile || !user) return;
+
+    const amount = parseInt(withdrawAmount);
+    if (isNaN(amount) || amount < 100) {
+      setWithdrawError('Minimum withdrawal is ₹100');
+      return;
+    }
+
+    if (amount > profile.points) {
+      setWithdrawError('Insufficient balance');
+      return;
+    }
+
+    if (!profile.upi_id) {
+      setWithdrawError('Please add a UPI ID in Edit Profile first');
+      return;
+    }
+
+    setIsWithdrawing(true);
+    setWithdrawError(null);
+
+    try {
+      // 1. If UPI ID was changed/set in modal, update profile first
+      if (upiId !== profile.upi_id) {
+        const { error: upiError } = await supabase
+          .from('profiles')
+          .update({ upi_id: upiId })
+          .eq('id', user.id);
+
+        if (upiError) throw new Error('Failed to save UPI ID');
+        setProfile(prev => prev ? ({ ...prev, upi_id: upiId }) : null);
+      }
+
+      const res = await handleWithdrawal(user.id, amount, upiId);
+      if (res.success) {
+        setWithdrawSuccess(true);
+        // Refresh profile points
+        setProfile(prev => prev ? ({ ...prev, points: prev.points - amount }) : null);
+        setTimeout(() => {
+          setIsWithdrawModalOpen(false);
+          setWithdrawSuccess(false);
+          setWithdrawAmount('');
+        }, 3000);
+      } else {
+        setWithdrawError(res.error || 'Withdrawal failed');
+      }
+    } catch (err) {
+      setWithdrawError('An unexpected error occurred');
+    } finally {
+      setIsWithdrawing(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
@@ -251,40 +315,97 @@ export default function ProfilePage() {
         {profile?.bio && <p className="text-zinc-600 text-sm max-w-sm text-center mb-4 leading-relaxed italic">"{profile.bio}"</p>}
 
         {/* Stats */}
-        <div className="flex items-center gap-6 mb-6 text-sm">
+        <div className="flex items-center gap-8 mb-8">
           <div className="flex flex-col items-center">
-            <div className="flex items-baseline gap-1">
-              <span className="font-bold text-brand-dark text-xl">{uploads?.filter(u => u.status === 'approved').length || 0}</span>
-              {uploads?.some(u => u.status === 'pending') && (
-                <span className="text-zinc-500 text-[10px]">/ {uploads?.length}</span>
-              )}
-            </div>
-            <span className="text-zinc-500 font-medium text-[10px] uppercase tracking-wider">Ringtones</span>
+            <span className="text-2xl font-black text-brand-dark leading-none">
+              {uploads?.filter(u => u.status === 'approved').length || 0}
+            </span>
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1.5">Ringtones</span>
           </div>
           <div className="w-px h-8 bg-brand-border" />
           <div className="flex flex-col items-center">
-            <span className="font-bold text-brand-accent text-xl">{profile?.points || 0}</span>
-            <span className="text-zinc-500 font-medium text-[10px] uppercase tracking-wider">Rep Points</span>
+            <span className="text-2xl font-black text-brand-accent leading-none">
+              {profile?.points || 0}
+            </span>
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1.5">Rep Points</span>
           </div>
           <div className="w-px h-8 bg-brand-border" />
           <div className="flex flex-col items-center">
-            <span className="font-bold text-amber-500 text-xl">{getLevelTitle(profile?.level || 1)}</span>
-            <span className="text-zinc-500 font-medium text-[10px] uppercase tracking-wider">Level</span>
+            <span className="text-2xl font-black text-amber-500 leading-none">
+              {getLevelTitle(profile?.level || 1)}
+            </span>
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1.5">Level</span>
           </div>
         </div>
 
-        <div className="flex gap-2">
+        {/* Rewards Quick Card */}
+        <div className="w-full px-4 mb-2 animate-in fade-in slide-in-from-bottom-2 duration-500">
+          <div className="rounded-[2rem] p-5 shadow-xl bg-brand-dark relative overflow-hidden group border border-white/5">
+
+            {/* Background Accent Decorative - Static */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-brand-accent/10 rounded-full -mr-10 -mt-10 blur-3xl transition-all duration-700 group-hover:bg-brand-accent/20"></div>
+
+            <div className="flex items-start justify-between relative z-10 mb-5">
+              <div>
+                <div className="flex items-center gap-1.5 text-brand-accent mb-1 px-3 py-1 rounded-full bg-brand-accent/10 border border-brand-accent/20 w-fit">
+                  <Coins size={14} className="animate-pulse" />
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">
+                    {profile && profile.points >= 100 ? 'FUNDING READY' : 'REWARD BALANCE'}
+                  </span>
+                </div>
+                <div className="flex items-baseline gap-1 mt-1.5">
+                  <span className="text-3xl font-black text-white tracking-tighter">₹{profile?.points || 0}</span>
+                  <span className="text-brand-accent/60 text-xs font-black font-mono">.00</span>
+                </div>
+              </div>
+              <div className="w-10 h-10 bg-white/5 rounded-2xl flex items-center justify-center text-white/20">
+                <Wallet size={20} />
+              </div>
+            </div>
+
+            {/* Threshold Progress */}
+            <div className="mb-4 relative z-10">
+              <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest text-white/40 mb-1.5 px-0.5">
+                <span>Threshold: ₹100</span>
+                <span>{Math.min(100, Math.round(((profile?.points || 0) / 100) * 100))}%</span>
+              </div>
+              <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden p-0.5 border border-white/5">
+                <div
+                  className="h-full bg-gradient-to-r from-brand-accent to-emerald-400 rounded-full transition-all duration-1000 ease-out"
+                  style={{ width: `${Math.min(100, (profile?.points || 0)) || 2}%` }}
+                />
+              </div>
+            </div>
+
+            <button
+              onClick={() => setIsWithdrawModalOpen(true)}
+              disabled={!profile || profile.points < 100}
+              className={`w-full py-3.5 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 relative overflow-hidden active:scale-95
+                ${profile && profile.points >= 100
+                  ? 'bg-brand-accent text-brand-dark hover:bg-white shadow-[0_0_20px_rgba(255,255,255,0.1)] shadow-brand-accent/20'
+                  : 'bg-white/5 text-white/40 cursor-not-allowed'}`}
+            >
+              {profile && profile.points >= 100 ? (
+                <>CLAIM FUNDS <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" /></>
+              ) : (
+                <>Need ₹{100 - (profile?.points || 0)} more to withdraw</>
+              )}
+            </button>
+          </div>
+        </div>
+
+        <div className="flex gap-2 w-full px-4">
           <button
             onClick={() => setIsEditing(true)}
-            className="px-6 py-2 bg-brand-dark text-white text-xs font-black rounded-full hover:bg-brand-dark/90 transition-all shadow-md shadow-brand-dark/20 uppercase tracking-widest"
+            className="flex-1 py-3 bg-brand-dark text-white text-[11px] font-black rounded-2xl hover:bg-brand-dark/90 transition-all shadow-lg shadow-brand-dark/10 uppercase tracking-widest active:scale-[0.98]"
           >
             Edit Profile
           </button>
           <button
             onClick={handleSignOut}
-            className="w-10 h-10 flex items-center justify-center bg-red-50 text-red-500 rounded-full hover:bg-red-100 transition-all border border-red-100"
+            className="flex-1 py-3 bg-white text-zinc-500 text-[11px] font-black rounded-2xl border border-brand-border hover:bg-red-50 hover:text-red-500 hover:border-red-100 transition-all uppercase tracking-widest active:scale-[0.98]"
           >
-            <X size={18} />
+            Sign Out
           </button>
         </div>
 
@@ -298,7 +419,7 @@ export default function ProfilePage() {
 
               <h2 className="text-xl font-black text-brand-dark mb-1 uppercase tracking-tight">Edit Profile</h2>
               <p className="text-[10px] font-bold text-brand-accent mb-6 bg-brand-wash p-2 rounded-lg border border-brand-border flex items-center gap-2">
-                <Star size={12} fill="currentColor" /> EARN ₹15 PER APPROVED UPLOAD!
+                <Star size={12} fill="currentColor" /> EARN ₹10 PER APPROVED UPLOAD!
               </p>
 
               <form onSubmit={handleUpdateProfile} className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
@@ -338,6 +459,86 @@ export default function ProfilePage() {
             </div>
           </div>
         )}
+
+        {/* Withdrawal Modal */}
+        {isWithdrawModalOpen && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
+            <div className="w-full max-w-sm bg-white border border-brand-border rounded-3xl p-6 shadow-2xl relative">
+              <button onClick={() => setIsWithdrawModalOpen(false)} className="absolute top-4 right-4 text-zinc-400 hover:text-brand-dark transition-colors">
+                <X size={20} />
+              </button>
+
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-brand-dark rounded-full flex items-center justify-center text-white mx-auto mb-3 shadow-xl">
+                  <Wallet size={32} />
+                </div>
+                <h2 className="text-xl font-black text-brand-dark uppercase tracking-tight">Redeem Rewards</h2>
+                <p className="text-[10px] text-zinc-500 font-black uppercase tracking-[0.2em] mt-1 italic">1 Rep Point = ₹1 Cash</p>
+              </div>
+
+              {withdrawSuccess ? (
+                <div className="py-8 text-center space-y-3 animate-in zoom-in-95 duration-300">
+                  <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto">
+                    <CircleCheckBig size={24} />
+                  </div>
+                  <p className="text-sm font-bold text-emerald-600">Withdrawal Request sent!</p>
+                  <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-black italic">Wait for admin approval</p>
+                </div>
+              ) : (
+                <form onSubmit={onWithdraw} className="space-y-4">
+                  <div className="bg-brand-wash p-4 rounded-2xl border border-brand-border flex items-center justify-between">
+                    <div>
+                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-0.5">Available Balance</p>
+                      <p className="text-lg font-black text-brand-dark">₹{profile?.points || 0}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-0.5">Min Withdrawal</p>
+                      <p className="text-lg font-black text-brand-accent">₹100</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 block ml-1">Withdrawal Amount (₹)</label>
+                    <input
+                      type="number"
+                      value={withdrawAmount}
+                      onChange={e => setWithdrawAmount(e.target.value)}
+                      placeholder="e.g. 100"
+                      className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-sm focus:border-brand-accent outline-none transition-all font-mono"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 block ml-1">UPI ID (For Instant Payout)</label>
+                    <input
+                      type="text"
+                      value={upiId}
+                      onChange={e => setUpiId(e.target.value)}
+                      placeholder="yourname@upi"
+                      className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-sm focus:border-brand-accent outline-none transition-all font-mono text-brand-dark"
+                    />
+                    {profile && !profile.upi_id && upiId && (
+                      <p className="text-[9px] font-bold text-brand-accent mt-1 animate-pulse">✨ We'll save this to your explorer profile</p>
+                    )}
+                  </div>
+
+                  {withdrawError && (
+                    <p className="text-[10px] font-bold text-red-500 text-center bg-red-50 p-2 rounded-lg border border-red-100">{withdrawError}</p>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={isWithdrawing || !upiId}
+                    className="w-full py-4 bg-brand-accent text-white font-black rounded-2xl hover:bg-brand-accent/90 transition-all disabled:opacity-50 shadow-xl shadow-brand-accent/20 uppercase tracking-widest text-xs active:scale-[0.98]"
+                  >
+                    {isWithdrawing ? 'Syncing Ledger...' : 'Request Payout Now'}
+                  </button>
+                  <p className="text-[9px] text-zinc-400 text-center font-medium px-4">Withdrawals are processed manually by admins within 24-48 hours.</p>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Tabs */}
@@ -351,7 +552,7 @@ export default function ProfilePage() {
             >
               {tab === 'liked' && <Heart size={14} />}
               {tab === 'uploads' && <Music size={14} />}
-              {tab === 'upload' && <UploadCloud size={14} />}
+              {tab === 'upload' && <CloudUpload size={14} />}
               <span>{tab === 'uploads' ? 'My Rings' : tab === 'liked' ? 'Liked' : tab}</span>
             </button>
           ))}

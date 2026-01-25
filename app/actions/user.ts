@@ -70,15 +70,13 @@ export async function handleWithdrawal(userId: string, amount: number, upiId: st
     if (!profile) return { success: false, error: 'User not found' };
 
     // 2. Validate withdrawal logic
-    const isFirstTime = (profile.total_withdrawn_count || 0) === 0;
-    const minThreshold = isFirstTime ? 15 : 200;
+    const minThreshold = 100;
 
     if (amount < minThreshold) {
         return { success: false, error: `Minimum withdrawal is ${minThreshold} Rep` };
     }
 
-    // Force first withdrawal to be exactly 15 Rep for safety/test
-    const withdrawAmount = isFirstTime ? 15 : amount;
+    const withdrawAmount = amount;
 
     if (profile.points < withdrawAmount) {
         return { success: false, error: `Insufficient Reputation Points. Need ${withdrawAmount} Rep.` };

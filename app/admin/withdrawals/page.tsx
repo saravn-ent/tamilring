@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { Loader2, TrendingUp, CheckCircle, XCircle, User, Clock, Search, AlertCircle } from 'lucide-react';
+import { Loader2, TrendingUp, CircleCheck, CircleX, User, Clock, Search, CircleAlert } from 'lucide-react';
 import { updateWithdrawalStatus } from '@/app/actions/admin';
 import Image from 'next/image';
 import { Withdrawal } from '@/types';
@@ -155,7 +155,7 @@ export default function AdminWithdrawals() {
                                                 onClick={() => handleAction(w.id, 'completed')}
                                                 className="h-11 px-6 bg-emerald-500 text-black font-black text-xs uppercase tracking-widest rounded-xl hover:bg-emerald-400 transition-all disabled:opacity-50 flex items-center gap-2"
                                             >
-                                                {processingId === w.id ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
+                                                {processingId === w.id ? <Loader2 size={16} className="animate-spin" /> : <CircleCheck size={16} />}
                                                 Mark Paid
                                             </button>
                                             <button
@@ -163,7 +163,7 @@ export default function AdminWithdrawals() {
                                                 onClick={() => handleAction(w.id, 'rejected')}
                                                 className="h-11 px-4 bg-red-500/10 text-red-500 font-black text-xs uppercase tracking-widest rounded-xl hover:bg-red-500/20 transition-all disabled:opacity-50 flex items-center gap-2"
                                             >
-                                                <XCircle size={16} />
+                                                <CircleX size={16} />
                                                 Reject
                                             </button>
                                         </div>
@@ -195,7 +195,7 @@ export default function AdminWithdrawals() {
                             <span className="text-[10px] font-black text-emerald-200 uppercase tracking-widest">Requests</span>
                             <span className="text-2xl font-black tracking-tight">{filteredWithdrawals.length}</span>
                         </div>
-                        <AlertCircle className="opacity-50" />
+                        <CircleAlert className="opacity-50" />
                     </div>
                 </div>
             )}

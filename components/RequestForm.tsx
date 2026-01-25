@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { createRingtoneRequest } from '@/app/actions/requests';
-import { Music, Film, FileText, Send, CheckCircle2, Loader2, X } from 'lucide-react';
+import { Music, Film, FileText, Send, CircleCheckBig, Loader2, X } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 
 export default function RequestForm({ onComplete }: { onComplete: () => void }) {
@@ -41,7 +41,7 @@ export default function RequestForm({ onComplete }: { onComplete: () => void }) 
         return (
             <div className="flex flex-col items-center justify-center py-10 text-center space-y-4 animate-in fade-in zoom-in duration-300">
                 <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center text-emerald-500">
-                    <CheckCircle2 size={40} />
+                    <CircleCheckBig size={40} />
                 </div>
                 <div>
                     <h3 className="text-xl font-bold text-white">Request Submitted!</h3>

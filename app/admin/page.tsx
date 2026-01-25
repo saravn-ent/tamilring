@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { LucideIcon, Loader2, Music, Users, Download, Clock, TrendingUp, AlertCircle, RefreshCcw, MessageSquare } from 'lucide-react';
+import { LucideIcon, Loader2, Music, Users, Download, Clock, TrendingUp, CircleAlert, RefreshCcw, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 
 interface RingtoneSummary {
@@ -194,7 +194,7 @@ export default function AdminDashboard() {
                 <StatCard
                     title="Pending Approval"
                     value={stats.pendingRingtones}
-                    icon={AlertCircle}
+                    icon={CircleAlert}
                     color="text-amber-500"
                     href="/admin/ringtones?tab=pending"
                 />
@@ -231,7 +231,7 @@ export default function AdminDashboard() {
                                     ${item.status === 'approved' ? 'bg-emerald-500/10 text-emerald-500' :
                                         item.status === 'rejected' ? 'bg-red-500/10 text-red-500' : 'bg-amber-500/10 text-amber-500'}`}>
                                     {item.status === 'approved' ? <TrendingUp size={18} /> :
-                                        item.status === 'rejected' ? <AlertCircle size={18} /> : <Clock size={18} />}
+                                        item.status === 'rejected' ? <CircleAlert size={18} /> : <Clock size={18} />}
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <h4 className="text-sm font-medium text-zinc-200 truncate">{item.title}</h4>
@@ -263,7 +263,7 @@ export default function AdminDashboard() {
                             </div>
                         </Link>
                         <Link href="/admin/ringtones?tab=pending" className="flex items-center gap-3 p-3 rounded-xl bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 transition-colors border border-amber-500/20">
-                            <AlertCircle size={20} />
+                            <CircleAlert size={20} />
                             <div className="text-left">
                                 <span className="block text-sm font-bold">Review Pending</span>
                                 <span className="block text-[10px] opacity-70">Approve or reject uploads</span>

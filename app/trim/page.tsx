@@ -6,9 +6,9 @@ import Script from 'next/script';
 
 import dynamic from 'next/dynamic';
 
-const AudioTrimmer = dynamic(() => import('@/components/AudioTrimmer'), {
+const AudioTrimmer = dynamic(() => import('@/components/AudioTrimmerV2'), {
     ssr: false,
-    loading: () => <div className="p-12 text-center animate-pulse text-zinc-500">Initializing Audio Engine...</div>
+    loading: () => <div className="p-12 text-center animate-pulse text-zinc-500">Initializing Audio Engine (v2)...</div>
 });
 
 export default function TrimPage() {
@@ -22,22 +22,22 @@ export default function TrimPage() {
     };
 
     return (
-        <div className="container mx-auto px-4 py-8 min-h-screen pb-32 bg-white">
+        <div className="container mx-auto px-4 py-4 min-h-screen pb-20 bg-white">
             {/* FFmpeg Global Script */}
             <Script
-                src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.2/dist/ffmpeg.min.js"
+                src="/ffmpeg/ffmpeg.min.js"
                 strategy="beforeInteractive"
             />
 
-            <div className="max-w-2xl mx-auto space-y-8">
+            <div className="max-w-2xl mx-auto space-y-4">
 
                 {/* Header */}
-                <div className="space-y-2 text-center">
-                    <h1 className="text-4xl font-black text-brand-dark flex items-center justify-center gap-3 tracking-tight">
-                        <Scissors className="text-brand-accent" strokeWidth={3} />
+                <div className="space-y-1 text-center">
+                    <h1 className="text-3xl font-black text-brand-dark flex items-center justify-center gap-2 tracking-tight">
+                        <Scissors className="text-brand-accent" size={24} strokeWidth={3} />
                         Ringtone Cutter
                     </h1>
-                    <p className="text-zinc-500 font-medium">
+                    <p className="text-zinc-500 text-sm font-medium">
                         Create custom ringtones from your files or YouTube.
                     </p>
                 </div>
@@ -107,11 +107,8 @@ export default function TrimPage() {
                         </div>
                     </div>
                 ) : (
-                    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <button
-                            onClick={() => setFile(null)}
-                            className="flex items-center gap-2 text-zinc-500 hover:text-brand-dark text-sm font-bold transition-colors"
-                        >
+                    <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        <button onClick={() => setFile(null)} className="flex items-center gap-1.5 text-zinc-500 hover:text-brand-dark transition-colors font-bold text-sm">
                             <ArrowLeft size={16} strokeWidth={2.5} /> Cut Another Song
                         </button>
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Search, Loader2, Youtube, AlertCircle, ClipboardPaste, ArrowRight, Link as LinkIcon } from 'lucide-react';
+import { Search, Loader2, Youtube, CircleAlert, ClipboardPaste, ArrowRight, Link as LinkIcon } from 'lucide-react';
 
 interface YouTubeImporterProps {
     onLoad: (file: File) => void;
@@ -107,7 +107,7 @@ export default function YouTubeImporter({ onLoad }: YouTubeImporterProps) {
 
                 {error && (
                     <div className="flex items-center gap-2 text-red-400 text-xs bg-red-500/10 p-3 rounded-lg border border-red-500/20 animate-in slide-in-from-top-2">
-                        <AlertCircle size={14} />
+                        <CircleAlert size={14} />
                         <p>{error}</p>
                     </div>
                 )}

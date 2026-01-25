@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { ArrowLeft, Plus, Music, Clock, User, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Plus, Music, Clock, User, CircleCheckBig } from 'lucide-react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { formatDistanceToNow } from 'date-fns';

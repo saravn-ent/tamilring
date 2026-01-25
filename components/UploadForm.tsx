@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Upload, Search, Music, Check, Loader2, X, RefreshCw, AlertCircle, Film, ChevronDown, Wand2, ArrowRight, Sparkles, Heart, Pencil, Scissors } from 'lucide-react';
+import { Upload, Search, Music, Check, Loader2, X, RefreshCw, CircleAlert, Film, ChevronDown, Wand2, ArrowRight, Sparkles, Heart, Pencil, Scissors } from 'lucide-react';
 import ArtistAutocomplete from './ArtistAutocomplete';
-import AudioTrimmer from './AudioTrimmer';
+import AudioTrimmer from './AudioTrimmerV2';
 import { searchMovies, MovieResult, getImageUrl, getMovieCredits, TMDB_GENRE_TO_TAG } from '@/lib/tmdb';
 import { getSongsByMovie, iTunesRing } from '@/lib/itunes';
 import { createBrowserClient } from '@supabase/ssr';
@@ -197,7 +197,9 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       if (!ffmpegRef.current) {
         ffmpegRef.current = createFFmpeg({
           log: true,
-          corePath: 'https://unpkg.com/@ffmpeg/core@0.11.0/dist/ffmpeg-core.js',
+          corePath: `${window.location.origin}/ffmpeg/ffmpeg-core.js`,
+          wasmPath: `${window.location.origin}/ffmpeg/ffmpeg-core.wasm`,
+          mainName: 'main'
         });
       }
 
@@ -389,14 +391,32 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
         setIsCheckingDuplicate(true);
         setDuplicateError(null);
         try {
-          const { data } = await supabase
+          // 1. Check Slug (Exact Identity)
+          const { data: slugData } = await supabase
             .from('ringtones')
             .select('id')
             .eq('slug', newSlug)
             .single();
 
-          if (data) {
+          if (slugData) {
             setDuplicateError('A ringtone with this exact identity already exists!');
+            return;
+          }
+
+          // 2. Check Semantic Match (Movie + Song + Segment)
+          // This stops someone from uploading "Leo - Badass - BGM" if it exists, even if their slug differs slightly
+          if (movieOrContextName && songName && segmentName) {
+            const { data: semanticData } = await supabase
+              .from('ringtones')
+              .select('id')
+              .eq('movie_name', movieOrContextName)
+              .eq('song_name', songName)
+              .eq('title', segmentName)
+              .single();
+
+            if (semanticData) {
+              setDuplicateError(`The "${segmentName}" for "${songName}" in "${movieOrContextName}" is already uploaded.`);
+            }
           }
         } catch (err) {
           // No duplicate found
@@ -1107,7 +1127,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
           <div className="space-y-2">
             {duplicateError && (
               <div className="flex items-center gap-2 text-red-600 text-xs font-bold bg-red-50 p-2 rounded-lg border border-red-200">
-                <AlertCircle size={14} />
+                <CircleAlert size={14} />
                 <span>{duplicateError}</span>
               </div>
             )}
@@ -1402,7 +1422,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
           <div className="space-y-2">
             {duplicateError && (
               <div className="flex items-center gap-2 text-red-600 text-xs font-bold bg-red-50 p-2 rounded-lg border border-red-200">
-                <AlertCircle size={14} />
+                <CircleAlert size={14} />
                 <span>{duplicateError}</span>
               </div>
             )}
@@ -1586,7 +1606,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
           <div className="space-y-2">
             {duplicateError && (
               <div className="flex items-center gap-2 text-red-600 text-xs font-bold bg-red-50 p-2 rounded-lg border border-red-200">
-                <AlertCircle size={14} />
+                <CircleAlert size={14} />
                 <span>{duplicateError}</span>
               </div>
             )}
@@ -1624,14 +1644,10 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
         </div>
       )}
 
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `if (typeof SharedArrayBuffer === 'undefined') { window.SharedArrayBuffer = function() { throw new Error('Not supported'); }; }`
-        }}
-      />
+
 
       <Script
-        src="https://unpkg.com/@ffmpeg/ffmpeg@0.11.2/dist/ffmpeg.min.js"
+        src="/ffmpeg/ffmpeg.min.js"
         strategy="afterInteractive"
         onLoad={() => {
           if ((window as any).FFmpeg) loadFFmpeg();
