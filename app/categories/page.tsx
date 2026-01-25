@@ -1,6 +1,9 @@
 import { supabase } from '@/lib/supabaseClient';
 import { unstable_cache } from 'next/cache';
 import DiscoveryContainer from '@/components/DiscoveryContainer';
+import { generateCategoryMetadata } from '@/lib/seo';
+
+export const metadata = generateCategoryMetadata();
 
 const getFeaturedArtists = unstable_cache(
   async () => {

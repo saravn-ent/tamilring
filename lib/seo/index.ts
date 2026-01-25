@@ -12,6 +12,8 @@ export {
     generateMovieMetadata,
     generateArtistMetadata,
     generateSearchMetadata,
+    generateCategoryMetadata,
+    generateRecentMetadata,
     generateUserProfileMetadata,
     truncateText,
     optimizeTitle,

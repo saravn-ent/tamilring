@@ -9,6 +9,7 @@ export default function manifest(): MetadataRoute.Manifest {
         display: 'standalone',
         background_color: '#050505',
         theme_color: '#F92445',
+        orientation: 'portrait',
         icons: [
             {
                 src: '/favicon.svg',
@@ -26,5 +27,22 @@ export default function manifest(): MetadataRoute.Manifest {
                 type: 'image/png',
             },
         ],
+        shortcuts: [
+            {
+                name: 'Home',
+                url: '/',
+                icons: [{ src: '/icons/icon-192x192.png', sizes: '192x192' }]
+            },
+            {
+                name: 'Search',
+                url: '/search',
+                icons: [{ src: '/icons/icon-192x192.png', sizes: '192x192' }]
+            },
+            {
+                name: 'Upload',
+                url: '/upload',
+                icons: [{ src: '/icons/icon-192x192.png', sizes: '192x192' }]
+            }
+        ]
     };
 }

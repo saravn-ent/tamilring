@@ -8,6 +8,8 @@ import { getArtistBio } from '@/lib/constants';
 import { JsonLdScript } from '@/components/JsonLdScript';
 import { sanitizeSQLInput } from '@/lib/sanitize';
 
+import { generateArtistMetadata } from '@/lib/seo';
+
 interface Props {
     params: Promise<{ artist_name: string }>;
     searchParams: Promise<{ sort?: string }>;
@@ -21,28 +23,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     const person = await searchPerson(artistName);
     const imageUrl = person?.profile_path ? getImageUrl(person.profile_path, 'w500') : undefined;
 
-    const title = `${artistName} Ringtones Download - Free BGM & Tamil Cuts | TamilRing`;
-    const description = `Download high-quality ${artistName} ringtones and BGM. Listen to the best flute, vocal, and instrumental cuts composed by ${artistName} for free on TamilRing.`;
-
-    return {
-        title,
-        description,
-        alternates: {
-            canonical: `/tamil/music-directors/${artist_name}`,
-        },
-        openGraph: {
-            title,
-            description,
-            type: 'music.playlist',
-            images: imageUrl ? [{ url: imageUrl }] : [],
-        },
-        twitter: {
-            card: 'summary',
-            title,
-            description,
-            images: imageUrl ? [imageUrl] : [],
-        },
-    };
+    return generateArtistMetadata({
+        name: artistName,
+        image_url: imageUrl,
+        role: 'music_director',
+    });
 }
 
 export default async function MusicDirectorSiloPage({ params, searchParams }: Props) {

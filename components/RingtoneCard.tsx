@@ -12,6 +12,7 @@ import TMDBImage from './TMDBImage';
 import { useFavorites } from '@/context/FavoritesContext';
 
 import { useRouter } from 'next/navigation';
+import { hapticFeedback } from '@/lib/haptics';
 
 
 
@@ -96,6 +97,7 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
   const handlePlay = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    hapticFeedback(20);
     // Antigravity Fix: Yield to main thread to prioritize UI response (INP)
     setTimeout(() => {
       if (isActive) {
@@ -130,6 +132,7 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
   const handleLike = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    hapticFeedback(15);
 
     if (!isLiked) {
       setLikesCount(prev => prev + 1);
@@ -153,6 +156,7 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
   const handleShare = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    hapticFeedback(10);
 
     const shareUrl = `${window.location.origin}/ringtone/${ringtone.slug}`;
     const shareData = {
@@ -177,43 +181,51 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
   };
 
   // Extract the ringtone name (segmentName) from the title
-  // 1. Initial cleanup
   let displayName = ringtone.title;
   const song = ringtone.song_name ? ringtone.song_name.trim() : '';
   const movie = ringtone.movie_name ? ringtone.movie_name.trim() : '';
 
-  const cleanText = (text: string, toRemove: string) => {
-    if (!toRemove) return text;
-    const escaped = toRemove.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return text.replace(new RegExp(escaped, 'gi'), '').trim();
+  // 1. Define Similarity Check (Simple but effective for common typos)
+  const isSimilar = (a: string, b: string) => {
+    if (!a || !b) return false;
+    const s1 = a.toLowerCase().trim();
+    const s2 = b.toLowerCase().trim();
+    if (s1 === s2) return true;
+    if (s1.includes(s2) || s2.includes(s1)) return true;
+    // Common case: Typos at the end (Amaran vs Amaram) or transliteration (Vidaamuyarchi vs Vidamyarchi)
+    // Check if they share a significant prefix (first 4-5 chars)
+    if (s1.length >= 4 && s2.length >= 4 && s1.substring(0, 4) === s2.substring(0, 4)) return true;
+    return false;
   };
 
-  // 2. Remove Movie & Song & Vocal
-  displayName = cleanText(displayName, movie);
-  if (song) displayName = cleanText(displayName, song);
-  displayName = displayName.replace(/\bVocal\b/gi, '').trim();
+  // 2. Identify the "Unique Segment" (e.g., Whistle, BGM, Pallavi)
+  // We extract words from the title that aren't the movie or song
+  const titleWords = ringtone.title.split(/\s+[-–—:|]+\s+|\s+/);
+  const segmentWords = titleWords.filter(word => {
+    const cleanWord = word.replace(/[^a-zA-Z0-9]/g, '');
+    if (cleanWord.length < 2) return false;
+    if (isSimilar(cleanWord, movie)) return false;
+    if (isSimilar(cleanWord, song)) return false;
+    // Filter out obvious noise and common generic filler words
+    if (/^(from|movie|song|ringtone|mp3|download|tamil|official|by|for|with|in)$/i.test(cleanWord)) return false;
+    return true;
+  });
 
-  // 3. Normalize
-  displayName = displayName
-    .replace(/\(From.*?\)/gi, '')
-    .replace(/^[-–—:|]+|[-–—:|]+$/g, '')
-    .replace(/\s+[-–—:|]+\s+/g, ' - ')
-    .trim();
+  const uniqueSegment = segmentWords.join(' ');
 
-  // 4. Reconstruct: Segment - Song
-  if (displayName && song) {
-    displayName = `${displayName} - ${song}`;
+  // 3. Build the Final SEO-Optimized Title
+  // We prioritize: [Unique Segment] - [Official Song Name]
+  if (uniqueSegment && song) {
+    displayName = `${uniqueSegment} - ${song}`;
   } else if (song) {
     displayName = song;
-  }
-  // (If displayName became empty but no song, it remains empty, which is edge case handled by original fallback)
-
-  if (!displayName || !/[a-zA-Z0-9]/.test(displayName)) {
-    // If we stripped everything (e.g. title was just "Song"), fallback to song or original title
-    displayName = song || ringtone.title;
+  } else if (uniqueSegment && movie) {
+    displayName = `${uniqueSegment} - ${movie}`;
+  } else {
+    displayName = movie || ringtone.title;
   }
 
-  // Auto capitalize first letter
+  // Final Polish
   displayName = displayName.charAt(0).toUpperCase() + displayName.slice(1);
 
   return (
@@ -265,17 +277,19 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
                 {displayName}
               </h3>
 
-              {/* Line 2: Song Name */}
-              {ringtone.song_name && (
+              {/* Line 2: Song Name (Only if not already in title) */}
+              {ringtone.song_name && !displayName.toLowerCase().includes(ringtone.song_name.toLowerCase()) && (
                 <p className="text-[13px] sm:text-sm text-zinc-700 truncate font-medium mt-0.5">
                   {ringtone.song_name}
                 </p>
               )}
 
-              {/* Line 3: Movie Name */}
-              <p className="text-xs sm:text-[13px] text-zinc-600 truncate font-normal mt-0.5">
-                {ringtone.movie_name}
-              </p>
+              {/* Line 3: Movie Name (Only if not already in title) */}
+              {ringtone.movie_name && !displayName.toLowerCase().includes(ringtone.movie_name.toLowerCase()) && (
+                <p className="text-xs sm:text-[13px] text-zinc-600 truncate font-normal mt-0.5">
+                  {ringtone.movie_name}
+                </p>
+              )}
             </div>
 
             {/* Active Player Bar - Now Compact and Integrated */}

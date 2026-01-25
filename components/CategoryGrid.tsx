@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Music, Heart, MessageCircle, Smile, Bell, Zap, Flame, Star, CloudRain } from 'lucide-react';
 import SectionHeader from './SectionHeader';
+import { hapticFeedback } from '@/lib/haptics';
 
 const CATEGORIES = [
     { id: 'bgm', label: 'BGM', icon: Music, className: 'bg-violet-100 text-violet-700 border-violet-200', href: '/category/bgm' },
@@ -27,6 +28,7 @@ export default function CategoryGrid() {
                     <Link
                         key={cat.id}
                         href={cat.href}
+                        onClick={() => hapticFeedback(10)}
                         className={`snap-start shrink-0 flex items-center gap-2 px-5 py-3 rounded-xl border border-opacity-50 transition-all active:scale-95 ${cat.className}`}
                     >
                         <cat.icon size={16} strokeWidth={2.5} />

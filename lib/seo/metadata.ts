@@ -58,9 +58,13 @@ export function generateBaseMetadata(): Metadata {
             telephone: false,
         },
         icons: {
-            icon: '/favicon.svg',
+            icon: [
+                { url: '/favicon.svg', type: 'image/svg+xml' },
+            ],
             shortcut: '/favicon.svg',
-            apple: '/apple-touch-icon.png',
+            apple: [
+                { url: '/favicon.svg', type: 'image/svg+xml' },
+            ],
         },
         manifest: '/manifest.json',
         appleWebApp: {
@@ -72,6 +76,32 @@ export function generateBaseMetadata(): Metadata {
             google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
         },
     };
+}
+
+/**
+ * Generate metadata for category hub page
+ */
+export function generateCategoryMetadata(): Metadata {
+    return generateMetadata({
+        title: 'Browse Ringtones by Category & Artist',
+        description: 'Explore our vast collection of Tamil ringtones categorized by music directors, singers, movies, and more. Find your favorite melodies easily.',
+        keywords: ['tamil ringtone categories', 'tamil artists', 'tamil singers list', 'tamil music directors'],
+        url: '/categories',
+        type: 'website',
+    });
+}
+
+/**
+ * Generate metadata for recent uploads page
+ */
+export function generateRecentMetadata(): Metadata {
+    return generateMetadata({
+        title: 'Recently Added Tamil Ringtones',
+        description: 'Check out the latest Tamil ringtones and BGM added to TamilRing. Download high-quality trending melodies and new releases from Tamil cinema.',
+        keywords: ['latest tamil ringtones', 'new tamil bgm', 'tamil ringtones 2024', 'recent ringtones'],
+        url: '/recent',
+        type: 'website',
+    });
 }
 
 /**

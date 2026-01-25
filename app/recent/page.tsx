@@ -5,6 +5,9 @@ import SortControl from '@/components/SortControl';
 import RecentRingtonesList from '@/components/recent/RecentRingtonesList';
 import { Suspense } from 'react';
 import { RingtoneGridSkeleton } from '@/components/skeletons';
+import { generateRecentMetadata } from '@/lib/seo';
+
+export const metadata = generateRecentMetadata();
 
 export const revalidate = 0;
 

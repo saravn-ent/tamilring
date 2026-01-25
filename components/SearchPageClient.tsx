@@ -14,6 +14,7 @@ import TMDBImage from './TMDBImage';
 import { MOODS, ERAS, INSTRUMENTS } from '@/lib/constants';
 import NoResults from '@/components/NoResults';
 import SortControl from './SortControl';
+import { hapticFeedback } from '@/lib/haptics';
 
 
 function SearchContent() {
@@ -293,7 +294,10 @@ function SearchContent() {
                             {tabs.map((tab) => (
                                 <button
                                     key={tab}
-                                    onClick={() => setActiveTab(tab as any)}
+                                    onClick={() => {
+                                        hapticFeedback(10);
+                                        setActiveTab(tab as any);
+                                    }}
                                     className={`px-4 py-2 rounded-full text-sm font-medium capitalize whitespace-nowrap transition-colors border ${activeTab === tab
                                         ? 'bg-brand-blue text-white border-brand-blue'
                                         : 'bg-white text-zinc-600 border-brand-gray hover:border-zinc-400'
@@ -342,6 +346,7 @@ function SearchContent() {
                                                         <button
                                                             key={opt.id}
                                                             onClick={() => {
+                                                                hapticFeedback(10);
                                                                 setSortBy(opt.id as any);
                                                                 setIsSortOpen(false);
                                                             }}
@@ -463,6 +468,7 @@ function SearchContent() {
                                             <Link
                                                 key={mood}
                                                 href={`/mood/${mood.toLowerCase()}`}
+                                                onClick={() => hapticFeedback(10)}
                                                 className="p-4 bg-white border border-[#E5EBF1] rounded-xl hover:shadow-md transition-all group"
                                             >
                                                 <span className="font-bold text-zinc-700 group-hover:text-brand-accent">{mood}</span>
@@ -479,6 +485,7 @@ function SearchContent() {
                                             <Link
                                                 key={era.label}
                                                 href={`/search?q=${era.label}&hideSearch=true`}
+                                                onClick={() => hapticFeedback(15)}
                                                 className={`p-6 rounded-xl bg-gradient-to-br ${era.color} relative overflow-hidden group shadow-sm hover:shadow-lg transition-shadow`}
                                             >
                                                 <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />

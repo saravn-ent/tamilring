@@ -6,6 +6,7 @@ import { PlayerProvider } from "@/context/PlayerContext";
 import { FavoritesProvider } from "@/context/FavoritesContext";
 import { LanguageProvider } from "@/context/LanguageContext";
 import BottomNav from "@/components/BottomNav";
+import BackToTop from "@/components/BackToTop";
 import LegalFooter from "@/components/LegalFooter";
 import SiteHeader from "@/components/SiteHeader";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -149,6 +150,7 @@ export default async function RootLayout({
                 <div className="pb-24">
                   <LegalFooter />
                 </div>
+                <BackToTop />
                 <BottomNav />
               </LanguageProvider>
             </FavoritesProvider>

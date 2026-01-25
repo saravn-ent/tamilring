@@ -8,6 +8,8 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { JsonLdScript } from '@/components/JsonLdScript';
 
+import { generateMovieMetadata } from '@/lib/seo';
+
 interface Props {
     params: Promise<{ movie_name: string }>;
     searchParams: Promise<{ sort?: string }>;
@@ -33,28 +35,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         };
     }
 
-    const title = `${movieName} Ringtones Download - Free BGM & Tamil Cuts | TamilRing`;
-    const description = `Download high-quality ${movieName} ringtones and BGM. Listen to the best flute, vocal, and instrumental cuts from ${movieName} for free on TamilRing.`;
-
-    return {
-        title,
-        description,
-        alternates: {
-            canonical: `/tamil/movies/${movie_name}`, // Self-referencing canonical
-        },
-        openGraph: {
-            title: `${movieName} BGM & Ringtones Download`,
-            description,
-            type: 'music.album',
-            images: movie.poster_url ? [{ url: movie.poster_url }] : [],
-        },
-        twitter: {
-            card: 'summary',
-            title,
-            description,
-            images: movie.poster_url ? [movie.poster_url] : [],
-        },
-    };
+    return generateMovieMetadata({
+        name: movieName,
+        poster_url: movie.poster_url,
+        year: movie.movie_year?.toString(),
+        music_director: movie.music_director,
+    });
 }
 
 export default async function MovieSiloPage({ params, searchParams }: Props) {

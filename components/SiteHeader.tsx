@@ -5,17 +5,45 @@ import { useRouter } from 'next/navigation';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
+import { hapticFeedback } from '@/lib/haptics';
 
 export default function SiteHeader() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const [lastScrollY, setLastScrollY] = useState(0);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+
+    // Hide header on scroll down (mobile only)
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      // Always show on top of page
+      if (currentScrollY < 50) {
+        setIsVisible(true);
+        setLastScrollY(currentScrollY);
+        return;
+      }
+
+      // If scrolling down, hide. If scrolling up, show.
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setIsVisible(false);
+      } else if (currentScrollY < lastScrollY) {
+        setIsVisible(true);
+      }
+
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [lastScrollY]);
 
   const handleSurprise = async () => {
+    // ... same as before
     try {
       setLoading(true);
 
@@ -62,9 +90,9 @@ export default function SiteHeader() {
   }
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-b border-brand-gray h-14">
+    <header className={`fixed top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-b border-brand-gray h-14 transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full md:translate-y-0'}`}>
       <div className="max-w-6xl mx-auto px-4 md:px-6 h-14 flex items-center justify-between">
-        <Link href="/" className="text-xl font-display font-bold tracking-tighter text-brand-blue">
+        <Link href="/" className="text-xl font-display font-bold tracking-tighter text-brand-blue" onClick={() => hapticFeedback(10)}>
           <span>Tamil</span><span className="text-brand-dark">Ring</span>
         </Link>
 
