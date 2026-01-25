@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-export const revalidate = 3600;
+export const revalidate = 0;
 import { supabase } from '@/lib/supabaseClient';
 
 import Image from 'next/image';
@@ -114,7 +114,56 @@ export default async function RingtonePage({ params }: Props) {
           </div>
 
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold text-black">{ringtone.title.replace(/\(From ".*?"\)/i, '').trim()}</h1>
+            {(() => {
+              // ROBUST TITLE GENERATION: [Segment Name] - [Song Name]
+              let segment = ringtone.title;
+              const song = ringtone.song_name ? ringtone.song_name.trim() : '';
+              const movie = ringtone.movie_name ? ringtone.movie_name.trim() : '';
+
+              // Clean helper
+              const cleanText = (text: string, toRemove: string) => {
+                if (!toRemove) return text;
+                const escaped = toRemove.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                // Remove the text anywhere in the string (case insensitive)
+                return text.replace(new RegExp(escaped, 'gi'), '').trim();
+              };
+
+              // 1. Remove Movie Name
+              segment = cleanText(segment, movie);
+
+              // 2. Remove Song Name
+              if (song) {
+                segment = cleanText(segment, song);
+              }
+
+              // 3. Remove "Vocal" tag
+              segment = segment.replace(/\bVocal\b/gi, '').trim();
+
+              // 4. Clean extra separators/brackets
+              segment = segment
+                .replace(/\(From.*?\)/gi, '')
+                .replace(/^[-–—:|]+|[-–—:|]+$/g, '') // remove leading/trailing separators
+                .replace(/\s+[-–—:|]+\s+/g, ' - ') // normalize middle separators
+                .trim();
+
+              // 5. Construct Final Title
+              let displayTitle = '';
+              if (segment && song) {
+                displayTitle = `${segment} - ${song}`;
+              } else if (segment) {
+                displayTitle = segment;
+              } else if (song) {
+                displayTitle = song;
+              } else {
+                displayTitle = ringtone.title; // Fallback
+              }
+
+              return (
+                <h1 className="text-2xl font-black text-brand-dark tracking-tight leading-tight px-4">
+                  {displayTitle}
+                </h1>
+              );
+            })()}
             <Link href={`/tamil/movies/${encodeURIComponent(ringtone.movie_name)}`} className="inline-flex items-center gap-1 text-brand-accent font-medium text-base hover:underline transition-colors block">
               {ringtone.movie_name} <span className="text-zinc-400 font-normal">({ringtone.movie_year})</span>
               <ChevronRight size={16} className="text-brand-accent/70" />

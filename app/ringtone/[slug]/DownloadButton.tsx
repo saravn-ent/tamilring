@@ -43,7 +43,47 @@ export default function DownloadButton({ ringtone }: DownloadButtonProps) {
             const response = await fetch(targetUrl);
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
-            triggerDownload(url, `${ringtone.slug}.${targetExt}`);
+
+            // Clean filename: [Segment Name] [Song Name]
+            let segment = ringtone.title;
+            const song = ringtone.song_name ? ringtone.song_name.trim() : '';
+            const movie = ringtone.movie_name ? ringtone.movie_name.trim() : '';
+
+            const cleanText = (text: string, toRemove: string) => {
+                if (!toRemove) return text;
+                const escaped = toRemove.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                // Remove the text anywhere in the string (case insensitive)
+                return text.replace(new RegExp(escaped, 'gi'), '').trim();
+            };
+
+            // 1. Remove Movie
+            segment = cleanText(segment, movie);
+            // 2. Remove Song
+            if (song) segment = cleanText(segment, song);
+
+            // 3. Remove "Vocal" tag & Normalize
+            segment = segment.replace(/\bVocal\b/gi, '').trim();
+            segment = segment
+                .replace(/\(From.*?\)/gi, '')
+                .replace(/^[-–—:|]+|[-–—:|]+$/g, '')
+                .replace(/\s+[-–—:|]+\s+/g, ' - ')
+                .trim();
+
+            let cleanFilename = '';
+            if (segment && song) {
+                cleanFilename = `${segment} - ${song}`;
+            } else if (segment) {
+                cleanFilename = segment;
+            } else if (song) {
+                cleanFilename = song;
+            } else {
+                cleanFilename = ringtone.title;
+            }
+
+            // Remove special characters not allowed in filenames
+            cleanFilename = cleanFilename.replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, ' ');
+
+            triggerDownload(url, `${cleanFilename}.${targetExt}`);
 
         } catch (error) {
             console.error('Download failed', error);

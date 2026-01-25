@@ -177,55 +177,40 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
   };
 
   // Extract the ringtone name (segmentName) from the title
-  // Focus on showing ONLY the unique ringtone name by stripping Movie and Song prefixes
+  // 1. Initial cleanup
   let displayName = ringtone.title;
+  const song = ringtone.song_name ? ringtone.song_name.trim() : '';
+  const movie = ringtone.movie_name ? ringtone.movie_name.trim() : '';
 
-  // 1. Strip Movie Name prefix (e.g., "Movie - Song - Segment")
-  if (ringtone.movie_name) {
-    const escapedMovie = ringtone.movie_name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const moviePrefixRegex = new RegExp(`^${escapedMovie}\\s*[-–—:|]+\\s*`, 'i');
-    displayName = displayName.replace(moviePrefixRegex, '').trim();
+  const cleanText = (text: string, toRemove: string) => {
+    if (!toRemove) return text;
+    const escaped = toRemove.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return text.replace(new RegExp(escaped, 'gi'), '').trim();
+  };
+
+  // 2. Remove Movie & Song & Vocal
+  displayName = cleanText(displayName, movie);
+  if (song) displayName = cleanText(displayName, song);
+  displayName = displayName.replace(/\bVocal\b/gi, '').trim();
+
+  // 3. Normalize
+  displayName = displayName
+    .replace(/\(From.*?\)/gi, '')
+    .replace(/^[-–—:|]+|[-–—:|]+$/g, '')
+    .replace(/\s+[-–—:|]+\s+/g, ' - ')
+    .trim();
+
+  // 4. Reconstruct: Segment - Song
+  if (displayName && song) {
+    displayName = `${displayName} - ${song}`;
+  } else if (song) {
+    displayName = song;
   }
+  // (If displayName became empty but no song, it remains empty, which is edge case handled by original fallback)
 
-  // 2. Clear known Song Name prefix if available
-  if (ringtone.song_name) {
-    const escapedSong = ringtone.song_name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const songPrefixRegex = new RegExp(`^${escapedSong}\\s*[-–—:|]+\\s*`, 'i');
-    displayName = displayName.replace(songPrefixRegex, '').trim();
-  }
-
-  // 3. SMART CLEANUP: If there's still a dash (e.g., "Song - Segment" or "Segment - Tag")
-  // Using a robust regex to handle various dash types and whitespace
-  const SEPARATOR_REGEX = /\s*[-–—:|]+\s*/;
-  let currentParts = displayName.split(SEPARATOR_REGEX).map(p => p.trim()).filter(Boolean);
-
-  if (currentParts.length >= 2) {
-    // A. Check if the LAST part is a tag (e.g., "Name - Vocal" -> "Name")
-    const pLast = currentParts[currentParts.length - 1].toLowerCase();
-    const isPLastTag = TAGS_WHITELIST.some(tag => pLast.includes(tag));
-
-    if (isPLastTag) {
-      currentParts = currentParts.slice(0, -1);
-      displayName = currentParts.join(' - ');
-    }
-  }
-
-  // B. Refresh parts and check if the FIRST part is redundant (e.g., "Song - Segment" -> "Segment")
-  currentParts = displayName.split(SEPARATOR_REGEX).map(p => p.trim()).filter(Boolean);
-  if (currentParts.length >= 2) {
-    const p1 = currentParts[0].toLowerCase();
-    const isP1Tag = TAGS_WHITELIST.some(tag => p1.includes(tag));
-
-    // If the first part is NOT a tag and is reasonably long, it's likely a redundant song/movie name
-    if (!isP1Tag && currentParts[0].length > 2) {
-      currentParts = currentParts.slice(1);
-      displayName = currentParts.join(' - ');
-    }
-  }
-
-  // Fallback: if we cleaned it too much, restore it
   if (!displayName || !/[a-zA-Z0-9]/.test(displayName)) {
-    displayName = ringtone.title;
+    // If we stripped everything (e.g. title was just "Song"), fallback to song or original title
+    displayName = song || ringtone.title;
   }
 
   // Auto capitalize first letter

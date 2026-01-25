@@ -14,6 +14,8 @@ const AudioTrimmer = dynamic(() => import('@/components/AudioTrimmerV2'), {
 export default function TrimPage() {
     const [file, setFile] = useState<File | null>(null);
     const [activeTab, setActiveTab] = useState<'upload' | 'youtube'>('upload');
+    const [songName, setSongName] = useState('');
+    const [segmentName, setSegmentName] = useState('');
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -108,11 +110,34 @@ export default function TrimPage() {
                     </div>
                 ) : (
                     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <button onClick={() => setFile(null)} className="flex items-center gap-1.5 text-zinc-500 hover:text-brand-dark transition-colors font-bold text-sm">
+                        <button onClick={() => { setFile(null); setSongName(''); setSegmentName(''); }} className="flex items-center gap-1.5 text-zinc-500 hover:text-brand-dark transition-colors font-bold text-sm">
                             <ArrowLeft size={16} strokeWidth={2.5} /> Cut Another Song
                         </button>
 
-                        <AudioTrimmer file={file} />
+                        <div className="grid grid-cols-2 gap-3 bg-brand-wash/30 p-3 rounded-2xl border border-brand-border/50">
+                            <div>
+                                <label className="block text-[10px] text-zinc-400 font-black uppercase tracking-widest mb-1.5 ml-1">Song Name</label>
+                                <input
+                                    type="text"
+                                    value={songName}
+                                    onChange={(e) => setSongName(e.target.value)}
+                                    placeholder="e.g. Leo"
+                                    className="w-full bg-white border border-brand-border rounded-xl px-3 py-2 text-sm font-bold text-brand-dark outline-none focus:border-brand-accent transition-colors"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] text-zinc-400 font-black uppercase tracking-widest mb-1.5 ml-1">Segment</label>
+                                <input
+                                    type="text"
+                                    value={segmentName}
+                                    onChange={(e) => setSegmentName(e.target.value)}
+                                    placeholder="e.g. BGM"
+                                    className="w-full bg-white border border-brand-border rounded-xl px-3 py-2 text-sm font-bold text-brand-dark outline-none focus:border-brand-accent transition-colors"
+                                />
+                            </div>
+                        </div>
+
+                        <AudioTrimmer file={file} songName={songName} segmentName={segmentName} />
 
                         <div className="text-center space-y-2">
                             <p className="text-xs text-zinc-400 font-medium">

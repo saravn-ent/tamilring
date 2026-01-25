@@ -6,7 +6,17 @@ import { Play, Pause, ZoomIn, ZoomOut, Scissors, RotateCcw } from 'lucide-react'
 import type WaveSurfer from 'wavesurfer.js';
 import type RegionsPlugin from 'wavesurfer.js/dist/plugins/regions.esm.js';
 
-export default function AudioTrimmer({ file, onRangeChange }: { file: File, onRangeChange?: (start: number, end: number) => void }) {
+export default function AudioTrimmer({
+    file,
+    onRangeChange,
+    songName,
+    segmentName
+}: {
+    file: File,
+    onRangeChange?: (start: number, end: number) => void,
+    songName?: string,
+    segmentName?: string
+}) {
     const containerRef = useRef<HTMLDivElement>(null);
     const timelineRef = useRef<HTMLDivElement>(null);
     const wsRef = useRef<WaveSurfer | null>(null);
@@ -236,7 +246,19 @@ export default function AudioTrimmer({ file, onRangeChange }: { file: File, onRa
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `tamilring_${Date.now()}.${format}`;
+
+            // Format: segment name + song name
+            let baseName = 'tamilring';
+            if (segmentName || songName) {
+                baseName = `${segmentName || ''} ${songName || ''}`.trim();
+            } else {
+                baseName = `cut_${Date.now()}`;
+            }
+
+            // Remove special characters
+            baseName = baseName.replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, ' ');
+
+            a.download = `${baseName}.${format}`;
             a.click();
 
             ffmpeg.FS('unlink', inputName);
