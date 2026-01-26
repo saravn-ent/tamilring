@@ -14,6 +14,7 @@ interface CompactProfileHeaderProps {
     imageUrl?: string | null;
     bio?: string;
     shareMetadata?: { title: string; text: string };
+    ringCount?: number;
 }
 
 export default function CompactProfileHeader({
@@ -21,7 +22,8 @@ export default function CompactProfileHeader({
     type,
     imageUrl,
     bio,
-    shareMetadata
+    shareMetadata,
+    ringCount
 }: CompactProfileHeaderProps) {
     return (
         <div className="bg-white border-b border-zinc-200 transition-all duration-300">
@@ -37,6 +39,11 @@ export default function CompactProfileHeader({
 
                 <div className="flex flex-col items-center">
                     <span className="text-[10px] font-black text-brand-accent uppercase tracking-widest">{type}</span>
+                    {ringCount !== undefined && (
+                        <span className="text-[9px] font-bold text-zinc-400 bg-zinc-100 px-1.5 py-0.5 rounded-full mt-0.5">
+                            {ringCount} {ringCount === 1 ? 'Ring' : 'Rings'}
+                        </span>
+                    )}
                 </div>
 
                 <div className="flex items-center gap-2">

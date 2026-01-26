@@ -10,8 +10,25 @@ export async function createRingtoneRequest(formData: {
 }) {
     try {
         const { user } = await ensureAuthenticated();
+        const { getSupabaseAdmin } = await import('@/lib/auth-server');
+        const adminSupabase = await getSupabaseAdmin();
+        const { syncUserGamification, POINTS_COST_REQUEST } = await import('@/lib/gamification');
+
+        // 1. Sync first to get latest points
+        const stats = await syncUserGamification(adminSupabase, user.id);
+        const currentPoints = stats?.points ?? 0;
+
+        // 2. Check if user has enough points
+        if (currentPoints < POINTS_COST_REQUEST) {
+            return {
+                success: false,
+                error: `Insufficient points. Requesting a ringtone costs ${POINTS_COST_REQUEST} Rep. You have ${currentPoints} Rep.`
+            };
+        }
+
         const supabase = await getSupabaseServer();
 
+        // 3. Insert the request
         const { error } = await supabase
             .from('ringtone_requests')
             .insert({
@@ -24,7 +41,11 @@ export async function createRingtoneRequest(formData: {
 
         if (error) throw error;
 
+        // 4. Sync again after successful insert to reflect deduction
+        await syncUserGamification(adminSupabase, user.id);
+
         revalidatePath('/requests');
+        revalidatePath('/profile');
         return { success: true };
     } catch (e: any) {
         console.error('Request creation failed:', e);
@@ -66,7 +87,14 @@ export async function deleteRequest(requestId: string) {
 
         if (error) throw error;
 
+        // Recalculate points after deletion
+        const { getSupabaseAdmin } = await import('@/lib/auth-server');
+        const adminSupabase = await getSupabaseAdmin();
+        const { syncUserGamification } = await import('@/lib/gamification');
+        await syncUserGamification(adminSupabase, user.id);
+
         revalidatePath('/requests');
+        revalidatePath('/profile');
         return { success: true };
     } catch (e: any) {
         return { success: false, error: e.message };

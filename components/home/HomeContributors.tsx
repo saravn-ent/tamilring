@@ -36,7 +36,8 @@ export default async function HomeContributors() {
 
     const topContributors: Contributor[] = topContributorsRaw.map((c: any) => ({
         id: c.user_id,
-        name: c.full_name || 'Ringtone User',
+        // Prefer Social Handle (without @), then Full Name
+        name: (c.instagram_handle || c.twitter_handle || '').replace('@', '') || c.full_name || 'Ringtone User',
         image: c.avatar_url,
         count: c.upload_count,
         points: c.points,
@@ -50,15 +51,23 @@ export default async function HomeContributors() {
             <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide snap-x pt-2">
                 {topContributors.map((c: Contributor, idx: number) => (
                     <Link key={c.id} href={`/user/${encodeURIComponent(c.id)}`} className="snap-start shrink-0 flex flex-col items-center gap-3 w-24 group">
-                        <AvatarRank
-                            image={c.image}
-                            point={c.points}
-                            level={c.level || 1}
-                            size="md"
-                        />
+                        <div className="relative">
+                            <AvatarRank
+                                image={c.image}
+                                point={c.points}
+                                level={c.level || 1}
+                                size="md"
+                            />
+                            {/* Ring Count Badge Overlay */}
+                            <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-brand-dark text-white text-[9px] font-bold px-2 py-0.5 rounded-full border border-white shadow-sm whitespace-nowrap z-10">
+                                {c.count} Rings
+                            </div>
+                        </div>
                         <div className="text-center w-full mt-3 flex flex-col items-center">
                             <span className="text-[10px] text-brand-blue font-bold tracking-wider mb-0.5">{c.points} Rep</span>
-                            <p className="text-xs font-bold text-foreground truncate w-full">{c.name}</p>
+                            <p className="text-xs font-bold text-foreground truncate w-full">
+                                {c.name.includes(' ') && !c.name.includes('.') ? c.name.split(' ')[0] : c.name}
+                            </p>
                             <span className="text-[10px] text-amber-600 font-bold mt-1">{c.title}</span>
                         </div>
                     </Link>

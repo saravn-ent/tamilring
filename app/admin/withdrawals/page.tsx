@@ -22,6 +22,7 @@ export default function AdminWithdrawals() {
     const fetchWithdrawals = useCallback(async () => {
         setLoading(true);
         try {
+            console.log("Fetching withdrawals for status:", filter);
             const { data, error } = await supabase
                 .from('withdrawals')
                 .select(`
@@ -35,7 +36,27 @@ export default function AdminWithdrawals() {
                 .eq('status', filter)
                 .order('created_at', { ascending: false });
 
-            if (error) throw error;
+            if (error) {
+                console.error("Supabase Error fetching withdrawals (Relations):", error);
+                // Fallback: Fetch without relation if relation fails
+                const { data: fallbackData, error: fallbackError } = await supabase
+                    .from('withdrawals')
+                    .select('*')
+                    .eq('status', filter)
+                    .order('created_at', { ascending: false });
+
+                if (fallbackError) {
+                    console.error("Critical: Fallback fetch also failed:", fallbackError);
+                    throw fallbackError;
+                }
+                console.warn("Fallback fetch successful. Relations might be broken.", fallbackData);
+                // Manually map to prevent UI crash
+                const mapped = fallbackData?.map(w => ({ ...w, profile: { full_name: 'Unknown User (Join Failed)', avatar_url: null, points: 0 } }));
+                setWithdrawals((mapped as unknown as Withdrawal[]) || []);
+                return;
+            }
+
+            console.log("Withdrawals fetched successfully:", data?.length);
             setWithdrawals((data as unknown as Withdrawal[]) || []);
         } catch (error) {
             console.error("Error fetching withdrawals:", error);

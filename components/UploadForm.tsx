@@ -13,6 +13,15 @@ import { MOODS, DEITY_CATEGORIES } from '@/lib/constants';
 import Image from 'next/image';
 import Script from 'next/script';
 
+const TAG_CATEGORIES = {
+  "Moods": ["Love", "Sad", "Mass", "BGM", "Motivational", "Devotional", "Funny"],
+  "Types": ["Vocal", "Instrumental", "Interlude", "Humming", "Dialogue", "Remix", "8D Audio", "Intro", "Chorus", "Slowed + Reverb", "Cover", "Lo-fi"],
+  "Vocals": ["Male", "Female", "Duet"],
+  "Instruments": ["Flute", "Violin", "Guitar", "Piano", "Keyboard", "Whistle", "Saxophone", "Veena", "Drums", "Trumpet", "Nadaswaram", "Sitar", "Tabla", "Mridangam", "Harmonica", "Cello"]
+};
+
+const SEGMENT_SUGGESTIONS = ["Pallavi", "Charanam", "BGM", "Whistle", "Flute Version", "Violin Version", "Climax BGM", "Intro", "Interlude"];
+
 interface UploadFormProps {
   userId?: string;
   onComplete?: () => void;
@@ -71,7 +80,6 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
     getUser();
   }, [propUserId]);
 
-  // Form Data
   const [songName, setSongName] = useState('');
   const [segmentName, setSegmentName] = useState(''); // e.g., "Pallavi", "BGM"
 
@@ -115,78 +123,184 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
   const [movies, setMovies] = useState<MovieResult[]>([]);
   const [isSearchingMovie, setIsSearchingMovie] = useState(false);
 
-  const TAG_CATEGORIES = {
-    "Moods": ["Love", "Sad", "Mass", "BGM", "Motivational", "Devotional", "Funny"],
-    "Types": ["Vocal", "Instrumental", "Interlude", "Humming", "Dialogue", "Remix", "8D Audio"],
-    "Vocals": ["Male", "Female", "Duet"],
-    "Instruments": ["Flute", "Violin", "Guitar", "Piano", "Keyboard", "Whistle", "Saxophone", "Veena", "Drums", "Trumpet", "Nadaswaram"]
-  };
-
-
-
-  const SEGMENT_SUGGESTIONS = ["Pallavi", "Charanam", "BGM", "Whistle", "Flute Version", "Violin Version", "Climax BGM", "Intro", "Interlude"];
-
-  // Smart Tagging Logic
+  // STEP 3 EFFECT: Fetch Songs
   useEffect(() => {
-    const newTags = new Set<string>(selectedTags);
+    if (step === 3 && selectedMovie) {
+      const fetchSongs = async () => {
+        setIsLoadingSongs(true);
+        try {
+          const itunesSongs = await getSongsByMovie(selectedMovie.title);
+          const { data: communityData } = await supabase
+            .from('ringtones')
+            .select('song_name, singers, music_director')
+            .eq('movie_name', selectedMovie.title)
+            .not('song_name', 'is', null);
 
-    // 2. Tag by Text Analysis (Song, Segment)
-    const combinedText = `${songName} ${segmentName}`.toLowerCase();
+          const communitySongs: iTunesRing[] = (communityData || []).map(item => ({
+            trackName: item.song_name,
+            artistName: item.singers || 'Community Upload',
+            collectionName: selectedMovie.title,
+            previewUrl: '',
+            musicDirector: item.music_director
+          } as any));
 
-    // Moods - DISABLED per user request (Manual selection only)
-    // if (combinedText.includes('sad') || combinedText.includes('sogam') || combinedText.includes('pathos')) newTags.add('Sad');
-    // if (combinedText.includes('love') || combinedText.includes('kadhal') || combinedText.includes('romantic')) newTags.add('Love');
-    // if (combinedText.includes('mass') || combinedText.includes('kuthu') || combinedText.includes('hero')) newTags.add('Mass');
+          const seen = new Set();
+          const merged = [...itunesSongs, ...communitySongs].filter(song => {
+            const lowerName = song.trackName.toLowerCase().trim();
+            if (seen.has(lowerName)) return false;
+            seen.add(lowerName);
+            return true;
+          });
 
-    // Types
-    if (combinedText.includes('bgm') || combinedText.includes('theme') || combinedText.includes('background')) {
-      newTags.add('BGM');
-      newTags.add('Instrumental');
+          setMovieSongs(merged);
+        } catch (e) {
+          console.error('Failed to fetch songs:', e);
+        } finally {
+          setIsLoadingSongs(false);
+        }
+      }
+      fetchSongs();
     }
-    if (combinedText.includes('remix') || combinedText.includes('mix')) newTags.add('Remix');
-    if (combinedText.includes('dialogue') || combinedText.includes('pedchur')) newTags.add('Dialogue');
-    if (combinedText.includes('8d')) newTags.add('8D Audio');
-    if (combinedText.includes('humming')) newTags.add('Humming');
-    if (combinedText.includes('interlude')) newTags.add('Interlude');
+  }, [step, selectedMovie]);
 
-    // Instruments
-    if (combinedText.includes('flute')) { newTags.add('Flute'); newTags.add('Instrumental'); }
-    if (combinedText.includes('violin')) { newTags.add('Violin'); newTags.add('Instrumental'); }
-    if (combinedText.includes('guitar')) { newTags.add('Guitar'); newTags.add('Instrumental'); }
-    if (combinedText.includes('piano')) { newTags.add('Piano'); newTags.add('Instrumental'); }
-    if (combinedText.includes('keyboard')) { newTags.add('Keyboard'); newTags.add('Instrumental'); }
-    if (combinedText.includes('veena')) { newTags.add('Veena'); newTags.add('Instrumental'); }
-    if (combinedText.includes('drums')) { newTags.add('Drums'); newTags.add('Instrumental'); }
-    if (combinedText.includes('nadaswaram')) { newTags.add('Nadaswaram'); newTags.add('Instrumental'); }
-    if (combinedText.includes('whistle')) { newTags.add('Humming'); } // Close enough
-
-    // Only update if changes found to avoid loops
-    if (newTags.size > selectedTags.length) {
-      setSelectedTags(Array.from(newTags));
+  // DEVOTIONAL EFFECT
+  useEffect(() => {
+    if (contentType === 'devotional' && deityCategory && step === 3) {
+      const fetchDevotionalSongs = async () => {
+        setIsLoadingDevotionalSongs(true);
+        try {
+          const res = await fetch(`/api/devotional/search?deity=${encodeURIComponent(deityCategory)}`);
+          const songs = await res.json();
+          setDevotionalSongs(songs);
+        } catch (e) {
+          console.error('Failed to fetch devotional songs:', e);
+        } finally {
+          setIsLoadingDevotionalSongs(false);
+        }
+      };
+      fetchDevotionalSongs();
     }
-  }, [segmentName, songName, selectedMovie]);
+  }, [deityCategory, contentType, step]);
 
-  const toggleTag = (tag: string) => {
-    setSelectedTags(prev =>
-      prev.includes(tag)
-        ? prev.filter(t => t !== tag)
-        : [...prev, tag]
-    );
+  // SLUG & DUPLICATE EFFECT
+  useEffect(() => {
+    const generateAndCheckSlug = async () => {
+      const SEO_TAG_WHITELIST = ["BGM", "Vocal", "Instrumental", "Interlude", "Humming", "Dialogue", "Remix", "8D Audio"];
+      const activeSeoTags = selectedTags.filter(tag => SEO_TAG_WHITELIST.includes(tag));
+      const movieOrContextName = contentType === 'devotional' ? deityCategory : manualMovieName;
+
+      if (movieOrContextName && segmentName) {
+        let textParts = [segmentName];
+        if (songName) textParts.push(songName);
+        textParts.push(movieOrContextName);
+        activeSeoTags.forEach(tag => {
+          if (!segmentName.toLowerCase().includes(tag.toLowerCase())) {
+            textParts.push(tag);
+          }
+        });
+
+        const text = textParts.join(' ');
+        const newSlug = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+        setSlug(newSlug);
+
+        setIsCheckingDuplicate(true);
+        setDuplicateError(null);
+        try {
+          const { data: slugData } = await supabase.from('ringtones').select('id').eq('slug', newSlug).single();
+          if (slugData) {
+            setDuplicateError('A ringtone with this exact identity already exists!');
+            return;
+          }
+          if (movieOrContextName && songName && segmentName) {
+            const { data: semanticData } = await supabase
+              .from('ringtones')
+              .select('id')
+              .eq('movie_name', movieOrContextName)
+              .eq('song_name', songName)
+              .eq('title', segmentName)
+              .single();
+            if (semanticData) {
+              setDuplicateError(`The "${segmentName}" for "${songName}" in "${movieOrContextName}" is already uploaded.`);
+            }
+          }
+        } catch (err) { } finally {
+          setIsCheckingDuplicate(false);
+        }
+      }
+    };
+    const timer = setTimeout(generateAndCheckSlug, 500);
+    return () => clearTimeout(timer);
+  }, [songName, manualMovieName, segmentName, contentType, deityCategory, selectedTags]);
+
+  const isVocalSelected = selectedTags.includes('Vocal');
+  const isInstrumentalSelected = selectedTags.includes('Instrumental');
+
+  const toggleTag = (tag: string, category: string) => {
+    setSelectedTags(prev => {
+      if (prev.includes(tag)) return prev.filter(t => t !== tag);
+      const categoryTags = TAG_CATEGORIES[category as keyof typeof TAG_CATEGORIES] || [];
+      const othersRemoved = prev.filter(t => !categoryTags.includes(t));
+      return [...othersRemoved, tag];
+    });
   };
+
+  // Auto-fill tags based on Ringtone Name
+  useEffect(() => {
+    if (!segmentName) return;
+
+    const lowerName = segmentName.toLowerCase();
+    const newTags = [...selectedTags];
+    let changed = false;
+
+    // 1. Detect Instruments
+    TAG_CATEGORIES.Instruments.forEach(inst => {
+      if (lowerName.includes(inst.toLowerCase()) && !newTags.includes(inst)) {
+        newTags.push(inst);
+        changed = true;
+        // If an instrument is detected, also ensure "Instrumental" is selected in Types
+        if (!newTags.includes('Instrumental')) {
+          const typeTags = TAG_CATEGORIES["Types"];
+          const othersRemoved = newTags.filter(t => !typeTags.includes(t));
+          othersRemoved.push('Instrumental');
+          newTags.length = 0;
+          newTags.push(...othersRemoved);
+        }
+      }
+    });
+
+    // 2. Intelligent Detection of Moods & Types (BGM, Dialogue, Love, etc.)
+    const autoCategories = ["Moods", "Types"];
+    autoCategories.forEach(cat => {
+      TAG_CATEGORIES[cat as "Moods" | "Types"].forEach(tag => {
+        // Avoid redundant "Instrumental" check if already handled above
+        if (tag === 'Instrumental' && changed) return;
+
+        if (lowerName.includes(tag.toLowerCase()) && !newTags.includes(tag)) {
+          if (cat === "Types") {
+            const typeTags = TAG_CATEGORIES["Types"];
+            const filtered = newTags.filter(t => !typeTags.includes(t));
+            filtered.push(tag);
+            newTags.length = 0;
+            newTags.push(...filtered);
+          } else {
+            newTags.push(tag);
+          }
+          changed = true;
+        }
+      });
+    });
+
+    if (changed) {
+      setSelectedTags(Array.from(new Set(newTags)));
+    }
+  }, [segmentName]);
 
   const loadFFmpeg = async () => {
-    if (ffmpegRef.current && ffmpegRef.current.isLoaded()) {
-      return ffmpegRef.current;
-    }
-
+    if (ffmpegRef.current && ffmpegRef.current.isLoaded()) return ffmpegRef.current;
     const FFmpeg = (window as any).FFmpeg;
-    if (!FFmpeg) {
-      throw new Error('Audio processor component not loaded. Please check your internet or refresh the page.');
-    }
-
+    if (!FFmpeg) throw new Error('Audio processor component not loaded. Please refresh the page.');
     try {
       const { createFFmpeg } = FFmpeg;
-
       if (!ffmpegRef.current) {
         ffmpegRef.current = createFFmpeg({
           log: true,
@@ -195,26 +309,20 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
           mainName: 'main'
         });
       }
-
       const ffmpeg = ffmpegRef.current;
-      if (!ffmpeg.isLoaded()) {
-        await ffmpeg.load();
-      }
+      if (!ffmpeg.isLoaded()) await ffmpeg.load();
       setFfmpegLoaded(true);
       return ffmpeg;
     } catch (e) {
       console.error("FFmpeg load failed:", e);
-      throw new Error('Failed to start audio processing engine. Try disabling ad-blockers or using a different browser.');
+      throw new Error('Failed to start audio processing engine.');
     }
   };
 
-  // Step 1: File Select
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
       setFile(selectedFile);
-
-      // Detect Duration
       const audio = new Audio();
       const objectUrl = URL.createObjectURL(selectedFile);
       audio.src = objectUrl;
@@ -222,20 +330,14 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
         setTrimEnd(audio.duration);
         URL.revokeObjectURL(objectUrl);
       };
-
-      // Go directly to Content Type selection
       setStep(1.8);
       loadFFmpeg().catch(console.error);
     }
   };
 
-
-
-  // Step 2: TMDB Movie Search
   const handleMovieSearch = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setMovieQuery(query);
-
     if (query.length > 2) {
       setIsSearchingMovie(true);
       try {
@@ -256,71 +358,18 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
     setManualMovieName(movie.title);
     setMovieQuery(movie.title);
     setMovies([]);
-
-    // Reset song details
     setSongName('');
     setSingers('');
     setMovieSongs([]);
-
-    // Fetch Credits
     const credits = await getMovieCredits(movie.id);
     if (credits) {
-      const directors = credits.crew.filter(c => c.job === 'Director').map(c => c.name).join(', ');
-      const musicDirectors = credits.crew.filter(c => c.job === 'Original Music Composer' || c.job === 'Music').map(c => c.name).join(', ');
-      const lyricists = credits.crew.filter(c => c.job === 'Lyricist' || c.job === 'Writer' || c.department === 'Writing').map(c => c.name).join(', ');
-      setMovieDirector(directors);
-      setMusicDirector(musicDirectors);
-      setLyricist(lyricists);
+      setMovieDirector(credits.crew.filter(c => c.job === 'Director').map(c => c.name).join(', '));
+      setMusicDirector(credits.crew.filter(c => c.job === 'Original Music Composer' || c.job === 'Music').map(c => c.name).join(', '));
+      setLyricist(credits.crew.filter(c => c.job === 'Lyricist' || c.job === 'Writer' || c.department === 'Writing').map(c => c.name).join(', '));
     }
-
+    setSelectedTags([]);
     setStep(3);
   };
-
-  // Step 3 Effect: Fetch Songs when entering Step 3
-  useEffect(() => {
-    if (step === 3 && selectedMovie) {
-      const fetchSongs = async () => {
-        setIsLoadingSongs(true);
-        try {
-          // 1. Fetch from iTunes (External)
-          const itunesSongs = await getSongsByMovie(selectedMovie.title);
-
-          // 2. Fetch from Community (Internal database)
-          // We look for approved ringtones in this movie to see what names others used
-          const { data: communityData } = await supabase
-            .from('ringtones')
-            .select('song_name, singers')
-            .eq('movie_name', selectedMovie.title)
-            .not('song_name', 'is', null);
-
-          // 3. Merge & Deduplicate
-          // Convert community records to iTunes-like format for the dropdown
-          const communitySongs: iTunesRing[] = (communityData || []).map(item => ({
-            trackName: item.song_name,
-            artistName: item.singers || 'Community Upload',
-            collectionName: selectedMovie.title,
-            previewUrl: ''
-          }));
-
-          // Deduplicate by track name (case insensitive)
-          const seen = new Set();
-          const merged = [...itunesSongs, ...communitySongs].filter(song => {
-            const lowerName = song.trackName.toLowerCase().trim();
-            if (seen.has(lowerName)) return false;
-            seen.add(lowerName);
-            return true;
-          });
-
-          setMovieSongs(merged);
-        } catch (e) {
-          console.error('Failed to fetch songs:', e);
-        } finally {
-          setIsLoadingSongs(false);
-        }
-      }
-      fetchSongs();
-    }
-  }, [step, selectedMovie]);
 
   const cleanName = (text: string) => {
     if (!text) return '';
@@ -332,98 +381,16 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       .trim();
   };
 
-  const selectSong = (ring: iTunesRing) => {
+  const selectSong = (ring: iTunesRing & { musicDirector?: string }) => {
     setSongName(cleanName(ring.trackName));
-    setSingers(ring.artistName);
+    setSingers(ring.artistName !== 'Community Upload' ? ring.artistName : '');
+    if (ring.musicDirector) {
+      setMusicDirector(ring.musicDirector);
+    }
     setSelectedArtwork(ring.artworkUrl100 || null);
     setShowSongDropdown(false);
   }
 
-  // Fetch devotional songs when deity selected
-  useEffect(() => {
-    if (contentType === 'devotional' && deityCategory && step === 3) {
-      const fetchDevotionalSongs = async () => {
-        setIsLoadingDevotionalSongs(true);
-        try {
-          const res = await fetch(`/api/devotional/search?deity=${encodeURIComponent(deityCategory)}`);
-          const songs = await res.json();
-          setDevotionalSongs(songs);
-        } catch (e) {
-          console.error('Failed to fetch devotional songs:', e);
-        } finally {
-          setIsLoadingDevotionalSongs(false);
-        }
-      };
-      fetchDevotionalSongs();
-    }
-  }, [deityCategory, contentType, step]);
-
-  useEffect(() => {
-    const generateAndCheckSlug = async () => {
-      // Whitelist of tags that are high-value for SEO
-      const SEO_TAG_WHITELIST = ["BGM", "Vocal", "Instrumental", "Interlude", "Humming", "Dialogue", "Remix", "8D Audio"];
-      const activeSeoTags = selectedTags.filter(tag => SEO_TAG_WHITELIST.includes(tag));
-
-      const movieOrContextName = contentType === 'devotional' ? deityCategory : manualMovieName;
-
-      if (movieOrContextName && segmentName) {
-        let textParts = [movieOrContextName];
-        if (songName) textParts.push(songName);
-        textParts.push(segmentName);
-
-        // Append important tags if they are not already in the segment name
-        activeSeoTags.forEach(tag => {
-          if (!segmentName.toLowerCase().includes(tag.toLowerCase())) {
-            textParts.push(tag);
-          }
-        });
-
-        const text = textParts.join(' ');
-        const newSlug = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-        setSlug(newSlug);
-
-        // Check Duplication
-        setIsCheckingDuplicate(true);
-        setDuplicateError(null);
-        try {
-          // 1. Check Slug (Exact Identity)
-          const { data: slugData } = await supabase
-            .from('ringtones')
-            .select('id')
-            .eq('slug', newSlug)
-            .single();
-
-          if (slugData) {
-            setDuplicateError('A ringtone with this exact identity already exists!');
-            return;
-          }
-
-          // 2. Check Semantic Match (Movie + Song + Segment)
-          // This stops someone from uploading "Leo - Badass - BGM" if it exists, even if their slug differs slightly
-          if (movieOrContextName && songName && segmentName) {
-            const { data: semanticData } = await supabase
-              .from('ringtones')
-              .select('id')
-              .eq('movie_name', movieOrContextName)
-              .eq('song_name', songName)
-              .eq('title', segmentName)
-              .single();
-
-            if (semanticData) {
-              setDuplicateError(`The "${segmentName}" for "${songName}" in "${movieOrContextName}" is already uploaded.`);
-            }
-          }
-        } catch (err) {
-          // No duplicate found
-        } finally {
-          setIsCheckingDuplicate(false);
-        }
-      }
-    };
-
-    const timer = setTimeout(generateAndCheckSlug, 500);
-    return () => clearTimeout(timer);
-  }, [songName, manualMovieName, segmentName, contentType, deityCategory, selectedTags]);
 
 
   const convertAudio = async (inputFile: File, targetFormat: 'mp3' | 'm4r', startTime: number = 0, duration: number = 0, applyFade: boolean = true): Promise<Blob> => {
@@ -496,6 +463,32 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       return;
     }
 
+    // Validation: Minimum Tags (2 normally, 3 if Vocal/Instrumental selected)
+    const isVocalOrInstrumental = selectedTags.includes('Vocal') || selectedTags.includes('Instrumental');
+    const minTagsRequired = isVocalOrInstrumental ? 3 : 2;
+
+    if (selectedTags.length < minTagsRequired) {
+      alert(`Please select at least ${minTagsRequired} tags to help users find your ringtone.`);
+      return;
+    }
+
+    // Validation: Mandatory Sub-tags for Vocal and Instrumental
+    if (selectedTags.includes('Vocal')) {
+      const hasVocalType = selectedTags.some(t => TAG_CATEGORIES["Vocals"].includes(t));
+      if (!hasVocalType) {
+        alert('Since you selected "Vocal", please specify if it is Male, Female, or Duet.');
+        return;
+      }
+    }
+
+    if (selectedTags.includes('Instrumental')) {
+      const hasInstrument = selectedTags.some(t => TAG_CATEGORIES["Instruments"].includes(t));
+      if (!hasInstrument) {
+        alert('Since you selected "Instrumental", please specify which Instrument it is (e.g. Flute, Piano).');
+        return;
+      }
+    }
+
     // ... rest of validation logic ...
     setLoading(true);
     setLoadingMessage('Initializing...');
@@ -507,7 +500,11 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
     const activeSeoTags = selectedTags.filter(tag => SEO_TAG_WHITELIST.includes(tag));
 
     // Use the user-entered Ringtone Name as the main title for the Ringtone Card
-    const finalTitle = segmentName;
+    // Logic: Segment Name - Song Name
+    let finalTitle = segmentName;
+    if (songName && !segmentName.toLowerCase().includes(songName.toLowerCase())) {
+      finalTitle = `${segmentName} - ${songName}`;
+    }
 
     try {
       let mp3Blob: Blob | File = file;
@@ -583,12 +580,9 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       let titleToSave = finalTitle;
 
       if (!derivedSongName && titleToSave.includes(' - ')) {
-        const parts = titleToSave.split(/\s*[-–—:|]+\s*/);
-        const TAGS = ['bgm', 'vocal', 'instrumental', 'theme', 'interlude', 'humming', 'dialogue', 'remix', 'whistle', 'flute', 'violin'];
-        if (parts.length >= 2 && !TAGS.includes(parts[0].toLowerCase())) {
-          derivedSongName = parts[0];
-          titleToSave = parts.slice(1).join(' - ');
-        }
+        // Since we now auto-combine, we might need to be careful here or remove this legacy logic.
+        // For new uploads, titleToSave is ALREADY "Segment - Song". 
+        // We can trust the state variables 'songName' and 'segmentName' more than parsing the title.
       }
 
       // Calculate final duration for DB
@@ -812,7 +806,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
           <div className="space-y-3">
             {/* Movie Option */}
             <button
-              onClick={() => { setContentType('movie'); setStep(2); }}
+              onClick={() => { setContentType('movie'); setStep(2); setSelectedTags([]); }}
               className={`w-full p-4 rounded-2xl border-2 transition-all text-left ${contentType === 'movie'
                 ? 'border-brand-accent bg-brand-wash shadow-sm'
                 : 'border-brand-border bg-white hover:border-brand-accent/50'
@@ -833,7 +827,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
             {/* Album Option */}
             <button
-              onClick={() => { setContentType('album'); setStep(3); }}
+              onClick={() => { setContentType('album'); setStep(3); setSelectedTags([]); }}
               className={`w-full p-4 rounded-2xl border-2 transition-all text-left ${contentType === 'album'
                 ? 'border-brand-accent bg-brand-wash shadow-sm'
                 : 'border-brand-border bg-white hover:border-brand-accent/50'
@@ -854,7 +848,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
             {/* Devotional Option */}
             <button
-              onClick={() => { setContentType('devotional'); setStep(3); }}
+              onClick={() => { setContentType('devotional'); setStep(3); setSelectedTags([]); }}
               className={`w-full p-4 rounded-2xl border-2 transition-all text-left ${contentType === 'devotional'
                 ? 'border-brand-accent bg-brand-wash shadow-sm'
                 : 'border-brand-border bg-white hover:border-brand-accent/50'
@@ -1053,10 +1047,11 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
               type="text"
               value={segmentName}
               onChange={(e) => setSegmentName(e.target.value)}
-              placeholder="Type lyrics name..."
+              placeholder="e.g., BGM, Whistle, Lyrics..."
               className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-brand-accent transition-colors font-medium placeholder:text-zinc-400"
             />
           </div>
+
 
           {!movieDirector && (
             <div>
@@ -1065,6 +1060,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                 type="text"
                 value={movieDirector}
                 onChange={(e) => setMovieDirector(e.target.value)}
+                placeholder="e.g., Mani Ratnam"
                 className="w-full bg-brand-wash border border-brand-border rounded-xl px-3 py-2 text-sm text-brand-dark focus:outline-none focus:border-brand-accent transition-colors font-medium"
               />
             </div>
@@ -1083,18 +1079,68 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
           )}
 
           <div>
+            <label className="block text-xs text-zinc-500 mb-1 ml-1 font-bold uppercase tracking-wider">Artists</label>
+            <input
+              type="text"
+              value={singers}
+              onChange={(e) => setSingers(e.target.value)}
+              placeholder="e.g., Sid Sriram, Shreya Ghoshal"
+              className="w-full bg-brand-wash border border-brand-border rounded-xl px-3 py-2 text-sm text-brand-dark focus:outline-none focus:border-brand-accent transition-colors font-medium"
+            />
+          </div>
+
+          <div>
             <label className="block text-xs text-zinc-500 mb-2 ml-1 font-bold uppercase tracking-wider">Tags</label>
             <div className="space-y-4 bg-brand-wash p-4 rounded-2xl border border-brand-border">
-              {Object.entries(getFilteredTagCategories()).map(([category, tags]) => (
-                <div key={category}>
-                  <p className="text-[10px] text-zinc-400 uppercase font-black mb-2 tracking-wider">{category}</p>
+              {/* 1. Moods (Always Visible) */}
+              <div>
+                <p className="text-[10px] text-zinc-400 uppercase font-black mb-2 tracking-wider">Moods & Emotions</p>
+                <div className="flex flex-wrap gap-2">
+                  {TAG_CATEGORIES["Moods"].map(tag => (
+                    <button
+                      key={tag}
+                      onClick={() => toggleTag(tag, "Moods")}
+                      className={`px-3 py-1.5 rounded-full text-xs font-black border transition-all ${selectedTags.includes(tag)
+                        ? 'bg-brand-dark border-brand-dark text-white shadow-lg shadow-brand-dark/20'
+                        : 'bg-white border-brand-border text-zinc-500 hover:border-brand-dark hover:text-brand-dark'
+                        }`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 2. Types (Always Visible - Triggers other sections) */}
+              <div>
+                <p className="text-[10px] text-zinc-400 uppercase font-black mb-2 tracking-wider">Type (Select to reveal options)</p>
+                <div className="flex flex-wrap gap-2">
+                  {TAG_CATEGORIES["Types"].map(tag => (
+                    <button
+                      key={tag}
+                      onClick={() => toggleTag(tag, "Types")}
+                      className={`px-3 py-1.5 rounded-full text-xs font-black border transition-all ${selectedTags.includes(tag)
+                        ? 'bg-brand-dark border-brand-dark text-white shadow-lg'
+                        : 'bg-white border-brand-border text-zinc-500 hover:border-brand-dark hover:text-brand-dark'
+                        }`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 3. Vocals (Only if Vocal type is selected) */}
+              {isVocalSelected && (
+                <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                  <p className="text-[10px] text-zinc-400 uppercase font-black mb-2 tracking-wider">Vocal Type</p>
                   <div className="flex flex-wrap gap-2">
-                    {tags.filter(t => !['BGM', 'Interlude'].includes(t)).map(tag => (
+                    {TAG_CATEGORIES["Vocals"].map(tag => (
                       <button
                         key={tag}
-                        onClick={() => toggleTag(tag)}
+                        onClick={() => toggleTag(tag, "Vocals")}
                         className={`px-3 py-1.5 rounded-full text-xs font-black border transition-all ${selectedTags.includes(tag)
-                          ? 'bg-brand-dark border-brand-dark text-white shadow-lg shadow-brand-dark/20'
+                          ? 'bg-brand-dark border-brand-dark text-white shadow-lg'
                           : 'bg-white border-brand-border text-zinc-500 hover:border-brand-dark hover:text-brand-dark'
                           }`}
                       >
@@ -1103,7 +1149,28 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                     ))}
                   </div>
                 </div>
-              ))}
+              )}
+
+              {/* 4. Instruments (Only if Instrumental type is selected) */}
+              {isInstrumentalSelected && (
+                <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                  <p className="text-[10px] text-zinc-400 uppercase font-black mb-2 tracking-wider">Instruments</p>
+                  <div className="flex flex-wrap gap-2">
+                    {TAG_CATEGORIES["Instruments"].map(tag => (
+                      <button
+                        key={tag}
+                        onClick={() => toggleTag(tag, "Instruments")}
+                        className={`px-3 py-1.5 rounded-full text-xs font-black border transition-all ${selectedTags.includes(tag)
+                          ? 'bg-brand-dark border-brand-dark text-white shadow-lg'
+                          : 'bg-white border-brand-border text-zinc-500 hover:border-brand-dark hover:text-brand-dark'
+                          }`}
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -1333,6 +1400,18 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
 
 
+
+              <div>
+                <label className="block text-xs text-zinc-500 mb-1 ml-1 font-bold uppercase tracking-wider">Artists</label>
+                <input
+                  type="text"
+                  value={singers}
+                  onChange={(e) => setSingers(e.target.value)}
+                  placeholder="e.g., Sid Sriram, Shreya Ghoshal"
+                  className="w-full bg-white border border-brand-border rounded-xl px-4 py-3 text-brand-dark text-sm focus:outline-none focus:border-brand-accent transition-colors font-medium"
+                />
+              </div>
+
               <ArtistAutocomplete
                 value={musicDirector}
                 onChange={setMusicDirector}
@@ -1375,16 +1454,56 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
           <div>
             <label className="block text-xs text-zinc-500 mb-2 ml-1 font-bold uppercase tracking-wider">Tags</label>
             <div className="space-y-4 bg-brand-wash p-4 rounded-2xl border border-brand-border">
-              {Object.entries(getFilteredTagCategories()).map(([category, tags]) => (
-                <div key={category}>
-                  <p className="text-[10px] text-zinc-400 uppercase font-black mb-2 tracking-wider">{category}</p>
+
+              {/* 1. Moods (Always Visible) */}
+              <div>
+                <p className="text-[10px] text-zinc-400 uppercase font-black mb-2 tracking-wider">Moods & Emotions</p>
+                <div className="flex flex-wrap gap-2">
+                  {TAG_CATEGORIES["Moods"].map(tag => (
+                    <button
+                      key={tag}
+                      onClick={() => toggleTag(tag, "Moods")}
+                      className={`px-3 py-1.5 rounded-full text-xs font-black border transition-all ${selectedTags.includes(tag)
+                        ? 'bg-brand-dark border-brand-dark text-white shadow-lg shadow-brand-dark/20'
+                        : 'bg-white border-brand-border text-zinc-500 hover:border-brand-dark hover:text-brand-dark'
+                        }`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 2. Types (Always Visible - Triggers other sections) */}
+              <div>
+                <p className="text-[10px] text-zinc-400 uppercase font-black mb-2 tracking-wider">Type (Select to reveal options)</p>
+                <div className="flex flex-wrap gap-2">
+                  {TAG_CATEGORIES["Types"].map(tag => (
+                    <button
+                      key={tag}
+                      onClick={() => toggleTag(tag, "Types")}
+                      className={`px-3 py-1.5 rounded-full text-xs font-black border transition-all ${selectedTags.includes(tag)
+                        ? 'bg-brand-dark border-brand-dark text-white shadow-lg'
+                        : 'bg-white border-brand-border text-zinc-500 hover:border-brand-dark hover:text-brand-dark'
+                        }`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 3. Vocals (Only if Vocal type is selected) */}
+              {isVocalSelected && (
+                <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                  <p className="text-[10px] text-zinc-400 uppercase font-black mb-2 tracking-wider">Vocal Type</p>
                   <div className="flex flex-wrap gap-2">
-                    {tags.filter(t => !['BGM', 'Interlude'].includes(t)).map(tag => (
+                    {TAG_CATEGORIES["Vocals"].map(tag => (
                       <button
                         key={tag}
-                        onClick={() => toggleTag(tag)}
+                        onClick={() => toggleTag(tag, "Vocals")}
                         className={`px-3 py-1.5 rounded-full text-xs font-black border transition-all ${selectedTags.includes(tag)
-                          ? 'bg-brand-dark border-brand-dark text-white shadow-lg shadow-brand-dark/20'
+                          ? 'bg-brand-dark border-brand-dark text-white shadow-lg'
                           : 'bg-white border-brand-border text-zinc-500 hover:border-brand-dark hover:text-brand-dark'
                           }`}
                       >
@@ -1393,7 +1512,29 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                     ))}
                   </div>
                 </div>
-              ))}
+              )}
+
+              {/* 4. Instruments (Only if Instrumental type is selected) */}
+              {isInstrumentalSelected && (
+                <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                  <p className="text-[10px] text-zinc-400 uppercase font-black mb-2 tracking-wider">Instruments</p>
+                  <div className="flex flex-wrap gap-2">
+                    {TAG_CATEGORIES["Instruments"].map(tag => (
+                      <button
+                        key={tag}
+                        onClick={() => toggleTag(tag, "Instruments")}
+                        className={`px-3 py-1.5 rounded-full text-xs font-black border transition-all ${selectedTags.includes(tag)
+                          ? 'bg-brand-dark border-brand-dark text-white shadow-lg'
+                          : 'bg-white border-brand-border text-zinc-500 hover:border-brand-dark hover:text-brand-dark'
+                          }`}
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
             </div>
           </div>
 
@@ -1544,6 +1685,18 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
 
 
+
+          <div>
+            <label className="block text-xs text-zinc-500 mb-1 ml-1 font-bold uppercase tracking-wider">Artists</label>
+            <input
+              type="text"
+              value={singers}
+              onChange={(e) => setSingers(e.target.value)}
+              placeholder="e.g., Sid Sriram, Shreya Ghoshal"
+              className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-brand-accent transition-colors font-medium"
+            />
+          </div>
+
           <ArtistAutocomplete
             value={musicDirector}
             onChange={setMusicDirector}
@@ -1554,16 +1707,55 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
           <div>
             <label className="block text-xs text-zinc-500 mb-2 ml-1 font-bold uppercase tracking-wider">Tags</label>
             <div className="space-y-4 bg-brand-wash p-4 rounded-2xl border border-brand-border">
-              {Object.entries(getFilteredTagCategories()).map(([category, tags]) => (
-                <div key={category}>
-                  <p className="text-[10px] text-zinc-400 uppercase font-black mb-2 tracking-wider">{category}</p>
+              {/* 1. Moods (Always Visible) */}
+              <div>
+                <p className="text-[10px] text-zinc-400 uppercase font-black mb-2 tracking-wider">Moods & Emotions</p>
+                <div className="flex flex-wrap gap-2">
+                  {TAG_CATEGORIES["Moods"].map(tag => (
+                    <button
+                      key={tag}
+                      onClick={() => toggleTag(tag, "Moods")}
+                      className={`px-3 py-1.5 rounded-full text-xs font-black border transition-all ${selectedTags.includes(tag)
+                        ? 'bg-brand-dark border-brand-dark text-white shadow-lg shadow-brand-dark/20'
+                        : 'bg-white border-brand-border text-zinc-500 hover:border-brand-dark hover:text-brand-dark'
+                        }`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 2. Types (Always Visible - Triggers other sections) */}
+              <div>
+                <p className="text-[10px] text-zinc-400 uppercase font-black mb-2 tracking-wider">Type (Select to reveal options)</p>
+                <div className="flex flex-wrap gap-2">
+                  {TAG_CATEGORIES["Types"].map(tag => (
+                    <button
+                      key={tag}
+                      onClick={() => toggleTag(tag, "Types")}
+                      className={`px-3 py-1.5 rounded-full text-xs font-black border transition-all ${selectedTags.includes(tag)
+                        ? 'bg-brand-dark border-brand-dark text-white shadow-lg'
+                        : 'bg-white border-brand-border text-zinc-500 hover:border-brand-dark hover:text-brand-dark'
+                        }`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* 3. Vocals (Only if Vocal type is selected) */}
+              {isVocalSelected && (
+                <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                  <p className="text-[10px] text-zinc-400 uppercase font-black mb-2 tracking-wider">Vocal Type</p>
                   <div className="flex flex-wrap gap-2">
-                    {tags.filter(t => !['BGM', 'Interlude'].includes(t)).map(tag => (
+                    {TAG_CATEGORIES["Vocals"].map(tag => (
                       <button
                         key={tag}
-                        onClick={() => toggleTag(tag)}
+                        onClick={() => toggleTag(tag, "Vocals")}
                         className={`px-3 py-1.5 rounded-full text-xs font-black border transition-all ${selectedTags.includes(tag)
-                          ? 'bg-brand-dark border-brand-dark text-white shadow-lg shadow-brand-dark/20'
+                          ? 'bg-brand-dark border-brand-dark text-white shadow-lg'
                           : 'bg-white border-brand-border text-zinc-500 hover:border-brand-dark hover:text-brand-dark'
                           }`}
                       >
@@ -1572,7 +1764,29 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                     ))}
                   </div>
                 </div>
-              ))}
+              )}
+
+              {/* 4. Instruments (Only if Instrumental type is selected) */}
+              {isInstrumentalSelected && (
+                <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                  <p className="text-[10px] text-zinc-400 uppercase font-black mb-2 tracking-wider">Instruments</p>
+                  <div className="flex flex-wrap gap-2">
+                    {TAG_CATEGORIES["Instruments"].map(tag => (
+                      <button
+                        key={tag}
+                        onClick={() => toggleTag(tag, "Instruments")}
+                        className={`px-3 py-1.5 rounded-full text-xs font-black border transition-all ${selectedTags.includes(tag)
+                          ? 'bg-brand-dark border-brand-dark text-white shadow-lg'
+                          : 'bg-white border-brand-border text-zinc-500 hover:border-brand-dark hover:text-brand-dark'
+                          }`}
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
             </div>
           </div>
 

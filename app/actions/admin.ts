@@ -178,28 +178,7 @@ export async function updateWithdrawalStatus(withdrawalId: string, status: 'comp
         return { success: false, error: 'Withdrawal request not found' };
     }
 
-    // 2. If rejecting, we must refund the points
-    if (status === 'rejected' && withdrawal.status === 'pending') {
-        const { data: profile } = await supabase
-            .from('profiles')
-            .select('points')
-            .eq('id', withdrawal.user_id)
-            .single();
-
-        if (profile) {
-            const { error: refundError } = await supabase
-                .from('profiles')
-                .update({ points: (profile.points || 0) + withdrawal.amount })
-                .eq('id', withdrawal.user_id);
-
-            if (refundError) {
-                console.error('Failed to refund points for rejected withdrawal:', refundError);
-                return { success: false, error: 'Failed to refund points' };
-            }
-        }
-    }
-
-    // 3. Update the withdrawal status
+    // 2. Update the withdrawal status in the database
     const { error: updateError, count } = await supabase
         .from('withdrawals')
         .update({
@@ -216,6 +195,15 @@ export async function updateWithdrawalStatus(withdrawalId: string, status: 'comp
     if (count === 0) {
         console.error('[AdminAction] Withdrawal status update failed: No rows affected');
         return { success: false, error: "Operation failed: Entry not found or already processed" };
+    }
+
+    // 4. Sync the user's gamification to ensure points column is accurate after status change
+    // This handles both completion (stays deducted) and rejection (refunded)
+    try {
+        const { syncUserGamification } = await import('@/lib/gamification');
+        await syncUserGamification(supabase, withdrawal.user_id);
+    } catch (e) {
+        console.warn('Gamification sync failed after status update:', e);
     }
 
     try {

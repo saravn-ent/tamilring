@@ -311,13 +311,17 @@ export default function AudioTrimmer({
         return `${mins}:${secs.toString().padStart(2, '0')}.${ms}`;
     };
 
+
     return (
         <div className="bg-white rounded-3xl border border-brand-border p-3 space-y-4 select-none shadow-xl shadow-brand-dark/5">
             {/* Waveform Wrapper */}
             <div className="relative bg-brand-wash rounded-2xl border border-brand-border p-2">
                 {!isReady && (
-                    <div className="absolute inset-0 flex items-center justify-center text-brand-accent font-bold z-20 animate-pulse">
-                        Loading Audio...
+                    <div className="absolute inset-0 flex items-center justify-center bg-white/20 backdrop-blur-[1px] text-brand-accent font-bold z-20">
+                        <div className="flex flex-col items-center gap-2">
+                            <RotateCcw className="animate-spin" size={20} />
+                            <span className="text-[10px] uppercase tracking-widest">Loading Audio...</span>
+                        </div>
                     </div>
                 )}
 
@@ -387,6 +391,7 @@ export default function AudioTrimmer({
                     <button onClick={() => updateZoom(zoom + 10)} className="p-2 text-zinc-400 hover:text-brand-dark bg-brand-wash hover:bg-white border border-brand-border/50 hover:border-brand-border rounded-full transition-all" title="Zoom In"><ZoomIn size={16} /></button>
                 </div>
             </div>
+
 
             <div className="grid grid-cols-2 gap-3 border-t border-brand-border pt-4">
                 <button

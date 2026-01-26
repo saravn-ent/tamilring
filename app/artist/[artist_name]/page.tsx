@@ -150,6 +150,7 @@ export default async function ArtistPage({
           title: `${artistName} Ringtones`,
           text: `Check out the best ringtones by ${artistName} on TamilRing!`
         }}
+        ringCount={allRingtones.length}
       />
 
       {/* Sticky Controls Bar */}

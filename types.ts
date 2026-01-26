@@ -44,7 +44,8 @@ export interface Profile {
   upi_id?: string;
   btc_address?: string;
   created_at: string;
-  total_withdrawn_count?: number;
+  total_withdrawn?: number;
+  lifetime_points?: number;
 }
 
 export interface Badge {

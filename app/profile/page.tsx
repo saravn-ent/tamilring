@@ -21,7 +21,7 @@ import AvatarRank from '@/components/AvatarRank';
 import { getLevelTitle, syncUserGamification, POINTS_PER_UPLOAD } from '@/lib/gamification';
 import { Ringtone, Profile, UserBadge } from '@/types';
 import { User as SupabaseUser } from '@supabase/supabase-js';
-import { handleWithdrawal } from '@/app/actions/user';
+import { handleWithdrawal, syncProfileStats } from '@/app/actions/user';
 
 
 // Simple timeout helper
@@ -130,10 +130,18 @@ export default function ProfilePage() {
           }
         }
 
-        // Async Gamification Sync
-        syncUserGamification(supabase, user.id)
-          .then((synced: Partial<Profile> | null) => {
-            if (synced && mounted) setProfile((prev) => prev ? ({ ...prev, ...synced }) : null);
+        // Server-Side Gamification Sync
+        syncProfileStats(user.id)
+          .then((res: any) => {
+            if (res.success && res.stats && mounted) {
+              setProfile((prev) => prev ? ({
+                ...prev,
+                points: res.stats.points,
+                level: res.stats.level,
+                total_withdrawn: res.stats.totalWithdrawn,
+                lifetime_points: res.stats.lifetimePoints
+              }) : null);
+            }
           })
           .catch(console.error);
 
@@ -165,8 +173,6 @@ export default function ProfilePage() {
     try {
       const updates: Partial<Profile> & { id: string } = {
         id: user.id,
-        full_name: fullName,
-        bio,
         website_url: website,
         instagram_handle: instagram,
         twitter_handle: twitter,
@@ -287,248 +293,216 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-md mx-auto min-h-screen flex flex-col pb-24">
-      {/* Header */}
-      <header className="flex flex-col items-center pt-4 pb-6 px-4 relative">
-        <div className="mb-4">
+      {/* Header Area */}
+      <header className="pt-8 pb-6 px-6">
+        {/* User Identity Section */}
+        <div className="flex items-start gap-4 mb-6">
           <AvatarRank
             image={profile?.avatar_url || user.user_metadata?.avatar_url}
             point={profile?.points || 0}
             level={profile?.level || 1}
-            size="lg"
+            size="sm"
           />
+          <div className="flex-1 min-w-0 pt-0.5">
+            <h1 className="text-lg font-bold text-brand-dark leading-tight">
+              {profile?.instagram_handle || profile?.twitter_handle || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Ringtone User'}
+            </h1>
+            <p className="text-[11px] text-zinc-400 font-medium truncate opacity-90 mt-1">{user.email}</p>
+            <div className="flex items-center gap-4 mt-3">
+              <button
+                onClick={() => setIsEditing(true)}
+                className="text-[10px] font-black uppercase tracking-widest text-brand-accent hover:opacity-80 transition-opacity"
+              >
+                Edit Profile
+              </button>
+              <button
+                onClick={handleSignOut}
+                className="text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-red-500 transition-colors"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
         </div>
-        <h1 className="text-2xl font-bold text-brand-dark mb-1">
-          {profile?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Ringtone User'}
-        </h1>
-        <p className="text-xs text-zinc-500 mb-4 font-mono">{user.email}</p>
-        {profile?.bio && <p className="text-zinc-600 text-sm max-w-sm text-center mb-4 leading-relaxed italic">"{profile.bio}"</p>}
 
-        {/* Stats */}
-        <div className="flex items-center gap-8 mb-8">
+        {/* Optimized Stats Grid */}
+        <div className="grid grid-cols-3 gap-0 border-t border-b border-brand-wash py-5 mb-6">
           <div className="flex flex-col items-center">
-            <span className="text-2xl font-black text-brand-dark leading-none">
+            <span className="text-lg font-black text-brand-dark">
               {uploads?.filter(u => u.status === 'approved').length || 0}
             </span>
-            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1.5">Ringtones</span>
+            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mt-1">Ringtones</span>
           </div>
-          <div className="w-px h-8 bg-brand-border" />
-          <div className="flex flex-col items-center">
-            <span className="text-2xl font-black text-brand-accent leading-none">
-              {profile?.points || 0}
-            </span>
-            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1.5">Rep Points</span>
-          </div>
-          <div className="w-px h-8 bg-brand-border" />
-          <div className="flex flex-col items-center">
-            <span className="text-2xl font-black text-amber-500 leading-none">
+          <div className="flex flex-col items-center border-x border-brand-wash">
+            <span className="text-lg font-black text-amber-500">
               {getLevelTitle(profile?.level || 1)}
             </span>
-            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest mt-1.5">Level</span>
+            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mt-1">Explorer Rank</span>
+          </div>
+          <div className="flex flex-col items-center">
+            <span className="text-lg font-black text-brand-accent">
+              {profile?.points || 0}
+            </span>
+            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mt-1">Rep Points</span>
           </div>
         </div>
 
-        {/* Rewards Quick Card */}
-        <div className="w-full px-4 mb-2 animate-in fade-in slide-in-from-bottom-2 duration-500">
-          <div className="rounded-[2rem] p-5 shadow-xl bg-brand-dark relative overflow-hidden group border border-white/5">
-
-            {/* Background Accent Decorative - Static */}
-            <div className="absolute top-0 right-0 w-32 h-32 bg-brand-accent/10 rounded-full -mr-10 -mt-10 blur-3xl transition-all duration-700 group-hover:bg-brand-accent/20"></div>
-
-            <div className="flex items-start justify-between relative z-10 mb-5">
-              <div>
-                <div className="flex items-center gap-1.5 text-brand-accent mb-1 px-3 py-1 rounded-full bg-brand-accent/10 border border-brand-accent/20 w-fit">
-                  <Coins size={14} className="animate-pulse" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">
-                    {profile && profile.points >= 100 ? 'FUNDING READY' : 'REWARD BALANCE'}
-                  </span>
-                </div>
-                <div className="flex items-baseline gap-1 mt-1.5">
-                  <span className="text-3xl font-black text-white tracking-tighter">₹{profile?.points || 0}</span>
-                  <span className="text-brand-accent/60 text-xs font-black font-mono">.00</span>
-                </div>
-              </div>
-              <div className="w-10 h-10 bg-white/5 rounded-2xl flex items-center justify-center text-white/20">
-                <Wallet size={20} />
-              </div>
+        {/* Pro Financial Action Row */}
+        <div className="flex items-center justify-between px-1">
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-black text-brand-dark leading-none tracking-tight">
+                ₹{profile?.points || 0}
+              </span>
+              <span className="text-[8px] font-black bg-brand-accent/10 text-brand-accent px-2 py-0.5 rounded-full uppercase tracking-tighter">
+                Available
+              </span>
             </div>
-
-            {/* Threshold Progress */}
-            <div className="mb-4 relative z-10">
-              <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-widest text-white/40 mb-1.5 px-0.5">
-                <span>Threshold: ₹100</span>
-                <span>{Math.min(100, Math.round(((profile?.points || 0) / 100) * 100))}%</span>
-              </div>
-              <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden p-0.5 border border-white/5">
-                <div
-                  className="h-full bg-gradient-to-r from-brand-accent to-emerald-400 rounded-full transition-all duration-1000 ease-out"
-                  style={{ width: `${Math.min(100, (profile?.points || 0)) || 2}%` }}
-                />
-              </div>
-            </div>
-
             <button
-              onClick={() => setIsWithdrawModalOpen(true)}
-              disabled={!profile || profile.points < 100}
-              className={`w-full py-3.5 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 relative overflow-hidden active:scale-95
-                ${profile && profile.points >= 100
-                  ? 'bg-brand-accent text-brand-dark hover:bg-white shadow-[0_0_20px_rgba(255,255,255,0.1)] shadow-brand-accent/20'
-                  : 'bg-white/5 text-white/40 cursor-not-allowed'}`}
+              className="text-[10px] font-bold text-zinc-400 flex items-center gap-1 hover:text-brand-dark transition-colors group"
+              title="View payout history"
             >
-              {profile && profile.points >= 100 ? (
-                <>CLAIM FUNDS <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" /></>
-              ) : (
-                <>Need ₹{100 - (profile?.points || 0)} more to withdraw</>
-              )}
+              <span className="opacity-60 uppercase text-[8px] font-black tracking-widest">History:</span>
+              <span className="text-zinc-600 font-bold">₹{profile?.total_withdrawn || 0} Claimed</span>
+              <ArrowRight size={10} className="group-hover:translate-x-0.5 transition-transform opacity-40" />
             </button>
           </div>
-        </div>
 
-        <div className="flex gap-2 w-full px-4">
           <button
-            onClick={() => setIsEditing(true)}
-            className="flex-1 py-3 bg-brand-dark text-white text-[11px] font-black rounded-2xl hover:bg-brand-dark/90 transition-all shadow-lg shadow-brand-dark/10 uppercase tracking-widest active:scale-[0.98]"
+            onClick={() => setIsWithdrawModalOpen(true)}
+            disabled={!profile || profile.points < 100}
+            className={`px-6 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-[0.98] shadow-xl
+              ${profile && profile.points >= 100
+                ? 'bg-brand-dark text-white shadow-brand-dark/20 hover:bg-black'
+                : 'bg-zinc-100 text-zinc-300 cursor-not-allowed'}`}
           >
-            Edit Profile
-          </button>
-          <button
-            onClick={handleSignOut}
-            className="flex-1 py-3 bg-white text-zinc-500 text-[11px] font-black rounded-2xl border border-brand-border hover:bg-red-50 hover:text-red-500 hover:border-red-100 transition-all uppercase tracking-widest active:scale-[0.98]"
-          >
-            Sign Out
+            {profile && profile.points >= 100 ? 'Withdraw Funds' : `Need ₹${100 - (profile?.points || 0)}`}
           </button>
         </div>
+      </header>
 
-        {/* Edit Profile Modal */}
-        {isEditing && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
-            <div className="w-full max-w-md bg-white border border-brand-border rounded-3xl p-6 shadow-2xl relative overflow-hidden">
-              <button onClick={() => setIsEditing(false)} className="absolute top-4 right-4 text-zinc-400 hover:text-brand-dark transition-colors">
-                <X size={20} />
-              </button>
+      {/* Edit Profile Modal */}
+      {isEditing && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="w-full max-w-md bg-white border border-brand-border rounded-3xl p-6 shadow-2xl relative overflow-hidden">
+            <button onClick={() => setIsEditing(false)} className="absolute top-4 right-4 text-zinc-400 hover:text-brand-dark transition-colors">
+              <X size={20} />
+            </button>
 
-              <h2 className="text-xl font-black text-brand-dark mb-1 uppercase tracking-tight">Edit Profile</h2>
-              <p className="text-[10px] font-bold text-brand-accent mb-6 bg-brand-wash p-2 rounded-lg border border-brand-border flex items-center gap-2">
-                <Star size={12} fill="currentColor" /> EARN ₹10 PER APPROVED UPLOAD!
-              </p>
+            <h2 className="text-xl font-black text-brand-dark mb-1 uppercase tracking-tight">Edit Profile</h2>
+            <p className="text-[10px] font-bold text-brand-accent mb-6 bg-brand-wash p-2 rounded-lg border border-brand-border flex items-center gap-2">
+              <Star size={12} fill="currentColor" /> EARN ₹10 PER APPROVED UPLOAD!
+            </p>
 
-              <form onSubmit={handleUpdateProfile} className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-                <div className="space-y-4">
+            <form onSubmit={handleUpdateProfile} className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 block ml-1">Full Name</label>
-                    <input type="text" value={fullName} onChange={e => setFullName(e.target.value)} className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-sm focus:border-brand-accent outline-none transition-all placeholder:text-zinc-400 text-brand-dark" placeholder="Display Name" />
+                    <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 block ml-1">Instagram</label>
+                    <input type="text" value={instagram} onChange={e => setInstagram(e.target.value)} className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-sm focus:border-brand-accent outline-none transition-all font-mono text-[11px] text-brand-dark" placeholder="@handle" />
                   </div>
                   <div>
-                    <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 block ml-1">Bio</label>
-                    <textarea value={bio} onChange={e => setBio(e.target.value)} rows={3} className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-sm focus:border-brand-accent outline-none transition-all resize-none placeholder:text-zinc-400 text-brand-dark" placeholder="Tell the world about yourself..." />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 block ml-1">Instagram</label>
-                      <input type="text" value={instagram} onChange={e => setInstagram(e.target.value)} className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-sm focus:border-brand-accent outline-none transition-all font-mono text-[11px] text-brand-dark" placeholder="@handle" />
-                    </div>
-                    <div>
-                      <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 block ml-1">X / Twitter</label>
-                      <input type="text" value={twitter} onChange={e => setTwitter(e.target.value)} className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-sm focus:border-brand-accent outline-none transition-all font-mono text-[11px] text-brand-dark" placeholder="@handle" />
-                    </div>
+                    <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 block ml-1">X / Twitter</label>
+                    <input type="text" value={twitter} onChange={e => setTwitter(e.target.value)} className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-sm focus:border-brand-accent outline-none transition-all font-mono text-[11px] text-brand-dark" placeholder="@handle" />
                   </div>
                 </div>
-
-                <div className="pt-4 border-t border-brand-border space-y-4">
-                  <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Withdrawal Info</p>
-                  <div>
-                    <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 block ml-1">UPI ID (For Payouts)</label>
-                    <input type="text" value={upiId} onChange={e => setUpiId(e.target.value)} className="w-full bg-brand-wash/50 border border-brand-border/50 rounded-xl px-4 py-3 text-sm focus:border-brand-accent outline-none transition-all font-mono text-[11px] text-brand-dark placeholder:text-zinc-400" placeholder="yourname@upi" />
-                  </div>
-                </div>
-
-                <button type="submit" disabled={saving} className="w-full py-4 bg-brand-dark text-white font-black rounded-2xl hover:bg-neutral-800 transition-all disabled:opacity-50 shadow-xl shadow-brand-dark/20 uppercase tracking-widest text-[11px] mt-4">
-                  {saving ? 'Syncing...' : 'Update Explorer Profile'}
-                </button>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* Withdrawal Modal */}
-        {isWithdrawModalOpen && (
-          <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
-            <div className="w-full max-w-sm bg-white border border-brand-border rounded-3xl p-6 shadow-2xl relative">
-              <button onClick={() => setIsWithdrawModalOpen(false)} className="absolute top-4 right-4 text-zinc-400 hover:text-brand-dark transition-colors">
-                <X size={20} />
-              </button>
-
-              <div className="text-center mb-6">
-                <div className="w-16 h-16 bg-brand-dark rounded-full flex items-center justify-center text-white mx-auto mb-3 shadow-xl">
-                  <Wallet size={32} />
-                </div>
-                <h2 className="text-xl font-black text-brand-dark uppercase tracking-tight">Redeem Rewards</h2>
-                <p className="text-[10px] text-zinc-500 font-black uppercase tracking-[0.2em] mt-1 italic">1 Rep Point = ₹1 Cash</p>
               </div>
 
-              {withdrawSuccess ? (
-                <div className="py-8 text-center space-y-3 animate-in zoom-in-95 duration-300">
-                  <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto">
-                    <CircleCheckBig size={24} />
-                  </div>
-                  <p className="text-sm font-bold text-emerald-600">Withdrawal Request sent!</p>
-                  <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-black italic">Wait for admin approval</p>
+              <div className="pt-4 border-t border-brand-border space-y-4">
+                <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Withdrawal Info</p>
+                <div>
+                  <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 block ml-1">UPI ID (For Payouts)</label>
+                  <input type="text" value={upiId} onChange={e => setUpiId(e.target.value)} className="w-full bg-brand-wash/50 border border-brand-border/50 rounded-xl px-4 py-3 text-sm focus:border-brand-accent outline-none transition-all font-mono text-[11px] text-brand-dark placeholder:text-zinc-400" placeholder="yourname@upi" />
                 </div>
-              ) : (
-                <form onSubmit={onWithdraw} className="space-y-4">
-                  <div className="bg-brand-wash p-4 rounded-2xl border border-brand-border flex items-center justify-between">
-                    <div>
-                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-0.5">Available Balance</p>
-                      <p className="text-lg font-black text-brand-dark">₹{profile?.points || 0}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-0.5">Min Withdrawal</p>
-                      <p className="text-lg font-black text-brand-accent">₹100</p>
-                    </div>
-                  </div>
+              </div>
 
-                  <div>
-                    <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 block ml-1">Withdrawal Amount (₹)</label>
-                    <input
-                      type="number"
-                      value={withdrawAmount}
-                      onChange={e => setWithdrawAmount(e.target.value)}
-                      placeholder="e.g. 100"
-                      className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-sm focus:border-brand-accent outline-none transition-all font-mono"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 block ml-1">UPI ID (For Instant Payout)</label>
-                    <input
-                      type="text"
-                      value={upiId}
-                      onChange={e => setUpiId(e.target.value)}
-                      placeholder="yourname@upi"
-                      className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-sm focus:border-brand-accent outline-none transition-all font-mono text-brand-dark"
-                    />
-                    {profile && !profile.upi_id && upiId && (
-                      <p className="text-[9px] font-bold text-brand-accent mt-1 animate-pulse">✨ We'll save this to your explorer profile</p>
-                    )}
-                  </div>
-
-                  {withdrawError && (
-                    <p className="text-[10px] font-bold text-red-500 text-center bg-red-50 p-2 rounded-lg border border-red-100">{withdrawError}</p>
-                  )}
-
-                  <button
-                    type="submit"
-                    disabled={isWithdrawing || !upiId}
-                    className="w-full py-4 bg-brand-accent text-white font-black rounded-2xl hover:bg-brand-accent/90 transition-all disabled:opacity-50 shadow-xl shadow-brand-accent/20 uppercase tracking-widest text-xs active:scale-[0.98]"
-                  >
-                    {isWithdrawing ? 'Syncing Ledger...' : 'Request Payout Now'}
-                  </button>
-                  <p className="text-[9px] text-zinc-400 text-center font-medium px-4">Withdrawals are processed manually by admins within 24-48 hours.</p>
-                </form>
-              )}
-            </div>
+              <button type="submit" disabled={saving} className="w-full py-4 bg-brand-dark text-white font-black rounded-2xl hover:bg-neutral-800 transition-all disabled:opacity-50 shadow-xl shadow-brand-dark/20 uppercase tracking-widest text-[11px] mt-4">
+                {saving ? 'Syncing...' : 'Update Explorer Profile'}
+              </button>
+            </form>
           </div>
-        )}
-      </header>
+        </div>
+      )}
+
+      {/* Withdrawal Modal */}
+      {isWithdrawModalOpen && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
+          <div className="w-full max-w-sm bg-white border border-brand-border rounded-3xl p-6 shadow-2xl relative">
+            <button onClick={() => setIsWithdrawModalOpen(false)} className="absolute top-4 right-4 text-zinc-400 hover:text-brand-dark transition-colors">
+              <X size={20} />
+            </button>
+
+            <div className="text-center mb-6">
+              <div className="w-16 h-16 bg-brand-dark rounded-full flex items-center justify-center text-white mx-auto mb-3 shadow-xl">
+                <Wallet size={32} />
+              </div>
+              <h2 className="text-xl font-black text-brand-dark uppercase tracking-tight">Redeem Rewards</h2>
+              <p className="text-[10px] text-zinc-500 font-black uppercase tracking-[0.2em] mt-1 italic">1 Rep Point = ₹1 Cash</p>
+            </div>
+
+            {withdrawSuccess ? (
+              <div className="py-8 text-center space-y-3 animate-in zoom-in-95 duration-300">
+                <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto">
+                  <CircleCheckBig size={24} />
+                </div>
+                <p className="text-sm font-bold text-emerald-600">Withdrawal Request sent!</p>
+                <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-black italic">Wait for admin approval</p>
+              </div>
+            ) : (
+              <form onSubmit={onWithdraw} className="space-y-4">
+                <div className="bg-brand-wash p-4 rounded-2xl border border-brand-border flex items-center justify-between">
+                  <div>
+                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-0.5">Available Balance</p>
+                    <p className="text-lg font-black text-brand-dark">₹{profile?.points || 0}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-0.5">Min Withdrawal</p>
+                    <p className="text-lg font-black text-brand-accent">₹100</p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 block ml-1">Withdrawal Amount (₹)</label>
+                  <input
+                    type="number"
+                    value={withdrawAmount}
+                    onChange={e => setWithdrawAmount(e.target.value)}
+                    placeholder="e.g. 100"
+                    className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-sm focus:border-brand-accent outline-none transition-all font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 block ml-1">UPI ID (For Instant Payout)</label>
+                  <input
+                    type="text"
+                    value={upiId}
+                    onChange={e => setUpiId(e.target.value)}
+                    placeholder="yourname@upi"
+                    className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-sm focus:border-brand-accent outline-none transition-all font-mono text-brand-dark"
+                  />
+                  {profile && !profile.upi_id && upiId && (
+                    <p className="text-[9px] font-bold text-brand-accent mt-1 animate-pulse">✨ We'll save this to your explorer profile</p>
+                  )}
+                </div>
+
+                {withdrawError && (
+                  <p className="text-[10px] font-bold text-red-500 text-center bg-red-50 p-2 rounded-lg border border-red-100">{withdrawError}</p>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={isWithdrawing || !upiId}
+                  className="w-full py-4 bg-brand-accent text-white font-black rounded-2xl hover:bg-brand-accent/90 transition-all disabled:opacity-50 shadow-xl shadow-brand-accent/20 uppercase tracking-widest text-xs active:scale-[0.98]"
+                >
+                  {isWithdrawing ? 'Syncing Ledger...' : 'Request Payout Now'}
+                </button>
+                <p className="text-[9px] text-zinc-400 text-center font-medium px-4">Withdrawals are processed manually by admins within 24-48 hours.</p>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="sticky top-14 z-20 bg-white/95 backdrop-blur-md border-b border-brand-border mb-6">

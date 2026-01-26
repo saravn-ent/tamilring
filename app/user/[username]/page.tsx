@@ -81,39 +81,97 @@ export default async function UserProfilePage({
 
   return (
     <div className="max-w-md mx-auto p-4 pb-24 min-h-screen flex flex-col bg-white">
-      {/* Header / Nav */}
-      <div className="flex items-center justify-between mb-6">
-        <Link href="/" className="p-2.5 bg-brand-wash border border-brand-border rounded-full hover:bg-zinc-100 transition-colors text-brand-dark">
-          <ArrowLeft size={20} strokeWidth={2.5} />
-        </Link>
-        <ShareProfileButton userId={userId} name={profile.full_name || 'User'} />
-      </div>
 
       {/* Social Card */}
-      <div className="bg-white border border-brand-border rounded-3xl p-6 flex flex-col items-center text-center shadow-xl shadow-brand-dark/5 mb-8 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-brand-wash/50 to-transparent pointer-events-none" />
+      {/* Official Artist Style Profile Card */}
+      <div className="bg-white border-b border-zinc-200 -mx-4 px-4 pb-6 mb-6">
+        {/* Top Navigation Row (Mimics Artist Header) */}
+        <div className="flex items-center justify-between py-2 border-b border-zinc-50 mb-6">
+          <Link href="/" className="p-2 -ml-2 text-zinc-400 hover:text-brand-dark transition-colors">
+            <ArrowLeft size={18} />
+          </Link>
 
-        <div className="mb-4 relative">
-          <AvatarRank
-            image={profile.avatar_url}
-            point={points}
-            level={level}
-            size="lg"
-          />
+          <div className="flex flex-col items-center">
+            <span className="text-[10px] font-black text-brand-accent uppercase tracking-widest leading-none">Contributor</span>
+            {uploads && (
+              <span className="text-[9px] font-bold text-zinc-400 bg-zinc-100 px-1.5 py-0.5 rounded-full mt-1">
+                {uploads.length} {uploads.length === 1 ? 'Ring' : 'Rings'}
+              </span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1">
+            <ShareProfileButton userId={userId} name={profile.full_name || 'User'} />
+          </div>
         </div>
 
-        <h1 className="text-2xl font-black text-brand-dark mb-1 tracking-tight relative">{profile.full_name || 'Anonymous User'}</h1>
+        {/* Profile Info Row */}
+        <div className="flex items-center gap-4 px-2">
+          {/* Circular Avatar with rank border */}
+          <div className="shrink-0">
+            <AvatarRank
+              image={profile.avatar_url}
+              point={points}
+              level={level}
+              size="md"
+            />
+          </div>
 
+          {/* Identity & Socials */}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <h1 className="text-xl font-black text-black leading-tight truncate tracking-tight">
+                {profile.full_name || 'Anonymous User'}
+              </h1>
+              <div className="bg-blue-500 rounded-full p-0.5 shrink-0 shadow-sm">
+                <Music size={10} className="text-white fill-white" />
+              </div>
+              <button className="ml-auto p-2 bg-white border border-rose-100 rounded-full text-rose-500 shadow-sm hover:scale-110 transition-transform">
+                <Heart size={16} fill="currentColor" className="opacity-80" />
+              </button>
+            </div>
+
+            {/* Social Handles - Visible and Clickable */}
+            <div className="flex items-center gap-3">
+              {profile.instagram_handle && (
+                <a
+                  href={`https://instagram.com/${profile.instagram_handle.replace('@', '')}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-[11px] font-bold text-zinc-400 hover:text-pink-500 flex items-center gap-1 transition-colors"
+                >
+                  <Instagram size={12} />
+                  <span>@{profile.instagram_handle.replace('@', '')}</span>
+                </a>
+              )}
+              {profile.twitter_handle && (
+                <a
+                  href={`https://twitter.com/${profile.twitter_handle.replace('@', '')}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-[11px] font-bold text-zinc-400 hover:text-blue-500 flex items-center gap-1 transition-colors"
+                >
+                  <Twitter size={12} />
+                  <span>@{profile.twitter_handle.replace('@', '')}</span>
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Bio Section */}
         {profile.bio && (
-          <p className="text-zinc-500 text-sm mb-5 max-w-xs leading-relaxed relative">
-            {profile.bio}
-          </p>
+          <div className="mt-4 px-2">
+            <p className="text-zinc-500 text-xs leading-relaxed max-w-sm">
+              {profile.bio}
+            </p>
+          </div>
         )}
 
-        {/* Badges */}
+        {/* Badges - Styled as modern tags */}
         {userBadges && userBadges.length > 0 && (
-          <div className="mb-6 w-full px-4 relative">
-            <div className="flex flex-wrap justify-center gap-3">
+          <div className="mt-5 px-2">
+            <div className="flex flex-wrap gap-2">
               {userBadges.map((ub: any) => {
                 const Icon = ub.badge?.icon_name === 'scissors' ? Scissors :
                   ub.badge?.icon_name === 'zap' ? Zap :
@@ -121,109 +179,27 @@ export default async function UserProfilePage({
                       ub.badge?.icon_name === 'heart' ? Heart :
                         ub.badge?.icon_name === 'music' ? Disc : Star;
 
-                // Improved Badge Style Logic
                 const getBadgeColor = (name: string) => {
                   switch (name) {
-                    case 'crown': return {
-                      bg: 'from-amber-500 to-amber-600',
-                      border: 'border-amber-500',
-                      text: 'text-amber-500',
-                      hex: '#ffffff',
-                      shadow: 'shadow-amber-500/30'
-                    };
-                    case 'zap': return {
-                      bg: 'from-yellow-400 to-yellow-500',
-                      border: 'border-yellow-400',
-                      text: 'text-yellow-500',
-                      hex: '#ffffff',
-                      shadow: 'shadow-yellow-400/30'
-                    };
-                    case 'heart': return {
-                      bg: 'from-rose-500 to-rose-600',
-                      border: 'border-rose-500',
-                      text: 'text-rose-500',
-                      hex: '#ffffff',
-                      shadow: 'shadow-rose-500/30'
-                    };
-                    case 'scissors': return {
-                      bg: 'from-cyan-400 to-cyan-500',
-                      border: 'border-cyan-400',
-                      text: 'text-cyan-500',
-                      hex: '#ffffff',
-                      shadow: 'shadow-cyan-400/30'
-                    };
-                    case 'music': return {
-                      bg: 'from-violet-500 to-violet-600',
-                      border: 'border-violet-500',
-                      text: 'text-violet-500',
-                      hex: '#ffffff',
-                      shadow: 'shadow-violet-500/30'
-                    };
-                    default: return { // Star/Default
-                      bg: 'from-emerald-500 to-emerald-600',
-                      border: 'border-emerald-500',
-                      text: 'text-emerald-500',
-                      hex: '#ffffff',
-                      shadow: 'shadow-emerald-500/30'
-                    };
+                    case 'crown': return 'bg-amber-50 text-amber-600 border-amber-100';
+                    case 'zap': return 'bg-yellow-50 text-yellow-600 border-yellow-100';
+                    case 'heart': return 'bg-rose-50 text-rose-600 border-rose-100';
+                    case 'scissors': return 'bg-cyan-50 text-cyan-600 border-cyan-100';
+                    case 'music': return 'bg-violet-50 text-violet-600 border-violet-100';
+                    default: return 'bg-emerald-50 text-emerald-600 border-emerald-100';
                   }
                 };
 
-                const style = getBadgeColor(ub.badge?.icon_name);
-
                 return (
-                  <div key={ub.id} className="relative group cursor-help p-1">
-                    {/* Main Badge Container */}
-                    <div className={`
-                      w-14 h-14 rounded-2xl flex items-center justify-center relative overflow-hidden transition-all duration-300 transform group-hover:-translate-y-1 group-hover:scale-105
-                      bg-gradient-to-br ${style.bg}
-                      ${style.shadow} shadow-lg
-                    `}>
-                      <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
-
-                      <Icon
-                        size={24}
-                        color={style.hex}
-                        fill={style.hex}
-                        className={`relative z-10 drop-shadow-sm`}
-                      />
-                    </div>
-
-                    <div className={`mt-1.5 text-[9px] font-bold uppercase tracking-wider text-center opacity-70 group-hover:opacity-100 transition-opacity ${style.text}`}>
-                      {ub.badge?.name}
-                    </div>
-
-                    {/* Tooltip */}
-                    <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-48 bg-white p-3 rounded-xl text-xs text-center border border-brand-border opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none z-50 shadow-xl shadow-black/5 translate-y-2 group-hover:translate-y-0">
-                      <p className={`font-bold text-sm mb-1 ${style.text}`}>{ub.badge?.name}</p>
-                      <p className="text-zinc-500 leading-relaxed">{ub.badge?.description}</p>
-                      <div className="absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-3 h-3 bg-white border-r border-b border-brand-border rotate-45"></div>
-                    </div>
+                  <div key={ub.id} className={`flex items-center gap-1.5 px-3 py-1 rounded-md border text-[9px] font-black uppercase tracking-wider ${getBadgeColor(ub.badge?.icon_name)}`}>
+                    <Icon size={10} className="opacity-70" />
+                    {ub.badge?.name}
                   </div>
                 );
               })}
             </div>
           </div>
         )}
-
-        {/* Social Links */}
-        <div className="flex items-center gap-3 relative">
-          {profile.website_url && (
-            <a href={profile.website_url} target="_blank" rel="noreferrer" className="p-2.5 bg-brand-wash rounded-full text-zinc-500 hover:text-brand-accent hover:bg-brand-wash/80 transition-colors border border-transparent hover:border-brand-border">
-              <Globe size={18} />
-            </a>
-          )}
-          {profile.instagram_handle && (
-            <a href={`https://instagram.com/${profile.instagram_handle.replace('@', '')}`} target="_blank" rel="noreferrer" className="p-2.5 bg-brand-wash rounded-full text-zinc-500 hover:text-pink-500 hover:bg-brand-wash/80 transition-colors border border-transparent hover:border-brand-border">
-              <Instagram size={18} />
-            </a>
-          )}
-          {profile.twitter_handle && (
-            <a href={`https://twitter.com/${profile.twitter_handle.replace('@', '')}`} target="_blank" rel="noreferrer" className="p-2.5 bg-brand-wash rounded-full text-zinc-500 hover:text-blue-500 hover:bg-brand-wash/80 transition-colors border border-transparent hover:border-brand-border">
-              <Twitter size={18} />
-            </a>
-          )}
-        </div>
       </div>
 
       <div>
