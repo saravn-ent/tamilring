@@ -29,6 +29,10 @@ export default function LoginButton() {
   }, [supabase]);
 
   const handleSignIn = async () => {
+    // Set a cookie for the callback route to read as a fallback
+    // This fixes issues where 'next' param might be stripped by OAuth providers or strict redirect lists
+    document.cookie = `auth-redirect-url=${pathname || '/'}; path=/; max-age=300; SameSite=Lax`;
+
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {

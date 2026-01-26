@@ -5,7 +5,6 @@ import { cookies } from 'next/headers'
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/'
 
   if (code) {
     const cookieStore = await cookies()
@@ -24,8 +23,6 @@ export async function GET(request: Request) {
               })
             } catch {
               // The `setAll` method was called from a Server Component.
-              // This can be ignored if you have middleware refreshing
-              // user sessions.
             }
           },
         },
@@ -34,6 +31,20 @@ export async function GET(request: Request) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error) {
+      // Priority: 1. Query Param, 2. Cookie Fallback, 3. Default '/'
+      let next = searchParams.get('next');
+
+      if (!next || next === '/') {
+        const cookieNext = cookieStore.get('auth-redirect-url')?.value;
+        if (cookieNext) {
+          next = cookieNext;
+          // Clean up the cookie
+          cookieStore.delete('auth-redirect-url');
+        }
+      }
+
+      next = next || '/';
+
       if (next.startsWith('http')) {
         return NextResponse.redirect(next);
       }
