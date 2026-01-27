@@ -19,6 +19,9 @@ const HomeMusicDirectors = dynamic(() => import('@/components/home/HomeTopArtist
 const HomeMovieDirectors = dynamic(() => import('@/components/home/HomeTopArtists').then(m => ({ default: m.HomeMovieDirectors })), {
   ssr: true,
 });
+const HomeDeities = dynamic(() => import('@/components/home/HomeDeities'), {
+  ssr: true,
+});
 import HomeTrending from '@/components/home/HomeTrending';
 import HomeRecent from '@/components/home/HomeRecent';
 import HomeNostalgia from '@/components/home/HomeNostalgia';
@@ -75,6 +78,8 @@ export default async function Home() {
         <HomeMovieDirectors />
       </Suspense>
 
+
+
       <Suspense fallback={<SectionSkeleton type="trending" />}>
         <HomeNostalgia />
       </Suspense>
@@ -89,6 +94,10 @@ export default async function Home() {
 
       <Suspense fallback={<SectionSkeleton type="contributors" />}>
         <HomeContributors />
+      </Suspense>
+
+      <Suspense fallback={<SectionSkeleton type="horizontal" />}>
+        <HomeDeities />
       </Suspense>
 
     </div>

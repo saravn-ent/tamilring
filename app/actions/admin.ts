@@ -231,7 +231,7 @@ export async function deleteRingtone(id: string) {
         // 1. Get ringtone data first to delete from storage if needed
         const { data: ringtone } = await supabase
             .from('ringtones')
-            .select('audio_url, audio_url_iphone, poster_url')
+            .select('audio_url, audio_url_iphone, poster_url, user_id')
             .eq('id', id)
             .single();
 
@@ -279,9 +279,27 @@ export async function deleteRingtone(id: string) {
         if (count === 0) return { success: false, error: 'Operation failed: Record not found or Permission Denied (Check Service Role Key)' };
 
         // 3. Clear cache
-        revalidatePath('/');
-        revalidatePath('/admin/ringtones');
-        revalidatePath('/recent');
+        // Revalidate specific tags used in home page components
+        try {
+            // @ts-expect-error - revalidateTag has types issues in some Next versions
+            revalidateTag('contributors');
+            // @ts-expect-error
+            revalidateTag('trending');
+            // @ts-expect-error
+            revalidateTag('recent');
+
+            revalidatePath('/');
+            revalidatePath('/admin/ringtones');
+            revalidatePath('/recent');
+
+            // Revalidate User Profile if user exists
+            if (ringtone?.user_id) {
+                revalidatePath(`/user/${ringtone.user_id}`);
+                revalidatePath('/profile');
+            }
+        } catch (e) {
+            console.warn('Cache revalidation failed:', e);
+        }
 
         return { success: true };
     } catch (e) {
@@ -306,7 +324,7 @@ export async function bulkDeleteRingtones(ids: string[]) {
     // 1. Fetch all to get file paths
     const { data: ringtones } = await supabase
         .from('ringtones')
-        .select('audio_url, audio_url_iphone')
+        .select('audio_url, audio_url_iphone, user_id')
         .in('id', ids);
 
     if (ringtones) {
@@ -337,8 +355,25 @@ export async function bulkDeleteRingtones(ids: string[]) {
 
     // 3. Revalidate
     try {
+        // @ts-expect-error
+        revalidateTag('contributors');
+        // @ts-expect-error
+        revalidateTag('trending');
+        // @ts-expect-error
+        revalidateTag('recent');
+
         revalidatePath('/', 'layout');
         revalidatePath('/admin/ringtones');
+        revalidatePath('/recent');
+
+        // Revalidate all affected users
+        if (ringtones) {
+            const userIds = new Set(ringtones.map(r => r.user_id).filter(Boolean));
+            userIds.forEach(uid => {
+                revalidatePath(`/user/${uid}`);
+            });
+            if (userIds.size > 0) revalidatePath('/profile');
+        }
     } catch (e) {
         console.warn('Revalidation failed:', e);
     }

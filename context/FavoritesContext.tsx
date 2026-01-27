@@ -5,7 +5,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 export interface FavoriteItem {
   id: string;
   name: string;
-  type: 'Actor' | 'Singer' | 'Music Director' | 'Movie' | 'Director' | 'Movie Director' | 'Ringtone' | 'Lyricist';
+  type: 'Actor' | 'Singer' | 'Music Director' | 'Movie' | 'Director' | 'Movie Director' | 'Ringtone' | 'Lyricist' | 'Deity';
   imageUrl?: string;
   href: string;
   ringtoneData?: any; // To store the full Ringtone object

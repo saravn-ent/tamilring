@@ -355,6 +355,37 @@ export function generateSearchMetadata(query: string, resultCount?: number): Met
 }
 
 /**
+ * Generate metadata for deity page
+ */
+export function generateDeityMetadata(deity: {
+    name: string;
+    image_url?: string;
+}): Metadata {
+    const title = `${deity.name} - Devotional Tamil Ringtones`;
+
+    const description = `Download devotional ringtones dedicated to ${deity.name}. Divine Tamil songs, slogams, and spiritual melodies. High-quality devotional ringtones.`;
+
+    const keywords = [
+        deity.name,
+        `${deity.name} songs`,
+        `${deity.name} ringtones`,
+        'tamil devotional ringtones',
+        'spiritual ringtones',
+        'bakthi padalgal'
+    ];
+
+    return generateMetadata({
+        title,
+        description,
+        keywords,
+        image: getImageUrl(deity.image_url || null) || DEFAULT_IMAGE,
+        url: `/devotional/${encodeURIComponent(deity.name)}`,
+        type: 'website',
+        tags: keywords,
+    });
+}
+
+/**
  * Generate metadata for user profile page
  */
 export function generateUserProfileMetadata(user: {

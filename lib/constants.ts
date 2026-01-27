@@ -45,11 +45,35 @@ export const DEITY_CATEGORIES = {
     "Karuppusamy",
     "Perumal",
     "Mariamman",
-    "Kali"
+    "Kali",
+    "Durga",
+    "Lakshmi",
+    "Saraswathi",
+    "Sai Baba",
+    "Bairavar",
+    "Muniswaran",
+    "Muthumariamman",
+    "Narasimha",
+    "Ranganathar",
+    "Venkateswara",
+    "Ambedkar",
+    "Natarajar",
+    "Dakshinamurthy"
   ],
-  "Christian": ["Jesus", "Mary", "Saint"],
-  "Muslim": ["Allah"],
-  "Other": ["Buddha", "Mahavira", "Other"]
+  "Christian": [
+    "Jesus",
+    "Mother Mary",
+    "Velankanni Matha"
+  ],
+  "Muslim": [
+    "Allah",
+    "Nagore Andavar",
+    "Prophet Muhammad"
+  ],
+  "Buddhist & Jain": [
+    "Buddha",
+    "Mahavira"
+  ]
 };
 
 // Helper function to get artist bio (Placeholder for now as we don't have a bio DB)

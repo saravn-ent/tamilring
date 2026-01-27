@@ -6,11 +6,12 @@ import ImageWithFallback from './ImageWithFallback';
 import { formatCount } from '@/lib/utils';
 import FavoriteButton from './FavoriteButton';
 import ShareButton from './ShareButton';
+import DeityImageUpload from './DeityImageUpload';
 import ArtistImageUpload from './ArtistImageUpload';
 
 interface CompactProfileHeaderProps {
     name: string;
-    type: 'Actor' | 'Singer' | 'Music Director' | 'Movie Director' | 'Lyricist';
+    type: 'Actor' | 'Singer' | 'Music Director' | 'Movie Director' | 'Lyricist' | 'Deity';
     imageUrl?: string | null;
     bio?: string;
     shareMetadata?: { title: string; text: string };
@@ -73,7 +74,11 @@ export default function CompactProfileHeader({
                                 sizes="56px"
                             />
                         </div>
-                        <ArtistImageUpload artistName={name} currentImage={imageUrl || undefined} />
+                        {type === 'Deity' ? (
+                            <DeityImageUpload deityName={name} currentImage={imageUrl || undefined} />
+                        ) : (
+                            <ArtistImageUpload artistName={name} currentImage={imageUrl || undefined} />
+                        )}
                     </div>
 
                     {/* Information Cluster */}

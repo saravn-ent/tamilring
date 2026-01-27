@@ -9,6 +9,7 @@ import { Metadata } from 'next';
 import PlayButton from './PlayButton';
 import DownloadButton from './DownloadButton';
 import VideoDownloadButton from './VideoDownloadButton';
+import PinterestShareButton from './PinterestShareButton';
 import StreamButtons from '@/components/StreamButtons';
 import { splitArtists } from '@/lib/utils';
 import { cache, Suspense } from 'react';
@@ -86,15 +87,17 @@ export default async function RingtonePage({ params }: Props) {
       </div>
 
       <div className="relative z-10 p-4 pt-4 flex-1 pb-24">
-        {/* Top Right Buttons: Back & Video Download */}
+        {/* Top Right Buttons: Back & Video/Pinterest */}
         <div className="flex items-center justify-between mb-6">
           <Link href="/" className="inline-flex items-center gap-2 text-brand-dark hover:text-brand-accent bg-white border border-brand-gray px-4 py-3 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-95">
             <ArrowLeft size={24} strokeWidth={2.5} />
             <span className="text-base font-semibold">Back</span>
           </Link>
 
-          {/* Video Download (Replaces Share) */}
-          <VideoDownloadButton ringtone={ringtone} />
+          {/* Social & Video Actions */}
+          <div className="flex items-center gap-3">
+            <PinterestShareButton ringtone={ringtone} />
+          </div>
         </div>
 
         <div className="flex flex-col items-center text-center space-y-4 mt-2">

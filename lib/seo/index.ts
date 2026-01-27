@@ -11,6 +11,7 @@ export {
     generateRingtoneMetadata,
     generateMovieMetadata,
     generateArtistMetadata,
+    generateDeityMetadata,
     generateSearchMetadata,
     generateCategoryMetadata,
     generateRecentMetadata,

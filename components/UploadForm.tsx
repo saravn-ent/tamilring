@@ -123,6 +123,27 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
   const [movies, setMovies] = useState<MovieResult[]>([]);
   const [isSearchingMovie, setIsSearchingMovie] = useState(false);
 
+  // Dynamic Deities State
+  const [knownDeities, setKnownDeities] = useState<string[]>([]);
+  useEffect(() => {
+    if (step === 3 && contentType === 'devotional') {
+      const fetchDeities = async () => {
+        // Fetch all ringtones with 'Devotional' tag
+        const { data } = await supabase
+          .from('ringtones')
+          .select('movie_name')
+          .contains('tags', ['Devotional'])
+          .eq('status', 'approved');
+
+        if (data) {
+          const names = Array.from(new Set(data.map((d: any) => d.movie_name).filter(Boolean)));
+          setKnownDeities(names.sort() as string[]);
+        }
+      };
+      fetchDeities();
+    }
+  }, [step, contentType]);
+
   // STEP 3 EFFECT: Fetch Songs
   useEffect(() => {
     if (step === 3 && selectedMovie) {
@@ -1593,7 +1614,9 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
           <div>
             <label className="block text-xs text-zinc-500 mb-1 ml-1 font-bold uppercase tracking-wider">Deity / God</label>
-            <select
+            <input
+              type="text"
+              list="deity-list"
               value={deityCategory}
               onChange={(e) => {
                 setDeityCategory(e.target.value);
@@ -1602,17 +1625,26 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                   setSelectedTags([...selectedTags, 'Devotional']);
                 }
               }}
-              className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-brand-accent transition-colors font-medium appearance-none"
-            >
-              <option value="">Select deity...</option>
-              {Object.entries(DEITY_CATEGORIES).map(([religion, deities]) => (
-                <optgroup key={religion} label={religion}>
-                  {deities.map(deity => (
-                    <option key={deity} value={deity}>{deity}</option>
-                  ))}
-                </optgroup>
+              onFocus={() => {
+                if (deityCategory === '') {
+                  // Optional: fetch checks if not already done, but we'll do it in useEffect
+                }
+              }}
+              placeholder="Select or type deity name..."
+              className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-brand-accent transition-colors font-medium"
+            />
+            <datalist id="deity-list">
+              {/* Dynamic DB Deities */}
+              {knownDeities.map(deity => (
+                <option key={`dyn-${deity}`} value={deity} />
               ))}
-            </select>
+              {/* Static Categories Fallback */}
+              {Object.entries(DEITY_CATEGORIES).flatMap(([religion, deities]) =>
+                deities.map(d => (
+                  !knownDeities.includes(d) ? <option key={`stat-${d}`} value={d} /> : null
+                ))
+              )}
+            </datalist>
           </div>
 
           <div>
@@ -1700,12 +1732,14 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
             />
           </div>
 
-          <ArtistAutocomplete
-            value={musicDirector}
-            onChange={setMusicDirector}
-            placeholder="Search or enter music director..."
-            label="Music Director"
-          />
+          {contentType !== 'devotional' && (
+            <ArtistAutocomplete
+              value={musicDirector}
+              onChange={setMusicDirector}
+              placeholder="Search or enter music director..."
+              label="Music Director"
+            />
+          )}
 
           <div>
             <label className="block text-xs text-zinc-500 mb-2 ml-1 font-bold uppercase tracking-wider">Tags</label>

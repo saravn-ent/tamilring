@@ -1,6 +1,22 @@
 import { pgTable, uuid, text, integer, timestamp, index, unique, boolean } from 'drizzle-orm/pg-core';
 import { sql } from 'drizzle-orm';
 
+// Artist Images Table
+export const artistImages = pgTable('artist_images', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    artistName: text('artist_name').notNull().unique(),
+    imageUrl: text('image_url').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+});
+
+// Deity Images Table
+export const deityImages = pgTable('deity_images', {
+    id: uuid('id').defaultRandom().primaryKey(),
+    deityName: text('deity_name').notNull().unique(),
+    imageUrl: text('image_url').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+});
+
 // Profiles Table
 export const profiles = pgTable('profiles', {
     id: uuid('id').primaryKey().notNull(),
