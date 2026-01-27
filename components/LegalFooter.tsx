@@ -2,15 +2,19 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useLanguage } from '@/context/LanguageContext';
 
 export default function LegalFooter() {
     const { t } = useLanguage();
+    const pathname = usePathname();
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
         setMounted(true);
     }, []);
+
+    if (pathname?.startsWith('/admin')) return null;
 
     if (!mounted) {
         return (

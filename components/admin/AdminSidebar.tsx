@@ -2,16 +2,20 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Music, Users, Settings, LogOut, ChevronLeft, Menu, Image as ImageIcon, TrendingUp } from 'lucide-react';
-import { useState } from 'react';
+import { LayoutDashboard, Music, Users, Settings, LogOut, ChevronLeft, Menu, Image as ImageIcon, TrendingUp, Radio } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 
-export default function AdminSidebar() {
+interface AdminSidebarProps {
+    mobileOpen: boolean;
+    setMobileOpen: (open: boolean) => void;
+    collapsed: boolean;
+    setCollapsed: (collapsed: boolean) => void;
+}
+
+export default function AdminSidebar({ mobileOpen, setMobileOpen, collapsed, setCollapsed }: AdminSidebarProps) {
     const pathname = usePathname();
     const router = useRouter();
-    const [collapsed, setCollapsed] = useState(false);
-    const [mobileOpen, setMobileOpen] = useState(false);
 
     const links = [
         { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
@@ -27,76 +31,94 @@ export default function AdminSidebar() {
     };
 
     return (
-        <>
-            {/* Mobile Trigger */}
-            <button
-                className="md:hidden fixed top-20 left-4 z-50 p-2 bg-neutral-900 rounded-lg border border-white/10"
-                onClick={() => setMobileOpen(!mobileOpen)}
-            >
-                <Menu size={24} className="text-zinc-400" />
-            </button>
+        <aside
+            className={`fixed top-0 left-0 h-screen bg-white border-r border-slate-200 transition-all duration-300 z-50
+                ${collapsed ? 'w-20' : 'w-64'}
+                ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+                flex flex-col shadow-xl shadow-slate-200/50
+            `}
+        >
+            {/* Logo Area */}
+            <div className={`h-16 flex items-center ${collapsed ? 'justify-center' : 'justify-between px-6'} border-b border-slate-200`}>
+                {!collapsed ? (
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/20">
+                            <Radio size={18} strokeWidth={2.5} />
+                        </div>
+                        <span className="font-bold text-lg tracking-tight text-slate-900">
+                            Tamil<span className="text-indigo-600">Ring</span>
+                        </span>
+                    </div>
+                ) : (
+                    <div className="w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center text-white">
+                        <Radio size={22} strokeWidth={2.5} />
+                    </div>
+                )}
 
-            {/* Sidebar */}
-            <aside
-                className={`fixed top-0 left-0 h-screen bg-neutral-950 border-r border-white/5 transition-all duration-300 z-40
-          ${collapsed ? 'w-20' : 'w-64'}
-          ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-          pt-20 flex flex-col
-        `}
-            >
-                <div className="flex items-center justify-between px-6 mb-8">
-                    {!collapsed && <h2 className="text-xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">TamilRing</h2>}
+                {!collapsed && (
                     <button
                         onClick={() => setCollapsed(!collapsed)}
-                        className="hidden md:flex p-1 hover:bg-white/5 rounded-lg text-zinc-500 hover:text-zinc-300 transition-colors"
+                        className="hidden md:flex p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-900 transition-colors"
                     >
-                        <ChevronLeft size={20} className={`transition-transform ${collapsed ? 'rotate-180' : ''}`} />
+                        <ChevronLeft size={16} />
                     </button>
-                </div>
+                )}
+            </div>
 
-                <nav className="flex-1 px-3 space-y-1">
-                    {links.map((link) => {
-                        const Icon = link.icon;
-                        const isActive = pathname === link.href;
-
-                        return (
-                            <Link
-                                key={link.href}
-                                href={link.href}
-                                className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group
-                  ${isActive
-                                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                                        : 'text-zinc-500 hover:bg-white/5 hover:text-zinc-300'
-                                    }
-                `}
-                                onClick={() => setMobileOpen(false)}
-                            >
-                                <Icon size={22} className={isActive ? 'text-emerald-400' : 'text-zinc-500 group-hover:text-zinc-300'} />
-                                {!collapsed && <span className="font-medium text-sm">{link.name}</span>}
-                            </Link>
-                        );
-                    })}
-                </nav>
-
-                <div className="p-3 border-t border-white/5">
+            {collapsed && (
+                <div className="hidden md:flex justify-center py-4 border-b border-slate-200">
                     <button
-                        onClick={handleLogout}
-                        className={`flex items-center gap-3 px-3 py-3 rounded-xl w-full transition-all duration-200 text-red-500/70 hover:bg-red-500/10 hover:text-red-500
-            `}
+                        onClick={() => setCollapsed(!collapsed)}
+                        className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-900 transition-colors"
                     >
-                        <LogOut size={22} />
-                        {!collapsed && <span className="font-medium text-sm">Sign Out</span>}
+                        <ChevronLeft size={16} className="rotate-180" />
                     </button>
                 </div>
-            </aside>
-
-            {/* Overlay for Mobile */}
-            {mobileOpen && (
-                <div
-                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-30 md:hidden"
-                    onClick={() => setMobileOpen(false)}
-                />
             )}
-        </>
+
+
+            {/* Navigation */}
+            <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto scrollbar-hide">
+                {links.map((link) => {
+                    const Icon = link.icon;
+                    const isActive = pathname === link.href;
+
+                    return (
+                        <Link
+                            key={link.href}
+                            href={link.href}
+                            onClick={() => setMobileOpen(false)}
+                            className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 group
+                                ${isActive
+                                    ? 'bg-indigo-50 text-indigo-600 font-bold'
+                                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:pl-4'
+                                }
+                                ${collapsed ? 'justify-center px-0' : ''}
+                            `}
+                            title={collapsed ? link.name : undefined}
+                        >
+                            <Icon size={22} className={`shrink-0 transition-colors ${isActive ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-600'}`} />
+                            {!collapsed && (
+                                <span className="font-medium text-sm truncate">{link.name}</span>
+                            )}
+                        </Link>
+                    );
+                })}
+            </nav>
+
+            {/* Footer / Logout */}
+            <div className="p-3 border-t border-slate-200 bg-slate-50/50">
+                <button
+                    onClick={handleLogout}
+                    className={`flex items-center gap-3 px-3 py-3 rounded-xl w-full transition-all duration-200 text-red-500/80 hover:bg-red-50 hover:text-red-600
+                        ${collapsed ? 'justify-center' : ''}
+                    `}
+                    title="Sign Out"
+                >
+                    <LogOut size={22} className="shrink-0" />
+                    {!collapsed && <span className="font-medium text-sm">Sign Out</span>}
+                </button>
+            </div>
+        </aside>
     );
 }

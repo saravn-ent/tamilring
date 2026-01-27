@@ -134,7 +134,7 @@ export default function AdminDashboard() {
     }
 
     const StatCard = ({ title, value, subValue, icon: Icon, color, href }: StatCardProps) => (
-        <Link href={href || '#'} className="bg-neutral-900 border border-white/5 p-6 rounded-2xl hover:border-white/10 transition-all group relative overflow-hidden">
+        <Link href={href || '#'} className="bg-white border border-slate-200 p-6 rounded-2xl hover:border-indigo-200 transition-all group relative overflow-hidden shadow-sm hover:shadow-md">
             <div className={`absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity ${color}`}>
                 <Icon size={64} />
             </div>
@@ -142,9 +142,9 @@ export default function AdminDashboard() {
                 <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${color.replace('text-', 'bg-')}/10 ${color}`}>
                     <Icon size={24} />
                 </div>
-                <h3 className="text-zinc-500 text-sm font-medium mb-1">{title}</h3>
-                <p className="text-3xl font-bold text-white tracking-tight">{value}</p>
-                {subValue && <p className="text-xs text-zinc-400 mt-2 font-mono">{subValue}</p>}
+                <h3 className="text-slate-500 text-sm font-medium mb-1">{title}</h3>
+                <p className="text-3xl font-bold text-slate-900 tracking-tight">{value}</p>
+                {subValue && <p className="text-xs text-slate-400 mt-2 font-mono">{subValue}</p>}
             </div>
         </Link>
     );
@@ -154,12 +154,12 @@ export default function AdminDashboard() {
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold text-white mb-2">Dashboard Overview</h1>
-                    <p className="text-zinc-400">Welcome back, Admin. Here&apos;s what&apos;s happening today.</p>
+                    <h1 className="text-3xl font-bold text-slate-900 mb-2">Dashboard Overview</h1>
+                    <p className="text-slate-500">Welcome back, Admin. Here&apos;s what&apos;s happening today.</p>
                 </div>
                 <button
                     onClick={fetchStats}
-                    className="p-3 bg-neutral-900 border border-white/5 rounded-xl text-zinc-400 hover:text-emerald-500 hover:border-emerald-500/30 transition-all shadow-sm"
+                    className="p-3 bg-white border border-slate-200 rounded-xl text-slate-400 hover:text-indigo-600 hover:border-indigo-200 transition-all shadow-sm hover:shadow-md"
                     title="Refresh Data"
                 >
                     <RefreshCcw size={20} className={loading ? 'animate-spin' : ''} />
@@ -172,7 +172,7 @@ export default function AdminDashboard() {
                     title="Total Ringtones"
                     value={stats.totalRingtones}
                     icon={Music}
-                    color="text-blue-500"
+                    color="text-blue-600"
                     href="/admin/ringtones"
                 />
                 <StatCard
@@ -180,101 +180,101 @@ export default function AdminDashboard() {
                     value={stats.totalDownloads || '-'}
                     subValue={`Today: ${stats.todayDownloads} • Week: ${stats.weekDownloads}`}
                     icon={Download}
-                    color="text-emerald-500"
+                    color="text-emerald-600"
                 />
                 <StatCard
                     title="Requests Pending"
                     value={stats.pendingRequests}
                     icon={MessageSquare}
-                    color="text-pink-500"
+                    color="text-pink-600"
                     href="/requests"
                 />
                 <StatCard
                     title="Total Users"
                     value={stats.totalUsers}
                     icon={Users}
-                    color="text-purple-500"
+                    color="text-purple-600"
                     href="/admin/users"
                 />
                 <StatCard
                     title="Pending Approval"
                     value={stats.pendingRingtones}
                     icon={CircleAlert}
-                    color="text-amber-500"
+                    color="text-amber-600"
                     href="/admin/ringtones?tab=pending"
                 />
                 <StatCard
                     title="Pending Payments"
                     value={stats.pendingWithdrawals}
                     icon={Clock}
-                    color="text-red-500"
+                    color="text-red-600"
                     href="/admin/withdrawals"
                 />
                 <StatCard
                     title="Total Paid Out"
                     value={`₹${stats.totalPaid}`}
                     icon={TrendingUp}
-                    color="text-emerald-500"
+                    color="text-emerald-600"
                     href="/admin/withdrawals?tab=completed"
                 />
             </div>
 
             {/* Recent Activity */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 bg-neutral-900 border border-white/5 rounded-2xl p-6">
+                <div className="lg:col-span-2 bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
                     <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                            <Clock size={18} className="text-zinc-400" />
+                        <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <Clock size={18} className="text-slate-400" />
                             Recent Uploads
                         </h3>
-                        <Link href="/admin/ringtones" className="text-xs text-emerald-500 hover:text-emerald-400 font-medium">View All</Link>
+                        <Link href="/admin/ringtones" className="text-xs text-indigo-600 hover:text-indigo-700 font-medium">View All</Link>
                     </div>
                     <div className="space-y-4">
                         {recentUploads.map((item) => (
-                            <div key={item.id} className="flex items-center gap-4 p-3 rounded-xl hover:bg-white/5 transition-colors border border-transparent hover:border-white/5">
+                            <div key={item.id} className="flex items-center gap-4 p-3 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
                                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 
-                                    ${item.status === 'approved' ? 'bg-emerald-500/10 text-emerald-500' :
-                                        item.status === 'rejected' ? 'bg-red-500/10 text-red-500' : 'bg-amber-500/10 text-amber-500'}`}>
+                                    ${item.status === 'approved' ? 'bg-emerald-50 text-emerald-600' :
+                                        item.status === 'rejected' ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'}`}>
                                     {item.status === 'approved' ? <TrendingUp size={18} /> :
                                         item.status === 'rejected' ? <CircleAlert size={18} /> : <Clock size={18} />}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                    <h4 className="text-sm font-medium text-zinc-200 truncate">{item.title}</h4>
-                                    <p className="text-xs text-zinc-500">
+                                    <h4 className="text-sm font-medium text-slate-900 truncate">{item.title}</h4>
+                                    <p className="text-xs text-slate-500">
                                         by {item.user_id?.substring(0, 8)}... • {new Date(item.created_at).toLocaleDateString()}
                                     </p>
                                 </div>
                                 <div className={`px-2.5 py-1 rounded text-[10px] font-medium uppercase tracking-wider
-                                    ${item.status === 'approved' ? 'bg-emerald-500/10 text-emerald-500' :
-                                        item.status === 'rejected' ? 'bg-red-500/10 text-red-500' : 'bg-amber-500/10 text-amber-500'}`}>
+                                    ${item.status === 'approved' ? 'bg-emerald-50 text-emerald-600' :
+                                        item.status === 'rejected' ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'}`}>
                                     {item.status}
                                 </div>
                             </div>
                         ))}
                         {recentUploads.length === 0 && (
-                            <p className="text-zinc-500 text-center py-8">No recent activity.</p>
+                            <p className="text-slate-500 text-center py-8">No recent activity.</p>
                         )}
                     </div>
                 </div>
 
-                <div className="bg-neutral-900 border border-white/5 rounded-2xl p-6">
-                    <h3 className="text-lg font-bold text-white mb-6">Quick Actions</h3>
+                <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                    <h3 className="text-lg font-bold text-slate-900 mb-6">Quick Actions</h3>
                     <div className="space-y-3">
-                        <Link href="/requests" className="flex items-center gap-3 p-3 rounded-xl bg-pink-500/10 text-pink-500 hover:bg-pink-500/20 transition-colors border border-pink-500/20">
+                        <Link href="/requests" className="flex items-center gap-3 p-3 rounded-xl bg-pink-50 text-pink-600 hover:bg-pink-100 transition-colors border border-pink-100">
                             <MessageSquare size={20} />
                             <div className="text-left">
                                 <span className="block text-sm font-bold">Manage Requests</span>
                                 <span className="block text-[10px] opacity-70">View & Fulfill User Requests</span>
                             </div>
                         </Link>
-                        <Link href="/admin/ringtones?tab=pending" className="flex items-center gap-3 p-3 rounded-xl bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 transition-colors border border-amber-500/20">
+                        <Link href="/admin/ringtones?tab=pending" className="flex items-center gap-3 p-3 rounded-xl bg-amber-50 text-amber-600 hover:bg-amber-100 transition-colors border border-amber-100">
                             <CircleAlert size={20} />
                             <div className="text-left">
                                 <span className="block text-sm font-bold">Review Pending</span>
                                 <span className="block text-[10px] opacity-70">Approve or reject uploads</span>
                             </div>
                         </Link>
-                        <Link href="/admin/withdrawals" className="flex items-center gap-3 p-3 rounded-xl bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500/20 transition-colors border border-emerald-500/20">
+                        <Link href="/admin/withdrawals" className="flex items-center gap-3 p-3 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors border border-emerald-100">
                             <TrendingUp size={20} />
                             <div className="text-left">
                                 <span className="block text-sm font-bold">Manage Payouts</span>

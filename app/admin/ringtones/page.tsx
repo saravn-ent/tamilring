@@ -80,11 +80,13 @@ export default function RingtoneManagement() {
         const { count: pending } = await supabase.from('ringtones').select('*', { count: 'exact', head: true }).eq('status', 'pending');
         const { count: approved } = await supabase.from('ringtones').select('*', { count: 'exact', head: true }).eq('status', 'approved');
         const { count: rejected } = await supabase.from('ringtones').select('*', { count: 'exact', head: true }).eq('status', 'rejected');
+        const { count: total } = await supabase.from('ringtones').select('*', { count: 'exact', head: true });
+
         setStats({
             pending: pending || 0,
             approved: approved || 0,
             rejected: rejected || 0,
-            total: (pending || 0) + (approved || 0) + (rejected || 0)
+            total: total || 0
         });
     };
 
@@ -162,8 +164,8 @@ export default function RingtoneManagement() {
         const res = await approveRingtone(id, userId);
         if (res.success) {
             showToast('Ringtone approved successfully!');
-            fetchRingtones(); // Refresh list
-            fetchStats();
+            await fetchRingtones(); // Refresh list
+            await fetchStats();
         } else {
             showToast(res.error || 'Failed to approve', 'error');
         }
@@ -176,8 +178,8 @@ export default function RingtoneManagement() {
         const res = await rejectRingtone(id, reason);
         if (res.success) {
             showToast('Ringtone rejected.');
-            fetchRingtones();
-            fetchStats();
+            await fetchRingtones();
+            await fetchStats();
         } else {
             showToast(res.error || 'Failed to reject', 'error');
         }
@@ -188,8 +190,8 @@ export default function RingtoneManagement() {
         const res = await deleteRingtone(id);
         if (res.success) {
             showToast('Ringtone deleted.');
-            fetchRingtones();
-            fetchStats();
+            await fetchRingtones();
+            await fetchStats();
         } else {
             showToast(res.error || 'Failed to delete', 'error');
         }
@@ -219,8 +221,8 @@ export default function RingtoneManagement() {
         if (res.success) {
             showToast(`Approved ${selectedIds.size} ringtones.`);
             setSelectedIds(new Set());
-            fetchRingtones();
-            fetchStats();
+            await fetchRingtones();
+            await fetchStats();
         } else {
             showToast('Bulk approval failed', 'error');
         }
@@ -234,8 +236,8 @@ export default function RingtoneManagement() {
         if (res.success) {
             showToast(`Deleted ${selectedIds.size} ringtones.`);
             setSelectedIds(new Set());
-            fetchRingtones();
-            fetchStats();
+            await fetchRingtones();
+            await fetchStats();
         } else {
             showToast('Bulk delete failed', 'error');
         }
@@ -271,7 +273,7 @@ export default function RingtoneManagement() {
         if (res.success) {
             showToast('Ringtone updated.');
             setEditingRingtone(null);
-            fetchRingtones();
+            await fetchRingtones();
         } else {
             showToast(res.error || 'Update failed', 'error');
         }
@@ -284,57 +286,57 @@ export default function RingtoneManagement() {
 
             {/* Header & Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-neutral-900/50 backdrop-blur-xl border border-white/5 p-6 rounded-2xl flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-500">
+                <div className="bg-white border border-slate-200 p-6 rounded-2xl flex items-center gap-4 shadow-sm">
+                    <div className="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600">
                         <HardDrive size={24} />
                     </div>
                     <div>
-                        <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider">Total Uploads</p>
-                        <p className="text-2xl font-bold text-white">{stats.total}</p>
+                        <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Total Uploads</p>
+                        <p className="text-2xl font-bold text-slate-900">{stats.total}</p>
                     </div>
                 </div>
-                <div className="bg-neutral-900/50 backdrop-blur-xl border border-white/5 p-6 rounded-2xl flex items-center gap-4 relative overflow-hidden">
+                <div className="bg-white border border-slate-200 p-6 rounded-2xl flex items-center gap-4 relative overflow-hidden shadow-sm">
                     <div className="absolute top-0 right-0 p-3 opacity-10">
                         <BarChart className="w-24 h-24 text-amber-500" />
                     </div>
-                    <div className="w-12 h-12 rounded-xl bg-amber-500/10 flex items-center justify-center text-amber-500 z-10">
+                    <div className="w-12 h-12 rounded-xl bg-amber-50 flex items-center justify-center text-amber-500 z-10">
                         <Loader2 size={24} />
                     </div>
                     <div className="z-10">
-                        <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider">Pending Review</p>
-                        <p className="text-2xl font-bold text-white">{stats.pending}</p>
+                        <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Pending Review</p>
+                        <p className="text-2xl font-bold text-slate-900">{stats.pending}</p>
                     </div>
                 </div>
-                <div className="bg-neutral-900/50 backdrop-blur-xl border border-white/5 p-6 rounded-2xl flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                <div className="bg-white border border-slate-200 p-6 rounded-2xl flex items-center gap-4 shadow-sm">
+                    <div className="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-600">
                         <Check size={24} />
                     </div>
                     <div>
-                        <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider">Approved</p>
-                        <p className="text-2xl font-bold text-white">{stats.approved}</p>
+                        <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Approved</p>
+                        <p className="text-2xl font-bold text-slate-900">{stats.approved}</p>
                     </div>
                 </div>
-                <div className="bg-neutral-900/50 backdrop-blur-xl border border-white/5 p-6 rounded-2xl flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-red-500/10 flex items-center justify-center text-red-500">
+                <div className="bg-white border border-slate-200 p-6 rounded-2xl flex items-center gap-4 shadow-sm">
+                    <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center text-red-500">
                         <X size={24} />
                     </div>
                     <div>
-                        <p className="text-xs text-zinc-500 font-bold uppercase tracking-wider">Rejected</p>
-                        <p className="text-2xl font-bold text-white">{stats.rejected}</p>
+                        <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Rejected</p>
+                        <p className="text-2xl font-bold text-slate-900">{stats.rejected}</p>
                     </div>
                 </div>
             </div>
 
             {/* Controls */}
-            <div className="flex flex-col md:flex-row justify-between items-end md:items-center gap-4 bg-neutral-900/50 p-4 rounded-2xl border border-white/5">
+            <div className="flex flex-col md:flex-row justify-between items-end md:items-center gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                 {/* Tabs */}
-                <div className="flex bg-black/20 p-1 rounded-xl">
+                <div className="flex bg-slate-100 p-1 rounded-xl">
                     {(['all', 'pending', 'approved', 'rejected'] as const).map((t) => (
                         <button
                             key={t}
                             onClick={() => { setFilter(t); setPage(1); setSelectedIds(new Set()) }}
                             className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all
-                                ${filter === t ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20' : 'text-zinc-500 hover:text-white hover:bg-white/5'}
+                                ${filter === t ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-200/50'}
                             `}
                         >
                             {t}
@@ -344,194 +346,285 @@ export default function RingtoneManagement() {
 
                 {/* Search */}
                 <div className="relative w-full md:w-64 group">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 group-focus-within:text-emerald-500 transition-colors" size={16} />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={16} />
                     <input
                         type="text"
                         placeholder="Search ringtones..."
                         value={search}
                         onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-                        className="w-full bg-black/20 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-zinc-200 focus:outline-none focus:border-emerald-500/50 focus:bg-black/40 transition-all"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm text-slate-900 focus:outline-none focus:border-indigo-500/50 focus:bg-white transition-all"
                     />
                 </div>
             </div>
 
             {/* Bulk Actions Header (Visible when Selection > 0) */}
             {selectedIds.size > 0 && (
-                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-neutral-900 border border-emerald-500/30 shadow-2xl shadow-emerald-900/20 rounded-2xl p-4 flex items-center gap-6 animate-in slide-in-from-bottom-10 fade-in duration-300">
+                <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-white border border-indigo-100 shadow-2xl shadow-indigo-900/10 rounded-2xl p-4 flex items-center gap-6 animate-in slide-in-from-bottom-10 fade-in duration-300">
                     <div className="flex items-center gap-3 pl-2">
-                        <div className="bg-emerald-500 text-black font-bold w-8 h-8 rounded-full flex items-center justify-center text-xs">
+                        <div className="bg-indigo-600 text-white font-bold w-8 h-8 rounded-full flex items-center justify-center text-xs">
                             {selectedIds.size}
                         </div>
-                        <span className="text-sm font-medium text-white">Selected</span>
+                        <span className="text-sm font-medium text-slate-900">Selected</span>
                     </div>
-                    <div className="h-8 w-px bg-white/10" />
+                    <div className="h-8 w-px bg-slate-200" />
                     <div className="flex items-center gap-3">
                         {filter === 'pending' && (
-                            <button onClick={handleBulkApprove} className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-black rounded-lg text-sm font-bold transition-colors">
+                            <button onClick={handleBulkApprove} className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-sm font-bold transition-colors">
                                 <Check size={16} /> Approve All
                             </button>
                         )}
-                        <button onClick={handleBulkDelete} className="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500 hover:text-white text-red-500 rounded-lg text-sm font-bold transition-colors border border-red-500/20">
+                        <button onClick={handleBulkDelete} className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-sm font-bold transition-colors border border-red-200">
                             <Trash2 size={16} /> Delete
                         </button>
                     </div>
-                    <button onClick={() => setSelectedIds(new Set())} className="ml-2 text-zinc-500 hover:text-white">
+                    <button onClick={() => setSelectedIds(new Set())} className="ml-2 text-slate-400 hover:text-slate-600">
                         <X size={20} />
                     </button>
                 </div>
             )}
 
-            {/* Main Table */}
-            <div className="bg-neutral-900 border border-white/5 rounded-2xl overflow-hidden shadow-xl">
-                {loading ? (
-                    <div className="flex flex-col items-center justify-center h-64 gap-4">
-                        <Loader2 className="animate-spin text-emerald-500" size={32} />
-                        <p className="text-zinc-500 text-sm">Loading ringtones...</p>
-                    </div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead className="bg-white/5 text-zinc-400 text-xs uppercase font-bold tracking-wider sticky top-0 backdrop-blur-md z-30">
-                                <tr className="border-b border-white/5">
-                                    <th className="p-4 w-12 text-center">
-                                        <button onClick={toggleSelectAll} className="text-zinc-500 hover:text-white">
-                                            {selectedIds.size === ringtones.length && ringtones.length > 0 ? <CheckSquare size={18} /> : <Square size={18} />}
+            {/* Content Area */}
+            {loading ? (
+                <div className="flex flex-col items-center justify-center h-64 gap-4 bg-white border border-slate-200 rounded-2xl">
+                    <Loader2 className="animate-spin text-indigo-600" size={32} />
+                    <p className="text-slate-500 text-sm">Loading ringtones...</p>
+                </div>
+            ) : (
+                <>
+                    {/* Mobile: Card View */}
+                    <div className="grid grid-cols-1 gap-4 md:hidden">
+                        {ringtones.length === 0 ? (
+                            <div className="text-center py-12 text-slate-500 bg-white rounded-2xl border border-slate-200">
+                                No ringtones found.
+                            </div>
+                        ) : ringtones.map((r) => (
+                            <div key={r.id} className={`bg-white border rounded-xl overflow-hidden shadow-sm relative
+                                ${selectedIds.has(r.id) ? 'border-indigo-500/50 bg-indigo-50' : 'border-slate-200'}`}>
+
+                                {/* Selection Overlay Trigger */}
+                                <button
+                                    onClick={() => toggleSelect(r.id)}
+                                    className="absolute top-3 left-3 z-20 text-white drop-shadow-md"
+                                >
+                                    {selectedIds.has(r.id) ?
+                                        <div className="bg-indigo-600 text-white rounded shadow-lg"><CheckSquare size={20} /></div> :
+                                        <div className="bg-black/40 rounded shadow-lg"><Square size={20} /></div>
+                                    }
+                                </button>
+
+                                <div className="flex p-3 gap-3">
+                                    {/* Image & Play */}
+                                    <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-slate-100 shrink-0 border border-slate-100">
+                                        {r.poster_url ? (
+                                            <Image src={getImageUrl(r.poster_url)} alt={r.title} fill className="object-cover" />
+                                        ) : (
+                                            <div className="w-full h-full flex items-center justify-center text-slate-400"><Music size={24} /></div>
+                                        )}
+                                        <button
+                                            onClick={() => playAudio(r.audio_url, r.id)}
+                                            className="absolute inset-0 flex items-center justify-center bg-black/10"
+                                        >
+                                            <div className="w-8 h-8 rounded-full bg-white/90 flex items-center justify-center backdrop-blur-sm border border-white/50 shadow-sm text-indigo-600">
+                                                {playingId === r.id ? <Pause size={14} className="fill-current" /> : <Play size={14} className="fill-current ml-0.5" />}
+                                            </div>
                                         </button>
-                                    </th>
-                                    <th className="p-4">Ringtone</th>
-                                    <th className="p-4">Details</th>
-                                    <th className="p-4">Status</th>
-                                    <th className="p-4">Tags</th>
-                                    <th className="p-4 text-right">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-white/5">
-                                {ringtones.length === 0 ? (
-                                    <tr>
-                                        <td colSpan={6} className="p-12 text-center text-zinc-500">
-                                            No ringtones found matching your criteria.
-                                        </td>
-                                    </tr>
-                                ) : ringtones.map((r) => (
-                                    <tr key={r.id} className={`group transition-colors ${selectedIds.has(r.id) ? 'bg-emerald-500/5' : 'hover:bg-white/[0.02]'}`}>
-                                        <td className="p-4 text-center">
-                                            <button onClick={() => toggleSelect(r.id)} className={`${selectedIds.has(r.id) ? 'text-emerald-500' : 'text-zinc-600 group-hover:text-zinc-400'}`}>
-                                                {selectedIds.has(r.id) ? <CheckSquare size={18} /> : <Square size={18} />}
-                                            </button>
-                                        </td>
-                                        <td className="p-4">
-                                            <div className="flex items-center gap-4">
-                                                <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-neutral-800 shrink-0 border border-white/5 group-hover:border-white/20 transition-colors">
-                                                    {r.poster_url ? (
-                                                        <Image src={getImageUrl(r.poster_url)} alt={r.title} fill className="object-cover" />
-                                                    ) : (
-                                                        <div className="w-full h-full flex items-center justify-center text-zinc-600">
-                                                            <Music size={20} />
-                                                        </div>
-                                                    )}
-                                                    <button
-                                                        onClick={() => playAudio(r.audio_url, r.id)}
-                                                        className={`absolute inset-0 flex items-center justify-center bg-black/40 transition-opacity ${playingId === r.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
-                                                    >
-                                                        {playingId === r.id ? <Pause className="text-white fill-current" size={20} /> : <Play className="text-white fill-current ml-0.5" size={20} />}
-                                                    </button>
-                                                </div>
-                                                <div>
-                                                    <p className="font-bold text-zinc-200 line-clamp-1 max-w-[200px] text-sm group-hover:text-emerald-400 transition-colors">{r.title}</p>
-                                                    <div className="flex items-center gap-2 mt-1">
-                                                        <span className="text-[10px] bg-white/5 text-zinc-400 px-1.5 py-0.5 rounded font-mono">
-                                                            {r.id.split('-')[0]}
-                                                        </span>
-                                                        {r.audio_url_iphone && (
-                                                            <span className="w-1.5 h-1.5 rounded-full bg-blue-500" title="M4R Available" />
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="p-4">
-                                            <div className="space-y-1">
-                                                <div className="flex items-center gap-1.5 text-xs text-zinc-300">
-                                                    <Film size={12} className="text-zinc-500" />
-                                                    <span className="truncate max-w-[150px]">{r.movie_name || 'N/A'}</span>
-                                                </div>
-                                                <div className="flex items-center gap-1.5 text-xs text-zinc-300">
-                                                    <User size={12} className="text-zinc-500" />
-                                                    <span className="truncate max-w-[150px]">{r.singers || 'Unknown'}</span>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="p-4">
-                                            <div className="flex flex-col gap-1 items-start">
-                                                <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border
-                                                    ${r.status === 'approved' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
-                                                        r.status === 'rejected' ? 'bg-red-500/10 text-red-500 border-red-500/20' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'}`}>
+                                    </div>
+
+                                    {/* Info */}
+                                    <div className="flex-1 min-w-0 flex flex-col justify-between py-0.5">
+                                        <div>
+                                            <div className="flex justify-between items-start gap-2">
+                                                <h3 className="font-bold text-slate-900 text-sm line-clamp-2">{r.title}</h3>
+                                                <span className={`shrink-0 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border
+                                                    ${r.status === 'approved' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
+                                                        r.status === 'rejected' ? 'bg-red-50 text-red-600 border-red-200' : 'bg-amber-50 text-amber-600 border-amber-200'}`}>
                                                     {r.status}
                                                 </span>
-                                                {r.rejection_reason && (
-                                                    <span className="text-[10px] text-red-400 max-w-[120px] leading-tight">{r.rejection_reason}</span>
-                                                )}
                                             </div>
-                                        </td>
-                                        <td className="p-4">
-                                            <div className="flex flex-wrap gap-1 max-w-[150px]">
-                                                {r.tags && r.tags.slice(0, 3).map(tag => (
-                                                    <span key={tag} className="text-[10px] px-1.5 py-0.5 bg-white/5 rounded text-zinc-400">{tag}</span>
-                                                ))}
-                                                {r.tags && r.tags.length > 3 && <span className="text-[10px] text-zinc-600">+{r.tags.length - 3}</span>}
+                                            <p className="text-xs text-slate-500 truncate mt-1">{r.movie_name || 'N/A'}</p>
+                                        </div>
+
+                                        <div className="flex items-center justify-between mt-2">
+                                            <div className="flex gap-1 text-slate-500">
+                                                {r.tags?.[0] && <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 border border-slate-200">{r.tags[0]}</span>}
                                             </div>
-                                        </td>
-                                        <td className="p-4 text-right">
-                                            <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button onClick={() => openEdit(r)} className="p-2 hover:bg-white/10 rounded-lg text-zinc-400 hover:text-white" title="Edit">
-                                                    <Edit size={16} />
+
+                                            <div className="flex gap-2">
+                                                <button onClick={() => openEdit(r)} className="p-1.5 bg-slate-100 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-200">
+                                                    <Edit size={14} />
                                                 </button>
-                                                <Link href={`/ringtone/${r.slug}`} target="_blank" className="p-2 hover:bg-white/10 rounded-lg text-zinc-400 hover:text-white" title="View">
-                                                    <ExternalLink size={16} />
+                                                <Link href={`/ringtone/${r.slug}`} target="_blank" className="p-1.5 bg-slate-100 rounded-lg text-slate-500 hover:text-indigo-600 hover:bg-slate-200">
+                                                    <ExternalLink size={14} />
                                                 </Link>
                                                 {r.status === 'pending' && (
                                                     <>
-                                                        <button onClick={() => handleApprove(r.id, r.user_id)} className="p-2 hover:bg-emerald-500/20 rounded-lg text-emerald-500" title="Approve">
-                                                            <Check size={16} />
+                                                        <button onClick={() => handleApprove(r.id, r.user_id)} className="p-1.5 bg-emerald-50 text-emerald-600 rounded-lg border border-emerald-200">
+                                                            <Check size={14} />
                                                         </button>
-                                                        <button onClick={() => handleReject(r.id)} className="p-2 hover:bg-amber-500/20 rounded-lg text-amber-500" title="Reject">
-                                                            <X size={16} />
+                                                        <button onClick={() => handleReject(r.id)} className="p-1.5 bg-amber-50 text-amber-600 rounded-lg border border-amber-200">
+                                                            <X size={14} />
                                                         </button>
                                                     </>
                                                 )}
-                                                <button onClick={() => handleDelete(r.id)} className="p-2 hover:bg-red-500/20 rounded-lg text-red-500" title="Delete">
-                                                    <Trash2 size={16} />
+                                                <button onClick={() => handleDelete(r.id)} className="p-1.5 bg-red-50 text-red-600 rounded-lg border border-red-200">
+                                                    <Trash2 size={14} />
                                                 </button>
                                             </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                )}
 
-                {/* Pagination */}
-                <div className="border-t border-white/5 p-4 flex items-center justify-between bg-white/[0.02]">
-                    <div className="text-xs text-zinc-500">
-                        Showing <span className="text-white font-bold">{Math.min(totalCount, (page - 1) * ITEMS_PER_PAGE + 1)}</span> to <span className="text-white font-bold">{Math.min(totalCount, page * ITEMS_PER_PAGE)}</span> of <span className="text-white font-bold">{totalCount}</span>
+                    {/* Desktop: Table View */}
+                    <div className="hidden md:block bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-sm">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left">
+                                <thead className="bg-slate-50 text-slate-500 text-xs uppercase font-bold tracking-wider sticky top-0 border-b border-slate-200 z-30">
+                                    <tr>
+                                        <th className="p-4 w-12 text-center">
+                                            <button onClick={toggleSelectAll} className="text-slate-400 hover:text-indigo-600">
+                                                {selectedIds.size === ringtones.length && ringtones.length > 0 ? <CheckSquare size={18} /> : <Square size={18} />}
+                                            </button>
+                                        </th>
+                                        <th className="p-4">Ringtone</th>
+                                        <th className="p-4">Details</th>
+                                        <th className="p-4">Status</th>
+                                        <th className="p-4">Tags</th>
+                                        <th className="p-4 text-right">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {ringtones.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={6} className="p-12 text-center text-slate-500">
+                                                No ringtones found matching your criteria.
+                                            </td>
+                                        </tr>
+                                    ) : ringtones.map((r) => (
+                                        <tr key={r.id} className={`group transition-colors ${selectedIds.has(r.id) ? 'bg-indigo-50/50' : 'hover:bg-slate-50'}`}>
+                                            <td className="p-4 text-center">
+                                                <button onClick={() => toggleSelect(r.id)} className={`${selectedIds.has(r.id) ? 'text-indigo-600' : 'text-slate-300 group-hover:text-slate-400'}`}>
+                                                    {selectedIds.has(r.id) ? <CheckSquare size={18} /> : <Square size={18} />}
+                                                </button>
+                                            </td>
+                                            <td className="p-4">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-slate-100 shrink-0 border border-slate-200 group-hover:border-indigo-200 transition-colors">
+                                                        {r.poster_url ? (
+                                                            <Image src={getImageUrl(r.poster_url)} alt={r.title} fill className="object-cover" />
+                                                        ) : (
+                                                            <div className="w-full h-full flex items-center justify-center text-slate-400">
+                                                                <Music size={20} />
+                                                            </div>
+                                                        )}
+                                                        <button
+                                                            onClick={() => playAudio(r.audio_url, r.id)}
+                                                            className={`absolute inset-0 flex items-center justify-center bg-black/10 transition-opacity ${playingId === r.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                                                        >
+                                                            <div className="bg-white/90 text-indigo-600 rounded-full p-1.5 shadow-sm">
+                                                                {playingId === r.id ? <Pause className="fill-current" size={16} /> : <Play className="fill-current ml-0.5" size={16} />}
+                                                            </div>
+                                                        </button>
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-slate-900 line-clamp-1 max-w-[200px] text-sm group-hover:text-indigo-600 transition-colors">{r.title}</p>
+                                                        <div className="flex items-center gap-2 mt-1">
+                                                            <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-mono border border-slate-200">
+                                                                {r.id.split('-')[0]}
+                                                            </span>
+                                                            {r.audio_url_iphone && (
+                                                                <span className="w-1.5 h-1.5 rounded-full bg-blue-500" title="M4R Available" />
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="p-4">
+                                                <div className="space-y-1">
+                                                    <div className="flex items-center gap-1.5 text-xs text-slate-600">
+                                                        <Film size={12} className="text-slate-400" />
+                                                        <span className="truncate max-w-[150px]">{r.movie_name || 'N/A'}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5 text-xs text-slate-600">
+                                                        <User size={12} className="text-slate-400" />
+                                                        <span className="truncate max-w-[150px]">{r.singers || 'Unknown'}</span>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="p-4">
+                                                <div className="flex flex-col gap-1 items-start">
+                                                    <span className={`px-2.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border
+                                                        ${r.status === 'approved' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' :
+                                                            r.status === 'rejected' ? 'bg-red-50 text-red-600 border-red-200' : 'bg-amber-50 text-amber-600 border-amber-200'}`}>
+                                                        {r.status}
+                                                    </span>
+                                                    {r.rejection_reason && (
+                                                        <span className="text-[10px] text-red-500 max-w-[120px] leading-tight">{r.rejection_reason}</span>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td className="p-4">
+                                                <div className="flex flex-wrap gap-1 max-w-[150px]">
+                                                    {r.tags && r.tags.slice(0, 3).map(tag => (
+                                                        <span key={tag} className="text-[10px] px-1.5 py-0.5 bg-slate-100 rounded text-slate-500 border border-slate-200">{tag}</span>
+                                                    ))}
+                                                    {r.tags && r.tags.length > 3 && <span className="text-[10px] text-slate-400">+{r.tags.length - 3}</span>}
+                                                </div>
+                                            </td>
+                                            <td className="p-4 text-right">
+                                                <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <button onClick={() => openEdit(r)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-indigo-600" title="Edit">
+                                                        <Edit size={16} />
+                                                    </button>
+                                                    <Link href={`/ringtone/${r.slug}`} target="_blank" className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-indigo-600" title="View">
+                                                        <ExternalLink size={16} />
+                                                    </Link>
+                                                    {r.status === 'pending' && (
+                                                        <>
+                                                            <button onClick={() => handleApprove(r.id, r.user_id)} className="p-2 hover:bg-emerald-50 rounded-lg text-emerald-600" title="Approve">
+                                                                <Check size={16} />
+                                                            </button>
+                                                            <button onClick={() => handleReject(r.id)} className="p-2 hover:bg-amber-50 rounded-lg text-amber-600" title="Reject">
+                                                                <X size={16} />
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                    <button onClick={() => handleDelete(r.id)} className="p-2 hover:bg-red-50 rounded-lg text-red-600" title="Delete">
+                                                        <Trash2 size={16} />
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
-                    <div className="flex gap-2">
-                        <button
-                            disabled={page === 1}
-                            onClick={() => setPage(p => p - 1)}
-                            className="p-2 rounded-lg bg-white/5 border border-white/5 text-zinc-400 hover:text-white hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                            <ChevronLeft size={16} />
-                        </button>
-                        <button
-                            disabled={page * ITEMS_PER_PAGE >= totalCount}
-                            onClick={() => setPage(p => p + 1)}
-                            className="p-2 rounded-lg bg-white/5 border border-white/5 text-zinc-400 hover:text-white hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                        >
-                            <ChevronRight size={16} />
-                        </button>
-                    </div>
+                </>
+            )}
+
+            {/* Pagination */}
+            <div className="p-4 flex items-center justify-between bg-white border border-slate-200 rounded-2xl md:mt-0 shadow-sm">
+                <div className="text-xs text-slate-500">
+                    Showing <span className="text-slate-900 font-bold">{Math.min(totalCount, (page - 1) * ITEMS_PER_PAGE + 1)}</span> to <span className="text-slate-900 font-bold">{Math.min(totalCount, page * ITEMS_PER_PAGE)}</span> of <span className="text-slate-900 font-bold">{totalCount}</span>
+                </div>
+                <div className="flex gap-2">
+                    <button
+                        disabled={page === 1}
+                        onClick={() => setPage(p => p - 1)}
+                        className="p-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                        <ChevronLeft size={16} />
+                    </button>
+                    <button
+                        disabled={page * ITEMS_PER_PAGE >= totalCount}
+                        onClick={() => setPage(p => p + 1)}
+                        className="p-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-500 hover:text-slate-900 hover:bg-slate-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    >
+                        <ChevronRight size={16} />
+                    </button>
                 </div>
             </div>
 

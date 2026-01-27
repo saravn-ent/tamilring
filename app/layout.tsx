@@ -82,6 +82,7 @@ import AuthCodeRedirect from "@/components/AuthCodeRedirect";
 import ReloadOnUpdate from "@/components/ReloadOnUpdate";
 import { Suspense } from "react";
 import ThemeFix from "@/components/ThemeFix";
+import MainLayout from "@/components/MainLayout";
 
 
 
@@ -151,9 +152,9 @@ export default async function RootLayout({
             <FavoritesProvider>
               <LanguageProvider>
                 <SiteHeader />
-                <main className="min-h-screen pt-14 pb-32 md:pb-8 relative z-0">
+                <MainLayout>
                   {children}
-                </main>
+                </MainLayout>
                 <div className="pb-24">
                   <LegalFooter />
                 </div>

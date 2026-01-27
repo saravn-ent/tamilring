@@ -463,9 +463,8 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       return;
     }
 
-    // Validation: Minimum Tags (2 normally, 3 if Vocal/Instrumental selected)
-    const isVocalOrInstrumental = selectedTags.includes('Vocal') || selectedTags.includes('Instrumental');
-    const minTagsRequired = isVocalOrInstrumental ? 3 : 2;
+    // Validation: Minimum 2 tags (USER REQUEST)
+    const minTagsRequired = 2;
 
     if (selectedTags.length < minTagsRequired) {
       alert(`Please select at least ${minTagsRequired} tags to help users find your ringtone.`);
@@ -500,9 +499,13 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
     const activeSeoTags = selectedTags.filter(tag => SEO_TAG_WHITELIST.includes(tag));
 
     // Use the user-entered Ringtone Name as the main title for the Ringtone Card
-    // Logic: Segment Name - Song Name
+    // Logic: Segment Name - Song Name (Correct naming convention)
     let finalTitle = segmentName;
-    if (songName && !segmentName.toLowerCase().includes(songName.toLowerCase())) {
+    const cleanSegment = segmentName.toLowerCase().trim();
+    const cleanSong = songName ? songName.toLowerCase().trim() : '';
+
+    // Only append song name if it's NOT already in the segment name
+    if (cleanSong && !cleanSegment.includes(cleanSong)) {
       finalTitle = `${segmentName} - ${songName}`;
     }
 

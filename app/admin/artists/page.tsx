@@ -116,34 +116,34 @@ export default function ArtistManagement() {
             </div>
 
             {/* Upload Section */}
-            <div className="bg-neutral-900 border border-white/5 rounded-2xl p-6">
-                <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                    <Plus size={20} className="text-emerald-500" /> Add New Artist Image
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <Plus size={20} className="text-indigo-600" /> Add New Artist Image
                 </h3>
                 <form onSubmit={handleUpload} className="flex flex-col md:flex-row gap-4 items-end">
                     <div className="w-full md:flex-1 space-y-2">
-                        <label className="text-xs font-bold text-zinc-500 uppercase">Artist Name (Exact Match)</label>
+                        <label className="text-xs font-bold text-slate-500 uppercase">Artist Name (Exact Match)</label>
                         <input
                             type="text"
                             value={newArtistName}
                             onChange={e => setNewArtistName(e.target.value)}
                             placeholder="e.g. Santhosh Narayanan"
-                            className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white focus:border-emerald-500/50 outline-none"
+                            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-2.5 text-sm text-slate-900 focus:border-indigo-500/50 outline-none"
                             required
                         />
                     </div>
                     <div className="w-full md:w-auto space-y-2">
-                        <label className="text-xs font-bold text-zinc-500 uppercase">Profile Image</label>
-                        <label className="flex items-center gap-2 cursor-pointer bg-black/50 border border-white/10 rounded-lg px-4 py-2 hover:bg-white/5 transition-colors">
-                            <Upload size={18} className="text-zinc-400" />
-                            <span className="text-sm text-zinc-300 truncate max-w-[200px]">{file ? file.name : 'Choose File'}</span>
+                        <label className="text-xs font-bold text-slate-500 uppercase">Profile Image</label>
+                        <label className="flex items-center gap-2 cursor-pointer bg-slate-50 border border-slate-200 rounded-lg px-4 py-2 hover:bg-slate-100 transition-colors">
+                            <Upload size={18} className="text-slate-400" />
+                            <span className="text-sm text-slate-600 truncate max-w-[200px]">{file ? file.name : 'Choose File'}</span>
                             <input type="file" accept="image/*" onChange={e => setFile(e.target.files?.[0] || null)} className="hidden" required />
                         </label>
                     </div>
                     <button
                         type="submit"
                         disabled={isUploading}
-                        className="w-full md:w-auto bg-emerald-500 text-black font-bold px-6 py-2.5 rounded-lg hover:bg-emerald-400 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="w-full md:w-auto bg-indigo-600 text-white font-bold px-6 py-2.5 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                         {isUploading ? <Loader2 className="animate-spin" size={18} /> : <Upload size={18} />}
                         Upload
@@ -153,34 +153,34 @@ export default function ArtistManagement() {
 
             {/* List Section */}
             <div className="space-y-4">
-                <div className="relative w-full md:w-96">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
+                <div className="relative w-full md:w-96 group">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={16} />
                     <input
                         type="text"
                         placeholder="Search artists..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="w-full bg-neutral-900 border border-white/10 rounded-lg pl-9 pr-4 py-2 text-sm text-zinc-200 focus:outline-none focus:border-emerald-500/50"
+                        className="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-4 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500/50 shadow-sm"
                     />
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                     {loading ? (
-                        <div className="col-span-full py-12 flex justify-center"><Loader2 className="animate-spin text-emerald-500" /></div>
+                        <div className="col-span-full py-12 flex justify-center"><Loader2 className="animate-spin text-indigo-600" /></div>
                     ) : filteredArtists.length === 0 ? (
-                        <div className="col-span-full py-12 text-center text-zinc-500">No custom artist images found.</div>
+                        <div className="col-span-full py-12 text-center text-slate-500">No custom artist images found.</div>
                     ) : (
                         filteredArtists.map(artist => (
-                            <div key={artist.id} className="group relative bg-neutral-900 border border-white/5 rounded-xl p-3 flex flex-col items-center text-center hover:border-white/10 transition-all">
-                                <div className="relative w-24 h-24 rounded-full overflow-hidden mb-3 bg-black">
+                            <div key={artist.id} className="group relative bg-white border border-slate-200 rounded-xl p-3 flex flex-col items-center text-center hover:border-indigo-200 hover:shadow-md transition-all">
+                                <div className="relative w-24 h-24 rounded-full overflow-hidden mb-3 bg-slate-100 border border-slate-100">
                                     <Image src={artist.image_url} alt={artist.artist_name} fill className="object-cover" />
                                 </div>
-                                <h4 className="text-sm font-bold text-zinc-200 line-clamp-2">{artist.artist_name}</h4>
-                                <p className="text-[10px] text-zinc-500 mt-1">{new Date(artist.created_at).toLocaleDateString()}</p>
+                                <h4 className="text-sm font-bold text-slate-900 line-clamp-2">{artist.artist_name}</h4>
+                                <p className="text-[10px] text-slate-500 mt-1">{new Date(artist.created_at).toLocaleDateString()}</p>
 
                                 <button
                                     onClick={() => handleDelete(artist.id, artist.artist_name)}
-                                    className="absolute top-2 right-2 p-1.5 rounded-full bg-red-500/10 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 hover:text-white"
+                                    className="absolute top-2 right-2 p-1.5 rounded-full bg-red-50 text-red-500 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-100 hover:text-red-600"
                                 >
                                     <Trash2 size={14} />
                                 </button>

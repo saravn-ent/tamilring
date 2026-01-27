@@ -10,6 +10,8 @@ import { hapticFeedback } from '@/lib/haptics';
 export default function BottomNav() {
   const pathname = usePathname();
   const { t } = useLanguage();
+  if (pathname?.startsWith('/admin')) return null;
+
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
@@ -9,10 +9,13 @@ import { hapticFeedback } from '@/lib/haptics';
 
 export default function SiteHeader() {
   const router = useRouter();
+  const pathname = usePathname();
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+
+  if (pathname?.startsWith('/admin')) return null;
 
   useEffect(() => {
     setMounted(true);
