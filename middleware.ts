@@ -22,6 +22,7 @@ try {
 
 
 export async function middleware(request: NextRequest) {
+  console.log('Middleware hitting:', request.nextUrl.pathname);
   const requestHeaders = new Headers(request.headers)
 
   let response = NextResponse.next({
@@ -29,7 +30,6 @@ export async function middleware(request: NextRequest) {
       headers: requestHeaders,
     },
   })
-
 
 
   const supabase = createServerClient(
@@ -47,8 +47,6 @@ export async function middleware(request: NextRequest) {
               headers: requestHeaders,
             },
           })
-
-
           cookiesToSet.forEach(({ name, value, options }) =>
             response.cookies.set(name, value, options)
           )
@@ -123,14 +121,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|css|js|woff|woff2|ttf|eot)$).*)',
-  ],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 }

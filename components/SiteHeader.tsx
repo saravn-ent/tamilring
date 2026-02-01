@@ -104,8 +104,8 @@ export default function SiteHeader() {
           <Link href="/" className="text-sm font-medium text-zinc-600 hover:text-brand-blue transition-colors">
             Home
           </Link>
-          <Link href="/trim" className="text-sm font-medium text-zinc-600 hover:text-brand-blue transition-colors">
-            Trim
+          <Link href="/tools" className="text-sm font-medium text-zinc-600 hover:text-brand-blue transition-colors">
+            Tools
           </Link>
           <Link href="/requests" className="text-sm font-medium text-zinc-600 hover:text-brand-blue transition-colors">
             Requests

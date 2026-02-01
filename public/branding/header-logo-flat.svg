@@ -1,0 +1,16 @@
+<svg width="1000" height="250" viewBox="0 0 1000 250" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@800&amp;display=swap');
+      .logo-text {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-weight: 800;
+        font-size: 160px;
+        letter-spacing: -6px;
+      }
+    </style>
+  </defs>
+  <text x="50" y="180" class="logo-text">
+    <tspan fill="#F92445">Tamil</tspan><tspan fill="#381C75">Ring</tspan>
+  </text>
+</svg>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, User, MessageSquare, Scissors, Search } from 'lucide-react';
+import { Home, User, MessageSquare, Sparkles, Search } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
 import { hapticFeedback } from '@/lib/haptics';
 
@@ -26,7 +26,7 @@ export default function BottomNav() {
   const navItems = [
     { href: '/', icon: Home, label: t('home') },
     { href: '/search', icon: Search, label: t('search') },
-    { href: '/trim', icon: Scissors, label: t('trim') },
+    { href: '/tools', icon: Sparkles, label: t('studio') },
     { href: '/requests', icon: MessageSquare, label: t('requests') },
     { href: '/profile', icon: User, label: t('profile') },
   ];
