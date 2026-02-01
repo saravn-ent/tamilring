@@ -3,48 +3,34 @@
 @theme {
   /* WideEye.co Theme Palette */
   --color-brand-accent: #F92445;
-  /* Vibrant Pink/Red */
   --color-brand-dark: #381C75;
-  /* Deep Indigo */
   --color-brand-wash: #F5F3F9;
-  /* Light Purple/Indigo Tint */
   --color-brand-border: #E6E1F0;
-  /* Subtle Indigo Border */
 
   /* Semantic Mappings */
   --color-background: #FFFFFF;
   --color-foreground: var(--color-brand-dark);
-
-  /* Alias brand-blue to accent for backward compatibility during refactor */
   --color-brand-blue: var(--color-brand-accent);
   --color-brand-gray: var(--color-brand-border);
   --color-wash: var(--color-brand-wash);
 
-  /* Font */
   --font-display: var(--font-jakarta);
   --font-sans: var(--font-jakarta);
-
-  /* Animations */
   --animate-aurora: aurora-1 15s infinite ease-in-out;
 }
 
-/* Base Variables */
 :root {
   --background: #F4F2F7;
-  /* Royal Platinum / Soft Lavender-Grey */
   --foreground: #381C75;
 }
 
 [data-theme='dark'] {
-  /* WideEye doesn't really have a dark mode, but we'll invert optimally */
   --background: #1A0B36;
-  /* Deepest Indigo */
   --foreground: #FFFFFF;
   --color-brand-wash: #2D1456;
   --color-brand-border: #3F2073;
 }
 
-/* Layer Base to reset defaults */
 @layer base {
 
   html,
@@ -52,7 +38,6 @@
     @apply antialiased tracking-normal leading-relaxed bg-background text-foreground transition-colors duration-300;
   }
 
-  /* Headings defaults - Clean & Professional */
   h1,
   h2,
   h3,
@@ -63,13 +48,11 @@
     letter-spacing: -0.01em;
   }
 
-  /* Focus rings for professional accessibility */
   :focus-visible {
     @apply outline-none ring-2 ring-brand-blue/50 ring-offset-2;
   }
 }
 
-/* Utilities */
 @utility scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -79,7 +62,6 @@
   }
 }
 
-/* Glassmorphism Utility */
 @utility glass {
   @apply bg-white/70 backdrop-blur-xl border border-white/50;
 
@@ -88,4 +70,9 @@
   }
 }
 
-/* Force Rebuild */
+@layer utilities {
+  .wavesurfer-container {
+    border-radius: 24px !important;
+    overflow: hidden !important;
+  }
+}

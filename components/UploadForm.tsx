@@ -1,9 +1,10 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { Upload, Search, Music, Check, Loader2, X, RefreshCw, CircleAlert, Film, ChevronDown, Wand2, ArrowRight, Sparkles, Heart, Pencil, Scissors } from 'lucide-react';
 import ArtistAutocomplete from './ArtistAutocomplete';
-import AudioTrimmer from './AudioTrimmerV2';
+
 import { searchMovies, MovieResult, getImageUrl, getMovieCredits, TMDB_GENRE_TO_TAG } from '@/lib/tmdb';
 import { getSongsByMovie, iTunesRing } from '@/lib/itunes';
 import { createBrowserClient } from '@supabase/ssr';
@@ -325,8 +326,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       if (!ffmpegRef.current) {
         ffmpegRef.current = createFFmpeg({
           log: true,
-          corePath: `${window.location.origin}/ffmpeg/ffmpeg-core.js`,
-          wasmPath: `${window.location.origin}/ffmpeg/ffmpeg-core.wasm`,
+          corePath: `${window.location.origin}/ffmpeg-st/ffmpeg-core.js`,
           mainName: 'main'
         });
       }
@@ -334,9 +334,16 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       if (!ffmpeg.isLoaded()) await ffmpeg.load();
       setFfmpegLoaded(true);
       return ffmpeg;
-    } catch (e) {
+    } catch (e: any) {
       console.error("FFmpeg load failed:", e);
-      throw new Error('Failed to start audio processing engine.');
+      const isIsolated = typeof window !== 'undefined' && (window as any).crossOriginIsolated;
+      const hasSAB = typeof SharedArrayBuffer !== 'undefined';
+      console.log("[FFmpeg] Load Failure Diagnostic:", { isIsolated, hasSAB });
+
+      if (!isIsolated) {
+        throw new Error('Audio processor requires Cross-Origin Isolation. Please ensure COOP/COEP headers are set.');
+      }
+      throw new Error(`Failed to start audio processing engine: ${e.message}`);
     }
   };
 
@@ -775,12 +782,12 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
           <h2 className="text-2xl font-black text-brand-dark mb-2 tracking-tight">Login Required</h2>
           <p className="text-zinc-500 text-sm font-medium">You must be logged in to upload ringtones to TamilRing.</p>
         </div>
-        <a
-          href="/profile" // Profile page usually handles login if not logged in
+        <Link
+          href="/profile"
           className="block w-full bg-brand-dark text-white font-bold py-4 rounded-xl hover:bg-neutral-800 transition-all shadow-lg shadow-brand-dark/20"
         >
           Go to Login
-        </a>
+        </Link>
       </div>
     );
   }

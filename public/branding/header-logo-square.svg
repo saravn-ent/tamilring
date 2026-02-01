@@ -1,0 +1,12 @@
+<svg width="1080" height="1080" viewBox="0 0 1080 1080" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="1080" height="1080" fill="#FFFFFF"/>
+  
+  <!-- Centered Branding -->
+  <g transform="translate(540, 540)">
+    <text text-anchor="middle" font-family="Plus Jakarta Sans, sans-serif" font-weight="800" font-size="200" letter-spacing="-8">
+      <tspan fill="#F92445" x="0" dy="-40">Tamil</tspan>
+      <tspan fill="#381C75" x="0" dy="180">Ring</tspan>
+    </text>
+  </g>
+</svg>

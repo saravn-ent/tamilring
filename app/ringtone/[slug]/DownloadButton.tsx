@@ -83,7 +83,8 @@ export default function DownloadButton({ ringtone }: DownloadButtonProps) {
             // Remove special characters not allowed in filenames
             cleanFilename = cleanFilename.replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, ' ');
 
-            triggerDownload(url, `${cleanFilename}.${targetExt}`);
+            const finalFilename = `TamilRing.in - ${cleanFilename}.${targetExt}`;
+            triggerDownload(url, finalFilename);
 
         } catch (error) {
             console.error('Download failed', error);

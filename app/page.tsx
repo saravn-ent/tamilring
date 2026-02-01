@@ -26,6 +26,7 @@ import HomeTrending from '@/components/home/HomeTrending';
 import HomeRecent from '@/components/home/HomeRecent';
 import HomeNostalgia from '@/components/home/HomeNostalgia';
 import HomeContributors from '@/components/home/HomeContributors';
+import HomeSEOContent from '@/components/home/HomeSEOContent';
 import { SectionSkeleton } from '@/components/skeletons';
 import { getTrendingTags } from '@/app/actions/ringtones';
 
@@ -99,6 +100,8 @@ export default async function Home() {
       <Suspense fallback={<SectionSkeleton type="horizontal" />}>
         <HomeDeities />
       </Suspense>
+
+      <HomeSEOContent />
 
     </div>
   );
