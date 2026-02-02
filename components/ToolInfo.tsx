@@ -32,9 +32,15 @@ export default function ToolInfo({ title, description, faqs, features }: ToolInf
                     </div>
 
                     <div className="mb-8">
-                        <p className="text-slate-600 leading-relaxed text-sm md:text-base">
-                            {description}
+                        {/* Visual Brief Description for Users */}
+                        <p className="text-slate-600 leading-relaxed text-sm md:text-base font-medium">
+                            {description.split('.')[0]}. Professional tools for the perfect Tamil ringtone.
                         </p>
+
+                        {/* Hidden SEO/AEO/GEO Content for Crawlers */}
+                        <div className="sr-only">
+                            <p>{description}</p>
+                        </div>
                     </div>
 
                     {features && features.length > 0 && (

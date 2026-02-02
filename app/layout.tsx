@@ -150,7 +150,7 @@ export default async function RootLayout({
                 <MainLayout>
                   {children}
                 </MainLayout>
-                <div className="pb-24">
+                <div className="pb-20">
                   <LegalFooter />
                 </div>
                 <BackToTop />

@@ -8,7 +8,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
 
     return (
         <main
-            className={`min-h-screen relative z-0 ${isAdmin ? '' : 'pt-14 pb-32 md:pb-8'}`}
+            className={`min-h-screen relative z-0 ${isAdmin ? '' : 'pt-14 pb-4 md:pb-8'}`}
         >
             {children}
         </main>

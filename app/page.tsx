@@ -44,7 +44,7 @@ export default async function Home() {
   const combinedSchema = combineSchemas(organizationSchema, websiteSchema);
 
   return (
-    <div className="w-full max-w-md md:max-w-4xl lg:max-w-7xl mx-auto pb-20">
+    <div className="w-full max-w-md md:max-w-4xl lg:max-w-7xl mx-auto">
       <StructuredData data={combinedSchema} />
 
       {/* Hero Section with Search - Loads Instantly */}
