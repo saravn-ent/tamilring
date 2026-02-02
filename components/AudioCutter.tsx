@@ -418,22 +418,22 @@ export default function AudioCutter({ file, initialTab, onReset, onFileChange }:
                 </div>
             </header>
 
-            <div className="px-2 sm:px-3 space-y-2">
+            <div className="px-2 sm:px-3 space-y-1.5">
                 {/* STEP 1: PREVIEW & ZOOM */}
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                     <div className="flex items-center gap-1.5 px-1">
-                        <span className="text-[10px] font-bold text-slate-400">01.</span>
-                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Preview & Zoom</span>
+                        <span className="text-[9px] font-bold text-slate-400">01.</span>
+                        <span className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">Preview</span>
                     </div>
-                    <div className="space-y-2">
-                        <div className="relative bg-white rounded-2xl p-2 sm:p-3 pt-6 sm:pt-8 border border-slate-100 overflow-hidden shadow-sm">
+                    <div className="space-y-1.5">
+                        <div className="relative bg-white rounded-2xl p-1.5 sm:p-2 pt-5 sm:pt-6 border border-slate-100 overflow-hidden shadow-sm">
                             {/* FLOATING TIME HUD */}
                             {isReady && duration > 0 && (
                                 <div
-                                    className="absolute top-2 px-2 py-0.5 bg-white text-[#16A34A] text-[10px] font-mono font-bold rounded z-[110] transition-all pointer-events-none -translate-x-1/2 flex items-center gap-1 border border-[#16A34A]/20"
+                                    className="absolute top-1.5 px-1.5 py-0.5 bg-white text-[#16A34A] text-[9px] font-mono font-bold rounded z-[110] transition-all pointer-events-none -translate-x-1/2 flex items-center gap-1 border border-[#16A34A]/20"
                                     style={{ left: `${(currentTime / duration) * 100}%` }}
                                 >
-                                    <span className="w-1.5 h-1.5 bg-[#16A34A] rounded-full animate-pulse" />
+                                    <span className="w-1 h-1 bg-[#16A34A] rounded-full animate-pulse" />
                                     {formatTimeCode(currentTime)}
                                 </div>
                             )}
@@ -441,113 +441,105 @@ export default function AudioCutter({ file, initialTab, onReset, onFileChange }:
                             {/* PROCESSING OVERLAY */}
                             {(processing || !isReady) && (
                                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/90 backdrop-blur-[2px] z-50 animate-in fade-in duration-300">
-                                    <div className="flex flex-col items-center gap-4 p-6 rounded-3xl bg-white shadow-xl border border-slate-100">
-                                        <div className="relative">
-                                            <div className="absolute inset-0 bg-[#F92445]/20 rounded-full animate-ping" />
-                                            <Loader2 className="w-10 h-10 animate-spin text-[#F92445] relative z-10" />
-                                        </div>
-                                        <div className="text-center">
-                                            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-[#F92445] mb-1">
-                                                {loadingMessage || (isReady ? 'Processing...' : 'Loading Song...')}
-                                            </p>
-                                            <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest bg-slate-100 px-2 py-0.5 rounded">
-                                                Please stay on this page
-                                            </span>
-                                        </div>
+                                    <div className="flex flex-col items-center gap-2 p-4 rounded-3xl bg-white shadow-xl border border-slate-100">
+                                        <Loader2 className="w-8 h-8 animate-spin text-[#F92445]" />
+                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#F92445]">
+                                            {loadingMessage || (isReady ? 'Processing...' : 'Loading...')}
+                                        </p>
                                     </div>
                                 </div>
                             )}
 
-                            <div className="relative h-32 w-full mb-2">
+                            <div className="relative h-24 w-full mb-1">
                                 <div ref={containerRef} className="w-full h-full" />
                             </div>
                             <div ref={timelineRef} className="w-full" />
                         </div>
 
                         {/* ZOOM */}
-                        <div className="flex items-center gap-3 px-3 py-2 bg-slate-50 rounded-xl border border-slate-100 shadow-sm">
-                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest shrink-0">Zoom Level</span>
+                        <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-xl border border-slate-100">
+                            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest shrink-0">Zoom</span>
                             <input type="range" min="0" max="200" step="1" value={zoom} onChange={(e) => setZoom(Number(e.target.value))} className="flex-1 h-1 bg-slate-200 rounded-full appearance-none cursor-pointer accent-[#F92445]" />
                         </div>
                     </div>
                 </div>
 
                 {/* STEP 2: SELECT & LISTEN */}
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                     <div className="flex items-center gap-1.5 px-1">
-                        <span className="text-[10px] font-bold text-slate-400">02.</span>
-                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Trim & Play</span>
+                        <span className="text-[9px] font-bold text-slate-400">02.</span>
+                        <span className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">Trim & Play</span>
                     </div>
-                    <div className="bg-white rounded-2xl p-3 border border-slate-100 shadow-sm space-y-3">
+                    <div className="bg-white rounded-2xl p-2.5 border border-slate-100 shadow-sm space-y-2">
                         {isTrimActive ? (
                             <>
                                 {/* 1st Line: AUTO DETECT + SECONDS */}
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1.5">
                                     <button
                                         onClick={() => runSmartdetection(activeFile)}
-                                        className="flex-1 h-12 bg-[#F5F3F9] text-[#F92445] rounded-xl font-bold text-[11px] uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-[#E6E1F0] transition-colors border border-[#E6E1F0] shadow-sm"
+                                        className="flex-1 h-10 bg-[#F5F3F9] text-[#F92445] rounded-xl font-bold text-[10px] uppercase tracking-wider flex items-center justify-center gap-1.5 hover:bg-[#E6E1F0] transition-colors border border-[#E6E1F0]"
                                     >
-                                        <Sparkles size={14} /> {smartCandidates.length > 0 ? `Try Next Part (${currentCandidateIdx + 1}/${smartCandidates.length})` : 'Auto-Detect Highlights'}
+                                        <Sparkles size={12} /> {smartCandidates.length > 0 ? `Next (${currentCandidateIdx + 1}/${smartCandidates.length})` : 'Auto-Detect Highlights'}
                                     </button>
-                                    <div className="h-12 px-4 bg-slate-100 border border-slate-200 rounded-xl flex items-center justify-center shrink-0">
-                                        <span className="text-[11px] font-mono font-bold text-slate-600">{formatTimeCode(endTime - startTime)}</span>
+                                    <div className="h-10 px-3 bg-slate-100 border border-slate-200 rounded-xl flex items-center justify-center shrink-0">
+                                        <span className="text-[10px] font-mono font-bold text-slate-600">{formatTimeCode(endTime - startTime)}</span>
                                     </div>
                                 </div>
 
                                 {/* 2nd Line: START & END TIME CONTROLLER */}
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 flex flex-col gap-2">
-                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Beginning</span>
-                                        <div className="text-lg font-mono font-bold text-[#381C75]">{formatTimeCode(startTime)}</div>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <div className="bg-slate-50 rounded-xl p-2 border border-slate-100 flex flex-col gap-1">
+                                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Start</span>
+                                        <div className="text-base font-mono font-bold text-[#381C75]">{formatTimeCode(startTime)}</div>
                                         <div className="flex bg-white rounded-lg border border-slate-200 overflow-hidden">
-                                            <button onMouseDown={() => startAdjusting('start', -0.1)} onMouseUp={stopAdjusting} onMouseLeave={stopAdjusting} onTouchStart={() => startAdjusting('start', -0.1)} onTouchEnd={stopAdjusting} className="flex-1 py-1.5 flex items-center justify-center text-[#381C75]/60 hover:text-[#381C75] hover:bg-slate-50 transition-colors">
-                                                <Minus size={14} />
+                                            <button onMouseDown={() => startAdjusting('start', -0.1)} onMouseUp={stopAdjusting} onMouseLeave={stopAdjusting} onTouchStart={() => startAdjusting('start', -0.1)} onTouchEnd={stopAdjusting} className="flex-1 py-1 flex items-center justify-center text-[#381C75]/60 hover:text-[#381C75]">
+                                                <Minus size={12} />
                                             </button>
                                             <div className="w-px bg-slate-200" />
-                                            <button onMouseDown={() => startAdjusting('start', 0.1)} onMouseUp={stopAdjusting} onMouseLeave={stopAdjusting} onTouchStart={() => startAdjusting('start', 0.1)} onTouchEnd={stopAdjusting} className="flex-1 py-1.5 flex items-center justify-center text-[#381C75]/60 hover:text-[#381C75] hover:bg-slate-50 transition-colors">
-                                                <Plus size={14} />
+                                            <button onMouseDown={() => startAdjusting('start', 0.1)} onMouseUp={stopAdjusting} onMouseLeave={stopAdjusting} onTouchStart={() => startAdjusting('start', 0.1)} onTouchEnd={stopAdjusting} className="flex-1 py-1 flex items-center justify-center text-[#381C75]/60 hover:text-[#381C75]">
+                                                <Plus size={12} />
                                             </button>
                                         </div>
                                     </div>
-                                    <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 flex flex-col gap-2">
-                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">End Point</span>
-                                        <div className="text-lg font-mono font-bold text-[#381C75]">{formatTimeCode(endTime)}</div>
+                                    <div className="bg-slate-50 rounded-xl p-2 border border-slate-100 flex flex-col gap-1">
+                                        <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">End</span>
+                                        <div className="text-base font-mono font-bold text-[#381C75]">{formatTimeCode(endTime)}</div>
                                         <div className="flex bg-white rounded-lg border border-slate-200 overflow-hidden">
-                                            <button onMouseDown={() => startAdjusting('end', -0.1)} onMouseUp={stopAdjusting} onMouseLeave={stopAdjusting} onTouchStart={() => startAdjusting('end', -0.1)} onTouchEnd={stopAdjusting} className="flex-1 py-1.5 flex items-center justify-center text-[#381C75]/60 hover:text-[#381C75] hover:bg-slate-50 transition-colors">
-                                                <Minus size={14} />
+                                            <button onMouseDown={() => startAdjusting('end', -0.1)} onMouseUp={stopAdjusting} onMouseLeave={stopAdjusting} onTouchStart={() => startAdjusting('end', -0.1)} onTouchEnd={stopAdjusting} className="flex-1 py-1 flex items-center justify-center text-[#381C75]/60 hover:text-[#381C75]">
+                                                <Minus size={12} />
                                             </button>
                                             <div className="w-px bg-slate-200" />
-                                            <button onMouseDown={() => startAdjusting('end', 0.1)} onMouseUp={stopAdjusting} onMouseLeave={stopAdjusting} onTouchStart={() => startAdjusting('end', 0.1)} onTouchEnd={stopAdjusting} className="flex-1 py-1.5 flex items-center justify-center text-[#381C75]/60 hover:text-[#381C75] hover:bg-slate-50 transition-colors">
-                                                <Plus size={14} />
+                                            <button onMouseDown={() => startAdjusting('end', 0.1)} onMouseUp={stopAdjusting} onMouseLeave={stopAdjusting} onTouchStart={() => startAdjusting('end', 0.1)} onTouchEnd={stopAdjusting} className="flex-1 py-1 flex items-center justify-center text-[#381C75]/60 hover:text-[#381C75]">
+                                                <Plus size={12} />
                                             </button>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* 3rd Line: PREVIEW CUT & FULL SONG BUTTON */}
-                                <div className="flex items-center gap-2 pt-2">
-                                    <button onClick={playSelection} className={`flex-[2] h-14 rounded-xl flex items-center justify-center gap-3 font-black text-xs uppercase tracking-wider transition-all shadow-lg ${playMode === 'selection' && isPlaying ? 'bg-amber-500 text-white shadow-amber-500/20' : 'bg-[#16A34A] text-white shadow-green-500/20 active:scale-95'}`}>
-                                        {playMode === 'selection' && isPlaying ? <Pause size={18} fill="white" /> : <Play size={18} fill="white" stroke="white" />}
+                                <div className="flex items-center gap-2 pt-1">
+                                    <button onClick={playSelection} className={`flex-[2] h-12 rounded-xl flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-wider transition-all shadow-md ${playMode === 'selection' && isPlaying ? 'bg-amber-500 text-white shadow-amber-500/20' : 'bg-[#16A34A] text-white shadow-green-500/10 active:scale-95'}`}>
+                                        {playMode === 'selection' && isPlaying ? <Pause size={16} fill="white" /> : <Play size={16} fill="white" stroke="white" />}
                                         Preview Cut
                                     </button>
-                                    <button onClick={togglePlay} className={`flex-1 h-14 rounded-xl flex items-center justify-center gap-2 font-bold text-[10px] uppercase tracking-wider transition-all border-2 ${playMode === 'full' && isPlaying ? 'bg-slate-100 border-slate-200 text-slate-600' : 'bg-white border-slate-100 text-slate-500 hover:bg-slate-50'}`}>
-                                        {playMode === 'full' && isPlaying ? <Pause size={14} /> : <Play size={14} />} Full Song
+                                    <button onClick={togglePlay} className={`flex-1 h-12 rounded-xl flex items-center justify-center gap-1.5 font-bold text-[9px] uppercase tracking-wider transition-all border ${playMode === 'full' && isPlaying ? 'bg-slate-100 border-slate-200 text-slate-600' : 'bg-white border-slate-100 text-slate-500 hover:bg-slate-50'}`}>
+                                        {playMode === 'full' && isPlaying ? <Pause size={12} /> : <Play size={12} />} FULL
                                     </button>
                                 </div>
                             </>
                         ) : (
                             <>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <button onClick={enableTrim} className="py-3 bg-[#F5F3F9] text-[#F92445] rounded-xl border border-[#E6E1F0] font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-[#E6E1F0] transition-colors">
-                                        <Scissors size={14} /> Manual Trim
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button onClick={enableTrim} className="py-2.5 bg-[#F5F3F9] text-[#F92445] rounded-xl border border-[#E6E1F0] font-bold text-[10px] uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors">
+                                        <Scissors size={12} /> Manual Trim
                                     </button>
-                                    <button onClick={() => { enableTrim(); runSmartdetection(activeFile); }} className="py-3 bg-[#F92445] text-white rounded-xl border border-[#F92445] font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 hover:bg-[#F92445]/90 transition-colors shadow-lg shadow-rose-500/20">
-                                        <Sparkles size={14} /> Auto Cut
+                                    <button onClick={() => { enableTrim(); runSmartdetection(activeFile); }} className="py-2.5 bg-[#F92445] text-white rounded-xl border border-[#F92445] font-bold text-[10px] uppercase tracking-wider flex items-center justify-center gap-1.5 transition-colors shadow-md shadow-rose-500/10">
+                                        <Sparkles size={12} /> Auto Cut
                                     </button>
                                 </div>
-                                <div className="flex items-center gap-2 pt-2">
-                                    <button onClick={togglePlay} className="w-full h-14 rounded-xl flex items-center justify-center gap-3 font-black text-xs uppercase tracking-wider transition-all bg-[#16A34A] text-white shadow-lg shadow-green-500/20 active:scale-95">
-                                        {isPlaying ? <Pause size={20} fill="white" /> : <Play size={20} fill="white" stroke="white" />}
+                                <div className="flex items-center gap-2 pt-1">
+                                    <button onClick={togglePlay} className="w-full h-12 rounded-xl flex items-center justify-center gap-2 font-black text-[11px] uppercase tracking-wider transition-all bg-[#16A34A] text-white shadow-md active:scale-95">
+                                        {isPlaying ? <Pause size={18} fill="white" /> : <Play size={18} fill="white" stroke="white" />}
                                         Play Audio
                                     </button>
                                 </div>
@@ -557,47 +549,47 @@ export default function AudioCutter({ file, initialTab, onReset, onFileChange }:
                 </div>
 
                 {/* STEP 3: ADJUST SOUND */}
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                     <div className="flex items-center gap-1.5 px-1">
-                        <span className="text-[10px] font-bold text-slate-400">03.</span>
-                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Adjust Sound</span>
+                        <span className="text-[9px] font-bold text-slate-400">03.</span>
+                        <span className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">Adjust Sound</span>
                     </div>
-                    <div className="bg-slate-50/50 rounded-2xl p-3 border border-slate-100 space-y-3 shadow-sm">
-                        <div className="grid grid-cols-2 gap-3">
-                            <button onClick={() => setFadeIn(!fadeIn)} className={`h-12 rounded-xl border-2 flex items-center justify-center gap-2 text-[10px] font-bold uppercase transition-all ${fadeIn ? 'border-[#F92445] bg-[#F92445] text-white' : 'border-slate-200 text-slate-400 bg-white hover:bg-slate-50'}`}>{fadeIn && <Check size={14} />} Auto Fade In</button>
-                            <button onClick={() => setFadeOut(!fadeOut)} className={`h-12 rounded-xl border-2 flex items-center justify-center gap-2 text-[10px] font-bold uppercase transition-all ${fadeOut ? 'border-[#F92445] bg-[#F92445] text-white' : 'border-slate-200 text-slate-400 bg-white hover:bg-slate-50'}`}>{fadeOut && <Check size={14} />} Auto Fade Out</button>
+                    <div className="bg-slate-50/50 rounded-2xl p-2.5 border border-slate-100 space-y-2 shadow-sm">
+                        <div className="grid grid-cols-2 gap-2">
+                            <button onClick={() => setFadeIn(!fadeIn)} className={`h-10 rounded-xl border flex items-center justify-center gap-1.5 text-[9px] font-bold uppercase transition-all ${fadeIn ? 'border-[#F92445] bg-[#F92445] text-white' : 'border-slate-200 text-slate-400 bg-white hover:bg-slate-50'}`}>{fadeIn && <Check size={12} />} Fade In</button>
+                            <button onClick={() => setFadeOut(!fadeOut)} className={`h-10 rounded-xl border flex items-center justify-center gap-1.5 text-[9px] font-bold uppercase transition-all ${fadeOut ? 'border-[#F92445] bg-[#F92445] text-white' : 'border-slate-200 text-slate-400 bg-white hover:bg-slate-50'}`}>{fadeOut && <Check size={12} />} Fade Out</button>
                         </div>
-                        <div className="space-y-2 px-1">
-                            <div className="flex justify-between items-center text-[10px] font-bold uppercase text-slate-500 tracking-widest">
-                                <div className="flex items-center gap-2"><Volume2 size={14} /> Output Volume</div>
-                                <span className="font-mono text-xs" style={{ color: '#F92445' }}>{volume}%</span>
+                        <div className="space-y-1 px-1">
+                            <div className="flex justify-between items-center text-[9px] font-bold uppercase text-slate-500 tracking-widest">
+                                <div className="flex items-center gap-1.5 text-[8px]"><Volume2 size={12} /> Volume</div>
+                                <span className="font-mono" style={{ color: '#F92445' }}>{volume}%</span>
                             </div>
-                            <input type="range" min="0" max="200" value={volume} onChange={(e) => setVolume(Number(e.target.value))} className="w-full h-2 bg-slate-200 rounded-full appearance-none accent-[#F92445] cursor-pointer" />
+                            <input type="range" min="0" max="200" value={volume} onChange={(e) => setVolume(Number(e.target.value))} className="w-full h-1.5 bg-slate-200 rounded-full appearance-none accent-[#F92445] cursor-pointer" />
                         </div>
                     </div>
                 </div>
 
                 {/* STEP 4: DOWNLOAD */}
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                     <div className="flex items-center gap-1.5 px-1">
-                        <span className="text-[10px] font-bold text-slate-400">04.</span>
-                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Download File</span>
+                        <span className="text-[9px] font-bold text-slate-400">04.</span>
+                        <span className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">Download</span>
                     </div>
-                    <div className="pt-1">
+                    <div className="pt-0.5">
                         {loading ? (
-                            <div className="w-full h-16 bg-white border-2 border-[#16A34A] rounded-2xl flex items-center justify-center gap-4 text-[#16A34A] animate-pulse">
-                                <Loader2 size={24} className="animate-spin" />
-                                <span className="text-[11px] font-black uppercase tracking-widest">{loadingMessage || 'Generating File...'}</span>
+                            <div className="w-full h-14 bg-white border border-[#16A34A] rounded-2xl flex items-center justify-center gap-3 text-[#16A34A] animate-pulse">
+                                <Loader2 size={20} className="animate-spin" />
+                                <span className="text-[10px] font-black uppercase tracking-widest">{loadingMessage || 'Generating...'}</span>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-2 gap-3">
-                                <button onClick={() => handleDownload('mp3')} className="group h-16 bg-[#F92445] text-white rounded-2xl flex items-center justify-center gap-4 hover:bg-[#F92445]/90 transition-all active:scale-95 shadow-lg shadow-rose-500/20">
-                                    <Download className="group-hover:animate-bounce w-6 h-6" />
-                                    <div className="text-left"><p className="text-[10px] font-black uppercase tracking-widest leading-none">Android</p><p className="text-white/70 text-[8px] mt-1 font-bold">MP3 FILE</p></div>
+                            <div className="grid grid-cols-2 gap-2">
+                                <button onClick={() => handleDownload('mp3')} className="group h-14 bg-[#F92445] text-white rounded-2xl flex items-center justify-center gap-3 hover:bg-[#F92445]/90 transition-all active:scale-95 shadow-md shadow-rose-500/10">
+                                    <Download className="group-hover:animate-bounce w-5 h-5" />
+                                    <div className="text-left"><p className="text-[9px] font-black uppercase tracking-widest leading-none">Android</p><p className="text-white/70 text-[7px] mt-0.5 font-bold">MP3 FILE</p></div>
                                 </button>
-                                <button onClick={() => handleDownload('m4r')} className="group h-16 bg-white border-2 border-[#F92445] text-[#F92445] rounded-2xl flex items-center justify-center gap-4 hover:bg-red-50 transition-all active:scale-95 shadow-sm">
-                                    <Download className="group-hover:animate-bounce w-6 h-6" />
-                                    <div className="text-left"><p className="text-[10px] font-black uppercase tracking-widest leading-none">iPhone</p><p className="text-[#F92445]/60 text-[8px] mt-1 font-bold">M4R FILE</p></div>
+                                <button onClick={() => handleDownload('m4r')} className="group h-14 bg-white border border-[#F92445] text-[#F92445] rounded-2xl flex items-center justify-center gap-3 hover:bg-red-50 transition-all active:scale-95 shadow-sm">
+                                    <Download className="group-hover:animate-bounce w-5 h-5" />
+                                    <div className="text-left"><p className="text-[9px] font-black uppercase tracking-widest leading-none">iPhone</p><p className="text-[#F92445]/60 text-[7px] mt-0.5 font-bold">M4R FILE</p></div>
                                 </button>
                             </div>
                         )}
@@ -605,19 +597,19 @@ export default function AudioCutter({ file, initialTab, onReset, onFileChange }:
                 </div>
 
                 {/* STEP 5: SHARE & POST */}
-                <div className="space-y-3 pb-8">
+                <div className="space-y-1.5 pb-4">
                     <div className="flex items-center gap-1.5 px-1">
-                        <span className="text-[10px] font-bold text-slate-400">05.</span>
-                        <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Share with Others</span>
+                        <span className="text-[9px] font-bold text-slate-400">05.</span>
+                        <span className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">Share</span>
                     </div>
-                    <div className="p-4 bg-[#F5F3F9] border border-[#E6E1F0] rounded-2xl flex flex-col items-center text-center gap-3 shadow-sm">
-                        <div className="space-y-1">
-                            <h4 className="text-[12px] font-black uppercase text-[#381C75] tracking-tight">Post to TamilRing</h4>
-                            <p className="text-[10px] text-[#381C75]/70 font-medium">Share your custom ringtone with the community!</p>
+                    <div className="p-3 bg-[#F5F3F9] border border-[#E6E1F0] rounded-2xl flex flex-col items-center text-center gap-2 shadow-sm">
+                        <div className="space-y-0.5">
+                            <h4 className="text-[11px] font-black uppercase text-[#381C75] tracking-tight">Post to TamilRing</h4>
+                            <p className="text-[9px] text-[#381C75]/70 font-medium leading-tight">Share your ringtone with the community!</p>
                         </div>
                         <Link href="/profile" className="w-full">
-                            <button className="w-full py-3 bg-[#381C75] text-white rounded-xl font-bold text-[11px] uppercase tracking-widest hover:bg-[#381C75]/90 transition-all flex items-center justify-center gap-2 shadow-lg shadow-brand-dark/20">
-                                <Upload size={14} /> Upload Ringtone
+                            <button className="w-full h-10 bg-[#381C75] text-white rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 shadow-md shadow-brand-dark/10">
+                                <Upload size={12} /> Upload Ringtone
                             </button>
                         </Link>
                     </div>
