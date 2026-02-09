@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
-import { Ringtone } from '@/types';
+import { Ringtone, Profile } from '@/types';
 import {
     Search, Filter, MoreVertical, Check, X, Trash2,
     Play, Pause, Edit, ExternalLink, Loader2, Music,
@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { useSearchParams, useRouter } from 'next/navigation';
 import {
     approveRingtone, rejectRingtone, deleteRingtone,
     bulkApproveRingtones, bulkDeleteRingtones, updateRingtoneMetadata
@@ -40,6 +41,9 @@ export default function RingtoneManagement() {
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<'all' | 'pending' | 'approved' | 'rejected'>('all');
     const [search, setSearch] = useState('');
+    const searchParams = useSearchParams();
+    const router = useRouter();
+    const userIdFilter = searchParams.get('user_id');
     const [page, setPage] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
 
@@ -71,6 +75,7 @@ export default function RingtoneManagement() {
 
     // Stats
     const [stats, setStats] = useState({ pending: 0, approved: 0, rejected: 0, total: 0 });
+    const [filterUser, setFilterUser] = useState<Profile | null>(null);
 
     const showToast = (message: string, type: 'success' | 'error' = 'success') => {
         setToast({ message, type });
@@ -105,6 +110,10 @@ export default function RingtoneManagement() {
                 query = query.or(`title.ilike.%${search}%,movie_name.ilike.%${search}%`);
             }
 
+            if (userIdFilter) {
+                query = query.eq('user_id', userIdFilter);
+            }
+
             const from = (page - 1) * ITEMS_PER_PAGE;
             const to = from + ITEMS_PER_PAGE - 1;
 
@@ -122,12 +131,22 @@ export default function RingtoneManagement() {
         } finally {
             setLoading(false);
         }
-    }, [filter, search, page]);
+    }, [filter, search, page, userIdFilter]);
 
     useEffect(() => {
         fetchRingtones();
         fetchStats();
     }, [fetchRingtones]);
+
+    useEffect(() => {
+        if (userIdFilter) {
+            supabase.from('profiles').select('*').eq('id', userIdFilter).single().then(({ data }) => {
+                if (data) setFilterUser(data as Profile);
+            });
+        } else {
+            setFilterUser(null);
+        }
+    }, [userIdFilter, supabase]);
 
     // Cleanup audio on unmount
     useEffect(() => {
@@ -343,6 +362,24 @@ export default function RingtoneManagement() {
                         </button>
                     ))}
                 </div>
+
+                {/* Filter Info */}
+                {userIdFilter && (
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg border border-indigo-100 text-xs font-bold">
+                        <User size={14} />
+                        Filtering by: {filterUser?.full_name || filterUser?.email || userIdFilter.split('-')[0]}
+                        <button
+                            onClick={() => {
+                                const params = new URLSearchParams(searchParams.toString());
+                                params.delete('user_id');
+                                router.push(`/admin/ringtones?${params.toString()}`);
+                            }}
+                            className="ml-1 hover:text-indigo-800"
+                        >
+                            <X size={14} />
+                        </button>
+                    </div>
+                )}
 
                 {/* Search */}
                 <div className="relative w-full md:w-64 group">

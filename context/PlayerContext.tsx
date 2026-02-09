@@ -24,17 +24,25 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
-    if (currentRingtone && audioRef.current) {
-      // Only change src if it's different to avoid reloading
-      if (audioRef.current.src !== currentRingtone.audio_url) {
-        audioRef.current.src = currentRingtone.audio_url;
-        setProgress(0);
+    const audio = audioRef.current;
+    if (!audio || !currentRingtone) return;
+
+    // Only change src if it's different to avoid reloading
+    if (audio.src !== currentRingtone.audio_url) {
+      audio.src = currentRingtone.audio_url;
+    }
+
+    if (isPlaying) {
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          if (error.name !== 'AbortError') {
+            console.error("Play failed", error);
+          }
+        });
       }
-      if (isPlaying) {
-        audioRef.current.play().catch(e => console.error("Play failed", e));
-      } else {
-        audioRef.current.pause();
-      }
+    } else {
+      audio.pause();
     }
   }, [currentRingtone, isPlaying]);
 

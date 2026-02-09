@@ -55,7 +55,6 @@ const toolsStructuredData = {
         'Vocal Remover - Extract vocals or instrumentals from songs',
         'Karaoke Maker - Create karaoke tracks by removing vocals',
         'AI Audio Enhancement - Remove noise and improve audio quality',
-        'Name Ringtone Creator - Generate personalized ringtones with text-to-speech',
         'Voice Changer - Apply fun effects to audio recordings'
     ],
     screenshot: 'https://tamilring.in/og-image.png',
@@ -106,14 +105,13 @@ const studioFeatures = [
     "AI Vocal Removal",
     "Instrumental Creation",
     "Noise Enhancement",
-    "Text-to-Speech Ringtones",
     "Funny Voice Effects"
 ];
 
 export default function ToolsPage() {
     return (
         <>
-            <div className="min-h-screen bg-slate-50 py-4 px-2">
+            <div className="min-h-screen bg-slate-50 py-3 px-2">
                 <ToolsHub />
                 <ToolInfo
                     title="TamilRing Audio Studio"

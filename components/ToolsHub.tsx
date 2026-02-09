@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowRight, Scissors, Mic2, Music2, Type, Wand2, Ghost } from 'lucide-react';
+import { ArrowRight, Scissors, Mic2, Music2, Type, Wand2, Ghost, Sparkles } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useEditor } from '@/app/tools/editor-context';
 
@@ -16,6 +16,7 @@ interface ToolCardProps {
     shadowClass: string;
     rotateClass: string;
     isComingSoon?: boolean;
+    href?: string;
     onSelect: (mode: ToolMode, file: File) => void;
 }
 
@@ -29,24 +30,44 @@ const ToolCard = ({
     shadowClass,
     rotateClass,
     isComingSoon = false,
+    href,
     onSelect
 }: ToolCardProps) => {
+    const router = useRouter();
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
             onSelect(mode, e.target.files[0]);
         }
     };
 
+    const handleClick = (e: React.MouseEvent) => {
+        if (isComingSoon) {
+            e.preventDefault();
+            return;
+        }
+        if (href) {
+            e.preventDefault();
+            router.push(href);
+        }
+    };
+
+    const Container = href ? 'div' : 'label';
+
     return (
-        <label className={`group relative overflow-hidden rounded-2xl p-4 border border-slate-100 shadow-sm ${isComingSoon ? 'opacity-80 cursor-not-allowed' : `cursor-pointer hover:shadow-lg ${shadowClass}`} transition-all duration-300 flex flex-col items-center justify-center text-center`}>
-            <input
-                type="file"
-                accept="audio/*,.mp3,.wav,.m4a,.aac,.m4r,.ogg"
-                className="hidden"
-                disabled={isComingSoon}
-                onChange={handleFileChange}
-                onClick={(e) => { (e.target as any).value = null; }} // Allow re-selecting same file
-            />
+        <Container
+            onClick={handleClick}
+            className={`group relative overflow-hidden rounded-2xl p-4 border border-slate-100 shadow-sm ${isComingSoon ? 'opacity-80 cursor-not-allowed' : `cursor-pointer hover:shadow-lg ${shadowClass}`} transition-all duration-300 flex flex-col items-center justify-center text-center`}
+        >
+            {!href && (
+                <input
+                    type="file"
+                    accept="audio/*,.mp3,.wav,.m4a,.aac,.m4r,.ogg"
+                    className="hidden"
+                    disabled={isComingSoon}
+                    onChange={handleFileChange}
+                    onClick={(e) => { (e.target as any).value = null; }} // Allow re-selecting same file
+                />
+            )}
             <div className={`absolute inset-0 ${gradientClass} opacity-0 ${!isComingSoon ? 'group-hover:opacity-100' : ''} transition-opacity`} />
 
             <div className={`w-10 h-10 ${isComingSoon ? 'bg-slate-100 text-slate-400' : `${colorClass} text-white group-hover:scale-105`} rounded-xl flex items-center justify-center mb-2 transition-transform duration-300 ${rotateClass}`}>
@@ -67,9 +88,9 @@ const ToolCard = ({
                         ? 'text-violet-600 bg-violet-50 border-violet-100'
                         : 'text-teal-600 bg-teal-50 border-teal-100'
                 }`}>
-                {isComingSoon ? 'Soon' : <>Upload <ArrowRight size={10} /></>}
+                {isComingSoon ? 'Soon' : <>{href ? 'Open' : 'Upload'} <ArrowRight size={10} /></>}
             </div>
-        </label>
+        </Container>
     );
 };
 
@@ -129,7 +150,7 @@ export default function ToolsHub() {
                     icon={Mic2}
                     title="Vocals"
                     subtitle="Voice Extractor"
-                    colorClass="bg-gradient-to-br from-violet-500 to-violet-600 shadow-lg shadow-violet-500/30"
+                    colorClass="bg-gradient-to-br from-violet-600 to-indigo-700 shadow-lg shadow-violet-500/30"
                     gradientClass="bg-gradient-to-br from-violet-500/5 to-fuchsia-500/5"
                     shadowClass="hover:shadow-violet-500/20"
                     rotateClass="rotate-2 group-hover:rotate-4"
@@ -142,7 +163,7 @@ export default function ToolsHub() {
                     icon={Music2}
                     title="Karaoke"
                     subtitle="Instrumental"
-                    colorClass="bg-gradient-to-br from-teal-500 to-teal-600 shadow-lg shadow-teal-500/30"
+                    colorClass="bg-gradient-to-br from-teal-500 to-emerald-600 shadow-lg shadow-teal-500/30"
                     gradientClass="bg-gradient-to-br from-teal-500/5 to-emerald-500/5"
                     shadowClass="hover:shadow-teal-500/20"
                     rotateClass="-rotate-2 group-hover:-rotate-4"
@@ -152,16 +173,19 @@ export default function ToolsHub() {
 
                 <ToolCard
                     mode="fx"
-                    icon={Type}
-                    title="Name Ringtone"
-                    subtitle="AI Text to Speech"
-                    colorClass="bg-gradient-to-br from-orange-500 to-amber-600 shadow-lg shadow-orange-500/30"
-                    gradientClass="bg-gradient-to-br from-orange-500/5 to-yellow-500/5"
-                    shadowClass="hover:shadow-orange-500/20"
-                    rotateClass="rotate-1 group-hover:rotate-3"
+                    icon={Sparkles}
+                    title="Name Tone"
+                    subtitle="Generator"
+                    colorClass="bg-gradient-to-br from-rose-500 to-pink-600 shadow-lg shadow-rose-500/30"
+                    gradientClass="bg-gradient-to-br from-rose-500/5 to-pink-500/5"
+                    shadowClass="hover:shadow-rose-500/20"
+                    rotateClass="rotate-3 group-hover:rotate-6"
+                    href="/tools/name-ringtone"
                     isComingSoon={true}
                     onSelect={handleToolSelect}
                 />
+
+
 
                 <ToolCard
                     mode="fx"

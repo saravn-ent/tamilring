@@ -113,6 +113,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
   const [lyricist, setLyricist] = useState('');
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [language, setLanguage] = useState<'tamil' | 'english' | 'telugu' | 'malayalam' | 'hindi' | 'kannada'>('tamil');
   const [slug, setSlug] = useState('');
 
   // Duplication Check
@@ -626,6 +627,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
         song_name: derivedSongName, // Use the corrected song name
         slug,
         singers,
+        language, // New localized field
         music_director: musicDirector,
         lyricist,
         audio_url: mp3Url,
@@ -991,23 +993,54 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
             )}
 
             <div className="flex-1 min-w-0 flex flex-col justify-center">
-              <p className="text-[10px] text-brand-accent uppercase tracking-wider font-black mb-0.5">Selected Movie</p>
+              <p className="text-[10px] text-brand-accent uppercase tracking-wider font-black mb-0.5">Verified Movie</p>
               <p className="text-base font-black text-brand-dark truncate leading-tight">{manualMovieName}</p>
               <p className="text-xs text-zinc-500 font-medium mt-0.5">{selectedMovie?.release_date?.split('-')[0]} • {musicDirector.split(',')[0]}</p>
             </div>
             <button onClick={() => setStep(2)} className="text-xs font-bold text-brand-accent hover:text-brand-dark transition-colors self-center shrink-0 px-3 py-1.5 bg-brand-wash rounded-lg">Change</button>
           </div>
 
+          {/* Language Selection - NEW for Localization */}
+          <div className="bg-brand-wash/50 p-4 rounded-2xl border border-brand-border">
+            <label className="block text-[10px] text-zinc-400 uppercase font-black mb-3 tracking-wider">Song Language</label>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { id: 'tamil', label: 'Tamil', flag: '🇮🇳' },
+                { id: 'english', label: 'English', flag: '🇺🇸' },
+                { id: 'telugu', label: 'Telugu', flag: '🇮🇳' },
+                { id: 'hindi', label: 'Hindi', flag: '🇮🇳' },
+                { id: 'malayalam', label: 'Malayalam', flag: '🇮🇳' },
+                { id: 'kannada', label: 'Kannada', flag: '🇮🇳' },
+              ].map((lang) => (
+                <button
+                  key={lang.id}
+                  onClick={() => setLanguage(lang.id as any)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-2 ${language === lang.id
+                    ? 'bg-brand-dark border-brand-dark text-white shadow-lg'
+                    : 'bg-white border-brand-border text-zinc-500 hover:border-brand-dark hover:text-brand-dark'
+                    }`}
+                >
+                  <span>{lang.flag}</span>
+                  {lang.label}
+                </button>
+              ))}
+            </div>
+            <p className="text-[10px] text-zinc-400 mt-2 italic px-1">This helps show your ringtone to the right audience.</p>
+          </div>
+
           <div>
-            <label className="block text-xs text-zinc-500 mb-1">Song Name <span className="text-zinc-400 font-normal">(Optional)</span></label>
+            <label className="block text-xs text-zinc-500 mb-1 ml-1 font-bold uppercase tracking-wider">Official Song Selection <span className="text-brand-accent">*</span></label>
             <div className="relative">
               <div
                 onClick={() => setShowSongDropdown(!showSongDropdown)}
-                className="flex w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark cursor-pointer hover:border-brand-accent transition-colors items-center justify-between font-medium"
+                className={`flex w-full bg-brand-wash border rounded-xl px-4 py-3 text-brand-dark cursor-pointer transition-colors items-center justify-between font-medium ${songName ? 'border-brand-border' : 'border-brand-accent border-dashed bg-brand-accent/5'}`}
               >
-                <span className={songName ? "text-brand-dark" : "text-zinc-500"}>
-                  {songName || `Select song from "${manualMovieName}"...`}
-                </span>
+                <div className="flex items-center gap-2">
+                  <Music size={16} className={songName ? "text-brand-accent" : "text-zinc-400"} />
+                  <span className={songName ? "text-brand-dark font-black" : "text-brand-accent/70"}>
+                    {songName || `Click to find a song in "${manualMovieName}"...`}
+                  </span>
+                </div>
                 {isLoadingSongs ? <Loader2 size={16} className="animate-spin text-zinc-500" /> : <ChevronDown size={16} className="text-zinc-500" />}
               </div>
 
@@ -1015,7 +1048,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
               {showSongDropdown && (
                 <div className="absolute z-50 w-full mt-2 bg-white border border-brand-border rounded-xl shadow-2xl max-h-60 overflow-y-auto pb-1">
                   <div className="px-3 py-2 text-[10px] text-zinc-400 uppercase tracking-wider bg-white sticky top-0 border-b border-brand-border backdrop-blur-sm font-black">
-                    Album Tracks
+                    Official Track List
                   </div>
                   {movieSongs.length > 0 ? (
                     <>
@@ -1035,40 +1068,32 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                       {isLoadingSongs ? (
                         <div className="flex items-center justify-center gap-2">
                           <Loader2 size={16} className="animate-spin" />
-                          <span>Searching iTunes...</span>
+                          <span>Searching iTunes Catalog...</span>
                         </div>
                       ) : (
                         <div className="space-y-3">
-                          <p>No songs found for this movie.</p>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              const manual = prompt("Enter song name manually:");
-                              if (manual) setSongName(manual);
-                              setShowSongDropdown(false);
-                            }}
-                            className="bg-emerald-500/10 text-emerald-500 px-4 py-2 rounded-lg font-bold hover:bg-emerald-500/20 transition-all border border-emerald-500/20"
-                          >
-                            Enter Name Manually
-                          </button>
+                          <p>We couldn't find any official songs for this title.</p>
+                          <div className="p-3 bg-brand-wash rounded-xl border border-brand-border text-left">
+                            <p className="text-[10px] text-zinc-400 uppercase font-black mb-1">Manual Entry (Only if missing)</p>
+                            <input
+                              type="text"
+                              autoFocus
+                              placeholder="Type Song Name..."
+                              className="w-full bg-white border border-brand-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-accent"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  setSongName((e.target as HTMLInputElement).value);
+                                  setShowSongDropdown(false);
+                                }
+                              }}
+                            />
+                          </div>
                         </div>
                       )}
                     </div>
                   )}
                 </div>
               )}
-            </div>
-            {/* Manual Song Fallback */}
-            <div className="mt-2 text-right">
-              <button
-                className="text-[10px] text-zinc-500 hover:text-emerald-500 underline"
-                onClick={() => {
-                  const manual = prompt("Enter song name manually:");
-                  if (manual) setSongName(manual);
-                }}
-              >
-                Song not listed? Enter manually
-              </button>
             </div>
           </div>
 

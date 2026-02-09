@@ -9,8 +9,8 @@ import { Metadata } from 'next';
 import PlayButton from './PlayButton';
 import DownloadButton from './DownloadButton';
 import VideoDownloadButton from './VideoDownloadButton';
-import PinterestShareButton from './PinterestShareButton';
 import StreamButtons from '@/components/StreamButtons';
+import RingtoneSetGuideTrigger from './RingtoneSetGuideTrigger';
 import { splitArtists } from '@/lib/utils';
 import { cache, Suspense } from 'react';
 import { cacheGetOrSet, CacheKeys, CacheTTL } from '@/lib/cache';
@@ -96,7 +96,7 @@ export default async function RingtonePage({ params }: Props) {
 
           {/* Social & Video Actions */}
           <div className="flex items-center gap-3">
-            <PinterestShareButton ringtone={ringtone} />
+            <RingtoneSetGuideTrigger variant="header" />
           </div>
         </div>
 
@@ -199,17 +199,16 @@ export default async function RingtonePage({ params }: Props) {
           </div>
 
           {/* Social Proof Badge */}
-          <div className="flex items-center justify-center gap-1.5 text-xs font-semibold text-zinc-500 mt-1 mb-2">
+          <div className="flex items-center justify-center gap-1.5 text-xs font-semibold text-zinc-500 mt-1">
             <Download size={14} className="text-brand-accent/80" />
             <span><span className="text-brand-dark">{ringtone.downloads?.toLocaleString() || 0}</span> people downloaded this</span>
           </div>
 
+          <div className="h-4" />
 
-          {/* Streaming Section */}
-          <div className="w-full max-w-sm space-y-2">
-            <h3 className="text-zinc-500 text-xs font-semibold text-center tracking-wide uppercase">
-              Stream Full Song
-            </h3>
+
+          {/* Streaming Section - The "Safe Zone" */}
+          <div className="w-full max-w-sm mt-4 pt-6 border-t border-zinc-100 flex flex-col items-center">
             <StreamButtons
               songTitle={cleanTitle}
               artistName={ringtone.singers}

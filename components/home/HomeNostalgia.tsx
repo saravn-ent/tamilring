@@ -4,18 +4,33 @@ import Link from 'next/link';
 import TMDBImage from '@/components/TMDBImage';
 import { supabase } from '@/lib/supabaseClient';
 import { unstable_cache } from 'next/cache';
+import { headers } from 'next/headers';
 
 const getNostalgiaRingtones = unstable_cache(
-    async () => {
-        const { data } = await supabase.from('ringtones').select('*').eq('status', 'approved').lt('movie_year', '2015').order('likes', { ascending: false }).limit(10);
+    async (lang: string = 'tamil') => {
+        const { data } = await supabase
+            .from('ringtones')
+            .select('*')
+            .eq('status', 'approved')
+            .eq('language', lang)
+            .lt('movie_year', 2015)
+            .order('likes', { ascending: false })
+            .limit(10);
         return data || [];
     },
-    ['nostalgia-ringtones-v1'],
+    ['nostalgia-ringtones-v2'],
     { revalidate: 3600, tags: ['nostalgia'] }
 );
 
+async function getCurrentLang() {
+    const head = await headers();
+    const lang = head.get('x-user-language') || 'ta';
+    return lang === 'ta' ? 'tamil' : 'english';
+}
+
 export default async function HomeNostalgia() {
-    const nostalgia = await getNostalgiaRingtones();
+    const lang = await getCurrentLang();
+    const nostalgia = await getNostalgiaRingtones(lang);
 
     if (!nostalgia || nostalgia.length === 0) return null;
 

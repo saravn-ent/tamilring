@@ -5,18 +5,32 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { unstable_cache } from 'next/cache';
 import { Ringtone } from '@/types';
+import { headers } from 'next/headers';
 
 const getRecentRingtones = unstable_cache(
-    async () => {
-        const { data } = await supabase.from('ringtones').select('*').eq('status', 'approved').order('created_at', { ascending: false }).limit(6);
+    async (lang: string = 'tamil') => {
+        const { data } = await supabase
+            .from('ringtones')
+            .select('*')
+            .eq('status', 'approved')
+            .eq('language', lang)
+            .order('created_at', { ascending: false })
+            .limit(6);
         return data || [];
     },
-    ['recent-ringtones-v1'],
+    ['recent-ringtones-v2'],
     { revalidate: 3600, tags: ['recent'] }
 );
 
+async function getCurrentLang() {
+    const head = await headers();
+    const lang = head.get('x-user-language') || 'ta';
+    return lang === 'ta' ? 'tamil' : 'english';
+}
+
 export default async function HomeRecent() {
-    const recent = await getRecentRingtones();
+    const lang = await getCurrentLang();
+    const recent = await getRecentRingtones(lang);
 
     return (
         <div className="px-4 mb-10">

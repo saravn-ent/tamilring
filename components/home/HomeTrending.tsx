@@ -2,11 +2,12 @@ import React from 'react';
 import SectionHeader from '@/components/SectionHeader';
 import Link from 'next/link';
 import TMDBImage from '@/components/TMDBImage';
-import { getTrendingRingtones } from '@/app/actions/ringtones';
+import { getTrendingRingtones, getUserLanguage } from '@/app/actions/ringtones';
 import { Ringtone } from '@/types';
 
 export default async function HomeTrending() {
-    const trending = await getTrendingRingtones(10);
+    const lang = await getUserLanguage();
+    const trending = await getTrendingRingtones(10, lang);
 
     if (!trending || trending.length === 0) return null;
 

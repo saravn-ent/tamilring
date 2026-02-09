@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Download } from 'lucide-react';
+import { Download, CheckCircle2 } from 'lucide-react';
 import { Ringtone } from '@/types';
 import { incrementDownloads } from '@/app/actions/ringtones';
 
@@ -11,8 +11,12 @@ interface DownloadButtonProps {
 
 export default function DownloadButton({ ringtone }: DownloadButtonProps) {
     const containerRef = useRef<HTMLDivElement>(null);
+    const [isDownloading, setIsDownloading] = useState(false);
+    const [showSuccess, setShowSuccess] = useState(false);
 
     const handleSmartDownload = async () => {
+        if (isDownloading) return;
+        setIsDownloading(true);
         try {
             // 1. Increment Count
             incrementDownloads(ringtone.id);
@@ -29,22 +33,15 @@ export default function DownloadButton({ ringtone }: DownloadButtonProps) {
                 if (ringtone.audio_url_iphone) {
                     targetUrl = ringtone.audio_url_iphone;
                     targetExt = 'm4r';
-                } else {
-                    // Fallback to MP3 if M4R is missing, but maybe warn or just proceed?
-                    // User requested auto-detect, so if missing, falling back to MP3 is safer than failing 
-                    // unless we strictly want to prevent it. Assuming fallback is better for now.
-                    console.warn("iPhone detected but no M4R found, falling back to MP3");
-                    // Optionally could alert: alert('iPhone optimized version not available, downloading MP3.');
                 }
             }
 
             // 4. Trigger Download
-            // Using fetch to blob ensures we can force the filename and avoid playing in browser
             const response = await fetch(targetUrl);
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
 
-            // Clean filename: [Segment Name] [Song Name]
+            // Clean filename
             let segment = ringtone.title;
             const song = ringtone.song_name ? ringtone.song_name.trim() : '';
             const movie = ringtone.movie_name ? ringtone.movie_name.trim() : '';
@@ -52,16 +49,11 @@ export default function DownloadButton({ ringtone }: DownloadButtonProps) {
             const cleanText = (text: string, toRemove: string) => {
                 if (!toRemove) return text;
                 const escaped = toRemove.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                // Remove the text anywhere in the string (case insensitive)
                 return text.replace(new RegExp(escaped, 'gi'), '').trim();
             };
 
-            // 1. Remove Movie
             segment = cleanText(segment, movie);
-            // 2. Remove Song
             if (song) segment = cleanText(segment, song);
-
-            // 3. Remove "Vocal" tag & Normalize
             segment = segment.replace(/\bVocal\b/gi, '').trim();
             segment = segment
                 .replace(/\(From.*?\)/gi, '')
@@ -80,14 +72,19 @@ export default function DownloadButton({ ringtone }: DownloadButtonProps) {
                 cleanFilename = ringtone.title;
             }
 
-            // Remove special characters not allowed in filenames
             cleanFilename = cleanFilename.replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, ' ');
-
             const finalFilename = `TamilRing.in - ${cleanFilename}.${targetExt}`;
+
             triggerDownload(url, finalFilename);
+
+            // Show success state
+            setShowSuccess(true);
+            setTimeout(() => setShowSuccess(false), 5000);
 
         } catch (error) {
             console.error('Download failed', error);
+        } finally {
+            setIsDownloading(false);
         }
     };
 
@@ -102,13 +99,28 @@ export default function DownloadButton({ ringtone }: DownloadButtonProps) {
     };
 
     return (
-        <div className="relative flex-1" ref={containerRef}>
+        <div className="flex-1 w-full" ref={containerRef}>
             <button
                 onClick={handleSmartDownload}
-                className="w-full bg-brand-wash text-black border border-brand-border font-normal py-2.5 px-4 rounded-lg hover:bg-white transition-all flex items-center justify-center gap-2 active:scale-95 shadow-sm"
+                disabled={isDownloading}
+                className={`w-full font-normal py-2.5 px-4 rounded-lg transition-all flex items-center justify-center gap-2 active:scale-95 border ${showSuccess
+                    ? 'bg-green-50 text-green-700 border-green-200'
+                    : 'bg-brand-wash text-zinc-900 border-zinc-200 hover:bg-white transition-colors'
+                    } ${isDownloading ? 'opacity-70 cursor-not-allowed' : ''}`}
             >
-                <Download size={18} strokeWidth={1.5} />
-                <span className="text-sm">Download</span>
+                {showSuccess ? (
+                    <>
+                        <CheckCircle2 size={18} strokeWidth={1.5} />
+                        <span className="text-sm">Downloaded</span>
+                    </>
+                ) : isDownloading ? (
+                    <div className="w-5 h-5 border-2 border-brand-accent/30 border-t-brand-accent rounded-full animate-spin" />
+                ) : (
+                    <>
+                        <Download size={18} strokeWidth={1.5} />
+                        <span className="text-sm">Download</span>
+                    </>
+                )}
             </button>
         </div>
     );

@@ -13,6 +13,19 @@ const getPublicSupabase = () => {
     );
 };
 
+export const getUserLanguage = async () => {
+    const list = await headers();
+    const lang = list.get('x-user-language') || 'ta'; // Default to tamil for home region
+
+    // Map to db languages
+    const langMap: Record<string, string> = {
+        'ta': 'tamil',
+        'en': 'english'
+    };
+
+    return langMap[lang] || 'tamil';
+};
+
 export async function incrementLikes(ringtoneId: string) {
     const supabase = await getSupabaseServer() // Uses cookies for RLS if user logged in, but works anonymously too usually if table allows
 
@@ -133,16 +146,20 @@ export async function notifyAdminOnUpload(ringtoneData: {
     }
 }
 
-export const getTrendingRingtones = unstable_cache(
-    async (limit: number = 10) => {
+const getTrendingRingtonesInternal = unstable_cache(
+    async (limit: number, lang: string) => {
         const supabase = getPublicSupabase();
-        const { data, error } = await supabase.rpc('get_trending_ringtones', { limit_count: limit });
+        const { data, error } = await supabase.rpc('get_trending_ringtones', {
+            limit_count: limit,
+            lang_filter: lang
+        });
         if (error) {
             console.warn('Trending RPC failed, falling back to recent', error);
             const { data: fallback } = await supabase
                 .from('ringtones')
                 .select('*')
                 .eq('status', 'approved')
+                .eq('language', lang)
                 .order('created_at', { ascending: false })
                 .limit(limit);
             return fallback || [];
@@ -153,10 +170,17 @@ export const getTrendingRingtones = unstable_cache(
     { revalidate: 3600, tags: ['trending'] }
 );
 
-export const getTopAlbums = unstable_cache(
-    async (limit: number = 10) => {
+export async function getTrendingRingtones(limit: number = 10, lang: string = 'tamil') {
+    return getTrendingRingtonesInternal(limit, lang);
+}
+
+const getTopAlbumsInternal = unstable_cache(
+    async (limit: number, lang: string) => {
         const supabase = getPublicSupabase();
-        const { data, error } = await supabase.rpc('get_top_albums_v2', { limit_count: limit });
+        const { data, error } = await supabase.rpc('get_top_albums_v3', {
+            limit_count: limit,
+            lang_filter: lang
+        });
         if (error) {
             console.warn('Top Albums RPC failed', error);
             return [];
@@ -166,6 +190,10 @@ export const getTopAlbums = unstable_cache(
     ['top-albums'],
     { revalidate: 3600, tags: ['top-albums'] }
 );
+
+export async function getTopAlbums(limit: number = 10, lang: string = 'tamil') {
+    return getTopAlbumsInternal(limit, lang);
+}
 
 export async function logSearch(query: string) {
     if (!query || query.trim().length <= 2) return { success: false };
@@ -206,8 +234,8 @@ export async function logSearch(query: string) {
     }
 }
 
-export const getTrendingTags = unstable_cache(
-    async (limit: number = 8) => {
+const getTrendingTagsInternal = unstable_cache(
+    async (limit: number, lang: string) => {
         const supabase = getPublicSupabase();
         const allTags = new Map<string, number>();
 
@@ -225,7 +253,7 @@ export const getTrendingTags = unstable_cache(
 
         // 2. Fetch Content Trends (Backup/Volume)
         try {
-            const trendingRingtones = await getTrendingRingtones(20);
+            const trendingRingtones = await getTrendingRingtonesInternal(20, lang);
             trendingRingtones.forEach((r: any) => {
                 // Use movie name and tags
                 if (r.tags && Array.isArray(r.tags)) {
@@ -259,6 +287,10 @@ export const getTrendingTags = unstable_cache(
     ['trending-tags'],
     { revalidate: 1800, tags: ['trending-tags'] } // Cache for 30 mins
 );
+
+export async function getTrendingTags(limit: number = 8, lang: string = 'tamil') {
+    return getTrendingTagsInternal(limit, lang);
+}
 
 /**
  * AI Similar Ringtones Recommendation System

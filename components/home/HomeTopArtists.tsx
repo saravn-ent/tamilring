@@ -4,13 +4,14 @@ import HeroCard from '@/components/HeroCard';
 import { supabase } from '@/lib/supabaseClient';
 import { unstable_cache } from 'next/cache';
 import { searchPerson, getImageUrl, getPersonMovieCredits } from '@/lib/tmdb';
+import { headers } from 'next/headers';
 
 // Fetch top artists using the SAME logic as individual artist pages
 // Fetch top artists using the EXACT SAME logic as individual artist pages
 const getTopArtists = unstable_cache(
-    async () => {
+    async (lang: string = 'tamil') => {
         // 1. Fetch all stats in 1 fast query
-        const { data: allStats } = await supabase.rpc('get_all_people_stats');
+        const { data: allStats } = await supabase.rpc('get_all_people_stats', { lang_filter: lang });
         if (!allStats) return { topSingers: [], topMusicDirectors: [], topMovieDirectors: [], topActors: [] };
 
         // Helper to fetch images in parallel
@@ -40,13 +41,20 @@ const getTopArtists = unstable_cache(
 
         return { topSingers, topMusicDirectors, topMovieDirectors, topActors };
     },
-    ['top-artists-home-v28'], // Further optimized count
+    ['top-artists-home-v30'], // Cache key updated
     { revalidate: 3600, tags: ['homepage-artists'] }
 );
 
+async function getCurrentLang() {
+    const head = await headers();
+    const lang = head.get('x-user-language') || 'ta';
+    return lang === 'ta' ? 'tamil' : 'english';
+}
+
 // Individual components for each role to allow parallel streaming and better skeletons
 export async function HomeSingers() {
-    const { topSingers } = await getTopArtists();
+    const lang = await getCurrentLang();
+    const { topSingers } = await getTopArtists(lang);
     if (!topSingers || topSingers.length === 0) return null;
 
     return (
@@ -71,7 +79,8 @@ export async function HomeSingers() {
 }
 
 export async function HomeActors() {
-    const { topActors } = await getTopArtists();
+    const lang = await getCurrentLang();
+    const { topActors } = await getTopArtists(lang);
     if (!topActors || topActors.length === 0) return null;
 
     return (
@@ -96,7 +105,8 @@ export async function HomeActors() {
 }
 
 export async function HomeMusicDirectors() {
-    const { topMusicDirectors } = await getTopArtists();
+    const lang = await getCurrentLang();
+    const { topMusicDirectors } = await getTopArtists(lang);
     if (!topMusicDirectors || topMusicDirectors.length === 0) return null;
 
     return (

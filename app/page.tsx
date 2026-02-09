@@ -28,7 +28,7 @@ import HomeNostalgia from '@/components/home/HomeNostalgia';
 import HomeContributors from '@/components/home/HomeContributors';
 import HomeSEOContent from '@/components/home/HomeSEOContent';
 import { SectionSkeleton } from '@/components/skeletons';
-import { getTrendingTags } from '@/app/actions/ringtones';
+import { getTrendingTags, getUserLanguage } from '@/app/actions/ringtones';
 
 export const revalidate = 3600; // Revalidate every hour
 
@@ -48,7 +48,7 @@ export default async function Home() {
       <StructuredData data={combinedSchema} />
 
       {/* Hero Section with Search - Loads Instantly */}
-      <HeroSearch trendingTags={await getTrendingTags(5)} />
+      <HeroSearch trendingTags={await getTrendingTags(5, await getUserLanguage())} />
 
       {/* Collections Grid - Visual Categories - Loads Instantly */}
       <CategoryGrid />

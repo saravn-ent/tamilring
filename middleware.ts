@@ -22,14 +22,34 @@ try {
 
 
 export async function middleware(request: NextRequest) {
-  console.log('Middleware hitting:', request.nextUrl.pathname);
   const requestHeaders = new Headers(request.headers)
+
+  // 1. Language Detection (Region-based without GPS)
+  const acceptLang = request.headers.get('accept-language') || '';
+  const geoCountry = request.headers.get('x-vercel-ip-country') || ''; // Vercel support
+
+  let detectedLang = 'en';
+  if (acceptLang.toLowerCase().includes('ta') || geoCountry === 'IN') {
+    // If they have Tamil language or are in India, fallback to Tamil as primary "regional" focus
+    detectedLang = 'ta';
+  }
+
+  const userLangCookie = request.cookies.get('user-language')?.value || detectedLang;
+  requestHeaders.set('x-user-language', userLangCookie);
 
   let response = NextResponse.next({
     request: {
       headers: requestHeaders,
     },
   })
+
+  // Set cookie if not present
+  if (!request.cookies.has('user-language')) {
+    response.cookies.set('user-language', userLangCookie, {
+      maxAge: 60 * 60 * 24 * 365, // 1 year
+      path: '/',
+    });
+  }
 
 
   const supabase = createServerClient(

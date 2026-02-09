@@ -76,6 +76,7 @@ export const ringtones = pgTable('ringtones', {
     // Status
     status: text('status').default('pending').$type<'pending' | 'approved' | 'rejected'>(),
     rejectionReason: text('rejection_reason'),
+    language: text('language').default('tamil').notNull(),
 
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),

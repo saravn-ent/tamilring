@@ -36,64 +36,87 @@ export default function StreamButtons({
 
   const getAppleLink = () => {
     if (appleMusicLink) return appleMusicLink;
-
-    // Fallback search
     const query = encodeURIComponent(`${songTitle} ${artistName}`);
     return `https://music.apple.com/in/search?term=${query}`;
   };
 
   const getSpotifyLink = () => {
     if (spotifyLink) return spotifyLink;
-
-    // Web Fallback Search
     const query = encodeURIComponent(`${songTitle} ${artistName}`);
     return `https://open.spotify.com/search/${query}`;
   };
 
   return (
-    <div className="flex flex-col gap-2 w-full max-w-sm">
-      {/* Apple Music - Primary */}
-      <a
-        href={getAppleLink()}
-        target="_blank"
-        rel="noopener noreferrer"
-        className={`
-          flex items-center justify-between px-4 py-3 rounded-xl font-bold transition-all
-          ${isIOS
-            ? 'bg-gradient-to-r from-rose-500 to-pink-600 text-white shadow-lg shadow-rose-500/20 scale-105'
-            : 'bg-[#FA243C] text-white hover:bg-[#d41c30]'
-          }
-        `}
-      >
-        <div className="flex items-center gap-3">
-          <Music size={20} />
-          <div className="flex flex-col items-start leading-none">
-            <span className="text-sm">Play High Quality</span>
-            <span className="text-[10px] opacity-80 font-medium">on Apple Music</span>
-          </div>
+    <div className="w-full max-w-sm flex flex-col gap-3">
+      {/* Copyright Compliance Header */}
+      <div className="flex items-center justify-between px-1">
+        <div className="flex items-center gap-1.5 bg-green-50 text-green-700 px-2 py-0.5 rounded-full border border-green-100 shadow-sm">
+          <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+          <span className="text-[10px] font-bold uppercase tracking-tight">Verified Official Source</span>
         </div>
-        <ExternalLink size={16} className="opacity-60" />
-      </a>
+        <span className="text-[10px] text-zinc-400 font-medium">Support the Creators</span>
+      </div>
 
-      {/* Spotify - Secondary */}
-      <a
-        href={getSpotifyLink()}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="
-          flex items-center justify-between px-4 py-3 rounded-xl font-bold transition-all
-          bg-[#1DB954]/10 text-[#1DB954] border border-[#1DB954]/20 hover:bg-[#1DB954]/20
-        "
-      >
-        <div className="flex items-center gap-3">
-          <SpotifyIcon />
-          <div className="flex flex-col items-start leading-none">
-            <span className="text-sm">Listen for Free</span>
-            <span className="text-[10px] opacity-80 font-medium">on Spotify</span>
+      <div className="flex flex-col gap-2">
+        {/* Apple Music - Primary */}
+        <a
+          href={getAppleLink()}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`
+          flex items-center justify-between px-4 py-3.5 rounded-2xl font-bold transition-all group
+          ${isIOS
+              ? 'bg-gradient-to-r from-rose-500 to-pink-600 text-white shadow-xl shadow-rose-500/20 scale-[1.02]'
+              : 'bg-[#000000] text-white hover:bg-zinc-900 border border-zinc-800'
+            }
+        `}
+        >
+          <div className="flex items-center gap-3">
+            <div className={`p-2 rounded-lg ${isIOS ? 'bg-white/20' : 'bg-zinc-800'}`}>
+              <Music size={18} className={isIOS ? 'text-white' : 'text-rose-500'} />
+            </div>
+            <div className="flex flex-col items-start leading-tight">
+              <span className="text-sm font-black">Listen in Lossless</span>
+              <span className="text-[10px] opacity-70 font-semibold tracking-wide uppercase">Apple Music</span>
+            </div>
           </div>
-        </div>
-        <ExternalLink size={16} className="opacity-60" />
-      </a>
+          <div className="flex items-center gap-1 opacity-40 group-hover:opacity-100 transition-opacity">
+            <span className="text-[10px] font-bold">OPEN</span>
+            <ExternalLink size={14} />
+          </div>
+        </a>
+
+        {/* Spotify - Secondary */}
+        <a
+          href={getSpotifyLink()}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="
+          flex items-center justify-between px-4 py-3.5 rounded-2xl font-bold transition-all group
+          bg-white text-brand-dark border-2 border-zinc-100 hover:border-[#1DB954]/30 hover:shadow-lg hover:shadow-green-500/5
+        "
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-green-50">
+              <div className="text-[#1DB954]">
+                <SpotifyIcon />
+              </div>
+            </div>
+            <div className="flex flex-col items-start leading-tight">
+              <span className="text-sm font-black text-zinc-900">Stream on Spotify</span>
+              <span className="text-[10px] text-zinc-500 font-semibold tracking-wide uppercase">Free & Premium</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-1 opacity-40 group-hover:opacity-100 transition-opacity text-zinc-500">
+            <span className="text-[10px] font-bold">PLAY</span>
+            <ExternalLink size={14} />
+          </div>
+        </a>
+      </div>
+
+      <p className="text-[9px] text-zinc-400 text-center px-4 leading-relaxed font-medium mt-1">
+        By streaming the full song on official platforms, you directly support the music directors, singers, and creators of this work.
+      </p>
     </div>
   );
 }

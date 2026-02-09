@@ -5,9 +5,10 @@ import { createBrowserClient } from '@supabase/ssr';
 import { Profile } from '@/types';
 import {
     Search, Shield,
-    User as UserIcon, Loader2
+    User as UserIcon, Loader2, Music
 } from 'lucide-react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { getLevelTitle } from '@/lib/gamification';
 import { toggleUserRole } from '@/app/actions/admin';
 
@@ -108,7 +109,9 @@ export default function UserManagement() {
                                             )}
                                         </div>
                                         <div>
-                                            <p className="font-bold text-slate-900">{user.full_name || 'No Name'}</p>
+                                            <Link href={`/admin/ringtones?user_id=${user.id}`} className="font-bold text-slate-900 hover:text-indigo-600 transition-colors">
+                                                {user.full_name || 'No Name'}
+                                            </Link>
                                             <p className="text-xs text-slate-500 font-mono truncate max-w-[150px]">{user.email}</p>
                                         </div>
                                     </div>
@@ -184,7 +187,9 @@ export default function UserManagement() {
                                                     )}
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-bold text-slate-900">{user.full_name || 'No Name'}</p>
+                                                    <Link href={`/admin/ringtones?user_id=${user.id}`} className="text-sm font-bold text-slate-900 hover:text-indigo-600 transition-colors">
+                                                        {user.full_name || 'No Name'}
+                                                    </Link>
                                                     <p className="text-xs text-slate-500 font-mono">{user.email}</p>
                                                 </div>
                                             </div>
@@ -213,17 +218,26 @@ export default function UserManagement() {
                                             </span>
                                         </td>
                                         <td className="p-4 text-right pr-6">
-                                            <button
-                                                onClick={() => toggleAdmin(user)}
-                                                className={`text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors
-                                ${user.role === 'admin'
-                                                        ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'
-                                                        : 'bg-purple-50 text-purple-600 border-purple-200 hover:bg-purple-100'
-                                                    }
-                            `}
-                                            >
-                                                {user.role === 'admin' ? 'Revoke Admin' : 'Make Admin'}
-                                            </button>
+                                            <div className="flex items-center justify-end gap-2">
+                                                <Link
+                                                    href={`/admin/ringtones?user_id=${user.id}`}
+                                                    className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-indigo-600 transition-colors"
+                                                    title="View Ringtones"
+                                                >
+                                                    <Music size={16} />
+                                                </Link>
+                                                <button
+                                                    onClick={() => toggleAdmin(user)}
+                                                    className={`text-xs font-medium px-3 py-1.5 rounded-lg border transition-colors
+                                    ${user.role === 'admin'
+                                                            ? 'bg-red-50 text-red-600 border-red-200 hover:bg-red-100'
+                                                            : 'bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100'
+                                                        }
+                                `}
+                                                >
+                                                    {user.role === 'admin' ? 'Revoke Admin' : 'Make Admin'}
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}
