@@ -7,14 +7,15 @@ import {
     Search, Filter, MoreVertical, Check, X, Trash2,
     Play, Pause, Edit, ExternalLink, Loader2, Music,
     Calendar, User, Tag, ChevronLeft, ChevronRight,
-    CheckSquare, Square, Volume2, Save, RefreshCw, BarChart, HardDrive, Film
+    CheckSquare, Square, Volume2, Save, RefreshCw, BarChart, HardDrive, Film, Sparkles
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
     approveRingtone, rejectRingtone, deleteRingtone,
-    bulkApproveRingtones, bulkDeleteRingtones, updateRingtoneMetadata
+    bulkApproveRingtones, bulkDeleteRingtones, updateRingtoneMetadata,
+    backfillRingtoneArtwork
 } from '@/app/actions/admin';
 import { getImageUrl } from '@/lib/tmdb';
 
@@ -263,6 +264,35 @@ export default function RingtoneManagement() {
         setLoading(false);
     };
 
+    const handleBulkFetchArtwork = async () => {
+        if (!confirm(`Attempt to auto-fetch movie artwork for ${selectedIds.size} ringtones?`)) return;
+        setLoading(true);
+        let successCount = 0;
+        const ids = Array.from(selectedIds);
+
+        for (const id of ids) {
+            const res = await backfillRingtoneArtwork(id);
+            if (res.success) successCount++;
+        }
+
+        showToast(`Updated artwork for ${successCount} out of ${ids.length} ringtones.`);
+        setSelectedIds(new Set());
+        await fetchRingtones();
+        setLoading(false);
+    };
+
+    const handleSingleFetchArtwork = async (id: string) => {
+        setLoading(true);
+        const res = await backfillRingtoneArtwork(id);
+        if (res.success) {
+            showToast('Artwork updated successfully!');
+            await fetchRingtones();
+        } else {
+            showToast(res.error || 'Failed to fetch artwork', 'error');
+        }
+        setLoading(false);
+    };
+
     // --- Editing ---
 
     const openEdit = (r: Ringtone) => {
@@ -410,6 +440,9 @@ export default function RingtoneManagement() {
                                 <Check size={16} /> Approve All
                             </button>
                         )}
+                        <button onClick={handleBulkFetchArtwork} className="flex items-center gap-2 px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg text-sm font-bold transition-colors">
+                            <Sparkles size={16} /> Fetch Artwork
+                        </button>
                         <button onClick={handleBulkDelete} className="flex items-center gap-2 px-4 py-2 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-sm font-bold transition-colors border border-red-200">
                             <Trash2 size={16} /> Delete
                         </button>
@@ -614,6 +647,9 @@ export default function RingtoneManagement() {
                                                 <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                                                     <button onClick={() => openEdit(r)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-indigo-600" title="Edit">
                                                         <Edit size={16} />
+                                                    </button>
+                                                    <button onClick={() => handleSingleFetchArtwork(r.id)} className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-indigo-600" title="Fetch Artwork">
+                                                        <Sparkles size={16} />
                                                     </button>
                                                     <Link href={`/ringtone/${r.slug}`} target="_blank" className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-indigo-600" title="View">
                                                         <ExternalLink size={16} />

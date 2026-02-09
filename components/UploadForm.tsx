@@ -640,7 +640,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       let insertData: any = baseData;
 
       // Helper to determine poster URL
-      const getPosterUrl = () => {
+      const getPosterUrl = async () => {
         // 1. Prefer Movie Poster (high quality)
         if (contentType === 'movie' && selectedMovie?.poster_path) {
           return getImageUrl(selectedMovie.poster_path, 'w342');
@@ -649,10 +649,23 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
         if (selectedArtwork) {
           return selectedArtwork.replace('100x100', '600x600');
         }
+
+        // 3. AUTO-FETCH FALLBACK: If we have a movie name but no selection, try a quick TMDB search
+        if (contentType === 'movie' && manualMovieName) {
+          try {
+            const results = await searchMovies(manualMovieName);
+            if (results && results.length > 0 && results[0].poster_path) {
+              return getImageUrl(results[0].poster_path, 'w342');
+            }
+          } catch (e) {
+            console.warn('Auto-poster fetch failed:', e);
+          }
+        }
+
         return undefined;
       };
 
-      const finalPosterUrl = getPosterUrl();
+      const finalPosterUrl = await getPosterUrl();
 
       if (contentType === 'movie') {
         insertData = {

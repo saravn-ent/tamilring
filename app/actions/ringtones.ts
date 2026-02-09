@@ -146,8 +146,8 @@ export async function notifyAdminOnUpload(ringtoneData: {
     }
 }
 
-const getTrendingRingtonesInternal = unstable_cache(
-    async (limit: number, lang: string) => {
+const getTrendingRingtonesInternal = (limit: number, lang: string) => unstable_cache(
+    async () => {
         const supabase = getPublicSupabase();
         const { data, error } = await supabase.rpc('get_trending_ringtones', {
             limit_count: limit,
@@ -155,27 +155,34 @@ const getTrendingRingtonesInternal = unstable_cache(
         });
         if (error) {
             console.warn('Trending RPC failed, falling back to recent', error);
-            const { data: fallback } = await supabase
+            let query = supabase
                 .from('ringtones')
                 .select('*')
-                .eq('status', 'approved')
-                .eq('language', lang)
+                .eq('status', 'approved');
+
+            if (lang === 'tamil') {
+                query = query.or(`language.eq.${lang},language.is.null`);
+            } else {
+                query = query.eq('language', lang);
+            }
+
+            const { data: fallback } = await query
                 .order('created_at', { ascending: false })
                 .limit(limit);
             return fallback || [];
         }
         return data || [];
     },
-    ['trending-ringtones'],
+    ['trending-ringtones-v2', lang, limit.toString()],
     { revalidate: 3600, tags: ['trending'] }
-);
+)();
 
 export async function getTrendingRingtones(limit: number = 10, lang: string = 'tamil') {
     return getTrendingRingtonesInternal(limit, lang);
 }
 
-const getTopAlbumsInternal = unstable_cache(
-    async (limit: number, lang: string) => {
+const getTopAlbumsInternal = (limit: number, lang: string) => unstable_cache(
+    async () => {
         const supabase = getPublicSupabase();
         const { data, error } = await supabase.rpc('get_top_albums_v3', {
             limit_count: limit,
@@ -187,9 +194,9 @@ const getTopAlbumsInternal = unstable_cache(
         }
         return data || [];
     },
-    ['top-albums'],
+    ['top-albums-v2', lang, limit.toString()],
     { revalidate: 3600, tags: ['top-albums'] }
-);
+)();
 
 export async function getTopAlbums(limit: number = 10, lang: string = 'tamil') {
     return getTopAlbumsInternal(limit, lang);
@@ -234,8 +241,8 @@ export async function logSearch(query: string) {
     }
 }
 
-const getTrendingTagsInternal = unstable_cache(
-    async (limit: number, lang: string) => {
+const getTrendingTagsInternal = (limit: number, lang: string) => unstable_cache(
+    async () => {
         const supabase = getPublicSupabase();
         const allTags = new Map<string, number>();
 
@@ -284,9 +291,9 @@ const getTrendingTagsInternal = unstable_cache(
 
         return sorted;
     },
-    ['trending-tags'],
+    ['trending-tags-v2', lang, limit.toString()],
     { revalidate: 1800, tags: ['trending-tags'] } // Cache for 30 mins
-);
+)();
 
 export async function getTrendingTags(limit: number = 8, lang: string = 'tamil') {
     return getTrendingTagsInternal(limit, lang);

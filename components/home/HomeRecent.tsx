@@ -7,20 +7,42 @@ import { unstable_cache } from 'next/cache';
 import { Ringtone } from '@/types';
 import { headers } from 'next/headers';
 
-const getRecentRingtones = unstable_cache(
-    async (lang: string = 'tamil') => {
-        const { data } = await supabase
-            .from('ringtones')
-            .select('*')
-            .eq('status', 'approved')
-            .eq('language', lang)
-            .order('created_at', { ascending: false })
-            .limit(6);
-        return data || [];
-    },
-    ['recent-ringtones-v2'],
-    { revalidate: 3600, tags: ['recent'] }
-);
+async function getRecentRingtones(lang: string = 'tamil') {
+    return unstable_cache(
+        async () => {
+            let query = supabase
+                .from('ringtones')
+                .select('*')
+                .eq('status', 'approved');
+
+            // If it's the primary language, also show NULL language ringtones (legacy)
+            if (lang === 'tamil') {
+                query = query.or(`language.eq.${lang},language.is.null`);
+            } else {
+                query = query.eq('language', lang);
+            }
+
+            const { data } = await query
+                .order('created_at', { ascending: false })
+                .limit(6);
+
+            // FALLBACK: If no results for this specific language, show latest from all languages
+            if (!data || data.length === 0) {
+                const { data: fallbackData } = await supabase
+                    .from('ringtones')
+                    .select('*')
+                    .eq('status', 'approved')
+                    .order('created_at', { ascending: false })
+                    .limit(6);
+                return fallbackData || [];
+            }
+
+            return data || [];
+        },
+        ['recent-ringtones-v6', lang],
+        { revalidate: 3600, tags: ['recent'] }
+    )();
+}
 
 async function getCurrentLang() {
     const head = await headers();

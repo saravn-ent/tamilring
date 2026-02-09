@@ -429,3 +429,60 @@ export async function toggleUserRole(userId: string, role: 'user' | 'admin') {
 
     return { success: true };
 }
+
+export async function backfillRingtoneArtwork(id: string) {
+    try {
+        await ensureAdmin();
+        const { getSupabaseAdmin } = await import('@/lib/auth-server');
+        const supabase = await getSupabaseAdmin();
+
+        // 1. Fetch ringtone details
+        const { data: ringtone, error: fetchError } = await supabase
+            .from('ringtones')
+            .select('movie_name, title')
+            .eq('id', id)
+            .single();
+
+        if (fetchError || !ringtone) throw new Error('Ringtone not found');
+
+        const movieName = ringtone.movie_name;
+        if (!movieName || movieName === 'F1' || movieName === 'Other') {
+            return { success: false, error: 'No valid movie name to search' };
+        }
+
+        // 2. Clear cache of TMDB to ensure fresh result if needed (optional)
+        const { searchMovies } = await import('@/lib/tmdb');
+        const results = await searchMovies(movieName);
+
+        if (!results || results.length === 0) {
+            return { success: false, error: `No TMDB match found for "${movieName}"` };
+        }
+
+        const bestMatch = results[0];
+        const posterUrl = bestMatch.poster_path ? `https://image.tmdb.org/t/p/w342${bestMatch.poster_path}` : null;
+        const backdropUrl = bestMatch.backdrop_path ? `https://image.tmdb.org/t/p/w780${bestMatch.backdrop_path}` : null;
+        const movieYear = bestMatch.release_date ? bestMatch.release_date.split('-')[0] : null;
+
+        if (!posterUrl) {
+            return { success: false, error: 'Match found but no poster available' };
+        }
+
+        // 3. Update database
+        const { error: updateError } = await supabase
+            .from('ringtones')
+            .update({
+                poster_url: posterUrl,
+                backdrop_url: backdropUrl,
+                movie_year: movieYear || undefined
+            })
+            .eq('id', id);
+
+        if (updateError) throw updateError;
+
+        revalidatePath('/admin/ringtones');
+        return { success: true, posterUrl };
+    } catch (e) {
+        console.error('[AdminAction] Artwork backfill failed:', e);
+        return { success: false, error: e instanceof Error ? e.message : 'Unknown error' };
+    }
+}
