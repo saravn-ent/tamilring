@@ -105,9 +105,13 @@ export default function AudioCutter({ file, initialTab, onReset, onFileChange }:
                         const isStereo = true; // Always output stereo for consistency
                         const wavBlob = encodeWAV(data, sampleRate, isStereo ? 2 : 1);
                         const processedFile = new File([wavBlob], `processed_${mode}.wav`, { type: 'audio/wav' });
+                        setProcessing(false);
+                        setLoadingMessage('');
                         resolve(processedFile);
                         worker.terminate();
                     } else if (type === 'ERROR') {
+                        setProcessing(false);
+                        setLoadingMessage('');
                         reject(new Error(error));
                         worker.terminate();
                     }
@@ -115,10 +119,9 @@ export default function AudioCutter({ file, initialTab, onReset, onFileChange }:
                 // Force useAI: false to use reliable DSP methods
                 worker.postMessage({ type: 'PROCESS_AUDIO', payload: { left: L, right: R, mode, sampleRate, useAI: false } });
             } catch (err) {
-                reject(err);
-            } finally {
                 setProcessing(false);
                 setLoadingMessage('');
+                reject(err);
             }
         });
     };
