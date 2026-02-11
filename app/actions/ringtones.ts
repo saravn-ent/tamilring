@@ -153,27 +153,42 @@ const getTrendingRingtonesInternal = (limit: number, lang: string) => unstable_c
             limit_count: limit,
             lang_filter: lang
         });
-        if (error) {
-            console.warn('Trending RPC failed, falling back to recent', error);
+
+        if (error || !data || data.length === 0) {
+            if (error) console.warn('Trending RPC failed, falling back to recent', error);
+
             let query = supabase
                 .from('ringtones')
                 .select('*')
                 .eq('status', 'approved');
 
+            // Fallback strategy: try language, then try all
             if (lang === 'tamil') {
                 query = query.or(`language.eq.${lang},language.is.null`);
             } else {
                 query = query.eq('language', lang);
             }
 
-            const { data: fallback } = await query
+            let { data: fallback } = await query
                 .order('created_at', { ascending: false })
                 .limit(limit);
+
+            // Ultimate fallback: get any approved ringtones regardless of language
+            if (!fallback || fallback.length === 0) {
+                const { data: ultimateFallback } = await supabase
+                    .from('ringtones')
+                    .select('*')
+                    .eq('status', 'approved')
+                    .order('created_at', { ascending: false })
+                    .limit(limit);
+                fallback = ultimateFallback;
+            }
+
             return fallback || [];
         }
         return data || [];
     },
-    ['trending-ringtones-v2', lang, limit.toString()],
+    ['trending-ringtones-v5', lang, limit.toString()],
     { revalidate: 3600, tags: ['trending'] }
 )();
 

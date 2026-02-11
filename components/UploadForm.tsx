@@ -716,8 +716,8 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
           return selectedArtwork.replace('100x100', '600x600');
         }
 
-        // 3. AUTO-FETCH FALLBACK: If we have a movie name but no selection, try a quick TMDB search
-        if (contentType === 'movie' && manualMovieName) {
+        // 3. AUTO-FETCH FALLBACK: If we have a name but no selection, try a quick TMDB search
+        if ((contentType === 'movie' || contentType === 'album') && manualMovieName) {
           try {
             const results = await searchMovies(manualMovieName);
             if (results && results.length > 0 && results[0].poster_path) {
@@ -1487,8 +1487,12 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                 </div>
 
                 <div className="flex items-start gap-4 pr-16">
-                  <div className="w-12 h-12 bg-brand-wash rounded-lg flex items-center justify-center text-brand-accent shrink-0 border border-brand-border/20">
-                    <Music size={20} />
+                  <div className="w-12 h-12 bg-brand-wash rounded-lg flex items-center justify-center text-brand-accent shrink-0 border border-brand-border/20 overflow-hidden relative">
+                    {selectedArtwork ? (
+                      <Image src={selectedArtwork} alt={songName} fill className="object-cover" />
+                    ) : (
+                      <Music size={20} />
+                    )}
                   </div>
                   <div>
                     <h3 className="text-brand-dark font-black text-sm leading-tight mb-1">{songName}</h3>
@@ -1765,6 +1769,25 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
               )}
             </datalist>
           </div>
+
+          {/* Preview Card */}
+          {(deityCategory || songName) && (
+            <div className="bg-white border border-brand-border rounded-xl p-4 relative group shadow-sm flex items-start gap-4">
+              <div className="w-12 h-16 bg-brand-wash rounded-lg flex items-center justify-center text-brand-accent shrink-0 border border-brand-border/20 overflow-hidden relative">
+                {selectedArtwork ? (
+                  <Image src={selectedArtwork} alt={songName || deityCategory} fill className="object-cover" />
+                ) : (
+                  <Heart size={20} />
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-[10px] text-brand-accent uppercase tracking-wider font-black mb-0.5">Devotional Preview</p>
+                <h3 className="text-brand-dark font-black text-sm leading-tight mb-1 truncate">{songName || 'Select a song...'}</h3>
+                <p className="text-xs text-zinc-500 font-medium truncate">{deityCategory}</p>
+                {singers && <p className="text-[10px] text-zinc-400 mt-0.5 truncate">{singers}</p>}
+              </div>
+            </div>
+          )}
 
           <div>
             <label className="block text-xs text-zinc-500 mb-1 ml-1 font-bold uppercase tracking-wider">Song Name <span className="text-zinc-400 font-normal normal-case">(Optional)</span></label>
