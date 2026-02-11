@@ -7,7 +7,7 @@ import {
     Search, Filter, MoreVertical, Check, X, Trash2,
     Play, Pause, Edit, ExternalLink, Loader2, Music,
     Calendar, User, Tag, ChevronLeft, ChevronRight,
-    CheckSquare, Square, Volume2, Save, RefreshCw, BarChart, HardDrive, Film, Sparkles
+    CheckSquare, Square, Volume2, Save, RefreshCw, BarChart, HardDrive, Film, Sparkles, Brain
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -452,6 +452,26 @@ export default function RingtoneManagement() {
                     </button>
                 </div>
             )}
+
+            {/* AI Moderation Trigger */}
+            <div className="flex justify-end pr-4 -mb-4">
+                <button
+                    onClick={() => {
+                        const context = {
+                            totalRingtones: stats.total,
+                            pendingRingtones: stats.pending,
+                            recentUploads: ringtones.map(r => ({ title: r.title, movie: r.movie_name, status: r.status }))
+                        };
+                        router.push(`/admin/ai-agent?task=moderation-scan`);
+                        // We store context in session storage for the AI page to pick up
+                        sessionStorage.setItem('ai_audit_context', JSON.stringify(context));
+                    }}
+                    className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-lg active:scale-95 group"
+                >
+                    <Brain size={14} className="group-hover:rotate-12 transition-transform" />
+                    AI Moderation Audit
+                </button>
+            </div>
 
             {/* Content Area */}
             {loading ? (

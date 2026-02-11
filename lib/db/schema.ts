@@ -77,6 +77,10 @@ export const ringtones = pgTable('ringtones', {
     status: text('status').default('pending').$type<'pending' | 'approved' | 'rejected'>(),
     rejectionReason: text('rejection_reason'),
     language: text('language').default('tamil').notNull(),
+    audioHash: text('audio_hash'),
+    acousticFingerprint: text('acoustic_fingerprint'),
+    isSuspectedDuplicate: boolean('is_suspected_duplicate').default(sql`false`),
+    duplicateReason: text('duplicate_reason'),
 
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Music, Users, Settings, LogOut, ChevronLeft, Menu, Image as ImageIcon, TrendingUp, Radio, Star } from 'lucide-react';
+import { LayoutDashboard, Music, Users, Settings, LogOut, ChevronLeft, Menu, Image as ImageIcon, TrendingUp, Radio, Star, Brain } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
 
@@ -19,6 +19,7 @@ export default function AdminSidebar({ mobileOpen, setMobileOpen, collapsed, set
 
     const links = [
         { name: 'Dashboard', href: '/admin', icon: LayoutDashboard },
+        { name: 'AI Operations', href: '/admin/ai-agent', icon: Brain },
         { name: 'Deities', href: '/admin/deities', icon: Star },
         { name: 'Ringtones', href: '/admin/ringtones', icon: Music },
         { name: 'Artists', href: '/admin/artists', icon: ImageIcon },

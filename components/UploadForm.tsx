@@ -11,6 +11,7 @@ import { createBrowserClient } from '@supabase/ssr';
 import { notifyAdminOnUpload, processAutoApproval } from '@/app/actions/ringtones';
 import { handleUploadReward } from '@/app/actions/user';
 import { MOODS, DEITY_CATEGORIES } from '@/lib/constants';
+import { generateAcousticFingerprint } from '@/lib/audio-utils';
 import Image from 'next/image';
 import Script from 'next/script';
 
@@ -119,6 +120,9 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
   // Duplication Check
   const [isCheckingDuplicate, setIsCheckingDuplicate] = useState(false);
   const [duplicateError, setDuplicateError] = useState<string | null>(null);
+  const [duplicateWarning, setDuplicateWarning] = useState<string | null>(null);
+  const [fileHash, setFileHash] = useState<string | null>(null);
+  const [acousticFingerprint, setAcousticFingerprint] = useState<string | null>(null);
 
   // Search State
   const [movieQuery, setMovieQuery] = useState('');
@@ -228,32 +232,45 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
         setIsCheckingDuplicate(true);
         setDuplicateError(null);
+        setDuplicateWarning(null);
         try {
+          // 1. Check for Identical Slug
           const { data: slugData } = await supabase.from('ringtones').select('id').eq('slug', newSlug).single();
           if (slugData) {
             setDuplicateError('A ringtone with this exact identity already exists!');
             return;
           }
-          if (movieOrContextName && songName && segmentName) {
-            const { data: semanticData } = await supabase
-              .from('ringtones')
-              .select('id')
-              .eq('movie_name', movieOrContextName)
-              .eq('song_name', songName)
-              .eq('title', segmentName)
-              .single();
-            if (semanticData) {
-              setDuplicateError(`The "${segmentName}" for "${songName}" in "${movieOrContextName}" is already uploaded.`);
+
+          // 2. Perform Advanced Duplicate Search (RPC)
+          const { data: matches, error: rpcError } = await supabase.rpc('check_for_duplicates', {
+            p_title: segmentName,
+            p_movie_name: movieOrContextName,
+            p_duration: Math.round(trimEnd - trimStart),
+            p_audio_hash: fileHash,
+            p_acoustic_fingerprint: acousticFingerprint
+          });
+
+          if (matches && matches.length > 0) {
+            const match = matches[0];
+
+            if (match.match_type === 'exact_hash' || match.match_type === 'metadata_duration') {
+              // High confidence duplicate - BLOCK
+              setDuplicateError(`This audio is already uploaded as "${match.title}" from "${match.movie_name}". Please don't upload duplicates.`);
+            } else {
+              // Medium confidence (Acoustic or Fuzzy) - FLAG FOR MODERATION
+              setDuplicateWarning(`Note: This sounds very similar to an existing ringtone ("${match.title}"). It will be sent for manual moderation instead of being auto-approved.`);
             }
           }
-        } catch (err) { } finally {
+        } catch (err) {
+          console.error("Duplicate check failed:", err);
+        } finally {
           setIsCheckingDuplicate(false);
         }
       }
     };
     const timer = setTimeout(generateAndCheckSlug, 500);
     return () => clearTimeout(timer);
-  }, [songName, manualMovieName, segmentName, contentType, deityCategory, selectedTags]);
+  }, [songName, manualMovieName, segmentName, contentType, deityCategory, selectedTags, fileHash, acousticFingerprint]);
 
   const isVocalSelected = selectedTags.includes('Vocal');
   const isInstrumentalSelected = selectedTags.includes('Instrumental');
@@ -348,10 +365,27 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const selectedFile = e.target.files[0];
       setFile(selectedFile);
+
+      // 1. Calculate File Hash (SHA-256) - Fast
+      try {
+        const buffer = await selectedFile.arrayBuffer();
+        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        setFileHash(hashHex);
+      } catch (e) {
+        console.error('Hash calculation failed:', e);
+      }
+
+      // 2. Calculate Acoustic Fingerprint - Intensive (Async)
+      generateAcousticFingerprint(selectedFile)
+        .then(setAcousticFingerprint)
+        .catch(err => console.error("Acoustic fingerprinting failed", err));
+
       const audio = new Audio();
       const objectUrl = URL.createObjectURL(selectedFile);
       audio.src = objectUrl;
@@ -632,9 +666,13 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
         lyricist,
         audio_url: mp3Url,
         audio_url_iphone: iphoneUrl || undefined,
+        audio_hash: fileHash,
+        acoustic_fingerprint: acousticFingerprint,
         tags: selectedTags,
         duration: Math.round(finalDuration), // Store in seconds
-        status: 'approved' // Auto-approval enabled
+        status: duplicateWarning ? 'pending' : 'approved', // Moderation Queue if flagged
+        is_suspected_duplicate: !!duplicateWarning,
+        duplicate_reason: duplicateWarning || undefined
       };
 
       let insertData: any = baseData;
@@ -1249,6 +1287,12 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
               <div className="flex items-center gap-2 text-red-600 text-xs font-bold bg-red-50 p-2 rounded-lg border border-red-200">
                 <CircleAlert size={14} />
                 <span>{duplicateError}</span>
+              </div>
+            )}
+            {duplicateWarning && (
+              <div className="flex items-center gap-2 text-amber-600 text-xs font-bold bg-amber-50 p-2 rounded-lg border border-amber-200">
+                <Sparkles size={14} />
+                <span>{duplicateWarning}</span>
               </div>
             )}
             {isCheckingDuplicate && (
