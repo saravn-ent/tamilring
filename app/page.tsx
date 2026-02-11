@@ -45,6 +45,10 @@ export default async function Home() {
       {/* By Era & Instruments - Loads Instantly */}
       <EraAndInstruments />
 
+      <Suspense fallback={<SectionSkeleton type="trending" />}>
+        <HomeNostalgia />
+      </Suspense>
+
       {/* Visual Hidden H1 for SEO */}
       <h1 className="sr-only">
         TamilRing - Download Best Tamil Ringtones & BGM (தமிழ் ரிங்டோன்)
@@ -66,12 +70,6 @@ export default async function Home() {
 
       <Suspense fallback={<SectionSkeleton type="horizontal" />}>
         <HomeMovieDirectors />
-      </Suspense>
-
-
-
-      <Suspense fallback={<SectionSkeleton type="trending" />}>
-        <HomeNostalgia />
       </Suspense>
 
       <Suspense fallback={<SectionSkeleton type="grid" />}>

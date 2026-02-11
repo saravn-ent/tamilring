@@ -8,21 +8,44 @@ import { headers } from 'next/headers';
 
 const getNostalgiaRingtones = unstable_cache(
     async (lang: string = 'tamil') => {
-        let query = supabase
-            .from('ringtones')
-            .select('*')
-            .eq('status', 'approved')
-            .lt('movie_year', 2015)
-            .order('likes', { ascending: false })
-            .limit(10);
+        const getQuery = (l: string) => {
+            let q = supabase
+                .from('ringtones')
+                .select('*')
+                .eq('status', 'approved')
+                .lt('movie_year', 2015)
+                .order('likes', { ascending: false })
+                .limit(10);
 
-        if (lang === 'tamil') {
-            query = query.or(`language.eq.${lang},language.is.null`);
-        } else {
-            query = query.eq('language', lang);
+            if (l === 'tamil') {
+                q = q.or(`language.eq.${l},language.is.null`);
+            } else {
+                q = q.eq('language', l);
+            }
+            return q;
+        };
+
+        let { data: ringtones } = await getQuery(lang);
+
+        // Fallback: If no results for requested lang, try tamil
+        if ((!ringtones || ringtones.length === 0) && lang !== 'tamil') {
+            console.log(`No nostalgia found for ${lang}, falling back to tamil`);
+            const { data: fallback } = await getQuery('tamil');
+            ringtones = fallback;
         }
 
-        const { data: ringtones } = await query;
+        // Ultimate fallback: Any nostalgia
+        if (!ringtones || ringtones.length === 0) {
+            const { data: ultimateFallback } = await supabase
+                .from('ringtones')
+                .select('*')
+                .eq('status', 'approved')
+                .lt('movie_year', 2015)
+                .order('likes', { ascending: false })
+                .limit(10);
+            ringtones = ultimateFallback;
+        }
+
         if (!ringtones || ringtones.length === 0) return [];
 
         const userIds = Array.from(new Set(ringtones.map(r => r.user_id).filter(Boolean)));
@@ -37,7 +60,7 @@ const getNostalgiaRingtones = unstable_cache(
         return ringtones.map(r => ({ ...r, profile: profileMap.get(r.user_id) }));
 
     },
-    ['nostalgia-ringtones-v2'],
+    ['nostalgia-ringtones-v3'],
     { revalidate: 3600, tags: ['nostalgia'] }
 );
 

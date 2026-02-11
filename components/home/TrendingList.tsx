@@ -21,14 +21,11 @@ export default function TrendingList({ trending }: TrendingListProps) {
         e.stopPropagation();
         hapticFeedback(20);
 
-        // Defer playback to next tick to avoid blocking the UI thread and ensure stopPropagation works
-        setTimeout(() => {
-            if (currentRingtone?.id === ringtone.id) {
-                togglePlay();
-            } else {
-                playRingtone(ringtone);
-            }
-        }, 0);
+        if (currentRingtone?.id === ringtone.id) {
+            togglePlay();
+        } else {
+            playRingtone(ringtone);
+        }
     };
 
     const handleCardClick = (slug: string) => {
@@ -45,7 +42,7 @@ export default function TrendingList({ trending }: TrendingListProps) {
                     <div
                         key={ringtone.id}
                         onClick={() => handleCardClick(ringtone.slug)}
-                        className="snap-start shrink-0 w-32 sm:w-36 md:w-full group cursor-pointer"
+                        className="snap-start shrink-0 w-32 sm:w-36 md:w-full group cursor-pointer relative"
                     >
                         <div className="relative w-32 sm:w-36 md:w-full h-44 sm:h-48 md:h-auto md:aspect-[2/3] rounded-xl overflow-hidden mb-2 bg-brand-wash shadow-lg group-hover:shadow-brand-accent/20 transition-all border border-brand-border/50 active:scale-95">
                             <TMDBImage
@@ -58,32 +55,23 @@ export default function TrendingList({ trending }: TrendingListProps) {
                             />
                             <div className={`absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-80 group-hover:opacity-90'}`} />
 
-                            {/* Play Button Overlay */}
-                            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 md:group-hover:opacity-100 transition-opacity duration-300">
-                                <button
-                                    onClick={(e) => handlePlay(e, ringtone)}
-                                    className={`w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-md border border-white/30 shadow-2xl transform transition-all duration-300 hover:scale-110 active:scale-90 ${isActive ? 'bg-brand-accent text-white scale-110' : 'bg-white/20 text-white'}`}
-                                >
-                                    {isActive ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="ml-1" />}
-                                </button>
-                            </div>
-
-                            {/* Playing Indicator */}
+                            {/* Playing Indicator (Top Right) */}
                             {isActive && (
-                                <div className="absolute top-2 right-2 flex gap-0.5 items-end h-3">
+                                <div className="absolute top-2 right-2 flex gap-0.5 items-end h-3 z-20">
                                     <div className="w-1 bg-brand-accent rounded-full animate-music-bar-1" />
                                     <div className="w-1 bg-brand-accent rounded-full animate-music-bar-2" />
                                     <div className="w-1 bg-brand-accent rounded-full animate-music-bar-3" />
                                 </div>
                             )}
 
-                            {/* Mobile Play/Pause Icon */}
-                            <div className="absolute bottom-2 right-2 md:hidden">
+                            {/* Play Button - Bottom Right Corner */}
+                            <div className="absolute bottom-3 right-3 z-30">
                                 <button
+                                    type="button"
                                     onClick={(e) => handlePlay(e, ringtone)}
-                                    className={`w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md border border-white/20 shadow-lg ${isActive ? 'bg-brand-accent text-white' : 'bg-black/40 text-white'}`}
+                                    className={`w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-md border border-white/30 shadow-2xl transition-all duration-300 hover:scale-110 active:scale-90 pointer-events-auto ${isActive ? 'bg-brand-accent text-white scale-110' : 'bg-white/20 text-white'}`}
                                 >
-                                    {isActive ? <Pause size={14} fill="currentColor" /> : <Play size={14} fill="currentColor" className="ml-0.5" />}
+                                    {isActive ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="ml-0.5" />}
                                 </button>
                             </div>
                         </div>

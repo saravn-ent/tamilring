@@ -103,7 +103,7 @@ function SearchContent() {
         setLoading(true);
 
         const delayDebounceFn = setTimeout(async () => {
-            if (query.length > 1) {
+            if (query.length > 0) {
 
                 let newResults = { ringtones: [], movies: [], artists: [] };
 
@@ -119,7 +119,7 @@ function SearchContent() {
                         .eq('status', 'approved');
 
                     // Text Search Logic: Relaxed for better "related" results on typos
-                    const parts = safeQuery.split(/\s+/).filter(p => p.length > 1);
+                    const parts = safeQuery.split(/\s+/).filter(p => p.length > 0);
 
                     if (matchedEra) {
                         // Era Filtering
@@ -172,7 +172,7 @@ function SearchContent() {
                             .lte('movie_year', matchedEra.endYear)
                             .limit(50);
                     } else {
-                        const parts = safeQuery.split(/\s+/).filter(p => p.length > 1);
+                        const parts = safeQuery.split(/\s+/).filter(p => p.length > 0);
                         if (parts.length > 0) {
                             const conditions = parts.map(p => `movie_name.ilike.${fuzzySearchPattern(p)}`).join(',');
                             dbQuery = dbQuery.or(conditions).limit(30);
@@ -198,7 +198,7 @@ function SearchContent() {
                     // SECURITY: Sanitize user input to prevent SQL injection
                     const safeQuery = sanitizeSearchQuery(query);
 
-                    const parts = safeQuery.split(/\s+/).filter(p => p.length > 1);
+                    const parts = safeQuery.split(/\s+/).filter(p => p.length > 0);
                     const conditions = parts.length > 0
                         ? parts.map(p => {
                             const fp = fuzzySearchPattern(p);
@@ -320,7 +320,7 @@ function SearchContent() {
                         </div>
                     )}
 
-                {query.length > 1 ? (
+                {query.length > 0 ? (
                     /* ... SEARCH RESULTS ... */
                     <div className="space-y-8">
                         {/* Sort Options (Visible mostly when browsing categories) */

@@ -123,4 +123,37 @@
   .animate-music-bar-3 {
     animation: music-bar-3 0.8s ease-in-out infinite;
   }
+
+  @keyframes float {
+    0% {
+      transform: translateY(0) rotate(0deg);
+      opacity: 0;
+    }
+
+    10% {
+      opacity: 1;
+    }
+
+    90% {
+      opacity: 1;
+    }
+
+    100% {
+      transform: translateY(-100vh) rotate(360deg);
+      opacity: 0;
+    }
+  }
+
+  .animate-float {
+    animation: float var(--duration, 10s) linear infinite;
+    animation-delay: var(--delay, 0s);
+  }
+
+  .glow-hover {
+    @apply transition-all duration-300;
+  }
+
+  .glow-hover:hover {
+    box-shadow: 0 0 20px rgba(249, 36, 69, 0.4);
+  }
 }

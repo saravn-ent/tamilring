@@ -280,6 +280,18 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
     setSelectedTags(prev => {
       if (prev.includes(tag)) return prev.filter(t => t !== tag);
       const categoryTags = TAG_CATEGORIES[category as keyof typeof TAG_CATEGORIES] || [];
+
+      // Multi-select for Instruments (up to 4)
+      if (category === "Instruments") {
+        const currentInstruments = prev.filter(t => categoryTags.includes(t));
+        if (currentInstruments.length >= 4) {
+          alert('You can select up to 4 instruments.');
+          return prev;
+        }
+        return [...prev, tag];
+      }
+
+      // Single-select for other categories
       const othersRemoved = prev.filter(t => !categoryTags.includes(t));
       return [...othersRemoved, tag];
     });
@@ -296,15 +308,18 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
     // 1. Detect Instruments
     TAG_CATEGORIES.Instruments.forEach(inst => {
       if (lowerName.includes(inst.toLowerCase()) && !newTags.includes(inst)) {
-        newTags.push(inst);
-        changed = true;
-        // If an instrument is detected, also ensure "Instrumental" is selected in Types
-        if (!newTags.includes('Instrumental')) {
-          const typeTags = TAG_CATEGORIES["Types"];
-          const othersRemoved = newTags.filter(t => !typeTags.includes(t));
-          othersRemoved.push('Instrumental');
-          newTags.length = 0;
-          newTags.push(...othersRemoved);
+        const currentInstruments = newTags.filter(t => TAG_CATEGORIES.Instruments.includes(t));
+        if (currentInstruments.length < 4) {
+          newTags.push(inst);
+          changed = true;
+          // If an instrument is detected, also ensure "Instrumental" is selected in Types
+          if (!newTags.includes('Instrumental')) {
+            const typeTags = TAG_CATEGORIES["Types"];
+            const othersRemoved = newTags.filter(t => !typeTags.includes(t));
+            othersRemoved.push('Instrumental');
+            newTags.length = 0;
+            newTags.push(...othersRemoved);
+          }
         }
       }
     });
@@ -405,7 +420,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
   const handleMovieSearch = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const query = e.target.value;
     setMovieQuery(query);
-    if (query.length > 2) {
+    if (query.length > 0) {
       setIsSearchingMovie(true);
       try {
         const results = await searchMovies(query);
@@ -1384,7 +1399,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                       const query = e.target.value;
                       setAlbumSearchQuery(query);
 
-                      if (query.length > 2) {
+                      if (query.length > 0) {
                         setIsLoadingAlbumSongs(true);
                         try {
                           const res = await fetch(`/api/album/search?artist=${encodeURIComponent(query)}`);
@@ -1663,7 +1678,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
               {/* 4. Instruments (Only if Instrumental type is selected) */}
               {isInstrumentalSelected && (
                 <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                  <p className="text-[10px] text-zinc-400 uppercase font-black mb-2 tracking-wider">Instruments</p>
+                  <p className="text-[10px] text-zinc-400 uppercase font-black mb-2 tracking-wider">Instruments (Select up to 4)</p>
                   <div className="flex flex-wrap gap-2">
                     {TAG_CATEGORIES["Instruments"].map(tag => (
                       <button
@@ -1948,7 +1963,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
               {/* 4. Instruments (Only if Instrumental type is selected) */}
               {isInstrumentalSelected && (
                 <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                  <p className="text-[10px] text-zinc-400 uppercase font-black mb-2 tracking-wider">Instruments</p>
+                  <p className="text-[10px] text-zinc-400 uppercase font-black mb-2 tracking-wider">Instruments (Select up to 4)</p>
                   <div className="flex flex-wrap gap-2">
                     {TAG_CATEGORIES["Instruments"].map(tag => (
                       <button
