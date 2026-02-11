@@ -10,6 +10,7 @@ export interface MovieResult {
   poster_path: string | null;
   backdrop_path: string | null;
   genre_ids: number[];
+  original_language?: string;
 }
 
 export const TMDB_GENRE_TO_TAG: Record<number, string> = {

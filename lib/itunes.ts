@@ -59,10 +59,15 @@ export const getSongsByMovie = async (movieName: string): Promise<iTunesRing[]> 
 
     if (data.resultCount > 0) {
       // Filter: Collection Name must loosely match the Movie Name
-      const normalizedMovie = movieName.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const normalize = (s: string) => s.toLowerCase()
+        .replace(/[^a-z0-9]/g, '')
+        .replace(/th/g, 't')
+        .replace(/d/g, 't'); // Normalize d/t variations common in South Indian names
+
+      const normalizedMovie = normalize(movieName);
 
       const refined = data.results.filter((item: any) => {
-        const collection = (item.collectionName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        const collection = normalize(item.collectionName || '');
         const trackNameLow = (item.trackName || '').toLowerCase();
 
         // Filter out Remixes and Altered Versions

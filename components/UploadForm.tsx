@@ -112,6 +112,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
   const [musicDirector, setMusicDirector] = useState('');
   const [movieDirector, setMovieDirector] = useState('');
   const [lyricist, setLyricist] = useState('');
+  const [movieYear, setMovieYear] = useState('');
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [language, setLanguage] = useState<'tamil' | 'english' | 'telugu' | 'malayalam' | 'hindi' | 'kannada'>('tamil');
@@ -433,6 +434,21 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       setMusicDirector(credits.crew.filter(c => c.job === 'Original Music Composer' || c.job === 'Music').map(c => c.name).join(', '));
       setLyricist(credits.crew.filter(c => c.job === 'Lyricist' || c.job === 'Writer' || c.department === 'Writing').map(c => c.name).join(', '));
     }
+    setMovieYear(movie.release_date?.split('-')[0] || '');
+
+    // Auto-detect language from TMDB
+    const langMap: Record<string, typeof language> = {
+      'ta': 'tamil',
+      'hi': 'hindi',
+      'te': 'telugu',
+      'ml': 'malayalam',
+      'kn': 'kannada',
+      'en': 'english'
+    };
+    if (movie.original_language && langMap[movie.original_language]) {
+      setLanguage(langMap[movie.original_language]);
+    }
+
     setSelectedTags([]);
     setStep(3);
   };
@@ -721,7 +737,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
         insertData = {
           ...baseData,
           movie_name: manualMovieName,
-          movie_year: selectedMovie?.release_date?.split('-')[0] || undefined,
+          movie_year: movieYear || undefined,
           movie_director: movieDirector,
           poster_url: finalPosterUrl,
           backdrop_url: selectedMovie?.backdrop_path ? getImageUrl(selectedMovie.backdrop_path, 'w780') : undefined,
@@ -796,6 +812,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       setMusicDirector('');
       setMovieDirector('');
       setLyricist('');
+      setMovieYear('');
       setSelectedTags([]);
 
       setContentType(null);

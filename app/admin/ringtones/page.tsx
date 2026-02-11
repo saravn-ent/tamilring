@@ -1,13 +1,14 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { usePlayer } from '@/context/PlayerContext';
 import { createBrowserClient } from '@supabase/ssr';
 import { Ringtone, Profile } from '@/types';
 import {
     Search, Filter, MoreVertical, Check, X, Trash2,
     Play, Pause, Edit, ExternalLink, Loader2, Music,
     Calendar, User, Tag, ChevronLeft, ChevronRight,
-    CheckSquare, Square, Volume2, Save, RefreshCw, BarChart, HardDrive, Film, Sparkles, Brain
+    CheckSquare, Square, Save, RefreshCw, BarChart, HardDrive, Film, Sparkles, Brain
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -53,9 +54,8 @@ export default function RingtoneManagement() {
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     ), []);
 
-    // Audio
-    const [playingId, setPlayingId] = useState<string | null>(null);
-    const audioRef = useRef<HTMLAudioElement | null>(null);
+    // Audio - Use global player
+    const { currentRingtone, isPlaying, playRingtone } = usePlayer();
 
     // Selection
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -148,35 +148,6 @@ export default function RingtoneManagement() {
             setFilterUser(null);
         }
     }, [userIdFilter, supabase]);
-
-    // Cleanup audio on unmount
-    useEffect(() => {
-        return () => {
-            if (audioRef.current) {
-                audioRef.current.pause();
-                audioRef.current.src = '';
-            }
-        };
-    }, []);
-
-    const playAudio = (url: string, id: string) => {
-        if (playingId === id) {
-            audioRef.current?.pause();
-            setPlayingId(null);
-        } else {
-            if (audioRef.current) {
-                audioRef.current.src = url;
-                audioRef.current.play();
-                setPlayingId(id);
-            } else {
-                const audio = new Audio(url);
-                audio.onended = () => setPlayingId(null);
-                audioRef.current = audio;
-                audio.play();
-                setPlayingId(id);
-            }
-        }
-    };
 
     // --- Actions ---
 
@@ -511,11 +482,11 @@ export default function RingtoneManagement() {
                                             <div className="w-full h-full flex items-center justify-center text-slate-400"><Music size={24} /></div>
                                         )}
                                         <button
-                                            onClick={() => playAudio(r.audio_url, r.id)}
+                                            onClick={() => playRingtone(r)}
                                             className="absolute inset-0 flex items-center justify-center bg-black/10"
                                         >
                                             <div className="w-8 h-8 rounded-full bg-white/90 flex items-center justify-center backdrop-blur-sm border border-white/50 shadow-sm text-indigo-600">
-                                                {playingId === r.id ? <Pause size={14} className="fill-current" /> : <Play size={14} className="fill-current ml-0.5" />}
+                                                {currentRingtone?.id === r.id && isPlaying ? <Pause size={14} className="fill-current" /> : <Play size={14} className="fill-current ml-0.5" />}
                                             </div>
                                         </button>
                                     </div>
@@ -610,11 +581,11 @@ export default function RingtoneManagement() {
                                                             </div>
                                                         )}
                                                         <button
-                                                            onClick={() => playAudio(r.audio_url, r.id)}
-                                                            className={`absolute inset-0 flex items-center justify-center bg-black/10 transition-opacity ${playingId === r.id ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                                                            onClick={() => playRingtone(r)}
+                                                            className={`absolute inset-0 flex items-center justify-center bg-black/10 transition-opacity ${currentRingtone?.id === r.id && isPlaying ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
                                                         >
                                                             <div className="bg-white/90 text-indigo-600 rounded-full p-1.5 shadow-sm">
-                                                                {playingId === r.id ? <Pause className="fill-current" size={16} /> : <Play className="fill-current ml-0.5" size={16} />}
+                                                                {currentRingtone?.id === r.id && isPlaying ? <Pause className="fill-current" size={16} /> : <Play className="fill-current ml-0.5" size={16} />}
                                                             </div>
                                                         </button>
                                                     </div>
