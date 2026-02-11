@@ -30,15 +30,15 @@ export default async function HomeTrending() {
             <div className="px-4">
                 <SectionHeader title="Trending Ringtones" translationKey="trending" />
             </div>
-            <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide snap-x">
+            <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide snap-x md:grid md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-10 md:overflow-visible">
                 {trending.map((ringtone: Ringtone) => (
-                    <Link key={ringtone.id} href={`/ringtone/${ringtone.slug}`} className="snap-start shrink-0 w-32 sm:w-36 md:w-40 group">
-                        <div className="relative w-32 sm:w-36 md:w-40 h-44 sm:h-48 md:h-56 rounded-xl overflow-hidden mb-2 bg-brand-wash shadow-lg group-hover:shadow-brand-accent/10 transition-all">
+                    <Link key={ringtone.id} href={`/ringtone/${ringtone.slug}`} className="snap-start shrink-0 w-32 sm:w-36 md:w-full group">
+                        <div className="relative w-32 sm:w-36 md:w-full h-44 sm:h-48 md:h-auto md:aspect-[2/3] rounded-xl overflow-hidden mb-2 bg-brand-wash shadow-lg group-hover:shadow-brand-accent/10 transition-all">
                             <TMDBImage
                                 path={ringtone.poster_url}
                                 alt={ringtone.title}
                                 fill
-                                sizes="(max-width: 768px) 33vw, 128px"
+                                sizes="(max-width: 768px) 33vw, (max-width: 1200px) 20vw, 16vw"
                                 quality={75}
                                 className="object-cover group-hover:scale-105 transition-transform duration-500"
                             />

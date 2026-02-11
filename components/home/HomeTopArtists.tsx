@@ -63,7 +63,7 @@ export async function HomeSingers() {
             <div className="px-4 text-center mb-6">
                 <SectionHeader title="The Voices You Love" translationKey={"voices" as any} />
             </div>
-            <div className="flex overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-6">
+            <div className="flex overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-6 md:grid md:grid-cols-4 lg:grid-cols-8 md:gap-6 md:px-0 md:pl-0 md:overflow-visible">
                 {topSingers.map((singer, idx) => (
                     <HeroCard
                         key={idx}
@@ -72,6 +72,7 @@ export async function HomeSingers() {
                         image={singer.image || ''}
                         href={`/artist/${encodeURIComponent(singer.name)}`}
                         priority={idx < 4}
+                        className="md:w-full md:h-auto md:aspect-[2/3]"
                     />
                 ))}
             </div>
@@ -89,7 +90,7 @@ export async function HomeActors() {
             <div className="px-4 text-center mb-6">
                 <SectionHeader title="Top Actors" translationKey={"actors" as any} />
             </div>
-            <div className="flex overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-6">
+            <div className="flex overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-6 md:grid md:grid-cols-4 lg:grid-cols-8 md:gap-6 md:px-0 md:pl-0 md:overflow-visible">
                 {topActors.map((actor, idx) => (
                     <HeroCard
                         key={idx}
@@ -98,6 +99,7 @@ export async function HomeActors() {
                         image={actor.image || ''}
                         href={`/artist/${encodeURIComponent(actor.name)}`}
                         priority={false}
+                        className="md:w-full md:h-auto md:aspect-[2/3]"
                     />
                 ))}
             </div>
@@ -115,7 +117,7 @@ export async function HomeMusicDirectors() {
             <div className="px-4 text-center mb-6">
                 <SectionHeader title="Music Directors" translationKey="musicDirectors" />
             </div>
-            <div className="flex overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-6">
+            <div className="flex overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-6 md:grid md:grid-cols-4 lg:grid-cols-8 md:gap-6 md:px-0 md:pl-0 md:overflow-visible">
                 {topMusicDirectors.map((md, idx) => (
                     <HeroCard
                         key={idx}
@@ -124,6 +126,7 @@ export async function HomeMusicDirectors() {
                         image={md.image || ''}
                         href={`/artist/${encodeURIComponent(md.name)}`}
                         priority={false}
+                        className="md:w-full md:h-auto md:aspect-[2/3]"
                     />
                 ))}
             </div>
@@ -140,7 +143,7 @@ export async function HomeMovieDirectors() {
             <div className="px-4 text-center mb-6">
                 <SectionHeader title="Movie Directors" translationKey="movieDirectors" />
             </div>
-            <div className="flex overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-6">
+            <div className="flex overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-6 md:grid md:grid-cols-4 lg:grid-cols-8 md:gap-6 md:px-0 md:pl-0 md:overflow-visible">
                 {topMovieDirectors.map((md, idx) => (
                     <HeroCard
                         key={idx}
@@ -149,6 +152,7 @@ export async function HomeMovieDirectors() {
                         image={md.image || ''}
                         href={`/artist/${encodeURIComponent(md.name)}`}
                         priority={false}
+                        className="md:w-full md:h-auto md:aspect-[2/3]"
                     />
                 ))}
             </div>

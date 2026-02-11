@@ -6,15 +6,27 @@ import { Ringtone } from '@/types';
 interface PlayerContextType {
   currentRingtone: Ringtone | null;
   isPlaying: boolean;
-  progress: number;
-  duration: number;
   playRingtone: (ringtone: Ringtone) => void;
   togglePlay: () => void;
+}
+
+// Split contexts to prevent re-renders on progress updates
+const PlayerStateContext = createContext<PlayerStateContextType | undefined>(undefined);
+const PlayerProgressContext = createContext<PlayerProgressContextType | undefined>(undefined);
+
+interface PlayerStateContextType {
+  currentRingtone: Ringtone | null;
+  isPlaying: boolean;
+  playRingtone: (ringtone: Ringtone) => void;
+  togglePlay: () => void;
+}
+
+interface PlayerProgressContextType {
+  progress: number;
+  duration: number;
   setProgress: (progress: number) => void;
   seek: (time: number) => void;
 }
-
-const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
 
 export function PlayerProvider({ children }: { children: ReactNode }) {
   const [currentRingtone, setCurrentRingtone] = useState<Ringtone | null>(null);
@@ -87,22 +99,30 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <PlayerContext.Provider value={{ currentRingtone, isPlaying, progress, duration, playRingtone, togglePlay, setProgress, seek }}>
-      {children}
-      <audio
-        ref={audioRef}
-        onEnded={handleEnded}
-        onTimeUpdate={handleTimeUpdate}
-        className="hidden"
-        preload="none"
-        crossOrigin="anonymous"
-      />
-    </PlayerContext.Provider>
+    <PlayerStateContext.Provider value={{ currentRingtone, isPlaying, playRingtone, togglePlay }}>
+      <PlayerProgressContext.Provider value={{ progress, duration, setProgress, seek }}>
+        {children}
+        <audio
+          ref={audioRef}
+          onEnded={handleEnded}
+          onTimeUpdate={handleTimeUpdate}
+          className="hidden"
+          preload="none"
+          crossOrigin="anonymous"
+        />
+      </PlayerProgressContext.Provider>
+    </PlayerStateContext.Provider>
   );
 }
 
 export const usePlayer = () => {
-  const context = useContext(PlayerContext);
+  const context = useContext(PlayerStateContext);
   if (!context) throw new Error('usePlayer must be used within a PlayerProvider');
+  return context;
+};
+
+export const usePlayerProgress = () => {
+  const context = useContext(PlayerProgressContext);
+  if (!context) throw new Error('usePlayerProgress must be used within a PlayerProvider');
   return context;
 };

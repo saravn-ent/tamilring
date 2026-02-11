@@ -7,18 +7,7 @@ import StructuredData from '@/components/StructuredData';
 import { generateHomeMetadata, generateOrganizationSchema, generateWebSiteSchema, combineSchemas } from '@/lib/seo';
 
 // Facebook-style lazy loading: Load artist rows only when visible (improves LCP by 70%)
-const HomeSingers = dynamic(() => import('@/components/home/HomeTopArtists').then(m => ({ default: m.HomeSingers })), {
-  ssr: true, // Keep SSR for SEO, but defer hydration
-});
-const HomeActors = dynamic(() => import('@/components/home/HomeTopArtists').then(m => ({ default: m.HomeActors })), {
-  ssr: true,
-});
-const HomeMusicDirectors = dynamic(() => import('@/components/home/HomeTopArtists').then(m => ({ default: m.HomeMusicDirectors })), {
-  ssr: true,
-});
-const HomeMovieDirectors = dynamic(() => import('@/components/home/HomeTopArtists').then(m => ({ default: m.HomeMovieDirectors })), {
-  ssr: true,
-});
+import { HomeSingers, HomeActors, HomeMusicDirectors, HomeMovieDirectors } from '@/components/home/HomeTopArtists';
 const HomeDeities = dynamic(() => import('@/components/home/HomeDeities'), {
   ssr: true,
 });

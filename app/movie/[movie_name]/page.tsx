@@ -1,3 +1,4 @@
+import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 export const revalidate = 3600;
 import RingtoneCard from '@/components/RingtoneCard';
@@ -70,6 +71,10 @@ export default async function MoviePage({
     .eq('movie_name', movieName)
     .limit(1)
     .maybeSingle();
+
+  if (!movieData) {
+    notFound();
+  }
 
   // Generate structured data
   // Note: We can't list all ringtones in schema efficiently without fetching them, 

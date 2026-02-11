@@ -127,7 +127,7 @@ export default async function ArtistRingtonesList({
         <>
             {currentView === 'movies' ? (
                 /* Movies Grid View */
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                     {uniqueMovies.map((movie, idx) => (
                         <Link
                             key={movie.movie_name}
@@ -139,7 +139,7 @@ export default async function ArtistRingtonesList({
                                 alt={movie.movie_name}
                                 fill
                                 className="object-cover transition-transform duration-500 group-hover:scale-110"
-                                sizes="(max-width: 768px) 50vw, 33vw"
+                                sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 20vw"
                                 priority={idx < 2}
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity" />
@@ -154,7 +154,7 @@ export default async function ArtistRingtonesList({
                 </div>
             ) : (
                 /* Rings List View */
-                <div className="space-y-4">
+                <div className="space-y-4 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 md:space-y-0">
                     {ringtones.map((ringtone) => (
                         <RingtoneCard key={ringtone.id} ringtone={ringtone} />
                     ))}

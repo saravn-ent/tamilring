@@ -19,13 +19,13 @@ const ICON_MAP: Record<string, any> = {
 
 export default function EraAndInstruments() {
     return (
-        <div className="space-y-8 mb-10 px-4">
+        <div className="space-y-8 mb-10 px-4 max-w-7xl mx-auto">
             {/* By Era Section */}
             <section>
                 <div className="mb-4 px-1">
                     <h2 className="text-lg font-bold text-brand-dark">By Era</h2>
                 </div>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
                     {ERAS.map((era) => {
                         let colorClass = era.color;
                         if (era.label === '70s') colorClass = "from-amber-400 via-orange-400 to-yellow-500";
@@ -54,14 +54,14 @@ export default function EraAndInstruments() {
                 <div className="mb-4 px-1">
                     <h2 className="text-lg font-bold text-brand-dark">Instruments</h2>
                 </div>
-                <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x pt-1">
+                <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide snap-x pt-1 md:grid md:grid-cols-4 lg:grid-cols-6 md:overflow-visible">
                     {INSTRUMENTS.map((inst) => {
                         const Icon = ICON_MAP[inst.query];
                         return (
                             <Link
                                 key={inst.label}
                                 href={`/search?q=${encodeURIComponent(inst.query)}&hideSearch=true`}
-                                className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-white border border-zinc-100 shadow-sm hover:shadow-md hover:border-brand-accent/30 transition-all snap-start shrink-0 min-w-[85px]"
+                                className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-white border border-zinc-100 shadow-sm hover:shadow-md hover:border-brand-accent/30 transition-all snap-start shrink-0 min-w-[85px] md:min-w-0 md:w-full"
                             >
                                 <div className="w-10 h-10 rounded-full bg-brand-wash flex items-center justify-center text-brand-accent">
                                     {Icon && <Icon size={20} strokeWidth={2} />}

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { Music, Heart, MessageCircle, CloudRain, Flame, Zap, Star } from 'lucide-react';
 
 const CATEGORIES = [
+    { id: 'valentines', label: "Valentine's", icon: Heart, className: 'bg-rose-500 text-white border-rose-600 shadow-rose-200 shadow-md animate-pulse', href: '/valentines' },
     { id: 'bgm', label: 'BGM', icon: Music, className: 'bg-violet-100 text-violet-700 border-violet-200', href: '/category/bgm' },
     { id: 'love', label: 'Love', icon: Heart, className: 'bg-rose-100 text-rose-700 border-rose-200', href: '/mood/Love' },
     { id: 'mass', label: 'Mass', icon: Flame, className: 'bg-orange-100 text-orange-700 border-orange-200', href: '/mood/Mass' },
@@ -20,12 +21,12 @@ export default function CategoryGrid() {
                 <h2 className="text-lg font-display font-bold text-black">Browse Collections</h2>
             </div>
 
-            <div className="flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide snap-x mt-4">
+            <div className="flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide snap-x mt-4 md:grid md:grid-cols-3 lg:grid-cols-5 md:overflow-visible md:justify-items-center">
                 {CATEGORIES.map((cat) => (
                     <Link
                         key={cat.id}
                         href={cat.href}
-                        className={`snap-start shrink-0 flex items-center gap-2 px-5 py-3 rounded-xl border border-opacity-50 transition-all hover:opacity-80 active:scale-95 ${cat.className}`}
+                        className={`snap-start shrink-0 flex items-center gap-2 px-5 py-3 rounded-xl border border-opacity-50 transition-all hover:opacity-80 active:scale-95 ${cat.className} md:w-full md:justify-center`}
                     >
                         <cat.icon size={16} strokeWidth={2.5} />
                         <span className="text-sm font-bold whitespace-nowrap">{cat.label}</span>

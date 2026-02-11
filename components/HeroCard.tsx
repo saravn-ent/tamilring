@@ -1,4 +1,4 @@
-
+import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import ImageWithFallback from './ImageWithFallback';
 
@@ -9,13 +9,17 @@ interface HeroCardProps {
   subtitle?: string;
   index?: number;
   priority?: boolean;
+  className?: string; // Add className prop
 }
 
-export default function HeroCard({ name, image, href, subtitle, index = 0, priority = false }: HeroCardProps) {
+export default function HeroCard({ name, image, href, subtitle, index = 0, priority = false, className }: HeroCardProps) {
   return (
     <Link
       href={href}
-      className="relative shrink-0 w-32 h-48 rounded-xl overflow-hidden group transition-transform duration-300 hover:z-10 hover:scale-105 hover:-translate-y-2 shadow-lg shadow-black/40 border border-white/5"
+      className={cn(
+        "relative shrink-0 w-32 h-48 rounded-xl overflow-hidden group transition-transform duration-300 hover:z-10 hover:scale-105 hover:-translate-y-2 shadow-lg shadow-black/40 border border-white/5",
+        className
+      )}
       style={{
         zIndex: index
       }}

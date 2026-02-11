@@ -1,12 +1,13 @@
 'use client';
 
-import { usePlayer } from '@/context/PlayerContext';
+import { usePlayer, usePlayerProgress } from '@/context/PlayerContext';
 import { Ringtone } from '@/types';
 import { Play, Pause } from 'lucide-react';
 import { useRef, useEffect, useState } from 'react';
 
 export default function InteractivePlayerBar({ ringtone }: { ringtone: Ringtone }) {
-    const { currentRingtone, isPlaying, progress, duration, playRingtone, seek } = usePlayer();
+    const { currentRingtone, isPlaying, playRingtone } = usePlayer();
+    const { progress, duration, seek } = usePlayerProgress();
     const isCurrent = currentRingtone?.id === ringtone.id;
     const playing = isCurrent && isPlaying;
     const progressBarRef = useRef<HTMLDivElement>(null);

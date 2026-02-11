@@ -103,21 +103,21 @@ export default async function HomeDeities() {
             <div className="px-4 text-center mb-6">
                 <SectionHeader title="Gods/Deity" />
             </div>
-            <div className="flex gap-4 overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-4">
+            <div className="flex gap-4 overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-4 md:grid md:grid-cols-6 lg:grid-cols-8 md:overflow-visible md:justify-items-center">
                 {topDeities.map((deity, idx) => (
                     <Link
                         key={idx}
                         href={`/devotional/${encodeURIComponent(deity.name)}`}
-                        className="snap-start shrink-0 flex flex-col items-center gap-2 w-24 group"
+                        className="snap-start shrink-0 flex flex-col items-center gap-2 w-24 group md:w-full"
                     >
-                        <div className="relative w-20 h-20 rounded-full overflow-hidden shadow-md group-hover:shadow-lg transition-all group-hover:scale-105 duration-300 border-2 border-white ring-2 ring-indigo-50">
+                        <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden shadow-md group-hover:shadow-lg transition-all group-hover:scale-105 duration-300 border-2 border-white ring-2 ring-indigo-50">
                             {deity.poster_url ? (
                                 <Image
                                     src={deity.poster_url}
                                     alt={deity.name}
                                     fill
                                     className="object-cover"
-                                    sizes="80px"
+                                    sizes="(max-width: 768px) 80px, 96px"
                                 />
                             ) : (
                                 <div className="w-full h-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center">

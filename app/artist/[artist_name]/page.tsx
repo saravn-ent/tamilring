@@ -1,3 +1,4 @@
+import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 export const revalidate = 3600;
 import { searchPerson, getImageUrl, getPersonMovieCredits } from '@/lib/tmdb';
@@ -138,8 +139,12 @@ export default async function ArtistPage({
   // Get artist bio
   const artistBio = getArtistBio(artistName);
 
+  if (allRingtones.length === 0) {
+    notFound();
+  }
+
   return (
-    <div className="max-w-md mx-auto pb-24">
+    <div className="max-w-md md:max-w-4xl lg:max-w-6xl mx-auto pb-24">
       {/* Sticky Compact Profile Header - Loads Instantly */}
       <CompactProfileHeader
         name={artistName}

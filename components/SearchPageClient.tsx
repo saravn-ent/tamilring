@@ -269,7 +269,7 @@ function SearchContent() {
     });
 
     return (
-        <div className="max-w-md mx-auto min-h-screen bg-white pb-24">
+        <div className="max-w-md md:max-w-4xl lg:max-w-6xl mx-auto min-h-screen bg-white pb-24">
             {isSpecialSearch && (
                 <div className="p-6 pt-8 bg-gradient-to-b from-brand-wash to-white">
                     <h1 className="text-3xl font-bold text-brand-dark capitalize tracking-tight">
@@ -385,8 +385,8 @@ function SearchContent() {
                                 {(activeTab === 'all' || activeTab === 'movies') && (
                                     <div className="space-y-3">
                                         <div className="h-4 w-20 bg-zinc-200 rounded ml-1" />
-                                        <div className="grid grid-cols-2 gap-3">
-                                            {[1, 2].map(i => (
+                                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                                            {[1, 2, 3, 4].map(i => (
                                                 <div key={i} className="aspect-[2/3] bg-zinc-100 rounded-xl border border-brand-gray" />
                                             ))}
                                         </div>
@@ -410,7 +410,7 @@ function SearchContent() {
                                         <h3 className="font-bold text-zinc-600 text-xs uppercase tracking-wider mb-3 px-1">
                                             {ERAS.find(e => e.label.toLowerCase() === query.toLowerCase()) ? `${query} Movies` : (activeTab === 'all' ? 'Movies' : 'Matching Movies')}
                                         </h3>
-                                        <div className="grid grid-cols-2 gap-3">
+                                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                                             {results.movies.map((item, idx) => (
                                                 <Link href={`/movie/${encodeURIComponent(item.movie_name)}`} key={idx} className="flex flex-col gap-2 p-2 bg-white rounded-xl border border-brand-gray hover:shadow-lg transition-all group">
                                                     <div className="relative w-full aspect-[2/3] bg-zinc-100 rounded-lg overflow-hidden shrink-0">
@@ -454,7 +454,7 @@ function SearchContent() {
                                         {!isSpecialSearch && (
                                             <h3 className="font-bold text-zinc-600 text-xs uppercase tracking-wider mb-3 px-1">Ringtones</h3>
                                         )}
-                                        <div className="space-y-3">
+                                        <div className="space-y-3 md:grid md:grid-cols-2 md:space-y-0 md:gap-4">
                                             {results.ringtones.map((item) => (
                                                 <RingtoneCard key={item.id} ringtone={item} assignTo={searchParams.get('assignTo') || undefined} />
                                             ))}
@@ -474,7 +474,7 @@ function SearchContent() {
                                 {/* Browse by Mood */}
                                 <section>
                                     <h2 className="text-lg font-bold text-[#15171A] mb-3">Browse by Mood</h2>
-                                    <div className="grid grid-cols-2 gap-3">
+                                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                                         {MOODS.map((mood) => (
                                             <Link
                                                 key={mood}
@@ -491,7 +491,7 @@ function SearchContent() {
                                 {/* Browse by Era */}
                                 <section>
                                     <h2 className="text-lg font-bold text-[#15171A] mb-3">Browse by Era</h2>
-                                    <div className="grid grid-cols-2 gap-3">
+                                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                                         {ERAS.map((era) => (
                                             <Link
                                                 key={era.label}
@@ -514,7 +514,7 @@ function SearchContent() {
                         {activeTab === 'movies' && (
                             <section>
                                 <h3 className="font-bold text-zinc-600 text-xs uppercase tracking-wider mb-3 px-1">Popular Movies</h3>
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                                     {defaults.movies.map((item, idx) => (
                                         <Link href={`/movie/${encodeURIComponent(item.movie_name)}`} key={idx} className="flex flex-col gap-2 p-2 bg-white rounded-xl border border-[#E5EBF1] hover:shadow-lg transition-all group">
                                             <div className="relative w-full aspect-[2/3] bg-zinc-100 rounded-lg overflow-hidden shrink-0">

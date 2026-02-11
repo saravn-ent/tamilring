@@ -8,6 +8,7 @@ import { Ringtone } from '@/types';
 import { usePlayer } from '@/context/PlayerContext';
 import { incrementLikes } from '@/app/actions/ringtones';
 import { getImageUrl } from '@/lib/tmdb';
+import MiniPlayerBar from './MiniPlayerBar';
 import TMDBImage from './TMDBImage';
 import { useFavorites } from '@/context/FavoritesContext';
 
@@ -30,7 +31,7 @@ const TAGS_WHITELIST = [
 ];
 
 export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) {
-  const { currentRingtone, isPlaying, playRingtone, togglePlay, progress } = usePlayer();
+  const { currentRingtone, isPlaying, playRingtone, togglePlay } = usePlayer();
   const { isFavorite, addFavorite, removeFavorite } = useFavorites();
   const [isLiked, setIsLiked] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -235,19 +236,7 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
 
             {/* Active Player Bar - Now Compact and Integrated */}
             {isActive && (
-              <div className="mt-2.5 mb-1.5 flex flex-col w-full animate-in fade-in slide-in-from-top-1">
-                <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-brand-accent transition-all duration-100 ease-linear rounded-full"
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-                <div className="w-full flex items-center justify-end text-[10px] font-black text-brand-accent mt-1.5 px-0.5">
-                  <span className="bg-brand-wash px-1 rounded">
-                    {formatDuration((progress / 100) * (loadedDuration || 0))} / {formatDuration(loadedDuration)}
-                  </span>
-                </div>
-              </div>
+              <MiniPlayerBar loadedDuration={loadedDuration} />
             )}
 
             {/* Tags - Visible on all screens, but compact */}

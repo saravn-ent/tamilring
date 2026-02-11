@@ -19,7 +19,7 @@ export default async function RecentPage({
   const { sort } = await searchParams;
 
   return (
-    <div className="max-w-md mx-auto p-4 pb-24">
+    <div className="max-w-md md:max-w-4xl lg:max-w-6xl mx-auto p-4 pb-24">
       <header className="flex items-center gap-4 py-4 mb-3">
         <Link href="/" className="p-2 bg-zinc-100 rounded-full text-zinc-600 hover:text-brand-accent transition-colors">
           <ArrowLeft size={20} />
