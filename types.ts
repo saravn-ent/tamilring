@@ -27,6 +27,10 @@ export interface Ringtone {
   user_id?: string;
   duration?: number;
   audio_url_iphone?: string;
+  profile?: {
+    id: string;
+    full_name?: string;
+  };
 }
 
 export interface Profile {

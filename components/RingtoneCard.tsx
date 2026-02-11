@@ -271,6 +271,7 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
                 <span>
                   {ringtone.likes > 0 ? (ringtone.likes > 1000 ? `${(ringtone.likes / 1000).toFixed(1)}k` : ringtone.likes) : 0} Likes
                 </span>
+
               </div>
             )}
           </div>

@@ -22,24 +22,51 @@ async function getRecentRingtones(lang: string = 'tamil') {
                 query = query.eq('language', lang);
             }
 
-            const { data } = await query
+            const { data: ringtones } = await query
                 .order('created_at', { ascending: false })
                 .limit(6);
 
-            // FALLBACK: If no results for this specific language, show latest from all languages
-            if (!data || data.length === 0) {
-                const { data: fallbackData } = await supabase
+            if (!ringtones || ringtones.length === 0) {
+                // Fallback attempt (all languages)
+                const { data: fallback } = await supabase
                     .from('ringtones')
                     .select('*')
                     .eq('status', 'approved')
                     .order('created_at', { ascending: false })
                     .limit(6);
-                return fallbackData || [];
+
+                // Fetch profiles for fallback
+                if (fallback && fallback.length > 0) {
+                    const userIds = Array.from(new Set(fallback.map(r => r.user_id).filter(Boolean)));
+                    if (userIds.length > 0) {
+                        const { data: profiles } = await supabase
+                            .from('profiles')
+                            .select('id, full_name')
+                            .in('id', userIds);
+
+                        const profileMap = new Map(profiles?.map(p => [p.id, p]));
+                        return fallback.map(r => ({ ...r, profile: profileMap.get(r.user_id) }));
+                    }
+                    return fallback;
+                }
+                return [];
             }
 
-            return data || [];
+            // Fetch profiles for main result
+            const userIds = Array.from(new Set(ringtones.map((r: any) => r.user_id).filter(Boolean)));
+            if (userIds.length > 0) {
+                const { data: profiles } = await supabase
+                    .from('profiles')
+                    .select('id, full_name')
+                    .in('id', userIds);
+
+                const profileMap = new Map(profiles?.map((p: any) => [p.id, p]));
+                return ringtones.map((r: any) => ({ ...r, profile: profileMap.get(r.user_id) }));
+            }
+
+            return ringtones;
         },
-        ['recent-ringtones-v6', lang],
+        ['recent-ringtones-v7', lang], // Bump version
         { revalidate: 3600, tags: ['recent'] }
     )();
 }

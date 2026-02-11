@@ -11,6 +11,7 @@ export const ringtoneSchema = z.object({
     tags: z.array(z.string()).max(10),
     audioUrl: z.string().url("Invalid Audio URL"),
     posterUrl: z.string().url("Invalid Poster URL").optional(),
+    duration: z.number().int().max(45, "Duration cannot exceed 45 seconds").optional(),
 });
 
 export type RingtoneInput = z.infer<typeof ringtoneSchema>;

@@ -71,7 +71,12 @@ export async function handleWithdrawal(userId: string, amount: number, upiId: st
 
     // 1. Force Sync first - Ensure profiles.points is actually correct based on current reality
     // (This calculates lifetime - [pending + completed withdrawals])
-    await syncUserGamification(adminSupabase, userId);
+    const syncResult = await syncUserGamification(adminSupabase, userId);
+
+    if (!syncResult) {
+        console.error(`[Withdrawal] Sync failed for user ${userId}`);
+        return { success: false, error: 'Failed to synchronize account balance. Please try again.' };
+    }
 
     // 2. Validate withdrawal logic WITHIN ATOMIC TRANSACTION
     const minThreshold = 100;
@@ -82,45 +87,21 @@ export async function handleWithdrawal(userId: string, amount: number, upiId: st
     const withdrawAmount = amount;
 
     try {
-        console.log(`[Withdrawal] Starting atomic transaction for ${userId}: ${withdrawAmount} Rep`);
+        console.log(`[Withdrawal] Requesting payout for ${userId}: ${withdrawAmount} Rep`);
 
-        await db.transaction(async (tx) => {
-            // A. Get current profile with FOR UPDATE lock to prevent race conditions
-            const [currentProfile] = await tx
-                .select({ points: profiles.points, totalWithdrawnCount: profiles.totalWithdrawnCount })
-                .from(profiles)
-                .where(eq(profiles.id, userId))
-                .for('update');
-
-            if (!currentProfile) {
-                throw new Error('User profile not found');
-            }
-
-            // Important: points can be null if not initialized, default to 0
-            const currentPoints = currentProfile.points ?? 0;
-
-            if (currentPoints < withdrawAmount) {
-                throw new Error(`Insufficient Reputation Points. Available: ${currentPoints} Rep.`);
-            }
-
-            // B. Update profile points and count
-            await tx
-                .update(profiles)
-                .set({
-                    points: currentPoints - withdrawAmount,
-                    totalWithdrawnCount: (currentProfile.totalWithdrawnCount || 0) + 1,
-                    upiId: upiId // Ensure UPI ID is saved
-                })
-                .where(eq(profiles.id, userId));
-
-            // C. Log withdrawal in the database
-            await tx.insert(withdrawals).values({
-                userId: userId,
-                amount: withdrawAmount,
-                upiId: upiId,
-                status: 'pending' as 'pending'
-            });
+        // Use the secure RPC function to handle the atomic transaction
+        const { data, error: rpcError } = await adminSupabase.rpc('handle_withdrawal_payout', {
+            p_user_id: userId,
+            p_amount: withdrawAmount,
+            p_upi_id: upiId
         });
+
+        if (rpcError) throw new Error(rpcError.message);
+
+        const result = data as { success: boolean, error?: string };
+        if (!result.success) {
+            throw new Error(result.error || 'Database transaction failed');
+        }
 
         console.log(`[Withdrawal] Success for ${userId}`);
 
@@ -129,9 +110,9 @@ export async function handleWithdrawal(userId: string, amount: number, upiId: st
             revalidatePath('/profile');
             revalidatePath('/admin/withdrawals');
             // @ts-expect-error - revalidateTag has type issues in Next.js 16
-            revalidateTag('contributors'); // Clear cache for Top Contributors list
+            revalidateTag('contributors');
         } catch (e) {
-            console.warn('Revalidation failed, data might be stale:', e);
+            console.warn('Revalidation failed:', e);
         }
 
         // 6. Log withdrawal (Notify admin via Discord)

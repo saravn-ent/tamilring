@@ -390,6 +390,9 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       const objectUrl = URL.createObjectURL(selectedFile);
       audio.src = objectUrl;
       audio.onloadedmetadata = () => {
+        if (audio.duration > 45) {
+          alert('This file is longer than 45 seconds. Ringtones must be 45 seconds or less. Please use our Ringtone Cutter tool or upload a shorter file.');
+        }
         setTrimEnd(audio.duration);
         URL.revokeObjectURL(objectUrl);
       };
@@ -441,6 +444,8 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       .replace(/\(Original.*?\)/gi, '')
       .replace(/\[From.*?\]/gi, '')
       .replace(/- From.*/gi, '')
+      .replace(/[()]/g, '') // USER REQUEST: Remove all brackets
+      .replace(/\s+/g, ' ')
       .trim();
   };
 
@@ -523,6 +528,13 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
     if (contentType === 'movie' && !manualMovieName) {
       alert('Please select a movie.');
+      return;
+    }
+
+    // Validation: Max duration 45s
+    const finalDuration = (trimEnd > trimStart) ? (trimEnd - trimStart) : 0;
+    if (finalDuration > 45) {
+      alert('The ringtone duration cannot exceed 45 seconds. Please use our Ringtone Cutter tool or upload a shorter file.');
       return;
     }
 
@@ -866,7 +878,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
             <p className="text-brand-dark font-black tracking-tight text-lg">Drag & Drop or Click to Upload</p>
             <p className="text-zinc-400 text-xs text-center px-4 font-medium">
               MP3, M4R, WAV accepted.<br />
-              <span className="text-brand-accent font-bold">Max duration 40s recommended for iPhone</span>
+              <span className="text-brand-accent font-bold">Max duration: 45 seconds</span>
             </p>
           </label>
         </div>
@@ -1153,7 +1165,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
             <input
               type="text"
               value={segmentName}
-              onChange={(e) => setSegmentName(e.target.value)}
+              onChange={(e) => setSegmentName(e.target.value.replace(/[()]/g, ''))}
               placeholder="e.g., BGM, Whistle, Lyrics..."
               className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-brand-accent transition-colors font-medium placeholder:text-zinc-400"
             />
@@ -1166,7 +1178,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
               <input
                 type="text"
                 value={movieDirector}
-                onChange={(e) => setMovieDirector(e.target.value)}
+                onChange={(e) => setMovieDirector(e.target.value.replace(/[()]/g, ''))}
                 placeholder="e.g., Mani Ratnam"
                 className="w-full bg-brand-wash border border-brand-border rounded-xl px-3 py-2 text-sm text-brand-dark focus:outline-none focus:border-brand-accent transition-colors font-medium"
               />
@@ -1179,7 +1191,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
               <input
                 type="text"
                 value={musicDirector}
-                onChange={(e) => setMusicDirector(e.target.value)}
+                onChange={(e) => setMusicDirector(e.target.value.replace(/[()]/g, ''))}
                 className="w-full bg-brand-wash border border-brand-border rounded-xl px-3 py-2 text-sm text-brand-dark focus:outline-none focus:border-brand-accent transition-colors font-medium"
               />
             </div>
@@ -1190,7 +1202,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
             <input
               type="text"
               value={singers}
-              onChange={(e) => setSingers(e.target.value)}
+              onChange={(e) => setSingers(e.target.value.replace(/[()]/g, ''))}
               placeholder="e.g., Sid Sriram, Shreya Ghoshal"
               className="w-full bg-brand-wash border border-brand-border rounded-xl px-3 py-2 text-sm text-brand-dark focus:outline-none focus:border-brand-accent transition-colors font-medium"
             />
@@ -1392,10 +1404,10 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                         <button
                           key={i}
                           onClick={() => {
-                            setSongName(song.trackName);
-                            setSingers(song.artistName);
-                            setMusicDirector(song.artistName); // Default MD to Artist
-                            setManualMovieName(song.collectionName.replace(/ - Single$/i, '').replace(/ - EP$/i, ''));
+                            setSongName(song.trackName.replace(/[()]/g, ''));
+                            setSingers(song.artistName.replace(/[()]/g, ''));
+                            setMusicDirector(song.artistName.replace(/[()]/g, '')); // Default MD to Artist
+                            setManualMovieName(song.collectionName.replace(/ - Single$/i, '').replace(/ - EP$/i, '').replace(/[()]/g, ''));
                             setAlbumSearchQuery('');
                             setSelectedArtwork(song.artworkUrl100 || null);
                             setAlbumSongs([]); // Clear results
@@ -1494,7 +1506,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                 <input
                   type="text"
                   value={manualMovieName}
-                  onChange={(e) => setManualMovieName(e.target.value)}
+                  onChange={(e) => setManualMovieName(e.target.value.replace(/[()]/g, ''))}
                   placeholder="e.g., Kadhal Kavithai"
                   className="w-full bg-white border border-brand-border rounded-xl px-4 py-3 text-brand-dark text-sm focus:outline-none focus:border-brand-accent transition-colors font-medium"
                 />
@@ -1505,7 +1517,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                 <input
                   type="text"
                   value={songName}
-                  onChange={(e) => setSongName(e.target.value)}
+                  onChange={(e) => setSongName(e.target.value.replace(/[()]/g, ''))}
                   placeholder="e.g., Unnai Ninaithu"
                   className="w-full bg-white border border-brand-border rounded-xl px-4 py-3 text-brand-dark text-sm focus:outline-none focus:border-brand-accent transition-colors font-medium"
                 />
@@ -1519,7 +1531,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                 <input
                   type="text"
                   value={singers}
-                  onChange={(e) => setSingers(e.target.value)}
+                  onChange={(e) => setSingers(e.target.value.replace(/[()]/g, ''))}
                   placeholder="e.g., Sid Sriram, Shreya Ghoshal"
                   className="w-full bg-white border border-brand-border rounded-xl px-4 py-3 text-brand-dark text-sm focus:outline-none focus:border-brand-accent transition-colors font-medium"
                 />
@@ -1555,7 +1567,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                 <input
                   type="text"
                   value={segmentName}
-                  onChange={(e) => setSegmentName(e.target.value)}
+                  onChange={(e) => setSegmentName(e.target.value.replace(/[()]/g, ''))}
                   placeholder="e.g., Pallavi, Charanam, BGM..."
                   className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-brand-accent transition-colors font-medium placeholder:text-zinc-400"
                   autoFocus
@@ -1708,7 +1720,8 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
               list="deity-list"
               value={deityCategory}
               onChange={(e) => {
-                setDeityCategory(e.target.value);
+                const sanitized = e.target.value.replace(/[()]/g, '');
+                setDeityCategory(sanitized);
                 // Auto-add Devotional tag
                 if (!selectedTags.includes('Devotional')) {
                   setSelectedTags([...selectedTags, 'Devotional']);
@@ -1761,8 +1774,8 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                         <button
                           key={i}
                           onClick={() => {
-                            setSongName(song.trackName);
-                            setSingers(song.artistName);
+                            setSongName(song.trackName.replace(/[()]/g, ''));
+                            setSingers(song.artistName.replace(/[()]/g, ''));
                             setSelectedArtwork(song.artworkUrl100 || null);
                             setShowDevotionalSongDropdown(false);
                           }}
@@ -1788,7 +1801,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                 className="text-[10px] text-brand-accent hover:text-brand-dark font-bold underline"
                 onClick={() => {
                   const manual = prompt("Enter song name manually:");
-                  if (manual) setSongName(manual);
+                  if (manual) setSongName(manual.replace(/[()]/g, ''));
                 }}
               >
                 Song not listed? Enter manually
@@ -1801,7 +1814,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
             <input
               type="text"
               value={segmentName}
-              onChange={(e) => setSegmentName(e.target.value)}
+              onChange={(e) => setSegmentName(e.target.value.replace(/[()]/g, ''))}
               placeholder="e.g., Pallavi, Charanam, BGM..."
               className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-brand-accent transition-colors font-medium placeholder:text-zinc-400"
             />
@@ -1815,7 +1828,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
             <input
               type="text"
               value={singers}
-              onChange={(e) => setSingers(e.target.value)}
+              onChange={(e) => setSingers(e.target.value.replace(/[()]/g, ''))}
               placeholder="e.g., Sid Sriram, Shreya Ghoshal"
               className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-brand-accent transition-colors font-medium"
             />

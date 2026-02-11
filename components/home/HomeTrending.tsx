@@ -5,11 +5,25 @@ import TMDBImage from '@/components/TMDBImage';
 import { getTrendingRingtones, getUserLanguage } from '@/app/actions/ringtones';
 import { Ringtone } from '@/types';
 
+import { supabase } from '@/lib/supabaseClient';
+
 export default async function HomeTrending() {
     const lang = await getUserLanguage();
-    const trending = await getTrendingRingtones(10, lang);
+    let trending = await getTrendingRingtones(10, lang);
 
     if (!trending || trending.length === 0) return null;
+
+    // Fetch Profiles manually for attribution
+    const userIds = Array.from(new Set(trending.map((r: any) => r.user_id).filter(Boolean)));
+    if (userIds.length > 0) {
+        const { data: profiles } = await supabase
+            .from('profiles')
+            .select('id, full_name')
+            .in('id', userIds);
+
+        const profileMap = new Map(profiles?.map((p: any) => [p.id, p]));
+        trending = trending.map((r: any) => ({ ...r, profile: profileMap.get(r.user_id) }));
+    }
 
     return (
         <div className="mb-10">
@@ -32,6 +46,9 @@ export default async function HomeTrending() {
                         </div>
                         <p className="text-xs font-bold text-black truncate group-hover:text-brand-blue transition-colors">{ringtone.title}</p>
                         <p className="text-[10px] text-brand-dark truncate">{ringtone.movie_name}</p>
+                        {ringtone.profile?.full_name && (
+                            <p className="text-[9px] text-zinc-500 truncate mt-0.5">by {ringtone.profile.full_name}</p>
+                        )}
                     </Link>
                 ))}
             </div>

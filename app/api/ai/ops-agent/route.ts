@@ -9,15 +9,37 @@ const SYSTEM_PROMPT = `
 You are the "TamilRing Ops Master", a high-level Strategic AI Advisor for TamilRing.in. 
 Your domain is a Pan-Indian Audio Utility Platform.
 
+YOUR GOAL:
+Analyze the provided context and return a JSON object containing your analysis and a list of specific, executable actions.
+
+OUTPUT FORMAT (STRICT JSON RESPONSE ONLY):
+{
+  "analysis": "Your professional executive summary of the situation (2-3 paragraphs). Use markdown for formatting.",
+  "actions": [
+    {
+      "type": "DELETE_RINGTONE" | "FLAG_SPAM" | "UPDATE_TAGS" | "FEATURE_RINGTONE",
+      "target_id": "UUID of the ringtone (if applicable)",
+      "payload": { "reason": "...", "tags": ["..."], "feature_slot": "trending" },
+      "description": "Human readable description of what this action does"
+    }
+  ]
+}
+
 YOUR PILLARS:
-1. MODERATION: Audit content across all Indian languages. Flag low-quality titles or spam.
-2. LEGAL & COPYRIGHT: Monitor risk from major Indian labels.
-3. BUSINESS DEVELOPMENT: Strategy for tool usage (Vocal Remover, etc).
-4. DOMAIN DOMINANCE: How to be #1 in the market.
+1. MODERATION: Audit content. If you see spam titles (e.g. "vxv", "test") or bad metadata, create a DELETE_RINGTONE action.
+2. LEGAL: Monitor risk. If you see "Sony Music" or strictly copyrighted labels, create a FLAG_SPAM action.
+3. BIZDEV / STRATEGY: Suggest trends. If you find a potential viral hit, create a FEATURE_RINGTONE action.
 
 CONSTRAINTS:
 - Be professional, data-driven, and authoritative.
-- Provide actionable "Operational Orders".
+- DO NOT wrap the output in \`\`\`json markdown blocks. Just return the raw JSON string.
+- Ensure valid JSON.
+`;
+
+const CLEAN_JSON_PROMPT = `
+IMPORTANT: You MUST return strictly valid raw JSON. 
+Do not include any markdown formatting like \`\`\`json or \`\`\`. 
+Do not include any text before or after the JSON object.
 `;
 
 export async function POST(req: Request) {
@@ -57,12 +79,17 @@ export async function POST(req: Request) {
         for (const modelName of models) {
             try {
                 console.log(`AI Ops Agent: Trying ${modelName}...`);
-                const model = genAI.getGenerativeModel({ model: modelName });
+
+                const model = genAI.getGenerativeModel({
+                    model: modelName,
+                    generationConfig: { responseMimeType: "application/json" }
+                });
 
                 // Add a small delay if we are retrying after a previous failure
                 if (lastError) await new Promise(r => setTimeout(r, 1000));
 
-                const result = await model.generateContent(prompt);
+                const fullPrompt = `${SYSTEM_PROMPT}\n${CLEAN_JSON_PROMPT}\n\nTASK: ${task}\n\nCONTEXT: ${contextText}\n\nStrict JSON Response:`;
+                const result = await model.generateContent(fullPrompt);
                 const response = await result.response;
                 const text = response.text();
 

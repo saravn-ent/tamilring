@@ -118,7 +118,7 @@ const languages = [
 export default function NameRingtone() {
     const [customMessage, setCustomMessage] = useState('');
     const [lang, setLang] = useState<string>('ta');
-    const [gender, setGender] = useState<'male' | 'female'>('female');
+
     const [selectedMusic, setSelectedMusic] = useState(backgroundTracks[0]);
     const [isGenerating, setIsGenerating] = useState(false);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -189,7 +189,7 @@ export default function NameRingtone() {
     };
 
     const handleMessageChange = (val: string) => {
-        setCustomMessage(val);
+        setCustomMessage(val.replace(/[()]/g, ''));
     };
 
     const toggleLang = (val: string) => {
@@ -197,10 +197,7 @@ export default function NameRingtone() {
         hapticFeedback(5);
     };
 
-    const toggleGender = (val: 'male' | 'female') => {
-        setGender(val);
-        hapticFeedback(5);
-    };
+
 
 
     const handleTransliterate = async () => {
@@ -373,34 +370,12 @@ export default function NameRingtone() {
                                 </div>
                             </div>
 
-                            <div className="space-y-3">
-                                <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
-                                    <div className="w-5 h-5 bg-rose-500 text-white rounded-md flex items-center justify-center text-[9px]">2</div>
-                                    Select Voice
-                                </h3>
-                                <div className="flex bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
-                                    <button
-                                        onClick={() => toggleGender('female')}
-                                        className={`flex-1 flex items-center justify-center gap-2 h-11 text-[11px] font-black rounded-xl transition-all ${gender === 'female' ? 'bg-white text-rose-600 shadow-sm border border-rose-100' : 'text-slate-400 hover:text-slate-600'}`}
-                                    >
-                                        <User size={14} />
-                                        Female Voice
-                                    </button>
-                                    <button
-                                        onClick={() => toggleGender('male')}
-                                        className={`flex-1 flex items-center justify-center gap-2 h-11 text-[11px] font-black rounded-xl transition-all ${gender === 'male' ? 'bg-white text-indigo-600 shadow-sm border border-indigo-100' : 'text-slate-400 hover:text-slate-600'}`}
-                                    >
-                                        <UserCheck size={14} />
-                                        Male Voice
-                                    </button>
-                                </div>
-                            </div>
                         </div>
 
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
-                                    <div className="w-5 h-5 bg-rose-500 text-white rounded-md flex items-center justify-center text-[9px]">3</div>
+                                    <div className="w-5 h-5 bg-rose-500 text-white rounded-md flex items-center justify-center text-[9px]">2</div>
                                     Your Custom Message
                                 </h3>
                             </div>
@@ -456,10 +431,6 @@ export default function NameRingtone() {
                                             <p className="text-rose-400 text-[9px] font-black uppercase tracking-widest">Caller Setup</p>
                                         </div>
                                     </div>
-                                    <div className="flex bg-white/5 p-1 rounded-xl border border-white/10">
-                                        <button onClick={() => toggleGender('female')} className={`px-3 py-1.5 rounded-lg transition-all ${gender === 'female' ? 'bg-white text-rose-600' : 'text-slate-400 hover:text-white'}`}><User size={14} /></button>
-                                        <button onClick={() => toggleGender('male')} className={`px-3 py-1.5 rounded-lg transition-all ${gender === 'male' ? 'bg-white text-indigo-600' : 'text-slate-400 hover:text-white'}`}><UserCheck size={14} /></button>
-                                    </div>
                                 </div>
                                 <div className={`mb-4 relative transition-all duration-500 ${isPlaying ? 'scale-105' : ''}`}>
                                     <div className="text-[10px] font-black text-rose-500/50 uppercase tracking-[0.3em] text-center mb-2">Incoming Call</div>
@@ -486,7 +457,7 @@ export default function NameRingtone() {
                     {/* STEP 5: BACKGROUND MUSIC */}
                     <section className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 space-y-4">
                         <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 bg-indigo-50 text-indigo-500 rounded-lg flex items-center justify-center text-[10px] font-black">05</div>
+                            <div className="w-6 h-6 bg-indigo-50 text-indigo-500 rounded-lg flex items-center justify-center text-[10px] font-black">03</div>
                             <h2 className="text-xs font-black text-slate-900 uppercase tracking-widest">Pick Your Mood</h2>
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -515,7 +486,7 @@ export default function NameRingtone() {
                         </div>
                         <div className="relative z-10">
                             <div className="flex items-center gap-3 mb-8">
-                                <div className="w-10 h-10 bg-indigo-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/40 text-xs font-black">06</div>
+                                <div className="w-10 h-10 bg-indigo-500 text-white rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-500/40 text-xs font-black">04</div>
                                 <div className="flex-1">
                                     <h3 className="text-white font-black text-sm uppercase tracking-tight">Studio Master</h3>
                                     <p className="text-indigo-400 text-[9px] font-black uppercase tracking-widest">Final Audio Engine</p>
@@ -567,64 +538,66 @@ export default function NameRingtone() {
             </div>
 
             {/* BGM LIBRARY MODAL */}
-            {isBgmModalOpen && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-                    <div className="w-full max-w-lg bg-white rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col max-h-[80vh]">
-                        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-                            <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest">Site Library</h2>
-                            <button onClick={() => setIsBgmModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors"><X size={20} className="text-slate-400" /></button>
-                        </div>
-                        <div className="p-6 bg-slate-50 border-b border-slate-100">
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    placeholder="Search songs or movies..."
-                                    value={bgmSearch}
-                                    onChange={(e) => setBgmSearch(e.target.value)}
-                                    className="w-full h-12 pl-12 pr-6 bg-white border border-slate-200 rounded-2xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
-                                />
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            {
+                isBgmModalOpen && (
+                    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+                        <div className="w-full max-w-lg bg-white rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col max-h-[80vh]">
+                            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+                                <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest">Site Library</h2>
+                                <button onClick={() => setIsBgmModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors"><X size={20} className="text-slate-400" /></button>
+                            </div>
+                            <div className="p-6 bg-slate-50 border-b border-slate-100">
+                                <div className="relative">
+                                    <input
+                                        type="text"
+                                        placeholder="Search songs or movies..."
+                                        value={bgmSearch}
+                                        onChange={(e) => setBgmSearch(e.target.value)}
+                                        className="w-full h-12 pl-12 pr-6 bg-white border border-slate-200 rounded-2xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                    />
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                </div>
+                            </div>
+                            <div className="flex-1 overflow-y-auto p-4 space-y-2">
+                                {isLoadingLibrary ? (
+                                    <div className="flex flex-col items-center justify-center py-12 gap-3 text-slate-400">
+                                        <Loader2 className="animate-spin" size={24} />
+                                        <span className="text-[10px] font-bold uppercase tracking-widest">Accessing Vault...</span>
+                                    </div>
+                                ) : filteredLibrary.length > 0 ? (
+                                    <div className="grid grid-cols-1 gap-2">
+                                        {filteredLibrary.map((r: any) => (
+                                            <button
+                                                key={r.id}
+                                                onClick={() => {
+                                                    setSelectedMusic({ id: r.id, name: r.title, file: r.audioUrl, color: 'bg-indigo-500', shadow: 'shadow-indigo-500/20', gradient: 'from-indigo-500 to-blue-600' });
+                                                    setIsBgmModalOpen(false);
+                                                }}
+                                                className="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-2xl border border-slate-100 transition-all text-left group"
+                                            >
+                                                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform"><Music size={16} className="text-indigo-500" /></div>
+                                                <div className="flex-1">
+                                                    <h4 className="text-[11px] font-black text-slate-900 leading-tight line-clamp-1">{r.title}</h4>
+                                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">{r.movieName || 'Single'}</p>
+                                                </div>
+                                                <ChevronRight size={12} className="text-slate-300" />
+                                            </button>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="text-center py-8">
+                                        <Music className="mx-auto text-slate-200 mb-2" size={32} />
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">No matches found</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
-                        <div className="flex-1 overflow-y-auto p-4 space-y-2">
-                            {isLoadingLibrary ? (
-                                <div className="flex flex-col items-center justify-center py-12 gap-3 text-slate-400">
-                                    <Loader2 className="animate-spin" size={24} />
-                                    <span className="text-[10px] font-bold uppercase tracking-widest">Accessing Vault...</span>
-                                </div>
-                            ) : filteredLibrary.length > 0 ? (
-                                <div className="grid grid-cols-1 gap-2">
-                                    {filteredLibrary.map((r: any) => (
-                                        <button
-                                            key={r.id}
-                                            onClick={() => {
-                                                setSelectedMusic({ id: r.id, name: r.title, file: r.audioUrl, color: 'bg-indigo-500', shadow: 'shadow-indigo-500/20', gradient: 'from-indigo-500 to-blue-600' });
-                                                setIsBgmModalOpen(false);
-                                            }}
-                                            className="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-2xl border border-slate-100 transition-all text-left group"
-                                        >
-                                            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform"><Music size={16} className="text-indigo-500" /></div>
-                                            <div className="flex-1">
-                                                <h4 className="text-[11px] font-black text-slate-900 leading-tight line-clamp-1">{r.title}</h4>
-                                                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">{r.movieName || 'Single'}</p>
-                                            </div>
-                                            <ChevronRight size={12} className="text-slate-300" />
-                                        </button>
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="text-center py-8">
-                                    <Music className="mx-auto text-slate-200 mb-2" size={32} />
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">No matches found</p>
-                                </div>
-                            )}
-                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             <Script src="/ffmpeg/ffmpeg.min.js" strategy="afterInteractive" onLoad={() => { if ((window as any).FFmpeg) loadFFmpeg(); }} />
             <SetRingtoneModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-        </main>
+        </main >
     );
 }

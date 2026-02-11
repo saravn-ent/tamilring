@@ -11,7 +11,8 @@ import { headers } from 'next/headers';
 const getTopArtists = unstable_cache(
     async (lang: string = 'tamil') => {
         // 1. Fetch all stats in 1 fast query
-        const { data: allStats } = await supabase.rpc('get_all_people_stats', { lang_filter: lang });
+        // 1. Fetch all stats in 1 fast query - Function does NOT support lang_filter yet
+        const { data: allStats } = await supabase.rpc('get_all_people_stats');
         if (!allStats) return { topSingers: [], topMusicDirectors: [], topMovieDirectors: [], topActors: [] };
 
         // Helper to fetch images in parallel

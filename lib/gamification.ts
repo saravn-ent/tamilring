@@ -87,7 +87,7 @@ export async function syncUserGamification(supabase: SupabaseClient, userId: str
         return null; // Safety abort
     }
 
-    const totalWithdrawn = withdrawals?.reduce((sum, w) => sum + w.amount, 0) || 0;
+    const totalWithdrawn = withdrawals?.reduce((sum, w) => sum + Math.max(0, w.amount), 0) || 0;
 
     // 3. Get Ringtone Requests (for point deduction)
     const { data: ringtoneRequests, error: requestError } = await supabase

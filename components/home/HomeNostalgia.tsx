@@ -8,15 +8,34 @@ import { headers } from 'next/headers';
 
 const getNostalgiaRingtones = unstable_cache(
     async (lang: string = 'tamil') => {
-        const { data } = await supabase
+        let query = supabase
             .from('ringtones')
             .select('*')
             .eq('status', 'approved')
-            .eq('language', lang)
             .lt('movie_year', 2015)
             .order('likes', { ascending: false })
             .limit(10);
-        return data || [];
+
+        if (lang === 'tamil') {
+            query = query.or(`language.eq.${lang},language.is.null`);
+        } else {
+            query = query.eq('language', lang);
+        }
+
+        const { data: ringtones } = await query;
+        if (!ringtones || ringtones.length === 0) return [];
+
+        const userIds = Array.from(new Set(ringtones.map(r => r.user_id).filter(Boolean)));
+        if (userIds.length === 0) return ringtones;
+
+        const { data: profiles } = await supabase
+            .from('profiles')
+            .select('id, full_name')
+            .in('id', userIds);
+
+        const profileMap = new Map(profiles?.map(p => [p.id, p]));
+        return ringtones.map(r => ({ ...r, profile: profileMap.get(r.user_id) }));
+
     },
     ['nostalgia-ringtones-v2'],
     { revalidate: 3600, tags: ['nostalgia'] }
@@ -59,6 +78,9 @@ export default async function HomeNostalgia() {
                         </div>
                         <p className="text-xs font-bold text-black truncate group-hover:text-brand-accent transition-colors">{ringtone.title}</p>
                         <p className="text-[10px] text-brand-dark truncate">{ringtone.movie_name}</p>
+                        {ringtone.profile?.full_name && (
+                            <p className="text-[9px] text-zinc-500 truncate mt-0.5">by {ringtone.profile.full_name}</p>
+                        )}
                     </Link>
                 ))}
             </div>

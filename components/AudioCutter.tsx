@@ -317,7 +317,15 @@ export default function AudioCutter({ file, initialTab, onReset, onFileChange }:
     };
 
     const handleDownload = async (format: 'mp3' | 'm4r') => {
-        if (loading) return; setLoading(true); setLoadingMessage(`Exporting...`);
+        if (loading) return;
+
+        const cutDuration = endTime - startTime;
+        if (cutDuration > 45) {
+            alert('The cut duration cannot exceed 45 seconds for a ringtone.');
+            return;
+        }
+
+        setLoading(true); setLoadingMessage(`Exporting...`);
         try {
             const ffmpeg = await loadFFmpeg(); if (!ffmpeg) return;
             const { fetchFile } = (window as any).FFmpeg;

@@ -31,11 +31,28 @@ const getRingtone = cache(async (slug: string) => {
   return cacheGetOrSet(
     CacheKeys.ringtone.bySlug(slug),
     async () => {
+      // 1. Fetch Ringtone (No Join)
       const { data: ringtone } = await supabase
         .from('ringtones')
         .select('*')
         .eq('slug', slug)
         .single();
+
+      if (!ringtone) return null;
+
+      // 2. Fetch Profile manually (if userId exists)
+      if (ringtone.user_id) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('id, full_name')
+          .eq('id', ringtone.user_id)
+          .single();
+
+        if (profile) {
+          (ringtone as any).profile = profile;
+        }
+      }
+
       return ringtone;
     },
     { ttl: CacheTTL.ringtone.details }
@@ -200,6 +217,20 @@ export default async function RingtonePage({ params }: Props) {
 
           {/* Social Proof Badge */}
           <div className="flex items-center justify-center gap-1.5 text-xs font-semibold text-zinc-500 mt-1">
+            {ringtone.profile?.full_name && (
+              <>
+                <span className="flex items-center gap-1">
+                  Uploaded by
+                  <Link
+                    href={`/user/${ringtone.profile.id}`}
+                    className="text-brand-accent hover:underline decoration-brand-accent/30 underline-offset-2 transition-all"
+                  >
+                    {ringtone.profile.full_name}
+                  </Link>
+                </span>
+                <span className="text-zinc-300 mx-1">|</span>
+              </>
+            )}
             <Download size={14} className="text-brand-accent/80" />
             <span><span className="text-brand-dark">{ringtone.downloads?.toLocaleString() || 0}</span> people downloaded this</span>
           </div>
