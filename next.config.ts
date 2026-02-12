@@ -35,7 +35,17 @@ const config: NextConfig = {
   async headers() {
     return [
       {
-        source: '/:path*',
+        // Only enable SharedArrayBuffer (COEP/COOP) for routes that explicitly need it (client-side FFmpeg)
+        // Applying this globally breaks cross-origin images (TMDB, etc) unless they send specific CORP headers
+        source: '/tools/:path*',
+        headers: [
+          { key: 'Cross-Origin-Embedder-Policy', value: 'require-corp' },
+          { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
+          { key: 'Cross-Origin-Resource-Policy', value: 'cross-origin' },
+        ],
+      },
+      {
+        source: '/upload/:path*',
         headers: [
           { key: 'Cross-Origin-Embedder-Policy', value: 'require-corp' },
           { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
