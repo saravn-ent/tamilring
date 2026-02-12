@@ -64,7 +64,6 @@ export default async function HomeContributors() {
                             </div>
                         </div>
                         <div className="text-center w-full mt-3 flex flex-col items-center">
-                            <span className="text-[10px] text-brand-blue font-bold tracking-wider mb-0.5">{c.points} Rep</span>
                             <p className="text-xs font-bold text-foreground truncate w-full">
                                 {c.name.includes(' ') && !c.name.includes('.') ? c.name.split(' ')[0] : c.name}
                             </p>

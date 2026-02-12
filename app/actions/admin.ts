@@ -156,7 +156,7 @@ export async function rejectRingtone(id: string, reason?: string) {
     return { success: true };
 }
 
-export async function updateWithdrawalStatus(withdrawalId: string, status: 'completed' | 'rejected') {
+export async function updateWithdrawalStatus(withdrawalId: string, status: 'completed' | 'rejected', transactionId?: string) {
     try {
         await ensureAdmin();
     } catch (error) {
@@ -183,6 +183,7 @@ export async function updateWithdrawalStatus(withdrawalId: string, status: 'comp
         .from('withdrawals')
         .update({
             status,
+            transaction_id: transactionId || null,
             updated_at: new Date().toISOString()
         }, { count: 'exact' })
         .eq('id', withdrawalId);

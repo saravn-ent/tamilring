@@ -66,7 +66,7 @@ async function getRecentRingtones(lang: string = 'tamil') {
 
             return ringtones;
         },
-        ['recent-ringtones-v7', lang], // Bump version
+        ['recent-ringtones-v9', lang], // Bump version
         { revalidate: 3600, tags: ['recent'] }
     )();
 }

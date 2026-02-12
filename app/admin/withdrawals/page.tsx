@@ -69,12 +69,12 @@ export default function AdminWithdrawals() {
         fetchWithdrawals();
     }, [fetchWithdrawals]);
 
-    const handleAction = async (id: string, status: 'completed' | 'rejected') => {
+    const handleAction = async (id: string, status: 'completed' | 'rejected', transactionId?: string) => {
         if (!confirm(`Are you sure you want to mark this as ${status}?`)) return;
 
         setProcessingId(id);
         try {
-            const res = await updateWithdrawalStatus(id, status);
+            const res = await updateWithdrawalStatus(id, status, transactionId);
             if (res.success) {
                 setWithdrawals(prev => prev.filter(w => w.id !== id));
             } else {
@@ -175,23 +175,34 @@ export default function AdminWithdrawals() {
                                     </div>
 
                                     {filter === 'pending' && (
-                                        <div className="flex gap-2">
-                                            <button
-                                                disabled={processingId === w.id}
-                                                onClick={() => handleAction(w.id, 'completed')}
-                                                className="h-11 px-6 bg-emerald-500 text-white font-black text-xs uppercase tracking-widest rounded-xl hover:bg-emerald-600 transition-all disabled:opacity-50 flex items-center gap-2 shadow-sm shadow-emerald-500/20"
-                                            >
-                                                {processingId === w.id ? <Loader2 size={16} className="animate-spin" /> : <CircleCheck size={16} />}
-                                                Mark Paid
-                                            </button>
-                                            <button
-                                                disabled={processingId === w.id}
-                                                onClick={() => handleAction(w.id, 'rejected')}
-                                                className="h-11 px-4 bg-red-50 text-red-600 font-black text-xs uppercase tracking-widest rounded-xl hover:bg-red-100 transition-all disabled:opacity-50 flex items-center gap-2 border border-red-200"
-                                            >
-                                                <CircleX size={16} />
-                                                Reject
-                                            </button>
+                                        <div className="flex flex-col gap-2">
+                                            <input
+                                                type="text"
+                                                id={`utr-${w.id}`}
+                                                placeholder="UTR / Trans. ID"
+                                                className="w-32 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-[10px] outline-none focus:border-indigo-400 font-mono"
+                                            />
+                                            <div className="flex gap-2">
+                                                <button
+                                                    disabled={processingId === w.id}
+                                                    onClick={() => {
+                                                        const utr = (document.getElementById(`utr-${w.id}`) as HTMLInputElement)?.value;
+                                                        handleAction(w.id, 'completed', utr);
+                                                    }}
+                                                    className="h-9 px-4 bg-emerald-500 text-white font-black text-[10px] uppercase tracking-widest rounded-lg hover:bg-emerald-600 transition-all disabled:opacity-50 flex items-center gap-2 shadow-sm shadow-emerald-500/20"
+                                                >
+                                                    {processingId === w.id ? <Loader2 size={12} className="animate-spin" /> : <CircleCheck size={12} />}
+                                                    Mark Paid
+                                                </button>
+                                                <button
+                                                    disabled={processingId === w.id}
+                                                    onClick={() => handleAction(w.id, 'rejected')}
+                                                    className="h-9 px-3 bg-red-50 text-red-600 font-black text-[10px] uppercase tracking-widest rounded-lg hover:bg-red-100 transition-all disabled:opacity-50 flex items-center gap-2 border border-red-200"
+                                                >
+                                                    <CircleX size={12} />
+                                                    Reject
+                                                </button>
+                                            </div>
                                         </div>
                                     )}
 

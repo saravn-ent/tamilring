@@ -160,7 +160,11 @@ const getTrendingRingtonesInternal = (limit: number, lang: string) => unstable_c
             let query = supabase
                 .from('ringtones')
                 .select('*')
-                .eq('status', 'approved');
+                .eq('status', 'approved')
+                .not('audio_url', 'is', null)
+                .neq('audio_url', '')
+                .not('poster_url', 'is', null)
+                .neq('poster_url', '');
 
             // Fallback strategy: try language, then try all
             if (lang === 'tamil') {
@@ -173,12 +177,16 @@ const getTrendingRingtonesInternal = (limit: number, lang: string) => unstable_c
                 .order('created_at', { ascending: false })
                 .limit(limit);
 
-            // Ultimate fallback: get any approved ringtones regardless of language
+            // Ultimate fallback: get any approved ringtones regardless of language (must have audio/poster)
             if (!fallback || fallback.length === 0) {
                 const { data: ultimateFallback } = await supabase
                     .from('ringtones')
                     .select('*')
                     .eq('status', 'approved')
+                    .not('audio_url', 'is', null)
+                    .neq('audio_url', '')
+                    .not('poster_url', 'is', null)
+                    .neq('poster_url', '')
                     .order('created_at', { ascending: false })
                     .limit(limit);
                 fallback = ultimateFallback;
@@ -188,7 +196,7 @@ const getTrendingRingtonesInternal = (limit: number, lang: string) => unstable_c
         }
         return data || [];
     },
-    ['trending-ringtones-v5', lang, limit.toString()],
+    ['trending-ringtones-v6', lang, limit.toString()],
     { revalidate: 3600, tags: ['trending'] }
 )();
 

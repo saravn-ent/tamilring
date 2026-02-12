@@ -6,7 +6,7 @@ import { Upload, Search, Music, Check, Loader2, X, RefreshCw, CircleAlert, Film,
 import ArtistAutocomplete from './ArtistAutocomplete';
 
 import { searchMovies, MovieResult, getImageUrl, getMovieCredits, TMDB_GENRE_TO_TAG } from '@/lib/tmdb';
-import { getSongsByMovie, iTunesRing } from '@/lib/itunes';
+import { getSongsByMovie, iTunesRing, searchRings } from '@/lib/itunes';
 import { createBrowserClient } from '@supabase/ssr';
 import { notifyAdminOnUpload, processAutoApproval } from '@/app/actions/ringtones';
 import { handleUploadReward } from '@/app/actions/user';
@@ -728,18 +728,39 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
         }
         // 2. Use iTunes Artwork (upscaled)
         if (selectedArtwork) {
-          return selectedArtwork.replace('100x100', '600x600');
+          return selectedArtwork.replace(/\/\d+x\d+bb/, '/600x600bb');
         }
 
-        // 3. AUTO-FETCH FALLBACK: If we have a name but no selection, try a quick TMDB search
-        if ((contentType === 'movie' || contentType === 'album') && manualMovieName) {
+        // 3. AUTO-FETCH FALLBACK: If we have a name but no selection, try a quick search
+        if (manualMovieName) {
           try {
-            const results = await searchMovies(manualMovieName);
-            if (results && results.length > 0 && results[0].poster_path) {
-              return getImageUrl(results[0].poster_path, 'w342');
+            if (contentType === 'album') {
+              const results = await searchRings(manualMovieName);
+              if (results && results.length > 0 && results[0].artworkUrl100) {
+                return results[0].artworkUrl100.replace(/\/\d+x\d+bb/, '/600x600bb');
+              }
+            } else if (contentType === 'movie') {
+              const results = await searchMovies(manualMovieName);
+              if (results && results.length > 0 && results[0].poster_path) {
+                return getImageUrl(results[0].poster_path, 'w342');
+              }
             }
           } catch (e) {
             console.warn('Auto-poster fetch failed:', e);
+          }
+        }
+
+        // 4. DEITY IMAGE FALLBACK: For devotional ringtones
+        if (contentType === 'devotional' && deityCategory) {
+          try {
+            const { data } = await supabase
+              .from('deity_images')
+              .select('image_url')
+              .eq('deity_name', deityCategory)
+              .single();
+            if (data && data.image_url) return data.image_url;
+          } catch (e) {
+            // Deity image not found or error
           }
         }
 

@@ -76,6 +76,7 @@ export interface Withdrawal {
   amount: number;
   status: 'pending' | 'completed' | 'rejected';
   upi_id: string;
+  transaction_id?: string;
   created_at: string;
   updated_at?: string;
   profile?: Profile;

@@ -19,7 +19,7 @@ import RingtoneCard from '@/components/RingtoneCard';
 import { useFavorites } from '@/context/FavoritesContext';
 import AvatarRank from '@/components/AvatarRank';
 import { getLevelTitle, syncUserGamification, POINTS_PER_UPLOAD } from '@/lib/gamification';
-import { Ringtone, Profile, UserBadge } from '@/types';
+import { Ringtone, Profile, UserBadge, Withdrawal } from '@/types';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { handleWithdrawal, syncProfileStats } from '@/app/actions/user';
 
@@ -45,12 +45,14 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [uploads, setUploads] = useState<Ringtone[]>([]);
   const [userBadges, setUserBadges] = useState<UserBadge[]>([]);
+  const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
+  const [ringtoneRequests, setRingtoneRequests] = useState<any[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Tab State
-  const [activeTab, setActiveTab] = useState<'upload' | 'uploads' | 'liked'>('upload');
+  const [activeTab, setActiveTab] = useState<'upload' | 'uploads' | 'liked' | 'ledger'>('upload');
 
   // Edit State
   const [isEditing, setIsEditing] = useState(false);
@@ -104,14 +106,22 @@ export default function ProfilePage() {
         const fetchBadges = withTimeout(supabase.from('user_badges').select('*, badge:badges(*)').eq('user_id', user.id) as unknown as Promise<SupabaseRes<UserBadge[]>>)
           .catch((e: unknown) => ({ data: null, error: e }));
 
+        const fetchWithdrawals = withTimeout(supabase.from('withdrawals').select('*').eq('user_id', user.id).order('created_at', { ascending: false }) as unknown as Promise<SupabaseRes<Withdrawal[]>>)
+          .catch((e: unknown) => ({ data: null, error: e }));
 
-        const [profileRes, uploadsRes, badgesRes] = await Promise.all([
-          fetchProfile, fetchUploads, fetchBadges
+        const fetchRequests = withTimeout(supabase.from('ringtone_requests').select('*').eq('user_id', user.id).order('created_at', { ascending: false }) as unknown as Promise<SupabaseRes<any[]>>)
+          .catch((e: unknown) => ({ data: null, error: e }));
+
+
+        const [profileRes, uploadsRes, badgesRes, withdrawalsRes, requestsRes] = await Promise.all([
+          fetchProfile, fetchUploads, fetchBadges, fetchWithdrawals, fetchRequests
         ]);
 
         if (!mounted) return;
 
         if (badgesRes.data) setUserBadges(badgesRes.data);
+        if (withdrawalsRes.data) setWithdrawals(withdrawalsRes.data as Withdrawal[]);
+        if (requestsRes.data) setRingtoneRequests(requestsRes.data);
 
         // Handle Profile
         if (profileRes.data) {
@@ -507,7 +517,7 @@ export default function ProfilePage() {
       {/* Tabs */}
       <div className="sticky top-14 z-20 bg-white/95 backdrop-blur-md border-b border-brand-border mb-6">
         <div className="flex w-full px-2">
-          {['upload', 'uploads', 'liked'].map((tab) => (
+          {['upload', 'uploads', 'liked', 'ledger'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab as any)}
@@ -516,7 +526,8 @@ export default function ProfilePage() {
               {tab === 'liked' && <Heart size={14} />}
               {tab === 'uploads' && <Music size={14} />}
               {tab === 'upload' && <CloudUpload size={14} />}
-              <span>{tab === 'uploads' ? 'My Rings' : tab === 'liked' ? 'Liked' : tab}</span>
+              {tab === 'ledger' && <Coins size={14} />}
+              <span>{tab === 'uploads' ? 'My Rings' : tab === 'liked' ? 'Liked' : tab === 'ledger' ? 'Finances' : tab}</span>
             </button>
           ))}
         </div>
@@ -570,6 +581,116 @@ export default function ProfilePage() {
             )}
           </div>
         )}
+
+        {activeTab === 'ledger' && (
+          <div className="animate-in slide-in-from-bottom-4 fade-in duration-500 space-y-6 pb-20">
+            <div className="bg-brand-dark rounded-3xl p-6 text-white shadow-xl shadow-brand-dark/10 relative overflow-hidden">
+              <div className="relative z-10">
+                <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-1">Total Earnings</p>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-black">₹{profile?.lifetime_points || 0}</span>
+                  <span className="text-xs font-bold opacity-60">lifetime</span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-white/10">
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest opacity-50 mb-1">Available</p>
+                    <p className="text-xl font-bold">₹{profile?.points || 0}</p>
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest opacity-50 mb-1">Withdrawn</p>
+                    <p className="text-xl font-bold opacity-60">₹{profile?.total_withdrawn || 0}</p>
+                  </div>
+                </div>
+              </div>
+              <div className="absolute -right-4 -bottom-4 opacity-10 rotate-12">
+                <Coins size={120} />
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Transaction History</h3>
+
+              {[
+                ...uploads.filter(u => u.status === 'approved').map(u => ({
+                  id: u.id,
+                  type: 'upload',
+                  title: u.title,
+                  detail: 'Reward for approved upload',
+                  amount: 10,
+                  status: 'completed',
+                  date: u.created_at,
+                  utr: undefined
+                })),
+                ...withdrawals.map(w => ({
+                  id: w.id,
+                  type: 'withdrawal',
+                  title: `Withdrawal Request`,
+                  detail: `To ${w.upi_id}`,
+                  utr: w.transaction_id,
+                  amount: -w.amount,
+                  status: w.status,
+                  date: w.created_at
+                })),
+                ...ringtoneRequests.map(r => ({
+                  id: r.id,
+                  type: 'request',
+                  title: `Custom Request`,
+                  detail: `${r.song_name} (${r.movie_name})`,
+                  amount: -10,
+                  status: r.status === 'fulfilled' ? 'completed' : 'pending',
+                  date: r.created_at,
+                  utr: undefined
+                }))
+              ]
+                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+                .map((item, idx) => (
+                  <div key={idx} className="bg-white border border-brand-border rounded-2xl p-4 flex items-center justify-between hover:border-brand-accent/20 transition-all group shadow-sm">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0
+                        ${item.type === 'upload' ? 'bg-emerald-50 text-emerald-500' :
+                          item.type === 'withdrawal' ? 'bg-amber-50 text-amber-500' :
+                            'bg-blue-50 text-blue-500'}`}>
+                        {item.type === 'upload' ? <CloudUpload size={18} /> :
+                          item.type === 'withdrawal' ? <Wallet size={18} /> :
+                            <Star size={18} />}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-bold text-brand-dark truncate">{item.title}</p>
+                        <p className="text-[10px] text-zinc-400 font-medium truncate">{item.detail}</p>
+                        {item.utr && (
+                          <p className="text-[9px] font-black text-brand-accent bg-brand-accent/5 px-2 py-0.5 rounded-md mt-1 inline-block uppercase tracking-tight">
+                            UTR: {item.utr}
+                          </p>
+                        )}
+                        <p className="text-[9px] text-zinc-300 font-mono mt-1">{new Date(item.date).toLocaleDateString()} {new Date(item.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className={`text-sm font-black ${item.amount > 0 ? 'text-emerald-500' : 'text-brand-dark'}`}>
+                        {item.amount > 0 ? '+' : ''}{item.amount}
+                      </p>
+                      <span className={`text-[8px] font-black uppercase tracking-tighter
+                        ${item.status === 'completed' || item.status === 'fulfilled' ? 'text-emerald-500' :
+                          item.status === 'rejected' ? 'text-red-500' :
+                            'text-amber-500 animate-pulse'}`}>
+                        {item.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+
+              {uploads.length === 0 && withdrawals.length === 0 && ringtoneRequests.length === 0 && (
+                <div className="text-center py-12 bg-zinc-50 rounded-3xl border border-dashed border-zinc-200">
+                  <Coins size={32} className="mx-auto text-zinc-300 mb-2" />
+                  <p className="text-zinc-400 text-xs font-bold uppercase tracking-widest">No transactions yet</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'liked' && <LikedTabContent />}
 
         {activeTab === 'upload' && (
           <div className="animate-in zoom-in-95 fade-in duration-300 pb-20">

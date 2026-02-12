@@ -120,6 +120,7 @@ export const withdrawals = pgTable('withdrawals', {
     amount: integer('amount').notNull(),
     upiId: text('upi_id').notNull(),
     status: text('status').default('pending').$type<'pending' | 'completed' | 'rejected'>(),
+    transactionId: text('transaction_id'), // Bank UTR or similar
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
 }, (t) => ({

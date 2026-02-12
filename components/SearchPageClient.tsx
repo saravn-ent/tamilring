@@ -66,6 +66,10 @@ function SearchContent() {
                 .from('ringtones')
                 .select('movie_name, movie_year, poster_url, likes')
                 .eq('status', 'approved')
+                .not('audio_url', 'is', null)
+                .neq('audio_url', '')
+                .not('poster_url', 'is', null)
+                .neq('poster_url', '')
                 .order('likes', { ascending: false })
                 .limit(20);
 
@@ -116,7 +120,11 @@ function SearchContent() {
                     let dbQuery = supabase
                         .from('ringtones')
                         .select('*')
-                        .eq('status', 'approved');
+                        .eq('status', 'approved')
+                        .not('audio_url', 'is', null)
+                        .neq('audio_url', '')
+                        .not('poster_url', 'is', null)
+                        .neq('poster_url', '');
 
                     // Text Search Logic: Relaxed for better "related" results on typos
                     const parts = safeQuery.split(/\s+/).filter(p => p.length > 0);

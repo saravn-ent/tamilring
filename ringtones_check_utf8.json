@@ -1,0 +1,143 @@
+﻿[dotenv@17.2.3] injecting env (8) from .env.local -- tip: Ô£à audit secrets and track compliance: https://dotenvx.com/ops
+[
+  {
+    "id": "64ebd80b-5681-49b1-a941-f78e06d08db9",
+    "title": "Zoom",
+    "movie_name": "Zoom",
+    "poster_url": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/96/9f/38/969f3813-625e-d3b9-7b22-ec330d86c857/3616841767933.jpg/600x600bb.jpg",
+    "created_at": "2026-02-12T03:35:26.934034+00:00"
+  },
+  {
+    "id": "48759f16-e8d8-49fa-b904-ce519f24c4fb",
+    "title": "Waka waka - Waka Waka This Time for Africa [The Official 2010 FIFA World Cup TM Song] [feat. Freshlyground] [Single]",
+    "movie_name": "Listen Up! The Official 2010 FIFA World Cup Album",
+    "poster_url": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/3e/3a/73/3e3a73da-e19e-b26c-ec19-9da6a5da93fa/mzi.ixhiugev.jpg/600x600bb.jpg",
+    "created_at": "2026-02-12T03:34:40.831434+00:00"
+  },
+  {
+    "id": "5e80dca5-6b45-4161-a836-37daf8d4a801",
+    "title": "Under the influence ",
+    "movie_name": "Indigo Extended",
+    "poster_url": "https://is1-ssl.mzstatic.com/image/thumb/Music123/v4/62/7c/ac/627cac79-3693-dd16-6466-48950746f527/886447924471.jpg/600x600bb.jpg",
+    "created_at": "2026-02-12T03:33:52.03554+00:00"
+  },
+  {
+    "id": "d76638ae-d65e-4f5c-ba84-ff6cf893eb87",
+    "title": "Tie me down ",
+    "movie_name": "Tie Me Down",
+    "poster_url": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/e4/d6/95/e4d695a3-8e01-4cd5-9b63-67d2abbffa38/00602567380719.rgb.jpg/600x600bb.jpg",
+    "created_at": "2026-02-12T03:32:45.003481+00:00"
+  },
+  {
+    "id": "82d2af95-a4ec-4294-b3f6-00e58687b8b1",
+    "title": "Suzume - Suzume - English Version From \"Suzume No Tojimari\"",
+    "movie_name": "Suzume",
+    "poster_url": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/12/ac/3b/12ac3bbc-cbff-9f5b-5f2b-f2be803fe032/198001941337.png/600x600bb.jpg",
+    "created_at": "2026-02-12T03:32:08.593787+00:00"
+  },
+  {
+    "id": "acfcdf35-146c-498e-ad8a-fbe640459e9d",
+    "title": "Stupid face ",
+    "movie_name": "Butterflies",
+    "poster_url": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/59/97/68/599768cd-e5d1-a09f-740b-52322a22a48d/322646.jpg/600x600bb.jpg",
+    "created_at": "2026-02-12T03:31:14.911117+00:00"
+  },
+  {
+    "id": "d5b14cab-2a1f-4c4f-90a0-35963d0239f4",
+    "title": "Stuck with you  - Stuck with U",
+    "movie_name": "Stuck with U",
+    "poster_url": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/56/ee/ec/56eeecfb-a5f3-ced0-fa69-4eda0e474aec/20UMGIM34924.rgb.jpg/600x600bb.jpg",
+    "created_at": "2026-02-12T03:30:23.217011+00:00"
+  },
+  {
+    "id": "b463ece7-b279-4228-bcad-401b0c7860f7",
+    "title": "Strawberries & Cigarettes",
+    "movie_name": "Strawberries & Cigarettes",
+    "poster_url": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/04/1a/ba/041aba05-d572-9d95-47d5-4ef8851ff38d/19UMGIM15690.rgb.jpg/600x600bb.jpg",
+    "created_at": "2026-02-12T03:29:17.622619+00:00"
+  },
+  {
+    "id": "337fc140-37d2-4d85-9fa3-9324de590715",
+    "title": "Starboy  - Starboy feat. Daft Punk",
+    "movie_name": "Starboy",
+    "poster_url": "https://is1-ssl.mzstatic.com/image/thumb/Music115/v4/b5/92/bb/b592bb72-52e3-e756-9b26-9f56d08f47ab/16UMGIM67864.rgb.jpg/600x600bb.jpg",
+    "created_at": "2026-02-12T03:27:58.860454+00:00"
+  },
+  {
+    "id": "16afb6af-959f-4f57-98d2-d7cb2eccc454",
+    "title": "Shy shy shy - Shy Shy Avicii Remix",
+    "movie_name": "Shy Shy The Vocal Remixes",
+    "poster_url": "https://is1-ssl.mzstatic.com/image/thumb/Music126/v4/0c/98/a0/0c98a00d-da29-fec0-bf08-d85b2b0969b7/cover.jpg/600x600bb.jpg",
+    "created_at": "2026-02-12T03:27:07.241424+00:00"
+  },
+  {
+    "id": "43c79a1a-a717-48e1-b4d2-84879ee89f60",
+    "title": "Scars to your beautiful ",
+    "movie_name": "Know-It-All Deluxe",
+    "poster_url": "https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/29/28/2a/29282a49-3ee2-3a4d-3ff5-16c10806aaa6/15UMGIM55240.rgb.jpg/600x600bb.jpg",
+    "created_at": "2026-02-12T03:26:00.581067+00:00"
+  },
+  {
+    "id": "90f51dc6-5dbe-4ad3-b1a8-ae0c42fe9ead",
+    "title": "Runaway ",
+    "movie_name": "All My Demons Greeting Me As a Friend Deluxe",
+    "poster_url": "https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/4e/a1/4f/4ea14f4f-66d5-f270-d395-f071434f831c/15UMGIM25682.rgb.jpg/600x600bb.jpg",
+    "created_at": "2026-02-12T03:24:13.284638+00:00"
+  },
+  {
+    "id": "2dd933f7-88df-4082-86f6-a3c8e59bc10a",
+    "title": "Se me fall - See Me Fall",
+    "movie_name": "Haze",
+    "poster_url": "https://is1-ssl.mzstatic.com/image/thumb/Music112/v4/a4/28/98/a42898ce-33cc-261b-e45c-994975d02154/4066004441597_3000.jpg/600x600bb.jpg",
+    "created_at": "2026-02-12T03:23:09.811964+00:00"
+  },
+  {
+    "id": "fa4ff5cd-1e53-44de-a1d0-2a80c9c7a0be",
+    "title": "Positions",
+    "movie_name": "Positions",
+    "poster_url": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/a8/8e/f9/a88ef97a-74c3-bedf-0574-ea0b83b40a38/20UMGIM94965.rgb.jpg/600x600bb.jpg",
+    "created_at": "2026-02-12T03:20:08.658615+00:00"
+  },
+  {
+    "id": "92614c97-f804-4e47-ac4a-adec072e8639",
+    "title": "Pirates of the Caribbean ",
+    "movie_name": "Let There Be Cello",
+    "poster_url": "https://is1-ssl.mzstatic.com/image/thumb/Music125/v4/d6/0f/15/d60f159b-bcf0-d803-dea0-8823072ef8df/886447125588.jpg/600x600bb.jpg",
+    "created_at": "2026-02-12T03:18:42.91361+00:00"
+  },
+  {
+    "id": "0edee866-1c96-4ec6-895e-ac06410a266b",
+    "title": "Papi chulo - Papi Chulo Hard Techno Mix",
+    "movie_name": "Papi Chulo",
+    "poster_url": "https://is1-ssl.mzstatic.com/image/thumb/Music211/v4/53/57/d4/5357d45c-ffa8-45f4-8af3-eba810c6eb2e/8605020128196.png/600x600bb.jpg",
+    "created_at": "2026-02-12T03:17:17.355303+00:00"
+  },
+  {
+    "id": "889fa151-e0e2-4132-a2b3-76ee074de748",
+    "title": "Intro - Yennodu Vaa Vaa",
+    "movie_name": "Neethaane En Ponvasantham",
+    "poster_url": "https://image.tmdb.org/t/p/w342/w8iOOYjUioL4zSFmnQl9BuYGePC.jpg",
+    "created_at": "2026-02-11T21:48:41.043851+00:00"
+  },
+  {
+    "id": "5d989411-c07d-4eed-b6e6-470a4319c6d9",
+    "title": "Intro - Kaatrai Konjam",
+    "movie_name": "Neethaane En Ponvasantham",
+    "poster_url": "https://image.tmdb.org/t/p/w342/w8iOOYjUioL4zSFmnQl9BuYGePC.jpg",
+    "created_at": "2026-02-11T21:48:05.702387+00:00"
+  },
+  {
+    "id": "bcb97823-9dcb-4b3c-9068-d851b9477629",
+    "title": "Male  - Saayndhu Saayndhu",
+    "movie_name": "Neethaane En Ponvasantham",
+    "poster_url": "https://image.tmdb.org/t/p/w342/w8iOOYjUioL4zSFmnQl9BuYGePC.jpg",
+    "created_at": "2026-02-11T21:43:36.354236+00:00"
+  },
+  {
+    "id": "9fa18b44-c209-431c-b0d0-b98f9c29d062",
+    "title": "Female Humming Sad - Hosanna",
+    "movie_name": "Vinnaithaandi Varuvaayaa",
+    "poster_url": "https://image.tmdb.org/t/p/w342/icWUNL2GxDgWmI5PQN2RYA2CEbv.jpg",
+    "created_at": "2026-02-11T21:39:50.087971+00:00"
+  }
+]

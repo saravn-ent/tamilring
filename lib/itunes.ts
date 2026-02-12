@@ -28,7 +28,9 @@ export const searchRings = async (term: string, entity: string = 'song'): Promis
         trackName: item.trackName,
         artistName: item.artistName,
         collectionName: item.collectionName,
-        previewUrl: item.previewUrl
+        previewUrl: item.previewUrl,
+        artworkUrl100: item.artworkUrl100,
+        primaryGenreName: item.primaryGenreName
       }));
     }
 

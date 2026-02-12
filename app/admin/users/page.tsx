@@ -5,17 +5,20 @@ import { createBrowserClient } from '@supabase/ssr';
 import { Profile } from '@/types';
 import {
     Search, Shield,
-    User as UserIcon, Loader2, Music
+    User as UserIcon, Loader2, Music,
+    Eye, History, Wallet, Coins, Star, CloudUpload, X, ArrowUpRight, CheckCircle
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getLevelTitle } from '@/lib/gamification';
+import { getLevelTitle, syncUserGamification } from '@/lib/gamification';
 import { toggleUserRole } from '@/app/actions/admin';
+import { Withdrawal, Ringtone } from '@/types';
 
 export default function UserManagement() {
     const [users, setUsers] = useState<Profile[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
+    const [selectedUser, setSelectedUser] = useState<Profile | null>(null);
 
     const supabase = useMemo(() => createBrowserClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -109,9 +112,9 @@ export default function UserManagement() {
                                             )}
                                         </div>
                                         <div>
-                                            <Link href={`/admin/ringtones?user_id=${user.id}`} className="font-bold text-slate-900 hover:text-indigo-600 transition-colors">
+                                            <button onClick={() => setSelectedUser(user)} className="font-bold text-slate-900 hover:text-indigo-600 transition-colors text-left">
                                                 {user.full_name || 'No Name'}
-                                            </Link>
+                                            </button>
                                             <p className="text-xs text-slate-500 font-mono truncate max-w-[150px]">{user.email}</p>
                                         </div>
                                     </div>
@@ -136,10 +139,14 @@ export default function UserManagement() {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center justify-between gap-4">
-                                    <span className="text-xs text-slate-600">
-                                        Joined: {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
-                                    </span>
+                                <div className="flex items-center justify-between gap-2">
+                                    <button
+                                        onClick={() => setSelectedUser(user)}
+                                        className="p-2 bg-slate-50 text-slate-600 rounded-lg border border-slate-200 hover:bg-slate-100 transition-all flex items-center gap-2 text-xs font-bold"
+                                    >
+                                        <Eye size={16} />
+                                        Details
+                                    </button>
                                     <button
                                         onClick={() => toggleAdmin(user)}
                                         className={`text-xs font-bold px-4 py-2 rounded-lg border transition-all flex-1 max-w-[140px]
@@ -187,9 +194,9 @@ export default function UserManagement() {
                                                     )}
                                                 </div>
                                                 <div>
-                                                    <Link href={`/admin/ringtones?user_id=${user.id}`} className="text-sm font-bold text-slate-900 hover:text-indigo-600 transition-colors">
+                                                    <button onClick={() => setSelectedUser(user)} className="text-sm font-bold text-slate-900 hover:text-indigo-600 transition-colors text-left">
                                                         {user.full_name || 'No Name'}
-                                                    </Link>
+                                                    </button>
                                                     <p className="text-xs text-slate-500 font-mono">{user.email}</p>
                                                 </div>
                                             </div>
@@ -219,6 +226,13 @@ export default function UserManagement() {
                                         </td>
                                         <td className="p-4 text-right pr-6">
                                             <div className="flex items-center justify-end gap-2">
+                                                <button
+                                                    onClick={() => setSelectedUser(user)}
+                                                    className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-indigo-600 transition-colors"
+                                                    title="View Full Profile & Finances"
+                                                >
+                                                    <Eye size={18} />
+                                                </button>
                                                 <Link
                                                     href={`/admin/ringtones?user_id=${user.id}`}
                                                     className="p-2 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-indigo-600 transition-colors"
@@ -246,6 +260,231 @@ export default function UserManagement() {
                     </div>
                 </>
             )}
+
+            {/* User Detail Modal */}
+            {selectedUser && (
+                <UserDetailModal
+                    user={selectedUser}
+                    onClose={() => setSelectedUser(null)}
+                    supabase={supabase}
+                />
+            )}
+        </div>
+    );
+}
+
+function UserDetailModal({ user, onClose, supabase }: { user: Profile, onClose: () => void, supabase: any }) {
+    const [loading, setLoading] = useState(true);
+    const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
+    const [requests, setRequests] = useState<any[]>([]);
+    const [uploads, setUploads] = useState<Ringtone[]>([]);
+    const [stats, setStats] = useState<any>(null);
+
+    useEffect(() => {
+        async function loadData() {
+            setLoading(true);
+            try {
+                // Fetch extra data
+                const [withdrawalsRes, requestsRes, uploadsRes, gamificationRes] = await Promise.all([
+                    supabase.from('withdrawals').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+                    supabase.from('ringtone_requests').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+                    supabase.from('ringtones').select('*').eq('user_id', user.id).eq('status', 'approved').order('created_at', { ascending: false }),
+                    syncUserGamification(supabase, user.id)
+                ]);
+
+                if (withdrawalsRes.data) setWithdrawals(withdrawalsRes.data);
+                if (requestsRes.data) setRequests(requestsRes.data);
+                if (uploadsRes.data) setUploads(uploadsRes.data);
+                if (gamificationRes) setStats(gamificationRes);
+
+            } catch (err) {
+                console.error("Error loading user details:", err);
+            } finally {
+                setLoading(false);
+            }
+        }
+        loadData();
+    }, [user.id, supabase]);
+
+    const transactions = [
+        ...uploads.map(u => ({
+            type: 'upload',
+            title: u.title,
+            amount: 10,
+            date: u.created_at,
+            status: 'completed',
+            utr: undefined as string | undefined
+        })),
+        ...withdrawals.map(w => ({
+            type: 'withdrawal',
+            title: 'Withdrawal',
+            amount: -w.amount,
+            date: w.created_at,
+            status: w.status,
+            utr: (w as any).transaction_id as string | undefined
+        })),
+        ...requests.map(r => ({
+            type: 'request',
+            title: `Request: ${r.song_name}`,
+            amount: -10,
+            date: r.created_at,
+            status: r.status === 'fulfilled' ? 'completed' : 'pending',
+            utr: undefined as string | undefined
+        }))
+    ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+            <div className="w-full max-w-2xl bg-white rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+                {/* Modal Header */}
+                <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                    <div className="flex items-center gap-4">
+                        <div className="relative w-12 h-12 rounded-full overflow-hidden bg-slate-200 border-2 border-white shadow-sm">
+                            {user.avatar_url ? (
+                                <Image src={user.avatar_url} alt="avatar" fill className="object-cover" />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-slate-400">
+                                    <UserIcon size={24} />
+                                </div>
+                            )}
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-bold text-slate-900 leading-tight">{user.full_name || 'No Name'}</h2>
+                            <p className="text-xs text-slate-500 font-mono">{user.email}</p>
+                        </div>
+                    </div>
+                    <button onClick={onClose} className="p-2 hover:bg-slate-200/50 rounded-full transition-colors text-slate-400">
+                        <X size={24} />
+                    </button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto p-6 space-y-8">
+                    {loading ? (
+                        <div className="flex flex-col items-center justify-center py-20 gap-4">
+                            <Loader2 className="animate-spin text-indigo-600" size={40} />
+                            <p className="text-slate-500 font-mono text-xs uppercase tracking-widest">Crunching User Data...</p>
+                        </div>
+                    ) : (
+                        <>
+                            {/* Profile Grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-4">
+                                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                        <UserIcon size={12} /> User Info
+                                    </h3>
+                                    <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-3">
+                                        <div className="flex justify-between items-center text-sm">
+                                            <span className="text-slate-500">UPI ID</span>
+                                            <span className="font-bold text-slate-900 font-mono text-xs">{user.upi_id || 'Not Set'}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center text-sm">
+                                            <span className="text-slate-500">Instagram</span>
+                                            <span className="font-bold text-slate-900 text-xs">{user.instagram_handle || 'N/A'}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center text-sm">
+                                            <span className="text-slate-500">Twitter</span>
+                                            <span className="font-bold text-slate-900 text-xs">{user.twitter_handle || 'N/A'}</span>
+                                        </div>
+                                        <div className="flex justify-between items-center text-sm pt-2 border-t border-slate-200/50">
+                                            <span className="text-slate-500">Member Since</span>
+                                            <span className="font-bold text-slate-900 text-xs">{new Date(user.created_at).toLocaleDateString()}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                        <Wallet size={12} /> Financial Stats
+                                    </h3>
+                                    <div className="bg-indigo-50 border border-indigo-100 rounded-2xl p-4 space-y-3">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-indigo-600 text-xs font-bold uppercase tracking-tight">Current Rep</span>
+                                            <span className="text-2xl font-black text-indigo-700">₹{stats?.points || 0}</span>
+                                        </div>
+                                        <div className="h-px bg-indigo-200/50" />
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <p className="text-[9px] text-indigo-400 font-bold uppercase">Lifetime</p>
+                                                <p className="text-sm font-black text-indigo-600">₹{stats?.lifetimePoints || 0}</p>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-[9px] text-indigo-400 font-bold uppercase">Withdrawn</p>
+                                                <p className="text-sm font-black text-indigo-600">₹{stats?.totalWithdrawn || 0}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Transaction History */}
+                            <div className="space-y-4">
+                                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                    <History size={12} /> Ledger
+                                </h3>
+                                <div className="space-y-2">
+                                    {transactions.length === 0 ? (
+                                        <div className="text-center py-10 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                                            <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">No transaction history</p>
+                                        </div>
+                                    ) : transactions.map((t, i) => (
+                                        <div key={i} className="flex items-center justify-between p-3 bg-white border border-slate-100 rounded-xl hover:border-indigo-200 transition-colors group">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0
+                                                    ${t.type === 'upload' ? 'bg-emerald-50 text-emerald-500' :
+                                                        t.type === 'withdrawal' ? 'bg-amber-50 text-amber-500' :
+                                                            'bg-blue-50 text-blue-500'}`}>
+                                                    {t.type === 'upload' ? <CloudUpload size={14} /> :
+                                                        t.type === 'withdrawal' ? <Wallet size={14} /> :
+                                                            <Star size={14} />}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="text-xs font-bold text-slate-900 truncate">{t.title}</p>
+                                                    <div className="flex items-center gap-2 mt-0.5">
+                                                        <span className="text-[9px] text-slate-400">{new Date(t.date).toLocaleDateString()}</span>
+                                                        {t.utr && (
+                                                            <span className="text-[9px] font-black text-indigo-500 bg-indigo-50 px-1.5 py-0.5 rounded uppercase tracking-tighter">
+                                                                UTR: {t.utr}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className={`text-xs font-black ${t.amount > 0 ? 'text-emerald-500' : 'text-slate-900'}`}>
+                                                    {t.amount > 0 ? '+' : ''}{t.amount}
+                                                </p>
+                                                <span className={`text-[8px] font-black uppercase tracking-tighter
+                                                    ${t.status === 'completed' || t.status === 'fulfilled' ? 'text-emerald-500' :
+                                                        t.status === 'rejected' ? 'text-red-500' :
+                                                            'text-amber-500 animate-pulse'}`}>
+                                                    {t.status}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </>
+                    )}
+                </div>
+
+                {/* Modal Footer */}
+                <div className="p-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+                    <Link
+                        href={`/admin/ringtones?user_id=${user.id}`}
+                        className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all flex items-center gap-2"
+                    >
+                        <Music size={14} />
+                        Ringtones
+                    </Link>
+                    <button
+                        onClick={onClose}
+                        className="px-6 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10"
+                    >
+                        Close
+                    </button>
+                </div>
+            </div>
         </div>
     );
 }

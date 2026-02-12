@@ -53,6 +53,8 @@ export default function ImageWithFallback({
     );
   }
 
+  const isExternal = src?.startsWith('http');
+
   return (
     <Image
       src={src}
@@ -66,6 +68,7 @@ export default function ImageWithFallback({
       placeholder="blur"
       blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2UwZTBlMCIvPjwvc3ZnPg=="
       onError={() => setError(true)}
+      unoptimized={isExternal}
     />
   );
 }
