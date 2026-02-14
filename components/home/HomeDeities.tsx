@@ -31,9 +31,9 @@ const getTopDeities = unstable_cache(
         // 2. Fetch necessary fields for all devotional ringtones
         const { data: ringtones, error } = await supabase
             .from('ringtones')
-            .select('movie_name, likes, poster_url, id')
+            .select('movie_name, likes, poster_url, id, tags')
             .eq('status', 'approved')
-            .contains('tags', ['Devotional'])
+            .or('tags.cs.{"Devotional"}') // More robust contains check
             .not('movie_name', 'is', null)
             .order('likes', { ascending: false });
 
@@ -55,8 +55,15 @@ const getTopDeities = unstable_cache(
             if (!name) return;
             const lowerName = name.toLowerCase();
 
-            // Strict Filter: Only allow known deities (excludes Movies that happen to have Devotional songs)
-            if (!allowedDeities.includes(lowerName)) {
+            // Relaxed Filter: Allow known deities OR simply any Devotional tagged ringtone
+            // This ensures the section shows up locally even if we don't have 'official' deity names
+            const hasDevotionalTag = r.tags && r.tags.includes('Devotional');
+
+            const isKnown = allowedDeities.includes(lowerName) ||
+                allowedDeities.some(d => lowerName.includes(d) && d.length > 4) ||
+                hasDevotionalTag; // Allow by tag
+
+            if (!isKnown) {
                 return;
             }
 
@@ -89,12 +96,13 @@ const getTopDeities = unstable_cache(
 
         return topDeities;
     },
-    ['top-deities-home-v3'], // Bump cache version
+    ['top-deities-home-v6'], // Bump cache version
     { revalidate: 60, tags: ['homepage-deities'] } // Lower revalidate time to see changes faster
 );
 
 export default async function HomeDeities() {
     const topDeities = await getTopDeities();
+    console.log('HomeDeities: count =', topDeities?.length || 0);
 
     if (!topDeities || topDeities.length === 0) return null;
 

@@ -17,12 +17,17 @@ export const getUserLanguage = async () => {
     const list = await headers();
     const lang = list.get('x-user-language') || 'ta'; // Default to tamil for home region
 
-    // Map to db languages
+    // Map to db languages (must match DB values exactly)
     const langMap: Record<string, string> = {
         'ta': 'tamil',
-        'en': 'english'
+        'en': 'english',
+        'hi': 'hindi',
+        'kn': 'kannada',
+        'ml': 'malayalam',
+        'te': 'telugu'
     };
 
+    // Default fallback
     return langMap[lang] || 'tamil';
 };
 
@@ -146,66 +151,54 @@ export async function notifyAdminOnUpload(ringtoneData: {
     }
 }
 
-const getTrendingRingtonesInternal = (limit: number, lang: string) => unstable_cache(
-    async () => {
+const getTrendingRingtonesInternal = unstable_cache(
+    async (limit: number, lang: string) => {
         const supabase = getPublicSupabase();
-        const { data, error } = await supabase.rpc('get_trending_ringtones', {
-            limit_count: limit,
-            lang_filter: lang
-        });
 
-        if (error || !data || data.length === 0) {
-            if (error) console.warn('Trending RPC failed, falling back to recent', error);
+        // NUCLEAR FIX: Use direct query instead of RPC since RPC is failing with signature mismatch in some environments
+        let query = supabase
+            .from('ringtones')
+            .select('*')
+            .eq('status', 'approved')
+            .not('audio_url', 'is', null)
+            .neq('audio_url', '')
+            .not('poster_url', 'is', null)
+            .neq('poster_url', '');
 
-            let query = supabase
+        if (lang === 'tamil') {
+            query = query.or(`language.eq.${lang},language.is.null`);
+        } else {
+            query = query.eq('language', lang);
+        }
+
+        const { data, error } = await query
+            .order('likes', { ascending: false })
+            .order('downloads', { ascending: false })
+            .limit(limit);
+
+        if (error) {
+            console.error('Trending fetch failed', error);
+            // Even deeper fallback: any ringtones
+            const { data: fallback } = await supabase
                 .from('ringtones')
                 .select('*')
                 .eq('status', 'approved')
-                .not('audio_url', 'is', null)
-                .neq('audio_url', '')
-                .not('poster_url', 'is', null)
-                .neq('poster_url', '');
-
-            // Fallback strategy: try language, then try all
-            if (lang === 'tamil') {
-                query = query.or(`language.eq.${lang},language.is.null`);
-            } else {
-                query = query.eq('language', lang);
-            }
-
-            let { data: fallback } = await query
-                .order('created_at', { ascending: false })
                 .limit(limit);
-
-            // Ultimate fallback: get any approved ringtones regardless of language (must have audio/poster)
-            if (!fallback || fallback.length === 0) {
-                const { data: ultimateFallback } = await supabase
-                    .from('ringtones')
-                    .select('*')
-                    .eq('status', 'approved')
-                    .not('audio_url', 'is', null)
-                    .neq('audio_url', '')
-                    .not('poster_url', 'is', null)
-                    .neq('poster_url', '')
-                    .order('created_at', { ascending: false })
-                    .limit(limit);
-                fallback = ultimateFallback;
-            }
-
             return fallback || [];
         }
+
         return data || [];
     },
-    ['trending-ringtones-v6', lang, limit.toString()],
+    ['trending-ringtones-v9'],
     { revalidate: 3600, tags: ['trending'] }
-)();
+);
 
 export async function getTrendingRingtones(limit: number = 10, lang: string = 'tamil') {
     return getTrendingRingtonesInternal(limit, lang);
 }
 
-const getTopAlbumsInternal = (limit: number, lang: string) => unstable_cache(
-    async () => {
+const getTopAlbumsInternal = unstable_cache(
+    async (limit: number, lang: string) => {
         const supabase = getPublicSupabase();
         const { data, error } = await supabase.rpc('get_top_albums_v3', {
             limit_count: limit,
@@ -217,9 +210,9 @@ const getTopAlbumsInternal = (limit: number, lang: string) => unstable_cache(
         }
         return data || [];
     },
-    ['top-albums-v2', lang, limit.toString()],
+    ['top-albums-v2'],
     { revalidate: 3600, tags: ['top-albums'] }
-)();
+);
 
 export async function getTopAlbums(limit: number = 10, lang: string = 'tamil') {
     return getTopAlbumsInternal(limit, lang);
@@ -264,8 +257,8 @@ export async function logSearch(query: string) {
     }
 }
 
-const getTrendingTagsInternal = (limit: number, lang: string) => unstable_cache(
-    async () => {
+const getTrendingTagsInternal = unstable_cache(
+    async (limit: number, lang: string) => {
         const supabase = getPublicSupabase();
         const allTags = new Map<string, number>();
 
@@ -314,9 +307,9 @@ const getTrendingTagsInternal = (limit: number, lang: string) => unstable_cache(
 
         return sorted;
     },
-    ['trending-tags-v2', lang, limit.toString()],
+    ['trending-tags-v2'],
     { revalidate: 1800, tags: ['trending-tags'] } // Cache for 30 mins
-)();
+);
 
 export async function getTrendingTags(limit: number = 8, lang: string = 'tamil') {
     return getTrendingTagsInternal(limit, lang);

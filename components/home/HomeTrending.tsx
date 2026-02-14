@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabaseClient';
 export default async function HomeTrending() {
     const lang = await getUserLanguage();
     let trending = await getTrendingRingtones(10, lang);
+    console.log('HomeTrending: count =', trending?.length || 0);
     if (!trending || trending.length === 0) return null;
 
     // Fetch Profiles manually for attribution

@@ -7,69 +7,67 @@ import { unstable_cache } from 'next/cache';
 import { Ringtone } from '@/types';
 import { headers } from 'next/headers';
 
-async function getRecentRingtones(lang: string = 'tamil') {
-    return unstable_cache(
-        async () => {
-            let query = supabase
+const getRecentRingtones = unstable_cache(
+    async (lang: string = 'tamil') => {
+        let query = supabase
+            .from('ringtones')
+            .select('*')
+            .eq('status', 'approved');
+
+        // If it's the primary language, also show NULL language ringtones (legacy)
+        if (lang === 'tamil') {
+            query = query.or(`language.eq.${lang},language.is.null`);
+        } else {
+            query = query.eq('language', lang);
+        }
+
+        const { data: ringtones } = await query
+            .order('created_at', { ascending: false })
+            .limit(6);
+
+        if (!ringtones || ringtones.length === 0) {
+            // Fallback attempt (all languages)
+            const { data: fallback } = await supabase
                 .from('ringtones')
                 .select('*')
-                .eq('status', 'approved');
-
-            // If it's the primary language, also show NULL language ringtones (legacy)
-            if (lang === 'tamil') {
-                query = query.or(`language.eq.${lang},language.is.null`);
-            } else {
-                query = query.eq('language', lang);
-            }
-
-            const { data: ringtones } = await query
+                .eq('status', 'approved')
                 .order('created_at', { ascending: false })
                 .limit(6);
 
-            if (!ringtones || ringtones.length === 0) {
-                // Fallback attempt (all languages)
-                const { data: fallback } = await supabase
-                    .from('ringtones')
-                    .select('*')
-                    .eq('status', 'approved')
-                    .order('created_at', { ascending: false })
-                    .limit(6);
+            // Fetch profiles for fallback
+            if (fallback && fallback.length > 0) {
+                const userIds = Array.from(new Set(fallback.map(r => r.user_id).filter(Boolean)));
+                if (userIds.length > 0) {
+                    const { data: profiles } = await supabase
+                        .from('profiles')
+                        .select('id, full_name')
+                        .in('id', userIds);
 
-                // Fetch profiles for fallback
-                if (fallback && fallback.length > 0) {
-                    const userIds = Array.from(new Set(fallback.map(r => r.user_id).filter(Boolean)));
-                    if (userIds.length > 0) {
-                        const { data: profiles } = await supabase
-                            .from('profiles')
-                            .select('id, full_name')
-                            .in('id', userIds);
-
-                        const profileMap = new Map(profiles?.map(p => [p.id, p]));
-                        return fallback.map(r => ({ ...r, profile: profileMap.get(r.user_id) }));
-                    }
-                    return fallback;
+                    const profileMap = new Map(profiles?.map(p => [p.id, p]));
+                    return fallback.map(r => ({ ...r, profile: profileMap.get(r.user_id) }));
                 }
-                return [];
+                return fallback;
             }
+            return [];
+        }
 
-            // Fetch profiles for main result
-            const userIds = Array.from(new Set(ringtones.map((r: any) => r.user_id).filter(Boolean)));
-            if (userIds.length > 0) {
-                const { data: profiles } = await supabase
-                    .from('profiles')
-                    .select('id, full_name')
-                    .in('id', userIds);
+        // Fetch profiles for main result
+        const userIds = Array.from(new Set(ringtones.map((r: any) => r.user_id).filter(Boolean)));
+        if (userIds.length > 0) {
+            const { data: profiles } = await supabase
+                .from('profiles')
+                .select('id, full_name')
+                .in('id', userIds);
 
-                const profileMap = new Map(profiles?.map((p: any) => [p.id, p]));
-                return ringtones.map((r: any) => ({ ...r, profile: profileMap.get(r.user_id) }));
-            }
+            const profileMap = new Map(profiles?.map((p: any) => [p.id, p]));
+            return ringtones.map((r: any) => ({ ...r, profile: profileMap.get(r.user_id) }));
+        }
 
-            return ringtones;
-        },
-        ['recent-ringtones-v9', lang], // Bump version
-        { revalidate: 3600, tags: ['recent'] }
-    )();
-}
+        return ringtones;
+    },
+    ['recent-ringtones-v10'], // Bump version
+    { revalidate: 3600, tags: ['recent'] }
+);
 
 async function getCurrentLang() {
     const head = await headers();

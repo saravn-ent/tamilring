@@ -15,7 +15,7 @@ const getTopContributorsList = unstable_cache(
         }
         return data || [];
     },
-    ['top-contributors-v1'],
+    ['top-contributors-v2'],
     { revalidate: 3600, tags: ['contributors'] }
 );
 
@@ -31,6 +31,7 @@ interface Contributor {
 
 export default async function HomeContributors() {
     const topContributorsRaw = await getTopContributorsList();
+    console.log('HomeContributors: count =', topContributorsRaw?.length || 0);
 
     if (!topContributorsRaw || topContributorsRaw.length === 0) return null;
 
