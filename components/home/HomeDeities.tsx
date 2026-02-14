@@ -5,12 +5,12 @@ import { supabase } from '@/lib/supabaseClient';
 import { unstable_cache } from 'next/cache';
 import Link from 'next/link';
 import Image from 'next/image';
-
 import { DEITY_CATEGORIES } from '@/lib/constants';
+import { getUserLanguage } from '@/app/actions/ringtones';
 
 // Fetch top deities using client-side aggregation for now to avoid migration dependency
 const getTopDeities = unstable_cache(
-    async () => {
+    async (lang: string = 'tamil') => {
         // Flatten known deities for validation
         const allowedDeities = Object.values(DEITY_CATEGORIES).flat().map(d => d.toLowerCase());
 
@@ -29,13 +29,33 @@ const getTopDeities = unstable_cache(
         }
 
         // 2. Fetch necessary fields for all devotional ringtones
-        const { data: ringtones, error } = await supabase
+        let query = supabase
             .from('ringtones')
-            .select('movie_name, likes, poster_url, id, tags')
+            .select('movie_name, likes, poster_url, id, tags, language')
             .eq('status', 'approved')
             .or('tags.cs.{"Devotional"}') // More robust contains check
-            .not('movie_name', 'is', null)
-            .order('likes', { ascending: false });
+            .not('movie_name', 'is', null);
+
+        if (lang === 'tamil') {
+            query = query.or(`language.eq.${lang},language.is.null`);
+        } else {
+            query = query.eq('language', lang);
+        }
+
+        let { data: ringtones, error } = await query.order('likes', { ascending: false });
+
+        // Fallback to Tamil for Deities if no regional matches
+        if ((!ringtones || ringtones.length === 0) && lang !== 'tamil') {
+            const { data: fallback } = await supabase
+                .from('ringtones')
+                .select('movie_name, likes, poster_url, id, tags, language')
+                .eq('status', 'approved')
+                .or('tags.cs.{"Devotional"}')
+                .or('language.eq.tamil,language.is.null')
+                .not('movie_name', 'is', null)
+                .order('likes', { ascending: false });
+            ringtones = fallback;
+        }
 
         if (error || !ringtones) {
             console.error('Error fetching deities:', error);
@@ -56,23 +76,20 @@ const getTopDeities = unstable_cache(
             const lowerName = name.toLowerCase();
 
             // Relaxed Filter: Allow known deities OR simply any Devotional tagged ringtone
-            // This ensures the section shows up locally even if we don't have 'official' deity names
             const hasDevotionalTag = r.tags && r.tags.includes('Devotional');
 
             const isKnown = allowedDeities.includes(lowerName) ||
                 allowedDeities.some(d => lowerName.includes(d) && d.length > 4) ||
                 hasDevotionalTag; // Allow by tag
 
-            if (!isKnown) {
-                return;
-            }
+            if (!isKnown) return;
 
             if (!deityMap.has(lowerName)) {
                 // Check if we have a custom image for this deity
                 const customUrl = customImageMap.get(lowerName);
 
                 deityMap.set(lowerName, {
-                    name, // Keep original casing from first encounter or lookup? Original from ringtone is fine usually.
+                    name,
                     total_likes: 0,
                     count: 0,
                     poster_url: customUrl || null
@@ -83,25 +100,23 @@ const getTopDeities = unstable_cache(
             entry.total_likes += (r.likes || 0);
             entry.count += 1;
 
-            // Fallback: Use ringtone poster if no custom image is set and we don't have one yet
+            // Fallback: Use ringtone poster if no custom image is set
             if (!entry.poster_url && r.poster_url) {
                 entry.poster_url = r.poster_url;
             }
         });
 
-        // Convert to array and sort
-        const topDeities = Array.from(deityMap.values())
+        return Array.from(deityMap.values())
             .sort((a, b) => b.total_likes - a.total_likes)
-            .slice(0, 10); // Top 10
-
-        return topDeities;
+            .slice(0, 10);
     },
-    ['top-deities-home-v6'], // Bump cache version
-    { revalidate: 60, tags: ['homepage-deities'] } // Lower revalidate time to see changes faster
+    ['top-deities-home-v7'], // Bump cache version
+    { revalidate: 3600, tags: ['homepage-deities'] }
 );
 
 export default async function HomeDeities() {
-    const topDeities = await getTopDeities();
+    const lang = await getUserLanguage();
+    const topDeities = await getTopDeities(lang);
     console.log('HomeDeities: count =', topDeities?.length || 0);
 
     if (!topDeities || topDeities.length === 0) return null;

@@ -83,26 +83,95 @@ export function getArtistBio(artistName: string): string | undefined {
 
 export const TOP_ACTORS_BY_LANGUAGE: Record<string, string[]> = {
   tamil: [
-    'Vijay', 'Ajith Kumar', 'Ajith', 'Rajinikanth', 'Rajini', 'Suriya', 'Vikram',
-    'Kamal Haasan', 'Kamal', 'Dhanush', 'Sivakarthikeyan', 'SK', 'Vijay Sethupathi',
-    'VJS', 'Karthi', 'Jayam Ravi', 'Silambarasan TR', 'Simbu', 'Madhavan', 'Vishal',
-    'Jiiva', 'Arun Vijay', 'Arya', 'Santhanam', 'Vadivelu', 'Yogi Babu'
+    'Vijay', 'Ajith Kumar', 'Rajinikanth', 'Suriya', 'Dhanush',
+    'Sivakarthikeyan', 'Vikram', 'Kamal Haasan', 'Vijay Sethupathi', 'Karthi',
+    'Silambarasan TR', 'Jayam Ravi', 'Arun Vijay', 'Arya', 'Vishal', 'Mamitha Baiju'
   ],
   telugu: [
     'Prabhas', 'Mahesh Babu', 'Allu Arjun', 'NTR Jr.', 'Ram Charan',
     'Pawan Kalyan', 'Chiranjeevi', 'Nani', 'Vijay Deverakonda', 'Ravi Teja',
-    'Nagarjuna', 'Venkatesh'
+    'Nagarjuna', 'Venkatesh', 'Rashmika Mandanna'
   ],
   malayalam: [
     'Mohanlal', 'Mammootty', 'Dulquer Salmaan', 'Fahadh Faasil', 'Prithviraj Sukumaran',
-    'Tovino Thomas', 'Nivin Pauly', 'Kunchacko Boban'
+    'Tovino Thomas', 'Nivin Pauly', 'Kunchacko Boban', 'Mamitha Baiju', 'Nazriya Nazim'
   ],
   kannada: [
-    'Yash', 'Rishab Shetty', 'Rakshit Shetty', 'Sudeep', 'Puneeth Rajkumar', 'Darshan'
+    'Yash', 'Rishab Shetty', 'Rakshit Shetty', 'Sudeep', 'Puneeth Rajkumar',
+    'Darshan', 'Shiva Rajkumar', 'Rashmika Mandanna'
   ],
   hindi: [
     'Shah Rukh Khan', 'Salman Khan', 'Aamir Khan', 'Akshay Kumar', 'Hrithik Roshan',
-    'Ranbir Kapoor', 'Ranveer Singh', 'Ajay Devgn'
+    'Ranbir Kapoor', 'Ranveer Singh', 'Ajay Devgn', 'Deepika Padukone', 'Alia Bhatt'
+  ]
+};
+
+export const TOP_SINGERS_BY_LANGUAGE: Record<string, string[]> = {
+  tamil: [
+    'Anirudh Ravichander', 'A.R. Rahman', 'S.P. Balasubrahmanyam', 'Ilayaraja',
+    'K.S. Chithra', 'Sid Sriram', 'Dhanush', 'Hariharan', 'Shreya Ghoshal',
+    'Vijay Yesudas', 'Chinmayi Sripaada Prarthana', 'Chinmayi Sripaada'
+  ],
+  telugu: [
+    'S.P. Balasubrahmanyam', 'Sid Sriram', 'A.R. Rahman', 'K.S. Chithra',
+    'Sunitha Upadrashta', 'Karthik', 'Geetha Madhuri', 'Ram Miriyala'
+  ],
+  malayalam: [
+    'K.J. Yesudas', 'K.S. Chithra', 'Vineeth Sreenivasan', 'Shreya Ghoshal',
+    'Sujatha Mohan', 'M.G. Sreekumar', 'Vijay Yesudas'
+  ],
+  kannada: [
+    'Vijay Prakash', 'Rajesh Krishnan', 'Punit Rajkumar', 'K.S. Chithra',
+    'S.P. Balasubrahmanyam', 'Sonu Nigam'
+  ],
+  hindi: [
+    'Arijit Singh', 'Shreya Ghoshal', 'Udit Narayan', 'Alka Yagnik',
+    'Sonu Nigam', 'Kumar Sanu', 'Sunidhi Chauhan', 'Badshah'
+  ]
+};
+
+export const TOP_MUSIC_DIRECTORS_BY_LANGUAGE: Record<string, string[]> = {
+  tamil: [
+    'Anirudh Ravichander', 'A.R. Rahman', 'Ilayaraja', 'Yuvan Shankar Raja',
+    'Harris Jayaraj', 'Santhosh Narayanan', 'G.V. Prakash Kumar', 'D. Imman',
+    'Hiphop Tamizha', 'Sam C.S.'
+  ],
+  telugu: [
+    'M.M. Keeravani', 'Devi Sri Prasad', 'Thaman S', 'Mani Sharma',
+    'Mickey J. Meyer', 'Vivek Sagar'
+  ],
+  malayalam: [
+    'Gopi Sundar', 'Shaan Rahman', 'Sushin Shyam', 'Jakes Bejoy',
+    'M. Jayachandran', 'Bijibal'
+  ],
+  kannada: [
+    'Arjun Janya', 'B. Ajaneesh Loknath', 'V. Harikrishna', 'Ravi Basrur'
+  ],
+  hindi: [
+    'A.R. Rahman', 'Pritam', 'Vishal-Shekhar', 'Amit Trivedi',
+    'Mithoon', 'Tanishk Bagchi', 'Sachin-Jigar'
+  ]
+};
+
+export const TOP_FEMALE_SINGERS_BY_LANGUAGE: Record<string, string[]> = {
+  tamil: [
+    'K.S. Chithra', 'Shreya Ghoshal', 'Chinmayi Sripaada', 'Sujatha Mohan',
+    'Jonita Gandhi', 'Saindhavi', 'Shashaa Tirupati', 'Prarthana', 'Chinmayi Sripaada Prarthana'
+  ],
+  telugu: [
+    'K.S. Chithra', 'Shreya Ghoshal', 'Sunitha Upadrashta', 'Geetha Madhuri',
+    'Chinmayi Sripaada', 'Srabana Bhargavi'
+  ],
+  malayalam: [
+    'K.S. Chithra', 'Sujatha Mohan', 'Shreya Ghoshal', 'Jyotsna Radhakrishnan',
+    'Manjari', 'Sithara Krishnakumar'
+  ],
+  kannada: [
+    'K.S. Chithra', 'Shreya Ghoshal', 'Anuradha Bhat', 'Vani Jairam'
+  ],
+  hindi: [
+    'Shreya Ghoshal', 'Sunidhi Chauhan', 'Alka Yagnik', 'Lata Mangeshkar',
+    'Asha Bhosle', 'Neha Kakkar'
   ]
 };
 

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { unstable_cache } from 'next/cache';
 import { Ringtone } from '@/types';
-import { headers } from 'next/headers';
+import { getUserLanguage } from '@/app/actions/ringtones';
 
 const getRecentRingtones = unstable_cache(
     async (lang: string = 'tamil') => {
@@ -65,18 +65,12 @@ const getRecentRingtones = unstable_cache(
 
         return ringtones;
     },
-    ['recent-ringtones-v10'], // Bump version
+    ['recent-ringtones-v11'], // Updated version
     { revalidate: 3600, tags: ['recent'] }
 );
 
-async function getCurrentLang() {
-    const head = await headers();
-    const lang = head.get('x-user-language') || 'ta';
-    return lang === 'ta' ? 'tamil' : 'english';
-}
-
 export default async function HomeRecent() {
-    const lang = await getCurrentLang();
+    const lang = await getUserLanguage();
     const recent = await getRecentRingtones(lang);
 
     return (

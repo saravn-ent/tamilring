@@ -3,7 +3,7 @@ import SectionHeader from '@/components/SectionHeader';
 import NostalgiaList from './NostalgiaList';
 import { supabase } from '@/lib/supabaseClient';
 import { unstable_cache } from 'next/cache';
-import { headers } from 'next/headers';
+import { getUserLanguage } from '@/app/actions/ringtones';
 
 const getNostalgiaRingtones = unstable_cache(
     async (lang: string = 'tamil') => {
@@ -28,7 +28,6 @@ const getNostalgiaRingtones = unstable_cache(
 
         // Fallback: If no results for requested lang, try tamil
         if ((!ringtones || ringtones.length === 0) && lang !== 'tamil') {
-            console.log(`No nostalgia found for ${lang}, falling back to tamil`);
             const { data: fallback } = await getQuery('tamil');
             ringtones = fallback;
         }
@@ -62,18 +61,13 @@ const getNostalgiaRingtones = unstable_cache(
         return shuffled.map(r => ({ ...r, profile: profileMap.get(r.user_id) }));
 
     },
-    ['nostalgia-ringtones-v4'],
+    ['nostalgia-ringtones-v7'], // Revert to static but bump version
     { revalidate: 3600, tags: ['nostalgia'] }
 );
 
-async function getCurrentLang() {
-    const head = await headers();
-    const lang = head.get('x-user-language') || 'ta';
-    return lang === 'ta' ? 'tamil' : 'english';
-}
-
 export default async function HomeNostalgia() {
-    const lang = await getCurrentLang();
+    const lang = await getUserLanguage();
+    // Use lang as part of the cache key by wrapping or passing it
     const nostalgia = await getNostalgiaRingtones(lang);
 
     if (!nostalgia || nostalgia.length === 0) return null;

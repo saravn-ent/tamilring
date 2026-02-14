@@ -15,9 +15,17 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     const [language, setLanguageState] = useState<Language>('en');
 
     useEffect(() => {
+        // 1. Try Local Storage
         const savedLang = localStorage.getItem('language') as Language;
-        if (savedLang && (savedLang === 'en' || savedLang === 'ta')) {
+        if (savedLang && translations[savedLang]) {
             setLanguageState(savedLang);
+            return;
+        }
+
+        // 2. Try Cookie (synced with server)
+        const match = document.cookie.match(/(^| )user-language=([^;]+)/);
+        if (match && translations[match[2] as Language]) {
+            setLanguageState(match[2] as Language);
         }
     }, []);
 

@@ -176,20 +176,21 @@ const getTrendingRingtonesInternal = unstable_cache(
             .order('downloads', { ascending: false })
             .limit(limit);
 
-        if (error) {
-            console.error('Trending fetch failed', error);
-            // Even deeper fallback: any ringtones
+        if ((!data || data.length === 0) && lang !== 'tamil') {
             const { data: fallback } = await supabase
                 .from('ringtones')
                 .select('*')
                 .eq('status', 'approved')
+                .or('language.eq.tamil,language.is.null')
+                .order('likes', { ascending: false })
+                .order('downloads', { ascending: false })
                 .limit(limit);
             return fallback || [];
         }
 
         return data || [];
     },
-    ['trending-ringtones-v9'],
+    ['trending-ringtones-v12'], // Force refresh
     { revalidate: 3600, tags: ['trending'] }
 );
 

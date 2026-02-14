@@ -5,6 +5,7 @@ import withBundleAnalyzer from '@next/bundle-analyzer';
 const config: NextConfig = {
   compress: true,
   turbopack: {},
+  serverExternalPackages: ['@xenova/transformers', 'onnxruntime-web', 'date-fns', 'postgres'],
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'image.tmdb.org', pathname: '/t/p/**' },

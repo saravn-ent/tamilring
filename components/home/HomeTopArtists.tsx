@@ -5,10 +5,13 @@ import { supabase } from '@/lib/supabaseClient';
 import { unstable_cache } from 'next/cache';
 import { searchPerson, getImageUrl } from '@/lib/tmdb';
 import { getUserLanguage } from '@/app/actions/ringtones';
-import { TOP_ACTORS_BY_LANGUAGE, MOODS, INSTRUMENTS } from '@/lib/constants';
+import { TOP_ACTORS_BY_LANGUAGE, TOP_SINGERS_BY_LANGUAGE, TOP_MUSIC_DIRECTORS_BY_LANGUAGE, MOODS, INSTRUMENTS } from '@/lib/constants';
 
 const getTopArtists = unstable_cache(
     async (lang: string = 'tamil') => {
+        const regionalActors = TOP_ACTORS_BY_LANGUAGE[lang] || [];
+        const regionalSingers = TOP_SINGERS_BY_LANGUAGE[lang] || [];
+        const regionalMDs = TOP_MUSIC_DIRECTORS_BY_LANGUAGE[lang] || [];
         // 1. Fetch data filtered by language
         let query = supabase
             .from('ringtones')
@@ -95,10 +98,7 @@ const getTopArtists = unstable_cache(
 
                         // If we have a curated list for this language, only count those as actors from tags
                         // to avoid genres like 'Vocal', 'Violin' leaking in.
-                        const regionalActors = TOP_ACTORS_BY_LANGUAGE[lang] || [];
-                        const isKnownActor = regionalActors.some(a => a.toLowerCase() === lowerTag);
-
-                        if (isKnownActor) {
+                        if (regionalActors.some(a => a.toLowerCase() === lowerTag)) {
                             actorCounts[tag] = (actorCounts[tag] || 0) + 1;
                         }
                     }
@@ -118,20 +118,10 @@ const getTopArtists = unstable_cache(
         const topMDsList = getTop(mdCounts);
         const topActorsCandidates = getTop(actorCounts);
 
-        // SEEDING: If our database is sparse on 'cast_members' or 'tags' for big actors,
-        // we should ensure the top actors from the curated list are at least checked.
-        // We'll take the first 10 from the curated list and add them if they aren't already there.
-        const regionalActors = TOP_ACTORS_BY_LANGUAGE[lang] || [];
-        regionalActors.slice(0, 10).forEach(actor => {
-            if (!topActorsCandidates.includes(actor)) {
-                topActorsCandidates.push(actor);
-            }
-        });
-
         console.log('--- Top Artists Debug ---');
         console.log('Ringtones Found:', ringtones.length);
         console.log('Top Singers Raw:', topSingersList);
-        console.log('Top Actors Candidates (Seeded + Ranked):', topActorsCandidates);
+        console.log('Top Actors Candidates (Ranked):', topActorsCandidates);
 
         // Helper to enrich
         // For Actors, we strictly check known_for_department on TMDB
@@ -157,24 +147,24 @@ const getTopArtists = unstable_cache(
             return results;
         };
 
-        const [topSingers, topMusicDirectors, topActors, topMovieDirectors] = await Promise.all([
-            enrich(topSingersList), // Relaxed for singers
-            enrich(topMDsList), // Relaxed for Music Directors
-            enrich(topActorsCandidates), // Relaxed for Actors
+        const [topSingers, topMusicDirectors, topActorsRaw, topMovieDirectors] = await Promise.all([
+            enrich(regionalSingers), // STRICTLY USE HARDCODED LIST FOR SINGERS
+            enrich(regionalMDs), // STRICTLY USE HARDCODED LIST FOR MUSIC DIRECTORS
+            enrich(regionalActors), // STRICTLY USE HARDCODED LIST FOR ACTORS
             enrich(getTop(directorCounts)) // Relaxed for Directors
         ]);
 
         console.log('Enriched Singers:', topSingers.length);
-        console.log('Enriched Actors:', topActors.length);
+        console.log('Enriched Actors:', topActorsRaw.length);
 
         return {
             topSingers: topSingers.slice(0, 8),
             topMusicDirectors: topMusicDirectors.slice(0, 8),
             topMovieDirectors: topMovieDirectors.slice(0, 8),
-            topActors: topActors.slice(0, 8)
+            topActors: topActorsRaw.slice(0, 8)
         };
     },
-    ['home-top-artists-dynamic-v5'],
+    ['home-top-artists-dynamic-v8'], // Updated version
     { revalidate: 3600, tags: ['homepage-artists'] }
 );
 

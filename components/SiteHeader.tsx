@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Sparkles, Loader2, Bug } from 'lucide-react';
+import { Sparkles, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
 import { hapticFeedback } from '@/lib/haptics';
@@ -119,17 +119,7 @@ export default function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-1 min-w-[40px] justify-end">
-          <Link
-            href="https://t.me/tamilring_admin"
-            target="_blank"
-            className="p-2 text-zinc-400 hover:text-rose-500 transition-colors relative group"
-            aria-label="Report Bug"
-          >
-            <Bug size={18} className="group-hover:rotate-12 transition-transform" />
-            <span className="absolute -bottom-8 right-0 bg-brand-dark text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-              Report Bug
-            </span>
-          </Link>
+
 
           <button
             onClick={handleSurprise}
