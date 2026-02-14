@@ -1,0 +1,11 @@
+﻿[dotenv@17.2.3] injecting env (8) from .env.local -- tip: ­ƒöÉ encrypt with Dotenvx: https://dotenvx.com
+Total songs: 359
+Approved songs: 345
+Approved songs with 'Female' tag: 56
+Female songs by language: { tamil: 53, hindi: 2, kannada: 1 }
+Sample female song: {
+  title: 'bigiluh bigiluhh bigilumaa',
+  tags: [ 'Mass', 'Vocal', 'Instrumental', 'Female', 'Duet' ],
+  language: 'tamil',
+  status: 'approved'
+}

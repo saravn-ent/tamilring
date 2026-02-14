@@ -36,6 +36,11 @@ export default async function Home() {
     <div className="w-full max-w-md md:max-w-4xl lg:max-w-7xl mx-auto">
       <StructuredData data={combinedSchema} />
 
+      {/* Visual Hidden H1 for SEO */}
+      <h1 className="sr-only">
+        TamilRing - Download Best Tamil Ringtones & BGM (தமிழ் ரிங்டோன்)
+      </h1>
+
       {/* Hero Section with Search - Loads Instantly */}
       <HeroSearch trendingTags={await getTrendingTags(5, await getUserLanguage())} />
 
@@ -48,13 +53,6 @@ export default async function Home() {
       <Suspense fallback={<SectionSkeleton type="trending" />}>
         <HomeNostalgia />
       </Suspense>
-
-      {/* Visual Hidden H1 for SEO */}
-      <h1 className="sr-only">
-        TamilRing - Download Best Tamil Ringtones & BGM (தமிழ் ரிங்டோன்)
-      </h1>
-
-      {/* Heavy Content Below - Streams in Parallel */}
 
       <Suspense fallback={<SectionSkeleton type="horizontal" />}>
         <HomeSingers />

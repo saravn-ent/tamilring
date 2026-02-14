@@ -3,7 +3,7 @@ import SectionHeader from '@/components/SectionHeader';
 import HeroCard from '@/components/HeroCard';
 import { supabase } from '@/lib/supabaseClient';
 import { unstable_cache } from 'next/cache';
-import { searchPerson, getImageUrl } from '@/lib/tmdb';
+import { searchPerson, getImageUrl, PersonResult } from '@/lib/tmdb';
 import { getUserLanguage } from '@/app/actions/ringtones';
 
 const getTopFemaleSingers = unstable_cache(

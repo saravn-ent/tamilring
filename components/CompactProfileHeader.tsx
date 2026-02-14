@@ -8,6 +8,8 @@ import FavoriteButton from './FavoriteButton';
 import ShareButton from './ShareButton';
 import DeityImageUpload from './DeityImageUpload';
 import ArtistImageUpload from './ArtistImageUpload';
+import BackButton from './BackButton';
+
 
 interface CompactProfileHeaderProps {
     name: string;
@@ -31,12 +33,11 @@ export default function CompactProfileHeader({
 
             {/* Top Navigation Bar - Role Centered */}
             <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-100/50">
-                <Link
-                    href="/"
-                    className="p-1 -ml-1 text-zinc-400 hover:text-brand-dark transition-colors"
-                >
-                    <ArrowLeft size={18} />
-                </Link>
+                <BackButton
+                    variant="minimal"
+                    fallbackHref="/"
+                    className="-ml-1"
+                />
 
                 <div className="flex flex-col items-center">
                     <span className="text-[10px] font-black text-brand-accent uppercase tracking-widest">{type}</span>

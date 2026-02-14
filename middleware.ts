@@ -28,10 +28,46 @@ export async function middleware(request: NextRequest) {
   const acceptLang = request.headers.get('accept-language') || '';
   const geoCountry = request.headers.get('x-vercel-ip-country') || ''; // Vercel support
 
+  const geoRegion = request.headers.get('x-vercel-ip-country-region') || '';
+
   let detectedLang = 'en';
-  if (acceptLang.toLowerCase().includes('ta') || geoCountry === 'IN') {
-    // If they have Tamil language or are in India, fallback to Tamil as primary "regional" focus
-    detectedLang = 'ta';
+  const lowerAccept = acceptLang.toLowerCase();
+
+  // 1. Check User Preference (Browser Settings)
+  if (lowerAccept.includes('ta')) detectedLang = 'ta';
+  else if (lowerAccept.includes('te')) detectedLang = 'te';
+  else if (lowerAccept.includes('kn')) detectedLang = 'kn';
+  else if (lowerAccept.includes('ml')) detectedLang = 'ml';
+  else if (lowerAccept.includes('hi')) detectedLang = 'hi';
+
+  // 2. Fallback to Geographic Region (if in India and no specific lang pref found yet)
+  else if (geoCountry === 'IN') {
+    switch (geoRegion) {
+      case 'TN': // Tamil Nadu
+        detectedLang = 'ta';
+        break;
+      case 'KL': // Kerala
+        detectedLang = 'ml';
+        break;
+      case 'KA': // Karnataka
+        detectedLang = 'kn';
+        break;
+      case 'AP': // Andhra Pradesh
+      case 'TG': // Telangana
+        detectedLang = 'te';
+        break;
+      // Default North/Central India to Hindi? Or keep English?
+      // Let's bias towards Hindi for other major Hindi states, else English
+      case 'DL': case 'MH': case 'UP': case 'MP': case 'GJ': case 'RJ':
+        detectedLang = 'hi';
+        break;
+      default:
+        // Default India fallback. 
+        // Previously was 'ta', but 'en' might be safer if we want to be neutral, 
+        // OR 'ta' if this is primarily a Tamil site (TamilRing).
+        // Maintaining 'ta' as default fallback for legacy 'TamilRing' identity unless specified.
+        detectedLang = 'ta';
+    }
   }
 
   const userLangCookie = request.cookies.get('user-language')?.value || detectedLang;

@@ -11,6 +11,8 @@ import RingtoneCard from '@/components/RingtoneCard';
 import ImageWithFallback from '@/components/ImageWithFallback';
 import NoResults from '@/components/NoResults';
 import { ERAS, MOODS as MOOD_STRINGS } from '@/lib/constants';
+import BackButton from '@/components/BackButton';
+
 
 interface FeaturedArtist {
     name: string;
@@ -123,9 +125,12 @@ export default function DiscoveryContainer({ featuredArtists }: DiscoveryContain
     return (
         <div className="max-w-6xl mx-auto p-4 md:px-6 pb-24 md:pb-8 min-h-screen">
             {/* Header */}
-            <div className="mb-6">
-                <h1 className="text-3xl font-bold text-[#15171A] mb-1">Discover</h1>
-                <p className="text-zinc-500 text-sm">Find your perfect ringtone</p>
+            <div className="mb-6 flex items-center gap-4">
+                <BackButton fallbackHref="/" variant="minimal" className="!bg-white rounded-full shadow-sm" />
+                <div>
+                    <h1 className="text-3xl font-bold text-[#15171A] mb-1">Discover</h1>
+                    <p className="text-zinc-500 text-sm">Find your perfect ringtone</p>
+                </div>
             </div>
 
             {/* Search Input */}

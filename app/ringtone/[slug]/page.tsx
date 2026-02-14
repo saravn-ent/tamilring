@@ -21,6 +21,7 @@ import SimilarRingtonesSection from '@/components/ringtone/SimilarRingtonesSecti
 import { RingtoneGridSkeleton } from '@/components/skeletons';
 import { getImageUrl } from '@/lib/tmdb';
 import TMDBImage from '@/components/TMDBImage';
+import BackButton from '@/components/BackButton';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -106,10 +107,7 @@ export default async function RingtonePage({ params }: Props) {
       <div className="relative z-10 p-4 pt-4 flex-1 pb-24">
         {/* Top Right Buttons: Back & Video/Pinterest */}
         <div className="flex items-center justify-between mb-6">
-          <Link href="/" className="inline-flex items-center gap-2 text-brand-dark hover:text-brand-accent bg-white border border-brand-gray px-4 py-3 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-95">
-            <ArrowLeft size={24} strokeWidth={2.5} />
-            <span className="text-base font-semibold">Back</span>
-          </Link>
+          <BackButton fallbackHref="/" className="shadow-sm" />
 
           {/* Social & Video Actions */}
           <div className="flex items-center gap-3">

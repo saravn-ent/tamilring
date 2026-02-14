@@ -14,7 +14,7 @@ const getNostalgiaRingtones = unstable_cache(
                 .eq('status', 'approved')
                 .lt('movie_year', 2015)
                 .order('likes', { ascending: false })
-                .limit(10);
+                .limit(50);
 
             if (l === 'tamil') {
                 q = q.or(`language.eq.${l},language.is.null`);
@@ -41,14 +41,17 @@ const getNostalgiaRingtones = unstable_cache(
                 .eq('status', 'approved')
                 .lt('movie_year', 2015)
                 .order('likes', { ascending: false })
-                .limit(10);
+                .limit(50);
             ringtones = ultimateFallback;
         }
 
         if (!ringtones || ringtones.length === 0) return [];
 
-        const userIds = Array.from(new Set(ringtones.map(r => r.user_id).filter(Boolean)));
-        if (userIds.length === 0) return ringtones;
+        // Shuffle and take 10
+        const shuffled = ringtones.sort(() => 0.5 - Math.random()).slice(0, 10);
+
+        const userIds = Array.from(new Set(shuffled.map(r => r.user_id).filter(Boolean)));
+        if (userIds.length === 0) return shuffled;
 
         const { data: profiles } = await supabase
             .from('profiles')
@@ -56,10 +59,10 @@ const getNostalgiaRingtones = unstable_cache(
             .in('id', userIds);
 
         const profileMap = new Map(profiles?.map(p => [p.id, p]));
-        return ringtones.map(r => ({ ...r, profile: profileMap.get(r.user_id) }));
+        return shuffled.map(r => ({ ...r, profile: profileMap.get(r.user_id) }));
 
     },
-    ['nostalgia-ringtones-v3'],
+    ['nostalgia-ringtones-v4'],
     { revalidate: 3600, tags: ['nostalgia'] }
 );
 
@@ -77,9 +80,8 @@ export default async function HomeNostalgia() {
 
     return (
         <div className="mb-10">
-            <div className="px-4">
-                <SectionHeader title="Rewind: Memories" translationKey="memories" />
-                <p className="text-xs text-zinc-500 mb-3 -mt-2">Rings that bring back the good times</p>
+            <div className="px-4 mb-6">
+                <SectionHeader title="Ringtones That Bring Back the Good Times" translationKey="memories" />
             </div>
             <NostalgiaList nostalgia={nostalgia} />
         </div>

@@ -1,4 +1,5 @@
 import { MANUAL_ARTIST_IMAGES } from './manual_artists';
+import { supabase } from './supabaseClient';
 
 const TMDB_API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY;
 const BASE_URL = 'https://api.themoviedb.org/3';
@@ -122,14 +123,14 @@ export const getPersonMovieCredits = async (personId: number): Promise<PersonMov
     return null;
   }
 };
+
 export interface PersonResult {
   id: number;
   name: string;
   profile_path: string | null;
   known_for_department: string;
+  gender: number; // 1 = Female, 2 = Male, 0 = Unknown
 }
-
-import { supabase } from './supabaseClient';
 
 export const searchPerson = async (query: string): Promise<PersonResult | null> => {
   if (!query) return null;
@@ -148,7 +149,8 @@ export const searchPerson = async (query: string): Promise<PersonResult | null> 
         id: 0,
         name: query,
         profile_path: dbImage.image_url,
-        known_for_department: 'Manual'
+        known_for_department: 'Manual',
+        gender: 0
       };
     }
   } catch (_e) {
@@ -164,7 +166,8 @@ export const searchPerson = async (query: string): Promise<PersonResult | null> 
       id: 0,
       name: query,
       profile_path: manualImage,
-      known_for_department: 'Manual'
+      known_for_department: 'Manual',
+      gender: 0
     };
   }
 
@@ -198,10 +201,14 @@ export const searchPerson = async (query: string): Promise<PersonResult | null> 
     const result = data.results?.[0] || null;
 
     if (!result) {
-      console.warn(`⚠️ No TMDB result found for: "${query}"`);
+      // console.warn(`⚠️ No TMDB result found for: "${query}"`); // Silenced to reduce noise
+      return null;
     }
 
-    return result;
+    return {
+      ...result,
+      gender: result?.gender || 0 // Default to 0 if missing
+    };
   } catch (error: any) {
     // Detailed error logging for debugging
     if (error.name === 'AbortError') {

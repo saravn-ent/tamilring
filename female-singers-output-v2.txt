@@ -1,0 +1,236 @@
+﻿[dotenv@17.2.3] injecting env (8) from .env.local -- tip: ­ƒöÉ prevent building .env in docker: https://dotenvx.com/prebuild
+Singers in Female-tagged ringtones:
+[
+  [
+    "Anirudh Ravichander",
+    5
+  ],
+  [
+    "A.R. Rahman",
+    2
+  ],
+  [
+    "T. Rajendar & Arivu",
+    2
+  ],
+  [
+    "Dua Lipa",
+    2
+  ],
+  [
+    "Ariana Grande",
+    2
+  ],
+  [
+    "Siddharth Basrur",
+    1
+  ],
+  [
+    "Anirudh Ravichander & Heisenberg",
+    1
+  ],
+  [
+    "Sai Abhyankkar",
+    1
+  ],
+  [
+    "Paal Dabba",
+    1
+  ],
+  [
+    "bebhumika & Deepthi Suresh",
+    1
+  ],
+  [
+    "Lalo Salamanca & Heisenberg",
+    1
+  ],
+  [
+    "Metro Boomin",
+    1
+  ],
+  [
+    "A$AP Rocky & Roisee",
+    1
+  ],
+  [
+    "Hector Salamanca & Heisenberg",
+    1
+  ],
+  [
+    "Balti",
+    1
+  ],
+  [
+    "Bombay jeyashree",
+    1
+  ],
+  [
+    "Sia",
+    1
+  ],
+  [
+    "Shawn Mendes & Camila Cabello",
+    1
+  ],
+  [
+    "Meric Again & 22angels",
+    1
+  ],
+  [
+    "Sangeetha Rajeshwaran & Vijay Antony",
+    1
+  ],
+  [
+    "Reea",
+    1
+  ],
+  [
+    "Beyonc├®",
+    1
+  ],
+  [
+    "Oasis",
+    1
+  ],
+  [
+    "The Weeknd",
+    1
+  ],
+  [
+    "Indila",
+    1
+  ],
+  [
+    "Ellie Goulding",
+    1
+  ],
+  [
+    "Lady Gaga",
+    1
+  ],
+  [
+    "ZAYN",
+    1
+  ],
+  [
+    "Madonna & Sickick",
+    1
+  ],
+  [
+    "Sean Paul",
+    1
+  ],
+  [
+    "Calvin Harris",
+    1
+  ],
+  [
+    "Shreya ghoshal",
+    1
+  ],
+  [
+    "Shreya Ghoshal",
+    1
+  ],
+  [
+    "P. Susheela",
+    1
+  ],
+  [
+    "Govind Vasantha & Chinmayi Sripada",
+    1
+  ],
+  [
+    "Vijay Prakash",
+    1
+  ],
+  [
+    "Blaaze & Suzanne D'Mello",
+    1
+  ],
+  [
+    "A.R. Rahman & Shreya Ghoshal",
+    1
+  ],
+  [
+    "Lorna & The Acid Mind",
+    1
+  ],
+  [
+    "EDX",
+    1
+  ],
+  [
+    "Troye Sivan",
+    1
+  ],
+  [
+    "Shakira",
+    1
+  ],
+  [
+    "Alessia Cara",
+    1
+  ],
+  [
+    "Sabrina Carpenter",
+    1
+  ],
+  [
+    "Soolamangalam Rajalakshmi",
+    1
+  ],
+  [
+    "Harris Jayaraj",
+    1
+  ],
+  [
+    "Bombay Jayashri & Krish",
+    1
+  ],
+  [
+    "Ilayaraja",
+    1
+  ],
+  [
+    "Shruti Haasan",
+    1
+  ],
+  [
+    "Kamal Haasan",
+    1
+  ],
+  [
+    "Inbaraj Rajendran",
+    1
+  ],
+  [
+    "Anugraha Raphy",
+    1
+  ],
+  [
+    "Krithika Nelson",
+    1
+  ],
+  [
+    "Anivee",
+    1
+  ],
+  [
+    "Amitash",
+    1
+  ],
+  [
+    "Jonita Gandhi",
+    1
+  ],
+  [
+    "Swarnalatha",
+    1
+  ],
+  [
+    "Ravi basrur",
+    1
+  ]
+]

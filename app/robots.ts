@@ -17,20 +17,7 @@ export default function robots(): MetadataRoute.Robots {
                     '/static/',
                 ],
             },
-            {
-                userAgent: 'GPTBot', // OpenAI crawler
-                disallow: '/',
-            },
-            {
-                userAgent: 'CCBot', // Common Crawl
-                disallow: '/',
-            },
-            {
-                userAgent: 'anthropic-ai', // Anthropic crawler
-                disallow: '/',
-            },
         ],
         sitemap: `${SITE_URL}/sitemap.xml`,
-        host: SITE_URL,
     };
 }

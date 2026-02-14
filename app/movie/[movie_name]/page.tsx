@@ -14,6 +14,8 @@ import StructuredData from '@/components/StructuredData';
 import MovieRingtonesList from '@/components/movie/MovieRingtonesList';
 import { Suspense } from 'react';
 import { RingtoneGridSkeleton } from '@/components/skeletons';
+import BackButton from '@/components/BackButton';
+
 
 export async function generateMetadata({ params }: { params: Promise<{ movie_name: string }> }): Promise<Metadata> {
   const { movie_name } = await params;
@@ -103,8 +105,10 @@ export default async function MoviePage({
         />
         <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 via-neutral-900/60 to-transparent" />
 
-        {/* Favorite Button */}
-        <div className="absolute top-4 right-4 z-10">
+        {/* Navigation & Actions */}
+        <div className="absolute top-4 inset-x-4 z-10 flex items-center justify-between">
+          <BackButton fallbackHref="/" className="!px-3 !py-2 shadow-lg" />
+
           <FavoriteButton
             item={{
               id: movieName,

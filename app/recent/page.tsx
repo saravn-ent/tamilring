@@ -5,6 +5,8 @@ import SortControl from '@/components/SortControl';
 import RecentRingtonesList from '@/components/recent/RecentRingtonesList';
 import { Suspense } from 'react';
 import { RingtoneGridSkeleton } from '@/components/skeletons';
+import BackButton from '@/components/BackButton';
+
 import { generateRecentMetadata } from '@/lib/seo';
 
 export const metadata = generateRecentMetadata();
@@ -21,9 +23,7 @@ export default async function RecentPage({
   return (
     <div className="max-w-md md:max-w-4xl lg:max-w-6xl mx-auto p-4 pb-24">
       <header className="flex items-center gap-4 py-4 mb-3">
-        <Link href="/" className="p-2 bg-zinc-100 rounded-full text-zinc-600 hover:text-brand-accent transition-colors">
-          <ArrowLeft size={20} />
-        </Link>
+        <BackButton fallbackHref="/" variant="minimal" className="!bg-zinc-100 rounded-full" />
         <h1 className="text-xl font-black text-zinc-900">Just Added</h1>
       </header>
 

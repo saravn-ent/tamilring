@@ -16,7 +16,7 @@ export const translations = {
         movies: 'Movies',
         artists: 'Artists',
         contributors: 'Top Contributors',
-        memories: 'Rewind: Memories',
+        memories: 'Ringtones That Bring Back the Good Times',
         mood: 'Browse by Mood',
         voices: 'The Voices You Love',
         musicDirectors: 'Music Directors',
@@ -39,6 +39,7 @@ export const translations = {
         terms: 'Terms',
         dmca: 'DMCA',
         privacy: 'Privacy',
+        femaleSinger: 'Top Female Singers',
     },
     ta: {
         home: 'முகப்பு',
@@ -55,7 +56,7 @@ export const translations = {
         movies: 'திரைப்படங்கள்',
         artists: 'கலைஞர்கள்',
         contributors: 'பங்களிப்பாளர்கள்',
-        memories: 'பழைய நினைவுகள்',
+        memories: 'நல்ல நினைவுகளைத் தரும் பாடல்கள்',
         mood: 'மனநிலைக்கேற்ப',
         voices: 'பிடித்த குரல்கள்',
         musicDirectors: 'இசை அமைப்பாளர்கள்',
@@ -78,6 +79,7 @@ export const translations = {
         terms: 'விதிமுறைகள்',
         dmca: 'பதிப்புரிமை',
         privacy: 'தனியுரிமை',
+        femaleSinger: 'பெண் பாடகிகள்',
     }
 };
 

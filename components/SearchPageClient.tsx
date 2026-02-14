@@ -16,6 +16,8 @@ import NoResults from '@/components/NoResults';
 import SortControl from './SortControl';
 import { hapticFeedback } from '@/lib/haptics';
 import { logSearch } from '@/app/actions/ringtones';
+import BackButton from '@/components/BackButton';
+
 
 
 function SearchContent() {
@@ -289,11 +291,13 @@ function SearchContent() {
                 </div>
             )}
 
-            <div className="px-4 pt-4">
+            <div className="px-4 pt-4 flex items-center gap-3">
+                <BackButton fallbackHref="/" className="!px-3 !py-2.5" />
+
 
                 {/* Search Input */
                     !searchParams.get('hideSearch') && (
-                        <div className="relative mb-6">
+                        <div className="relative mb-6 flex-1">
                             <input
                                 type="text"
                                 value={query}

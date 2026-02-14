@@ -19,12 +19,15 @@ export default function NostalgiaList({ nostalgia }: NostalgiaListProps) {
     const handlePlay = (e: React.MouseEvent, ringtone: Ringtone) => {
         e.preventDefault();
         e.stopPropagation();
-        hapticFeedback(20);
+        hapticFeedback(25);
 
+        // Use standard sync toggle if already current, but yield for play
         if (currentRingtone?.id === ringtone.id) {
             togglePlay();
         } else {
-            playRingtone(ringtone);
+            setTimeout(() => {
+                playRingtone(ringtone);
+            }, 0);
         }
     };
 

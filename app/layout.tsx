@@ -96,6 +96,11 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8222339857289632"
+          crossOrigin="anonymous"
+        ></script>
       </head>
       <body
         className={`${jakarta.className} font-sans antialiased scrollbar-hide transition-colors duration-300 bg-background text-foreground`}
@@ -109,12 +114,6 @@ export default async function RootLayout({
             --font-sans: ${jakarta.style.fontFamily};
           }
         `}} />
-        <Script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8222339857289632"
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
         <Script
           strategy="lazyOnload"
           src={`https://www.googletagmanager.com/gtag/js?id=G-07CW71VTGB`}
@@ -208,6 +207,6 @@ export default async function RootLayout({
           />
         </ThemeProvider>
       </body>
-    </html>
+    </html >
   );
 }

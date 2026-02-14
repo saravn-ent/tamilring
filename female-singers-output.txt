@@ -1,0 +1,64 @@
+﻿[dotenv@17.2.3] injecting env (8) from .env.local -- tip: ­ƒöä add secrets lifecycle management: https://dotenvx.com/ops
+Top Female Singers found from Female-tagged ringtones:
+[
+  [
+    "Anirudh Ravichander",
+    5
+  ],
+  [
+    "A.R. Rahman",
+    2
+  ],
+  [
+    "T. Rajendar & Arivu",
+    2
+  ],
+  [
+    "Dua Lipa",
+    2
+  ],
+  [
+    "Ariana Grande",
+    2
+  ],
+  [
+    "Siddharth Basrur",
+    1
+  ],
+  [
+    "Anirudh Ravichander & Heisenberg",
+    1
+  ],
+  [
+    "Sai Abhyankkar",
+    1
+  ],
+  [
+    "Paal Dabba",
+    1
+  ],
+  [
+    "bebhumika & Deepthi Suresh",
+    1
+  ],
+  [
+    "Lalo Salamanca & Heisenberg",
+    1
+  ],
+  [
+    "Metro Boomin",
+    1
+  ],
+  [
+    "A$AP Rocky & Roisee",
+    1
+  ],
+  [
+    "Hector Salamanca & Heisenberg",
+    1
+  ],
+  [
+    "Balti",
+    1
+  ]
+]

@@ -1,0 +1,14 @@
+--- Debugging Top Artists Logic ---
+Total ringtones fetched: 423
+Top Singers candidates: Anirudh Ravichander (35), A.R. Rahman (20), Hiphop Tamizha (13), Yuvan Shankar Raja (11), Chinmayi Sripada (10), Santhosh Narayanan (9), Karthik (8), Arivu (8), Harris Jayaraj (8), G.V. Prakash Kumar (7)
+Top MDs candidates: Anirudh Ravichander (48), A.R. Rahman (34), G. V. Prakash Kumar (22), Yuvan Shankar Raja (18), Harris Jayaraj (15), HipHop Tamizha Adhi (13), Santhosh Narayanan (9), Ilaiyaraaja (9), HipHop Tamizha Jeeva (8), Sean Roldan (7)
+Top Actors candidates: Vijay (10), Mamitha Baiju (9), Bobby Deol (9), Rajinikanth (8), Arya (6), Amy Jackson (6), Nassar (6), Dhanush (5), Sivakarthikeyan (4), Dhruv Vikram (4)
+Top Directors candidates: Atlee (16), Gautham Vasudev Menon (15), Nelson Dilipkumar (11), Mani Ratnam (11), H. Vinoth (10), Lokesh Kanagaraj (8), A. L. Vijay (6), A. R. Murugadoss (6), K. S. Ravikumar (5), Vetrimaaran (5)
+TMDB check for "Anirudh Ravichander": {"name":"Anirudh Ravichander","dept":"Sound","gender":2,"hasProfile":true}
+TMDB check for "A.R. Rahman": {"name":"A.R. Rahman","dept":"Sound","gender":2,"hasProfile":true}
+TMDB check for "Anirudh Ravichander": {"name":"Anirudh Ravichander","dept":"Sound","gender":2,"hasProfile":true}
+TMDB check for "A.R. Rahman": {"name":"A.R. Rahman","dept":"Sound","gender":2,"hasProfile":true}
+TMDB check for "Vijay": {"name":"Vijay","dept":"Acting","gender":0,"hasProfile":false}
+TMDB check for "Mamitha Baiju": {"name":"Mamitha Baiju","dept":"Acting","gender":1,"hasProfile":true}
+TMDB check for "Atlee": {"name":"Atlee","dept":"Directing","gender":2,"hasProfile":true}
+TMDB check for "Gautham Vasudev Menon": {"name":"Gautham Vasudev Menon","dept":"Directing","gender":2,"hasProfile":true}

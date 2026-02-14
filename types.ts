@@ -14,6 +14,7 @@ export interface Ringtone {
   audio_url: string;
   waveform_url: string;
   tags?: string[];
+  language?: string;
   mood?: string;
   cast?: string;
   cast_members?: string;
