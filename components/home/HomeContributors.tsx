@@ -48,7 +48,7 @@ export default async function HomeContributors() {
 
     return (
         <div className="mb-14 px-4">
-            <SectionHeader title="Top Contributors" translationKey="contributors" />
+            <SectionHeader title="Top Contributors" />
             <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide snap-x pt-2">
                 {topContributors.map((c: Contributor, idx: number) => (
                     <Link key={c.id} href={`/user/${encodeURIComponent(c.id)}`} className="snap-start shrink-0 flex flex-col items-center gap-3 w-24 group">

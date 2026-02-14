@@ -16,7 +16,7 @@ export const translations = {
         movies: 'Movies',
         artists: 'Artists',
         contributors: 'Top Contributors',
-        memories: 'Ringtones That Bring Back the Good Times',
+        memories: 'Rewind Memories',
         mood: 'Browse by Mood',
         voices: 'The Voices You Love',
         musicDirectors: 'Music Directors',

@@ -44,7 +44,7 @@ export default async function HomeFemaleSingers() {
     return (
         <div className="mb-10">
             <div className="px-4 text-center mb-6">
-                <SectionHeader title="Popular Female Singers" translationKey="femaleSinger" />
+                <SectionHeader title="Popular Female Singers" />
             </div>
             <div className="flex overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-6 md:grid md:grid-cols-4 lg:grid-cols-8 md:gap-6 md:px-0 md:pl-0 md:overflow-visible">
                 {topFemaleSingers.map((singer, idx) => (

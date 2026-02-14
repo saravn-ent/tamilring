@@ -14,6 +14,31 @@ interface RingtoneSummary {
     user_id: string;
 }
 
+interface StatCardProps {
+    title: string;
+    value: string | number;
+    subValue?: string;
+    icon: LucideIcon;
+    color: string;
+    href?: string;
+}
+
+const StatCard = ({ title, value, subValue, icon: Icon, color, href }: StatCardProps) => (
+    <Link href={href || '#'} className="bg-white border border-slate-200 p-6 rounded-2xl hover:border-indigo-200 transition-all group relative overflow-hidden shadow-sm hover:shadow-md">
+        <div className={`absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity ${color}`}>
+            <Icon size={64} />
+        </div>
+        <div className="relative z-10">
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${color.replace('text-', 'bg-')}/10 ${color}`}>
+                <Icon size={24} />
+            </div>
+            <h3 className="text-slate-500 text-sm font-medium mb-1">{title}</h3>
+            <p className="text-3xl font-bold text-slate-900 tracking-tight">{value}</p>
+            {subValue && <p className="text-xs text-slate-400 mt-2 font-mono">{subValue}</p>}
+        </div>
+    </Link>
+);
+
 export default function AdminDashboard() {
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({
@@ -123,32 +148,6 @@ export default function AdminDashboard() {
             </div>
         );
     }
-
-    interface StatCardProps {
-        title: string;
-        value: string | number;
-        subValue?: string;
-        icon: LucideIcon;
-        color: string;
-        href?: string;
-    }
-
-    const StatCard = ({ title, value, subValue, icon: Icon, color, href }: StatCardProps) => (
-        <Link href={href || '#'} className="bg-white border border-slate-200 p-6 rounded-2xl hover:border-indigo-200 transition-all group relative overflow-hidden shadow-sm hover:shadow-md">
-            <div className={`absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity ${color}`}>
-                <Icon size={64} />
-            </div>
-            <div className="relative z-10">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${color.replace('text-', 'bg-')}/10 ${color}`}>
-                    <Icon size={24} />
-                </div>
-                <h3 className="text-slate-500 text-sm font-medium mb-1">{title}</h3>
-                <p className="text-3xl font-bold text-slate-900 tracking-tight">{value}</p>
-                {subValue && <p className="text-xs text-slate-400 mt-2 font-mono">{subValue}</p>}
-            </div>
-        </Link>
-    );
-
     return (
         <div className="space-y-8">
             {/* Header */}
@@ -181,6 +180,7 @@ export default function AdminDashboard() {
                     subValue={`Today: ${stats.todayDownloads} • Week: ${stats.weekDownloads}`}
                     icon={Download}
                     color="text-emerald-600"
+                    href="/admin/activity"
                 />
                 <StatCard
                     title="Requests Pending"

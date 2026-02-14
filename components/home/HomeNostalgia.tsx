@@ -26,29 +26,39 @@ const getNostalgiaRingtones = unstable_cache(
 
         let { data: ringtones } = await getQuery(lang);
 
-        // Fallback: If no results for requested lang, try tamil
-        if ((!ringtones || ringtones.length === 0) && lang !== 'tamil') {
+        // Fallback 1: If few results for requested lang, try tamil
+        if ((!ringtones || ringtones.length < 12) && lang !== 'tamil') {
             const { data: fallback } = await getQuery('tamil');
-            ringtones = fallback;
+            if (fallback && fallback.length > 0) {
+                const existingIds = new Set(ringtones?.map(r => r.id) || []);
+                const newStuff = fallback.filter(r => !existingIds.has(r.id));
+                ringtones = [...(ringtones || []), ...newStuff];
+            }
         }
 
-        // Ultimate fallback: Any nostalgia
-        if (!ringtones || ringtones.length === 0) {
-            const { data: ultimateFallback } = await supabase
+        // Fallback 2: If still not enough (even for Tamil), relax the year constraint
+        if (!ringtones || ringtones.length < 12) {
+            const { data: relaxed } = await supabase
                 .from('ringtones')
                 .select('*')
                 .eq('status', 'approved')
-                .lt('movie_year', 2015)
+                .lte('movie_year', '2018') // Relax to 2018
                 .order('likes', { ascending: false })
                 .limit(50);
-            ringtones = ultimateFallback;
+
+            if (relaxed && relaxed.length > 0) {
+                const existingIds = new Set(ringtones?.map(r => r.id) || []);
+                const newStuff = relaxed.filter(r => !existingIds.has(r.id));
+                ringtones = [...(ringtones || []), ...newStuff];
+            }
         }
 
         if (!ringtones || ringtones.length === 0) return [];
 
-        // Shuffle and take 10
-        const shuffled = ringtones.sort(() => 0.5 - Math.random()).slice(0, 10);
+        // Shuffle and take 12
+        const shuffled = ringtones.sort(() => 0.5 - Math.random()).slice(0, 12);
 
+        // Enrich with profiles if needed
         const userIds = Array.from(new Set(shuffled.map(r => r.user_id).filter(Boolean)));
         if (userIds.length === 0) return shuffled;
 
@@ -61,12 +71,15 @@ const getNostalgiaRingtones = unstable_cache(
         return shuffled.map(r => ({ ...r, profile: profileMap.get(r.user_id) }));
 
     },
-    ['nostalgia-ringtones-v7'], // Revert to static but bump version
+    ['nostalgia-ringtones-v20'], // High version bump
     { revalidate: 3600, tags: ['nostalgia'] }
 );
 
-export default async function HomeNostalgia() {
-    const lang = await getUserLanguage();
+interface Props {
+    lang: string;
+}
+
+export default async function HomeNostalgia({ lang }: Props) {
     // Use lang as part of the cache key by wrapping or passing it
     const nostalgia = await getNostalgiaRingtones(lang);
 
@@ -75,7 +88,7 @@ export default async function HomeNostalgia() {
     return (
         <div className="mb-10">
             <div className="px-4 mb-6">
-                <SectionHeader title="Ringtones That Bring Back the Good Times" translationKey="memories" />
+                <SectionHeader title="Rewind Memories" />
             </div>
             <NostalgiaList nostalgia={nostalgia} />
         </div>

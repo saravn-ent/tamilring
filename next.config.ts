@@ -5,7 +5,9 @@ import withBundleAnalyzer from '@next/bundle-analyzer';
 const config: NextConfig = {
   compress: true,
   turbopack: {},
-  serverExternalPackages: ['@xenova/transformers', 'onnxruntime-web', 'date-fns', 'postgres'],
+
+  serverExternalPackages: ['@xenova/transformers', 'onnxruntime-web', 'postgres', 'drizzle-orm'],
+
   images: {
     remotePatterns: [
       { protocol: 'https', hostname: 'image.tmdb.org', pathname: '/t/p/**' },
@@ -75,8 +77,15 @@ const config: NextConfig = {
   },
 };
 
-const nextConfig = withBundleAnalyzer({
-  enabled: process.env.ANALYZE === 'true',
-})(config);
+import withPWAInit from "@ducanh2912/next-pwa";
+
+const withPWA = withPWAInit({
+  dest: "public",
+  disable: process.env.NODE_ENV === "development",
+});
+
+const nextConfig = withPWA(withBundleAnalyzer({
+  enabled: process.env.ANALYZE === "true",
+})(config));
 
 export default nextConfig;

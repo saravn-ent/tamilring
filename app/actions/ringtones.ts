@@ -3,7 +3,7 @@
 import { revalidateTag, revalidatePath, unstable_cache } from 'next/cache'
 import { getSupabaseServer } from '@/lib/auth-server'
 import { createClient } from '@supabase/supabase-js';
-import { headers } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 
 // Helper for public data fetching (No cookies/auth) to be safe for unstable_cache
 const getPublicSupabase = () => {
@@ -13,9 +13,9 @@ const getPublicSupabase = () => {
     );
 };
 
-export const getUserLanguage = async () => {
-    const list = await headers();
-    const lang = list.get('x-user-language') || 'ta'; // Default to tamil for home region
+export async function getUserLanguage() {
+    const cookieStore = await cookies();
+    const lang = cookieStore.get('user-language')?.value || 'ta'; // Default to tamil ('ta')
 
     // Map to db languages (must match DB values exactly)
     const langMap: Record<string, string> = {
@@ -155,7 +155,7 @@ const getTrendingRingtonesInternal = unstable_cache(
     async (limit: number, lang: string) => {
         const supabase = getPublicSupabase();
 
-        // NUCLEAR FIX: Use direct query instead of RPC since RPC is failing with signature mismatch in some environments
+        // Query trending ringtones
         let query = supabase
             .from('ringtones')
             .select('*')
@@ -171,12 +171,15 @@ const getTrendingRingtonesInternal = unstable_cache(
             query = query.eq('language', lang);
         }
 
-        const { data, error } = await query
+        const { data: trending, error } = await query
             .order('likes', { ascending: false })
             .order('downloads', { ascending: false })
             .limit(limit);
 
-        if ((!data || data.length === 0) && lang !== 'tamil') {
+        let result = trending || [];
+
+        // Fallback for regional empty states
+        if (result.length === 0 && lang !== 'tamil') {
             const { data: fallback } = await supabase
                 .from('ringtones')
                 .select('*')
@@ -185,12 +188,26 @@ const getTrendingRingtonesInternal = unstable_cache(
                 .order('likes', { ascending: false })
                 .order('downloads', { ascending: false })
                 .limit(limit);
-            return fallback || [];
+            result = fallback || [];
         }
 
-        return data || [];
+        if (result.length === 0) return [];
+
+        // ENRICH WITH PROFILES (Cached inside the same block)
+        const userIds = Array.from(new Set(result.map((r: any) => r.user_id).filter(Boolean)));
+        if (userIds.length > 0) {
+            const { data: profiles } = await supabase
+                .from('profiles')
+                .select('id, full_name')
+                .in('id', userIds);
+
+            const profileMap = new Map(profiles?.map((p: any) => [p.id, p]));
+            result = result.map((r: any) => ({ ...r, profile: profileMap.get(r.user_id) }));
+        }
+
+        return result;
     },
-    ['trending-ringtones-v12'], // Force refresh
+    ['trending-ringtones-v15'], // Bump version
     { revalidate: 3600, tags: ['trending'] }
 );
 

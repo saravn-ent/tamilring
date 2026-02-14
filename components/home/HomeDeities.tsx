@@ -75,12 +75,17 @@ const getTopDeities = unstable_cache(
             if (!name) return;
             const lowerName = name.toLowerCase();
 
-            // Relaxed Filter: Allow known deities OR simply any Devotional tagged ringtone
-            const hasDevotionalTag = r.tags && r.tags.includes('Devotional');
+            // Stricter Filter: Must match a known deity name (exact, as a word, or normalized)
+            // This prevents movies like "Leo" or "Coolie" from showing up even if mis-tagged as "Devotional"
+            const words = lowerName.split(/[^a-z0-9]+/).filter((w: string) => w.length > 0);
+            const normalizedLower = lowerName.replace(/[^a-z0-9]/g, '');
 
-            const isKnown = allowedDeities.includes(lowerName) ||
-                allowedDeities.some(d => lowerName.includes(d) && d.length > 4) ||
-                hasDevotionalTag; // Allow by tag
+            const isKnown = allowedDeities.some(d => {
+                const ld = d.toLowerCase();
+                const nld = ld.replace(/[^a-z0-9]/g, '');
+                // Match exact name, deity name as a word, or matching normalized forms
+                return lowerName === ld || words.includes(ld) || normalizedLower === nld;
+            });
 
             if (!isKnown) return;
 
@@ -110,12 +115,11 @@ const getTopDeities = unstable_cache(
             .sort((a, b) => b.total_likes - a.total_likes)
             .slice(0, 10);
     },
-    ['top-deities-home-v7'], // Bump cache version
+    ['top-deities-home-v8'], // Bump cache version
     { revalidate: 3600, tags: ['homepage-deities'] }
 );
 
-export default async function HomeDeities() {
-    const lang = await getUserLanguage();
+export default async function HomeDeities({ lang }: { lang: string }) {
     const topDeities = await getTopDeities(lang);
     console.log('HomeDeities: count =', topDeities?.length || 0);
 

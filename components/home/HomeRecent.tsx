@@ -69,13 +69,12 @@ const getRecentRingtones = unstable_cache(
     { revalidate: 3600, tags: ['recent'] }
 );
 
-export default async function HomeRecent() {
-    const lang = await getUserLanguage();
+export default async function HomeRecent({ lang }: { lang: string }) {
     const recent = await getRecentRingtones(lang);
 
     return (
         <div className="px-4 mb-10">
-            <SectionHeader title="Just Added" translationKey="justAdded" />
+            <SectionHeader title="Just Added" />
             <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 mb-6">
                 {recent?.map((ringtone: Ringtone) => (
                     <RingtoneCard key={ringtone.id} ringtone={ringtone} />

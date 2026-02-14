@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
+import dynamic from "next/dynamic";
 
 import "./globals.css";
 import { PlayerProvider } from "@/context/PlayerContext";
@@ -96,11 +97,13 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script
+        <Script
+          id="adsense"
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8222339857289632"
           crossOrigin="anonymous"
-        ></script>
+          strategy="lazyOnload"
+        />
       </head>
       <body
         className={`${jakarta.className} font-sans antialiased scrollbar-hide transition-colors duration-300 bg-background text-foreground`}

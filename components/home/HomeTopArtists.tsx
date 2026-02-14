@@ -118,11 +118,6 @@ const getTopArtists = unstable_cache(
         const topMDsList = getTop(mdCounts);
         const topActorsCandidates = getTop(actorCounts);
 
-        console.log('--- Top Artists Debug ---');
-        console.log('Ringtones Found:', ringtones.length);
-        console.log('Top Singers Raw:', topSingersList);
-        console.log('Top Actors Candidates (Ranked):', topActorsCandidates);
-
         // Helper to enrich
         // For Actors, we strictly check known_for_department on TMDB
         const enrich = async (names: string[], dept?: string) => {
@@ -154,8 +149,7 @@ const getTopArtists = unstable_cache(
             enrich(getTop(directorCounts)) // Relaxed for Directors
         ]);
 
-        console.log('Enriched Singers:', topSingers.length);
-        console.log('Enriched Actors:', topActorsRaw.length);
+
 
         return {
             topSingers: topSingers.slice(0, 8),
@@ -168,15 +162,14 @@ const getTopArtists = unstable_cache(
     { revalidate: 3600, tags: ['homepage-artists'] }
 );
 
-export async function HomeSingers() {
-    const lang = await getUserLanguage();
+export async function HomeSingers({ lang }: { lang: string }) {
     const { topSingers } = await getTopArtists(lang);
     if (!topSingers || topSingers.length === 0) return null;
 
     return (
         <div className="mb-10">
             <div className="px-4 text-center mb-6">
-                <SectionHeader title="The Voices You Love" translationKey="voices" />
+                <SectionHeader title="The Voices You Love" />
             </div>
             <div className="flex overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-6 md:grid md:grid-cols-4 lg:grid-cols-8 md:gap-6 md:px-0 md:pl-0 md:overflow-visible">
                 {topSingers.map((singer, idx) => (
@@ -195,15 +188,14 @@ export async function HomeSingers() {
     );
 }
 
-export async function HomeMusicDirectors() {
-    const lang = await getUserLanguage();
+export async function HomeMusicDirectors({ lang }: { lang: string }) {
     const { topMusicDirectors } = await getTopArtists(lang);
     if (!topMusicDirectors || topMusicDirectors.length === 0) return null;
 
     return (
         <div className="mb-10">
             <div className="px-4 text-center mb-6">
-                <SectionHeader title="Music Directors" translationKey="musicDirectors" />
+                <SectionHeader title="Music Directors" />
             </div>
             <div className="flex overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-6 md:grid md:grid-cols-4 lg:grid-cols-8 md:gap-6 md:px-0 md:pl-0 md:overflow-visible">
                 {topMusicDirectors.map((md, idx) => (
@@ -222,15 +214,14 @@ export async function HomeMusicDirectors() {
     );
 }
 
-export async function HomeActors() {
-    const lang = await getUserLanguage();
+export async function HomeActors({ lang }: { lang: string }) {
     const { topActors } = await getTopArtists(lang);
     if (!topActors || topActors.length === 0) return null;
 
     return (
         <div className="mb-10">
             <div className="px-4 text-center mb-6">
-                <SectionHeader title="Top Actors" translationKey="actors" />
+                <SectionHeader title="Top Actors" />
             </div>
             <div className="flex overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-6 md:grid md:grid-cols-4 lg:grid-cols-8 md:gap-6 md:px-0 md:pl-0 md:overflow-visible">
                 {topActors.map((actor, idx) => (
@@ -249,15 +240,14 @@ export async function HomeActors() {
     );
 }
 
-export async function HomeMovieDirectors() {
-    const lang = await getUserLanguage();
+export async function HomeMovieDirectors({ lang }: { lang: string }) {
     const { topMovieDirectors } = await getTopArtists(lang);
     if (!topMovieDirectors || topMovieDirectors.length === 0) return null;
 
     return (
         <div className="mb-10">
             <div className="px-4 text-center mb-6">
-                <SectionHeader title="Movie Directors" translationKey="movieDirectors" />
+                <SectionHeader title="Movie Directors" />
             </div>
             <div className="flex overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-6 md:grid md:grid-cols-4 lg:grid-cols-8 md:gap-6 md:px-0 md:pl-0 md:overflow-visible">
                 {topMovieDirectors.map((director, idx) => (
