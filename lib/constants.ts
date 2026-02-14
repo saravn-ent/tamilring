@@ -81,3 +81,28 @@ export function getArtistBio(artistName: string): string | undefined {
   return undefined;
 }
 
+export const TOP_ACTORS_BY_LANGUAGE: Record<string, string[]> = {
+  tamil: [
+    'Vijay', 'Ajith Kumar', 'Ajith', 'Rajinikanth', 'Rajini', 'Suriya', 'Vikram',
+    'Kamal Haasan', 'Kamal', 'Dhanush', 'Sivakarthikeyan', 'SK', 'Vijay Sethupathi',
+    'VJS', 'Karthi', 'Jayam Ravi', 'Silambarasan TR', 'Simbu', 'Madhavan', 'Vishal',
+    'Jiiva', 'Arun Vijay', 'Arya', 'Santhanam', 'Vadivelu', 'Yogi Babu'
+  ],
+  telugu: [
+    'Prabhas', 'Mahesh Babu', 'Allu Arjun', 'NTR Jr.', 'Ram Charan',
+    'Pawan Kalyan', 'Chiranjeevi', 'Nani', 'Vijay Deverakonda', 'Ravi Teja',
+    'Nagarjuna', 'Venkatesh'
+  ],
+  malayalam: [
+    'Mohanlal', 'Mammootty', 'Dulquer Salmaan', 'Fahadh Faasil', 'Prithviraj Sukumaran',
+    'Tovino Thomas', 'Nivin Pauly', 'Kunchacko Boban'
+  ],
+  kannada: [
+    'Yash', 'Rishab Shetty', 'Rakshit Shetty', 'Sudeep', 'Puneeth Rajkumar', 'Darshan'
+  ],
+  hindi: [
+    'Shah Rukh Khan', 'Salman Khan', 'Aamir Khan', 'Akshay Kumar', 'Hrithik Roshan',
+    'Ranbir Kapoor', 'Ranveer Singh', 'Ajay Devgn'
+  ]
+};
+

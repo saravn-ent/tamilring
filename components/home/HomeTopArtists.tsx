@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { unstable_cache } from 'next/cache';
 import { searchPerson, getImageUrl } from '@/lib/tmdb';
 import { getUserLanguage } from '@/app/actions/ringtones';
+import { TOP_ACTORS_BY_LANGUAGE, MOODS, INSTRUMENTS } from '@/lib/constants';
 
 const getTopArtists = unstable_cache(
     async (lang: string = 'tamil') => {
@@ -79,24 +80,27 @@ const getTopArtists = unstable_cache(
             }
 
             // Cast/Actors - checking tags effectively for now as 'cast' column might be sporadic
-            // This is a heuristic: Tags often contain actor names
-            // For a more robust solution, we'd need a dedicated 'cast' column or a known list of actors to match against tags
-            // For now, let's look for tags that are NOT in genre list
             if (r.tags && Array.isArray(r.tags)) {
                 r.tags.forEach((tag: string) => {
-                    // Very basic heuristic: Is it a person's name? 
-                    // Difficult to know without a list. 
-                    // Let's assume tags that are NOT 'Love', 'BGM', 'Remix', etc are candidates.
-                    // BETTER: If we have a 'cast' column used in some rows, prioritize that.
-                    // Parsing tags for actors is risky without a blocklist. 
-                    // Let's stick to 'cast' column if available, otherwise skip actors dynamically for now or use a basic tag aggregation 
-                    // assuming major tags are actors/movies.
-                    // Actually, let's try to capture 'Tag' frequency but filter out known genres
-                    const banned = ['Love', 'BGM', 'Remix', 'Sad', 'Funny', 'Dialogue', 'Movie', 'Song', 'Female', 'Male', 'Instrumental'];
-                    if (!banned.includes(tag) && tag.length > 3) {
-                        // Potentially an actor or movie name. 
-                        // We can return it and let TMDB validation filter out non-people.
-                        actorCounts[tag] = (actorCounts[tag] || 0) + 1;
+                    const moodNames = MOODS.map(m => m.toLowerCase());
+                    const instrumentNames = INSTRUMENTS.map(i => i.label.toLowerCase());
+                    const genericBanned = ['love', 'bgm', 'remix', 'sad', 'funny', 'dialogue', 'movie', 'song', 'female', 'male', 'instrumental', 'vocal', 'mass', 'duet', 'version', 'theme'];
+
+                    const lowerTag = tag.toLowerCase();
+
+                    if (!genericBanned.includes(lowerTag) &&
+                        !moodNames.includes(lowerTag) &&
+                        !instrumentNames.includes(lowerTag) &&
+                        tag.length > 3) {
+
+                        // If we have a curated list for this language, only count those as actors from tags
+                        // to avoid genres like 'Vocal', 'Violin' leaking in.
+                        const regionalActors = TOP_ACTORS_BY_LANGUAGE[lang] || [];
+                        const isKnownActor = regionalActors.some(a => a.toLowerCase() === lowerTag);
+
+                        if (isKnownActor) {
+                            actorCounts[tag] = (actorCounts[tag] || 0) + 1;
+                        }
                     }
                 });
             }
@@ -114,10 +118,20 @@ const getTopArtists = unstable_cache(
         const topMDsList = getTop(mdCounts);
         const topActorsCandidates = getTop(actorCounts);
 
+        // SEEDING: If our database is sparse on 'cast_members' or 'tags' for big actors,
+        // we should ensure the top actors from the curated list are at least checked.
+        // We'll take the first 10 from the curated list and add them if they aren't already there.
+        const regionalActors = TOP_ACTORS_BY_LANGUAGE[lang] || [];
+        regionalActors.slice(0, 10).forEach(actor => {
+            if (!topActorsCandidates.includes(actor)) {
+                topActorsCandidates.push(actor);
+            }
+        });
+
         console.log('--- Top Artists Debug ---');
         console.log('Ringtones Found:', ringtones.length);
         console.log('Top Singers Raw:', topSingersList);
-        console.log('Top Actors Raw:', topActorsCandidates);
+        console.log('Top Actors Candidates (Seeded + Ranked):', topActorsCandidates);
 
         // Helper to enrich
         // For Actors, we strictly check known_for_department on TMDB
@@ -160,7 +174,7 @@ const getTopArtists = unstable_cache(
             topActors: topActors.slice(0, 8)
         };
     },
-    ['home-top-artists-dynamic-v4'],
+    ['home-top-artists-dynamic-v5'],
     { revalidate: 3600, tags: ['homepage-artists'] }
 );
 
