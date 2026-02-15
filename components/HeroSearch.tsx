@@ -1,9 +1,8 @@
 'use client';
 
-import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { useLanguage } from '@/context/LanguageContext';
 
 const DiscoverySearch = dynamic(() => import('./DiscoverySearch'), {
     loading: () => <div className="h-14 w-full bg-zinc-100 rounded-2xl" />,
@@ -16,6 +15,7 @@ interface Props {
 
 export default function HeroSearch({ trendingTags = [] }: Props) {
     const router = useRouter();
+    const { t } = useLanguage();
 
     const handleTagClick = (tag: string) => {
         router.push(`/search?q=${encodeURIComponent(tag)}`);
@@ -27,12 +27,14 @@ export default function HeroSearch({ trendingTags = [] }: Props) {
 
                 {/* Visual Headline */}
                 <h2 className="text-3xl md:text-4xl font-bold text-brand-dark tracking-tight">
-                    Find Your <span className="text-brand-accent">Ringtone</span>
+                    {t('findYourRingtone').split('Ringtone')[0]}
+                    <span className="text-brand-accent">Ringtone</span>
+                    {t('findYourRingtone').split('Ringtone')[1]}
                 </h2>
 
                 {/* Subtitle */}
                 <p className="text-zinc-600 text-[13px] md:text-sm font-medium max-w-md mx-auto">
-                    Search classic movie dialogues, love instrumentals, and trending Tamil hits.
+                    {t('searchSubtitle')}
                 </p>
 
                 {/* Search Bar - Now using DiscoverySearch for Universal results */}
@@ -43,7 +45,7 @@ export default function HeroSearch({ trendingTags = [] }: Props) {
                 {/* Quick Tags - Dynamic */}
                 {trendingTags.length > 0 && (
                     <div className="flex flex-wrap justify-center gap-2 text-xs text-zinc-600 font-medium animate-in fade-in slide-in-from-bottom-1 duration-300">
-                        <span>Trending:</span>
+                        <span>{t('trendingLabel')}</span>
                         {trendingTags.map((tag) => (
                             <button
                                 key={tag}

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { supabase } from '@/lib/supabaseClient';
 import { unstable_cache } from 'next/cache';
 import { Ringtone } from '@/types';
-import { getUserLanguage } from '@/app/actions/ringtones';
+import { translations, Language } from '@/lib/i18n';
 
 const getRecentRingtones = unstable_cache(
     async (lang: string = 'tamil') => {
@@ -71,10 +71,11 @@ const getRecentRingtones = unstable_cache(
 
 export default async function HomeRecent({ lang }: { lang: string }) {
     const recent = await getRecentRingtones(lang);
+    const t = translations[lang as Language] || translations.en;
 
     return (
         <div className="px-4 mb-10">
-            <SectionHeader title="Just Added" />
+            <SectionHeader title="Just Added" translationKey="justAdded" />
             <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 mb-6">
                 {recent?.map((ringtone: Ringtone) => (
                     <RingtoneCard key={ringtone.id} ringtone={ringtone} />
@@ -85,7 +86,7 @@ export default async function HomeRecent({ lang }: { lang: string }) {
                 href="/recent"
                 className="block w-full py-3 rounded-xl bg-wash text-zinc-600 text-center text-sm font-bold hover:bg-brand-gray transition-colors border border-brand-gray"
             >
-                {recent.length > 0 ? "View All New Ringtones" : "No New Ringtones"}
+                {recent.length > 0 ? t.viewAllNew : t.noNew}
             </Link>
         </div>
     );

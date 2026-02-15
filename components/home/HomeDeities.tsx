@@ -40,7 +40,8 @@ const getTopDeities = unstable_cache(
             query = query.eq('language', lang);
         }
 
-        let { data: ringtones, error } = await query.order('likes', { ascending: false });
+        const { data: fetchResult, error } = await query.order('likes', { ascending: false });
+        let ringtones = fetchResult;
 
         // Fallback to Tamil for Deities if no regional matches
         if ((!ringtones || ringtones.length === 0) && lang !== 'tamil') {
@@ -126,7 +127,7 @@ export default async function HomeDeities({ lang }: { lang: string }) {
     return (
         <div className="mb-10">
             <div className="px-4 text-center mb-6">
-                <SectionHeader title="Gods/Deity" />
+                <SectionHeader title="Gods/Deity" translationKey="deities" />
             </div>
             <div className="flex gap-4 overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-4 md:grid md:grid-cols-6 lg:grid-cols-8 md:overflow-visible md:justify-items-center">
                 {topDeities.map((deity, idx) => (

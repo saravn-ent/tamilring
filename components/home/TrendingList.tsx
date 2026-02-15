@@ -6,6 +6,7 @@ import { Play, Pause } from 'lucide-react';
 import TMDBImage from '@/components/TMDBImage';
 import { Ringtone } from '@/types';
 import { usePlayer } from '@/context/PlayerContext';
+import { useLanguage } from '@/context/LanguageContext';
 import { hapticFeedback } from '@/lib/haptics';
 
 interface TrendingListProps {
@@ -14,6 +15,7 @@ interface TrendingListProps {
 
 export default function TrendingList({ trending }: TrendingListProps) {
     const { currentRingtone, isPlaying, playRingtone, togglePlay } = usePlayer();
+    const { t } = useLanguage();
     const router = useRouter();
 
     const handlePlay = (e: React.MouseEvent, ringtone: Ringtone) => {
@@ -86,7 +88,7 @@ export default function TrendingList({ trending }: TrendingListProps) {
                         <p className="text-xs font-bold text-black truncate group-hover:text-brand-accent transition-colors">{ringtone.title}</p>
                         <p className="text-[10px] text-brand-dark truncate">{ringtone.movie_name}</p>
                         {ringtone.profile?.full_name && (
-                            <p className="text-[9px] text-zinc-500 truncate mt-0.5">by {ringtone.profile.full_name}</p>
+                            <p className="text-[9px] text-zinc-500 truncate mt-0.5">{t('by')} {ringtone.profile.full_name}</p>
                         )}
                     </div>
                 );

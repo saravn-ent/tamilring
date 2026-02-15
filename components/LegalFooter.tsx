@@ -21,7 +21,7 @@ export default function LegalFooter() {
             <footer className="text-center space-y-4">
                 <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs h-4" />
                 <p className="text-[11px] text-zinc-600">
-                    TamilRing © {new Date().getFullYear()} • User Generated Content
+                    TamilRing © {new Date().getFullYear()} • {t('userGeneratedContent')}
                 </p>
             </footer>
         );
@@ -51,7 +51,7 @@ export default function LegalFooter() {
                 </Link>
             </div>
             <p suppressHydrationWarning className="text-[11px] text-zinc-600">
-                TamilRing © {new Date().getFullYear()} • User Generated Content
+                TamilRing © {new Date().getFullYear()} • {t('userGeneratedContent')}
             </p>
         </footer>
     );

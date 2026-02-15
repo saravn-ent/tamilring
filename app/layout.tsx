@@ -33,10 +33,10 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tamilring.in';
 // Enhanced metadata using our SEO system
 export const metadata: Metadata = {
   ...generateBaseMetadata(),
-  description: "Download high quality Tamil ringtones, BGM, and love songs. தமிழ் ரிங்டோன் தரவிறக்கம்.",
+  description: "Download high quality Tamil ringtones, BGM, and love songs.",
   keywords: [
     "tamil ringtones", "bgm download", "tamil cut songs", "latest tamil ringtones", "iphone ringtones",
-    "love bgm", "mass bgm", "ringtone tamil", "தமிழ் ரிங்டோன்", "தமிழ் பிஜிஎம்",
+    "love bgm", "mass bgm", "ringtone tamil",
     "tamil love songs", "south indian ringtones", "tamil movie ringtones", "devotional ringtones",
     "tamil cinema music", "kollywood ringtones"
   ],
@@ -45,7 +45,7 @@ export const metadata: Metadata = {
     description: 'Download the latest Tamil movie ringtones, devotional songs, and music. High-quality ringtones from Tamil cinema.',
     url: SITE_URL,
     siteName: 'TamilRing',
-    locale: 'ta_IN',
+    locale: 'en_US',
     type: 'website',
   },
   twitter: {
@@ -101,7 +101,15 @@ export default async function RootLayout({
           id="google-adsense"
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8222339857289632"
-          strategy="lazyOnload"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
+        {/* Adsterra Monetization */}
+        <Script
+          id="adsterra-script"
+          async
+          src="https://pl28717432.effectivegatecpm.com/c1/5a/9f/c15a9ffe85c9eb11538a47b0e0bb3f1d.js"
+          strategy="afterInteractive"
         />
       </head>
       <body

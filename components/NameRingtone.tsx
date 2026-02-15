@@ -138,7 +138,7 @@ const languages = [
 
 export default function NameRingtone() {
     const [customMessage, setCustomMessage] = useState('');
-    const [lang, setLang] = useState<string>('ta');
+    const [lang, setLang] = useState<string>('en');
 
     const [selectedMusic, setSelectedMusic] = useState(backgroundTracks[0]);
     const [isGenerating, setIsGenerating] = useState(false);

@@ -299,13 +299,13 @@ function SearchContent() {
                 </div>
             )}
 
-            <div className="px-4 pt-4 flex items-center gap-3">
+            <div className="px-4 pt-4 flex items-center gap-3 mb-6">
                 <BackButton fallbackHref="/" className="px-3! py-2.5!" />
 
 
                 {/* Search Input */
                     !searchParams.get('hideSearch') && (
-                        <div className="relative mb-6 flex-1">
+                        <div className="relative flex-1">
                             <input
                                 type="text"
                                 value={query}
@@ -314,13 +314,14 @@ function SearchContent() {
                                     setLoading(true);
                                 }}
                                 placeholder="Search rings, movies, artists..."
-                                className="w-full bg-white border border-brand-gray rounded-xl px-12 py-4 text-lg text-brand-dark focus:outline-none focus:border-brand-blue transition-colors shadow-sm placeholder:text-zinc-500"
+                                className="w-full bg-white border border-brand-gray rounded-xl px-10 py-3 text-sm text-brand-dark focus:outline-none focus:border-brand-blue transition-colors shadow-sm placeholder:text-zinc-500"
                                 autoFocus
                             />
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
-                            {loading && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 text-brand-blue animate-spin" />}
+                            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                            {loading && <Loader2 size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-blue animate-spin" />}
                         </div>
                     )}
+            </div>
 
                 {/* Tabs (Always Visible) */
                     !searchParams.get('hideSearch') && (
@@ -332,7 +333,7 @@ function SearchContent() {
                                         hapticFeedback(10);
                                         setActiveTab(tab as 'all' | 'ringtones' | 'movies' | 'artists');
                                     }}
-                                    className={`px-4 py-2 rounded-full text-sm font-medium capitalize whitespace-nowrap transition-colors border ${activeTab === tab
+                                    className={`px-3 py-1.5 rounded-full text-xs font-semibold capitalize whitespace-nowrap transition-colors border ${activeTab === tab
                                         ? 'bg-brand-blue text-white border-brand-blue'
                                         : 'bg-white text-zinc-600 border-brand-gray hover:border-zinc-400'
                                         }`}
@@ -496,16 +497,16 @@ function SearchContent() {
                             <>
                                 {/* Browse by Mood */}
                                 <section>
-                                    <h2 className="text-lg font-bold text-[#15171A] mb-3">Browse by Mood</h2>
-                                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                                    <h2 className="text-sm font-bold text-zinc-500 uppercase tracking-wider mb-3 px-1">Browse by Mood</h2>
+                                    <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
                                         {MOODS.map((mood) => (
                                             <Link
                                                 key={mood}
                                                 href={`/mood/${mood.toLowerCase()}`}
                                                 onClick={() => hapticFeedback(10)}
-                                                className="p-4 bg-white border border-[#E5EBF1] rounded-xl hover:shadow-md transition-all group"
+                                                className="p-3 bg-white border border-[#E5EBF1] rounded-lg hover:shadow-md transition-all group flex items-center justify-center text-center"
                                             >
-                                                <span className="font-bold text-zinc-700 group-hover:text-brand-accent">{mood}</span>
+                                                <span className="font-semibold text-xs text-zinc-700 group-hover:text-brand-accent">{mood}</span>
                                             </Link>
                                         ))}
                                     </div>
@@ -513,17 +514,17 @@ function SearchContent() {
 
                                 {/* Browse by Era */}
                                 <section>
-                                    <h2 className="text-lg font-bold text-[#15171A] mb-3">Browse by Era</h2>
-                                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                                    <h2 className="text-sm font-bold text-zinc-500 uppercase tracking-wider mb-3 px-1">Browse by Era</h2>
+                                    <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
                                         {ERAS.map((era) => (
                                             <Link
                                                 key={era.label}
                                                 href={`/search?q=${era.label}&hideSearch=true`}
                                                 onClick={() => hapticFeedback(15)}
-                                                className={`p-6 rounded-xl bg-linear-to-br ${era.color} relative overflow-hidden group shadow-sm hover:shadow-lg transition-shadow`}
+                                                className={`h-16 rounded-lg bg-linear-to-br ${era.color} relative overflow-hidden group shadow-sm hover:shadow-lg transition-shadow flex items-center justify-center`}
                                             >
                                                 <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
-                                                <span className="relative z-10 text-2xl font-black text-white italic tracking-tighter opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all block text-center shadow-sm">
+                                                <span className="relative z-10 text-lg font-black text-white italic tracking-tighter opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all block text-center shadow-sm">
                                                     {era.label}
                                                 </span>
                                             </Link>
@@ -575,7 +576,6 @@ function SearchContent() {
                         )}
                     </div>
                 )}
-            </div>
         </div>
     );
 }

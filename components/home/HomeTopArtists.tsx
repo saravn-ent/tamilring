@@ -23,7 +23,8 @@ const getTopArtists = unstable_cache(
             query = query.eq('language', lang);
         }
 
-        let { data: ringtones, error } = await query;
+        const { data: fetchResult, error } = await query;
+        let ringtones = fetchResult;
 
         if (error) {
             console.error('Error fetching top artists:', error);
@@ -168,7 +169,7 @@ export async function HomeSingers({ lang }: { lang: string }) {
     return (
         <div className="mb-10">
             <div className="px-4 text-center mb-6">
-                <SectionHeader title="The Voices You Love" />
+                <SectionHeader title="The Voices You Love" translationKey="voices" />
             </div>
             <div className="flex overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-6 md:grid md:grid-cols-4 lg:grid-cols-8 md:gap-6 md:px-0 md:pl-0 md:overflow-visible">
                 {topSingers.map((singer, idx) => (
@@ -194,7 +195,7 @@ export async function HomeMusicDirectors({ lang }: { lang: string }) {
     return (
         <div className="mb-10">
             <div className="px-4 text-center mb-6">
-                <SectionHeader title="Music Directors" />
+                <SectionHeader title="Music Directors" translationKey="musicDirectors" />
             </div>
             <div className="flex overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-6 md:grid md:grid-cols-4 lg:grid-cols-8 md:gap-6 md:px-0 md:pl-0 md:overflow-visible">
                 {topMusicDirectors.map((md, idx) => (
@@ -220,7 +221,7 @@ export async function HomeActors({ lang }: { lang: string }) {
     return (
         <div className="mb-10">
             <div className="px-4 text-center mb-6">
-                <SectionHeader title="Top Actors" />
+                <SectionHeader title="Top Actors" translationKey="actors" />
             </div>
             <div className="flex overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-6 md:grid md:grid-cols-4 lg:grid-cols-8 md:gap-6 md:px-0 md:pl-0 md:overflow-visible">
                 {topActors.map((actor, idx) => (
@@ -246,7 +247,7 @@ export async function HomeMovieDirectors({ lang }: { lang: string }) {
     return (
         <div className="mb-10">
             <div className="px-4 text-center mb-6">
-                <SectionHeader title="Movie Directors" />
+                <SectionHeader title="Movie Directors" translationKey="movieDirectors" />
             </div>
             <div className="flex overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-6 md:grid md:grid-cols-4 lg:grid-cols-8 md:gap-6 md:px-0 md:pl-0 md:overflow-visible">
                 {topMovieDirectors.map((director, idx) => (

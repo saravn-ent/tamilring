@@ -16,7 +16,7 @@ export default async function HomeTrending({ lang }: Props) {
     return (
         <div className="mb-10">
             <div className="px-4">
-                <SectionHeader title="Trending Ringtones" />
+                <SectionHeader title="Trending Ringtones" translationKey="trending" />
             </div>
             <TrendingList trending={trending} />
         </div>

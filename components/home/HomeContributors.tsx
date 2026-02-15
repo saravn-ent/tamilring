@@ -5,6 +5,7 @@ import AvatarRank from '@/components/AvatarRank';
 import { supabase } from '@/lib/supabaseClient';
 import { unstable_cache } from 'next/cache';
 import { getLevelTitle } from '@/lib/gamification';
+import { translations, Language } from '@/lib/i18n';
 
 const getTopContributorsList = unstable_cache(
     async () => {
@@ -29,13 +30,23 @@ interface Contributor {
     level: number;
 }
 
-export default async function HomeContributors() {
+export default async function HomeContributors({ lang = 'tamil' }: { lang?: string }) {
     const topContributorsRaw = await getTopContributorsList();
+    const t = translations[lang as Language] || translations.en;
     console.log('HomeContributors: count =', topContributorsRaw?.length || 0);
 
     if (!topContributorsRaw || topContributorsRaw.length === 0) return null;
 
-    const topContributors: Contributor[] = topContributorsRaw.map((c: any) => ({
+    const topContributors: Contributor[] = topContributorsRaw.map((c: { 
+        user_id: string; 
+        instagram_handle?: string; 
+        twitter_handle?: string; 
+        full_name?: string; 
+        avatar_url: string | null; 
+        upload_count: number; 
+        points: number; 
+        level: number; 
+    }) => ({
         id: c.user_id,
         // Prefer Social Handle (without @), then Full Name
         name: (c.instagram_handle || c.twitter_handle || '').replace('@', '') || c.full_name || 'Ringtone User',
@@ -48,9 +59,9 @@ export default async function HomeContributors() {
 
     return (
         <div className="mb-14 px-4">
-            <SectionHeader title="Top Contributors" />
+            <SectionHeader title="Top Contributors" translationKey="contributors" />
             <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide snap-x pt-2">
-                {topContributors.map((c: Contributor, idx: number) => (
+                {topContributors.map((c: Contributor) => (
                     <Link key={c.id} href={`/user/${encodeURIComponent(c.id)}`} className="snap-start shrink-0 flex flex-col items-center gap-3 w-24 group">
                         <div className="relative">
                             <AvatarRank
@@ -61,7 +72,7 @@ export default async function HomeContributors() {
                             />
                             {/* Ring Count Badge Overlay */}
                             <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-brand-dark text-white text-[9px] font-bold px-2 py-0.5 rounded-full border border-white shadow-sm whitespace-nowrap z-10">
-                                {c.count} Rings
+                                {c.count} {t.rings}
                             </div>
                         </div>
                         <div className="text-center w-full mt-3 flex flex-col items-center">

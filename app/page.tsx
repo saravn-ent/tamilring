@@ -4,8 +4,7 @@ import HeroSearchServer from '@/components/HeroSearchServer';
 import CategoryGrid from '@/components/CategoryGrid';
 import EraAndInstruments from '@/components/EraAndInstruments';
 import StructuredData from '@/components/StructuredData';
-import { generateHomeMetadata, generateOrganizationSchema, generateWebSiteSchema, combineSchemas } from '@/lib/seo';
-import { getUserLanguage } from '@/app/actions/ringtones';
+import { combineSchemas, generateHomeMetadata, generateOrganizationSchema, generateWebSiteSchema } from '@/lib/seo';
 
 // Homepage Row Components
 import { HomeSingers, HomeActors, HomeMusicDirectors, HomeMovieDirectors } from '@/components/home/HomeTopArtists';
@@ -28,8 +27,8 @@ export const metadata = generateHomeMetadata();
 export default async function Home() {
   console.log('--- Homepage Render Start (Instant Shell) ---');
 
-  // 1. Get user language (Hardcoded for static speed test)
-  const lang = 'tamil'; // await getUserLanguage();
+  // 1. Get user language (Hardcoded for English)
+  const lang = 'en';
 
   // 2. Prepare structured data
   const organizationSchema = generateOrganizationSchema();
@@ -42,7 +41,7 @@ export default async function Home() {
 
       {/* Visual Hidden H1 for SEO */}
       <h1 className="sr-only">
-        TamilRing - Download Best Tamil Ringtones & BGM (தமிழ் ரிங்டோன்)
+        TamilRing - Download Best Tamil Ringtones & BGM
       </h1>
 
       {/* 
@@ -88,7 +87,7 @@ export default async function Home() {
       </Suspense>
 
       <Suspense fallback={<SectionSkeleton type="contributors" />}>
-        <HomeContributors />
+        <HomeContributors lang={lang} />
       </Suspense>
 
       <Suspense fallback={<SectionSkeleton type="horizontal" />}>

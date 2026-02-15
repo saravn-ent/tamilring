@@ -1,5 +1,4 @@
-'use client';
-
+"use client";
 
 import { useState, useEffect, useRef } from 'react';
 import { Play, Pause, Heart, Share2, Download } from 'lucide-react';
@@ -9,25 +8,22 @@ import { incrementLikes } from '@/app/actions/ringtones';
 import MiniPlayerBar from './MiniPlayerBar';
 import TMDBImage from './TMDBImage';
 import { useFavorites } from '@/context/FavoritesContext';
+import { useLanguage } from '@/context/LanguageContext';
 
 import { useRouter } from 'next/navigation';
 import { hapticFeedback } from '@/lib/haptics';
 import { useTitleParser } from '@/hooks/useTitleParser';
 import { generateRingtoneFilename } from '@/lib/utils';
 
-
-
-
 interface RingtoneCardProps {
   ringtone: Ringtone;
   assignTo?: string;
 }
 
-
-
 export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) {
   const { currentRingtone, isPlaying, playRingtone, togglePlay } = usePlayer();
   const { isFavorite, addFavorite, removeFavorite } = useFavorites();
+  const { t } = useLanguage();
   const isLiked = isFavorite(ringtone.id);
   // We rely on either DB duration or the player's duration for performance
   const [loadedDuration] = useState<number | null>(ringtone.duration || null);
@@ -39,14 +35,11 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-
   const router = useRouter();
   const cardRef = useRef<HTMLDivElement>(null);
 
   const isCurrent = currentRingtone?.id === ringtone.id;
   const isActive = isCurrent && isPlaying;
-
-
 
   useEffect(() => {
     if (!isActive) return;
@@ -105,15 +98,12 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
     }
   };
 
-
-
   const handleLike = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     hapticFeedback(15);
 
     if (!isLiked) {
-
       addFavorite({
         id: ringtone.id,
         name: ringtone.title,
@@ -124,7 +114,6 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
       });
       await incrementLikes(ringtone.id);
     } else {
-
       removeFavorite(ringtone.id);
     }
   };
@@ -160,18 +149,18 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
     // OS Detection for Format
     const userAgent = window.navigator.userAgent;
     const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !('MSStream' in window);
-            
+
     let targetUrl = ringtone.audio_url;
     let targetExt = 'mp3';
 
     if (isIOS && ringtone.audio_url_iphone) {
-            targetUrl = ringtone.audio_url_iphone;
-            targetExt = 'm4r';
+      targetUrl = ringtone.audio_url_iphone;
+      targetExt = 'm4r';
     }
 
     const filename = generateRingtoneFilename(ringtone.title, ringtone.song_name, ringtone.movie_name, targetExt);
     const apiUrl = `/api/download?url=${encodeURIComponent(targetUrl)}&filename=${encodeURIComponent(filename)}&id=${ringtone.id}`;
-    
+
     // Trigger download via API
     window.location.href = apiUrl;
   };
@@ -270,11 +259,11 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
             {!isActive && (
               <div className="flex items-center gap-2 mt-1.5 text-xs sm:text-[13px] font-medium text-zinc-500">
                 <span>
-                  {ringtone.downloads > 0 ? (ringtone.downloads > 1000 ? `${(ringtone.downloads / 1000).toFixed(1)}k` : ringtone.downloads) : 0} Downloads
+                  {ringtone.downloads > 0 ? (ringtone.downloads > 1000 ? `${(ringtone.downloads / 1000).toFixed(1)}k` : ringtone.downloads) : 0} {t('downloads')}
                 </span>
                 <span className="text-zinc-400">•</span>
                 <span>
-                  {ringtone.likes > 0 ? (ringtone.likes > 1000 ? `${(ringtone.likes / 1000).toFixed(1)}k` : ringtone.likes) : 0} Likes
+                  {ringtone.likes > 0 ? (ringtone.likes > 1000 ? `${(ringtone.likes / 1000).toFixed(1)}k` : ringtone.likes) : 0} {t('likes')}
                 </span>
 
               </div>
@@ -289,7 +278,7 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
               onClick={handleLike}
               className={`flex items-center justify-center w-10 h-10 rounded-full transition-all touch-manipulation active:scale-90 ${isLiked ? 'text-rose-500 bg-rose-50' : 'text-zinc-400 hover:text-rose-400 hover:bg-rose-50/50'
                 }`}
-              aria-label={isLiked ? 'Unlike' : 'Like'}
+              aria-label={isLiked ? t('unlike') : t('like')}
             >
               <Heart size={20} className={isLiked ? 'fill-current' : ''} />
             </button>
@@ -298,7 +287,7 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
             <button
               onClick={handleShare}
               className="flex items-center justify-center w-10 h-10 text-zinc-500 hover:text-brand-accent hover:bg-brand-wash rounded-full transition-all touch-manipulation active:scale-90"
-              aria-label="Share"
+              aria-label={t('share')}
             >
               <Share2 size={18} />
             </button>
@@ -307,7 +296,7 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
             <button
               onClick={handleDownload}
               className="flex items-center justify-center w-10 h-10 text-zinc-500 hover:text-brand-accent hover:bg-brand-wash rounded-full transition-all touch-manipulation active:scale-90"
-              aria-label="Download"
+              aria-label={t('download')}
             >
               <Download size={18} />
             </button>
@@ -318,7 +307,7 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
                 onClick={handleAssign}
                 className="mt-1 h-7 px-3 bg-brand-accent text-white text-[10px] font-bold rounded-lg hover:bg-brand-accent/90 active:scale-95 transition-transform touch-manipulation"
               >
-                Assign
+                {t('assign')}
               </button>
             )}
 
