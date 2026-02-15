@@ -67,14 +67,15 @@ export async function POST(request: Request) {
         try {
             const jsonMatch = text.match(/\{[\s\S]*\}/);
             data = jsonMatch ? JSON.parse(jsonMatch[0]) : { raw: text };
-        } catch (e) {
+        } catch {
             data = { summary: text.substring(0, 100), recommendation: "Manual extraction recommended." };
         }
 
         return NextResponse.json(data);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error('Gemini Analysis Error:', error);
-        return NextResponse.json({ error: 'AI analysis failed', details: error.message }, { status: 500 });
+        const errorMessage = error instanceof Error ? error.message : 'AI analysis failed';
+        return NextResponse.json({ error: 'AI analysis failed', details: errorMessage }, { status: 500 });
     }
 }

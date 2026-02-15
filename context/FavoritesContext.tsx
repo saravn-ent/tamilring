@@ -1,6 +1,8 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
+
+import type { Ringtone } from '@/types';
 
 export interface FavoriteItem {
   id: string;
@@ -8,7 +10,7 @@ export interface FavoriteItem {
   type: 'Actor' | 'Singer' | 'Music Director' | 'Movie' | 'Director' | 'Movie Director' | 'Ringtone' | 'Lyricist' | 'Deity';
   imageUrl?: string;
   href: string;
-  ringtoneData?: any; // To store the full Ringtone object
+  ringtoneData?: Ringtone; // To store the full Ringtone object
 }
 
 interface FavoritesContextType {
@@ -21,18 +23,20 @@ interface FavoritesContextType {
 const FavoritesContext = createContext<FavoritesContextType | undefined>(undefined);
 
 export function FavoritesProvider({ children }: { children: React.ReactNode }) {
-  const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
-
-  useEffect(() => {
-    const stored = localStorage.getItem('favorites');
-    if (stored) {
-      try {
-        setFavorites(JSON.parse(stored));
-      } catch (e) {
-        console.error("Failed to parse favorites", e);
+  const [favorites, setFavorites] = useState<FavoriteItem[]>(() => {
+    // Initialize from localStorage on mount
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('favorites');
+      if (stored) {
+        try {
+          return JSON.parse(stored);
+        } catch (e) {
+          console.error("Failed to parse favorites", e);
+        }
       }
     }
-  }, []);
+    return [];
+  });
 
   const addFavorite = (item: FavoriteItem) => {
     setFavorites(prev => {

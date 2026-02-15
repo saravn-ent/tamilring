@@ -1,13 +1,11 @@
 import { supabase } from '@/lib/supabaseClient';
-import { getLevelTitle } from '@/lib/gamification';
 import AvatarRank from '@/components/AvatarRank';
-import { ArrowLeft, Globe, Instagram, Twitter, User, Music, Trophy, Star, Crown, Zap, Heart, Scissors, Disc } from 'lucide-react';
+import { ArrowLeft, Instagram, Twitter, Music, Star, Crown, Zap, Heart, Scissors, Disc } from 'lucide-react';
 import Link from 'next/link';
-import Image from 'next/image';
 import RingtoneCard from '@/components/RingtoneCard';
 import ShareProfileButton from '@/components/ShareProfileButton';
 import SortControl from '@/components/SortControl';
-import { Ringtone } from '@/types';
+import type { Ringtone, UserBadge } from '@/types';
 
 export const revalidate = 60; // Cache for 60 seconds
 
@@ -172,7 +170,7 @@ export default async function UserProfilePage({
         {userBadges && userBadges.length > 0 && (
           <div className="mt-5 px-2">
             <div className="flex flex-wrap gap-2">
-              {userBadges.map((ub: any) => {
+              {userBadges.map((ub: UserBadge) => {
                 const Icon = ub.badge?.icon_name === 'scissors' ? Scissors :
                   ub.badge?.icon_name === 'zap' ? Zap :
                     ub.badge?.icon_name === 'crown' ? Crown :
@@ -191,7 +189,7 @@ export default async function UserProfilePage({
                 };
 
                 return (
-                  <div key={ub.id} className={`flex items-center gap-1.5 px-3 py-1 rounded-md border text-[9px] font-black uppercase tracking-wider ${getBadgeColor(ub.badge?.icon_name)}`}>
+                  <div key={ub.id} className={`flex items-center gap-1.5 px-3 py-1 rounded-md border text-[9px] font-black uppercase tracking-wider ${getBadgeColor(ub.badge?.icon_name || '')}`}>
                     <Icon size={10} className="opacity-70" />
                     {ub.badge?.name}
                   </div>
@@ -213,7 +211,7 @@ export default async function UserProfilePage({
 
         {uploads && uploads.length > 0 ? (
           <div className="space-y-4">
-            {uploads.map((ringtone: any) => (
+            {uploads.map((ringtone: Ringtone) => (
               <RingtoneCard key={ringtone.id} ringtone={ringtone} />
             ))}
           </div>

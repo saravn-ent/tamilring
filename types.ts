@@ -82,3 +82,14 @@ export interface Withdrawal {
   updated_at?: string;
   profile?: Profile;
 }
+
+export interface RingtoneRequest {
+  id: string;
+  user_id: string;
+  song_name: string;
+  movie_name: string;
+  status: 'pending' | 'fulfilled' | 'rejected';
+  created_at: string;
+  updated_at?: string;
+}
+

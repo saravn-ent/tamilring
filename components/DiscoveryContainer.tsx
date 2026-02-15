@@ -1,17 +1,26 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Search, Loader2, Sparkles, Clock, Music, Flame, Heart, Zap, Frown, Smile, Mic2, Disc, Guitar, Wind } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
 import Image from 'next/image';
 import { splitArtists } from '@/lib/utils';
 import { Ringtone } from '@/types';
-import RingtoneCard from '@/components/RingtoneCard';
 import ImageWithFallback from '@/components/ImageWithFallback';
 import NoResults from '@/components/NoResults';
-import { ERAS, MOODS as MOOD_STRINGS } from '@/lib/constants';
+import { ERAS } from '@/lib/constants';
 import BackButton from '@/components/BackButton';
+
+interface Movie {
+    movie_name: string;
+    movie_year: string;
+    poster_url: string;
+}
+
+interface Artist {
+    name: string;
+}
 
 
 interface FeaturedArtist {
@@ -47,24 +56,25 @@ export default function DiscoveryContainer({ featuredArtists }: DiscoveryContain
     const [activeTab, setActiveTab] = useState<'all' | 'ringtones' | 'movies' | 'artists'>('all');
 
     // Results State
+    const emptyResults = useMemo(() => ({ ringtones: [], movies: [], artists: [] }), []);
     const [results, setResults] = useState<{
         ringtones: Ringtone[];
-        movies: any[];
-        artists: any[];
-    }>({ ringtones: [], movies: [], artists: [] });
+        movies: Movie[];
+        artists: Artist[];
+    }>(emptyResults);
 
     // Live Search Effect
     useEffect(() => {
-        // Reset results if query is empty or too short
-        if (query.length <= 1) {
-            setResults({ ringtones: [], movies: [], artists: [] });
-            setLoading(false);
-            return;
-        }
-
-        setLoading(true);
         const delayDebounceFn = setTimeout(async () => {
-            let newResults = { ringtones: [], movies: [], artists: [] };
+            // Reset results if query is empty or too short
+            if (query.length <= 1) {
+                setResults(emptyResults);
+                setLoading(false);
+                return;
+            }
+
+            setLoading(true);
+            let newResults: { ringtones: Ringtone[]; movies: Movie[]; artists: Artist[] } = emptyResults;
             const matchedEra = ERAS.find(e => e.label.toLowerCase() === query.toLowerCase());
 
             const fetchRingtones = async () => {
@@ -104,13 +114,13 @@ export default function DiscoveryContainer({ featuredArtists }: DiscoveryContain
 
             if (activeTab === 'all') {
                 const [r, m, a] = await Promise.all([fetchRingtones(), fetchMovies(), fetchArtists()]);
-                newResults = { ringtones: r, movies: m, artists: a } as any;
+                newResults = { ringtones: r, movies: m, artists: a };
             } else if (activeTab === 'ringtones') {
-                newResults.ringtones = await fetchRingtones() as any;
+                newResults.ringtones = await fetchRingtones();
             } else if (activeTab === 'movies') {
-                newResults.movies = await fetchMovies() as any;
+                newResults.movies = await fetchMovies();
             } else if (activeTab === 'artists') {
-                newResults.artists = await fetchArtists() as any;
+                newResults.artists = await fetchArtists();
             }
 
             setResults(newResults);
@@ -118,7 +128,7 @@ export default function DiscoveryContainer({ featuredArtists }: DiscoveryContain
         }, 300);
 
         return () => clearTimeout(delayDebounceFn);
-    }, [query, activeTab]);
+    }, [query, activeTab, emptyResults]);
 
     const hasResults = results.ringtones.length > 0 || results.movies.length > 0 || results.artists.length > 0;
 
@@ -154,7 +164,7 @@ export default function DiscoveryContainer({ featuredArtists }: DiscoveryContain
                         {['all', 'ringtones', 'movies', 'artists'].map((tab) => (
                             <button
                                 key={tab}
-                                onClick={() => setActiveTab(tab as any)}
+                                onClick={() => setActiveTab(tab as 'all' | 'ringtones' | 'movies' | 'artists')}
                                 className={`px-4 py-2 rounded-full text-xs font-bold capitalize whitespace-nowrap transition-colors border ${activeTab === tab
                                     ? 'bg-[#3EB0EF] text-white border-[#3EB0EF]'
                                     : 'bg-white text-zinc-500 border-[#E5EBF1] hover:border-[#3EB0EF]/50'

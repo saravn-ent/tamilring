@@ -164,13 +164,13 @@ export const searchPerson = async (query: string): Promise<PersonResult | null> 
         gender: 0
       };
     }
-  } catch (_e) {
+  } catch {
     // Ignore DB errors
   }
 
   // 2. Check Manual Overrides
   const manualImage = MANUAL_ARTIST_IMAGES[query] ||
-    Object.entries(MANUAL_ARTIST_IMAGES).find(([k, v]) => k.toLowerCase() === query.toLowerCase())?.[1];
+    Object.entries(MANUAL_ARTIST_IMAGES).find(([k]) => k.toLowerCase() === query.toLowerCase())?.[1];
 
   if (manualImage) {
     return {
@@ -220,16 +220,20 @@ export const searchPerson = async (query: string): Promise<PersonResult | null> 
       ...result,
       gender: result?.gender || 0 // Default to 0 if missing
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Detailed error logging for debugging
-    if (error.name === 'AbortError') {
+    const isAbortError = error instanceof Error && error.name === 'AbortError';
+    const errorCause = error && typeof error === 'object' && 'cause' in error ? (error as { cause?: { code?: string } }).cause : undefined;
+    
+    if (isAbortError) {
       console.warn(`⏱️ TMDB request timeout for "${query}"`);
-    } else if (error.cause?.code === 'ENOTFOUND') {
+    } else if (errorCause?.code === 'ENOTFOUND') {
       console.warn(`🌐 DNS resolution failed for TMDB (check internet connection)`);
-    } else if (error.cause?.code === 'ECONNREFUSED') {
+    } else if (errorCause?.code === 'ECONNREFUSED') {
       console.warn(`🚫 Connection refused to TMDB (firewall/network issue)`);
     } else {
-      console.warn(`⚠️ Could not fetch artist "${query}" from TMDB:`, error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.warn(`⚠️ Could not fetch artist "${query}" from TMDB:`, errorMessage);
     }
     return null; // Always return null, never crash
   }

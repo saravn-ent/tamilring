@@ -5,16 +5,33 @@ import { useRouter } from 'next/navigation';
 import { Search, Loader2, Film, Mic, Music } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
-import Image from 'next/image';
 import { splitArtists, fuzzySearchPattern } from '@/lib/utils';
-import { getImageUrl } from '@/lib/tmdb';
 import TMDBImage from './TMDBImage';
-import { Ringtone } from '@/types';
+
+interface Movie {
+  movie_name: string;
+  movie_year: string;
+  poster_url: string;
+}
+
+interface Artist {
+  name: string;
+}
+
+interface RingtoneResult {
+  id: string;
+  title: string;
+  movie_name: string;
+  slug: string;
+  singers?: string;
+  music_director?: string;
+  movie_director?: string;
+}
 
 type Suggestions = {
-  movies: any[];
-  artists: any[];
-  ringtones: any[];
+  movies: Movie[];
+  artists: Artist[];
+  ringtones: RingtoneResult[];
 };
 
 export default function DiscoverySearch({ className = "mb-8" }: { className?: string }) {
@@ -195,7 +212,7 @@ export default function DiscoverySearch({ className = "mb-8" }: { className?: st
                 <Mic size={10} /> Artists
               </h3>
               <div className="grid grid-cols-2 gap-1">
-                {suggestions.artists.map((artist: any, idx: number) => (
+                {suggestions.artists.map((artist: Artist, idx: number) => (
                   <Link
                     key={idx}
                     href={`/artist/${encodeURIComponent(artist.name)}`}
@@ -244,7 +261,7 @@ export default function DiscoverySearch({ className = "mb-8" }: { className?: st
             className="block p-3 text-center text-xs font-bold text-brand-blue hover:bg-brand-wash transition-colors"
             onClick={() => setShowDropdown(false)}
           >
-            See all results for "{searchQuery}"
+            See all results for &ldquo;{searchQuery}&rdquo;
           </Link>
         </div>
       )}

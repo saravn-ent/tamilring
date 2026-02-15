@@ -25,6 +25,7 @@ const getArtistRingtones = unstable_cache(
                 .in('movie_name', additionalMovieNames);
         }
 
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const applySort = (q: any) => {
             switch (sort) {
                 case 'downloads': return q.order('downloads', { ascending: false });

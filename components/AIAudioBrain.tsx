@@ -48,8 +48,8 @@ export default function AIAudioBrain({ file }: AIAudioBrainProps) {
             }
 
             setResult(data);
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'AI analysis failed');
         } finally {
             setLoading(false);
         }
@@ -80,7 +80,7 @@ export default function AIAudioBrain({ file }: AIAudioBrainProps) {
                             <Music size={14} className="text-indigo-400" />
                             <span className="text-[10px] font-black uppercase tracking-tight text-slate-300">Auditory Signature</span>
                         </div>
-                        <p className="text-xs text-slate-300 leading-relaxed italic">"{result.summary}"</p>
+                        <p className="text-xs text-slate-300 leading-relaxed italic">&ldquo;{result.summary}&rdquo;</p>
                     </div>
 
                     <div className="grid grid-cols-2 gap-3">
@@ -165,7 +165,7 @@ export default function AIAudioBrain({ file }: AIAudioBrainProps) {
                         </div>
                     </div>
                     <p className="mt-2 text-[8px] text-slate-500 leading-tight">
-                        Our hybrid architecture outperforms Meta Demucs v4 in vocal isolation (SDR) and rivals Google's internal spatial separation research.
+                        Our hybrid architecture outperforms Meta Demucs v4 in vocal isolation (SDR) and rivals Google&apos;s internal spatial separation research.
                     </p>
                 </div>
 

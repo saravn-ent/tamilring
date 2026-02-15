@@ -1,11 +1,11 @@
 'use client';
 
-import { useFavorites } from '@/context/FavoritesContext';
+import { useFavorites, FavoriteItem } from '@/context/FavoritesContext';
 import Link from 'next/link';
 import ImageWithFallback from './ImageWithFallback';
 
 interface FavoritesListProps {
-  items?: any[];
+  items?: FavoriteItem[];
 }
 
 export default function FavoritesList({ items }: FavoritesListProps) {

@@ -2,11 +2,10 @@
 
 import { useEffect, useState, useMemo } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import Image from 'next/image';
-import { User, Heart, Music, Trash2, X, CloudUpload, Star, ArrowUpRight, CircleCheckBig, Wallet, Coins, ArrowRight } from 'lucide-react';
+import { User, Heart, Music, Trash2, X, CloudUpload, Star, CircleCheckBig, Wallet, Coins, ArrowRight } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import type { PostgrestError } from '@supabase/supabase-js';
 
 const UploadForm = dynamic(() => import('@/components/UploadForm'), {
   ssr: false,
@@ -18,10 +17,23 @@ import PersonalCollections from '@/components/PersonalCollections';
 import RingtoneCard from '@/components/RingtoneCard';
 import { useFavorites } from '@/context/FavoritesContext';
 import AvatarRank from '@/components/AvatarRank';
-import { getLevelTitle, syncUserGamification, POINTS_PER_UPLOAD } from '@/lib/gamification';
-import { Ringtone, Profile, UserBadge, Withdrawal } from '@/types';
+import { getLevelTitle } from '@/lib/gamification';
+import { Ringtone, Profile, Withdrawal, RingtoneRequest } from '@/types';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { handleWithdrawal, syncProfileStats } from '@/app/actions/user';
+
+interface SyncProfileStatsResponse {
+  success: boolean;
+  stats?: {
+    points: number;
+    level: number;
+    totalWithdrawn: number;
+    lifetimePoints: number;
+  } | null;
+  error?: string;
+}
+
+
 
 
 // Simple timeout helper
@@ -33,8 +45,6 @@ function withTimeout<T>(promise: Promise<T>, ms: number = 5000): Promise<T> {
 }
 
 export default function ProfilePage() {
-  const router = useRouter();
-
   // Stable Supabase Client
   const supabase = useMemo(() => createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -44,9 +54,8 @@ export default function ProfilePage() {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [uploads, setUploads] = useState<Ringtone[]>([]);
-  const [userBadges, setUserBadges] = useState<UserBadge[]>([]);
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
-  const [ringtoneRequests, setRingtoneRequests] = useState<any[]>([]);
+  const [ringtoneRequests, setRingtoneRequests] = useState<RingtoneRequest[]>([]);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -57,8 +66,6 @@ export default function ProfilePage() {
   // Edit State
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [fullName, setFullName] = useState('');
-  const [bio, setBio] = useState('');
   const [website, setWebsite] = useState('');
   const [instagram, setInstagram] = useState('');
   const [twitter, setTwitter] = useState('');
@@ -95,7 +102,7 @@ export default function ProfilePage() {
         }
 
         // 2. Load fetching in parallel
-        type SupabaseRes<T> = { data: T | null; error: any };
+        type SupabaseRes<T> = { data: T | null; error: PostgrestError | unknown };
 
         const fetchProfile = withTimeout(supabase.from('profiles').select('*').eq('id', user.id).single() as unknown as Promise<SupabaseRes<Profile>>)
           .catch((e: unknown) => ({ data: null, error: e }));
@@ -103,23 +110,19 @@ export default function ProfilePage() {
         const fetchUploads = withTimeout(supabase.from('ringtones').select('*').eq('user_id', user.id).order('created_at', { ascending: false }) as unknown as Promise<SupabaseRes<Ringtone[]>>)
           .catch((e: unknown) => ({ data: null, error: e }));
 
-        const fetchBadges = withTimeout(supabase.from('user_badges').select('*, badge:badges(*)').eq('user_id', user.id) as unknown as Promise<SupabaseRes<UserBadge[]>>)
-          .catch((e: unknown) => ({ data: null, error: e }));
-
         const fetchWithdrawals = withTimeout(supabase.from('withdrawals').select('*').eq('user_id', user.id).order('created_at', { ascending: false }) as unknown as Promise<SupabaseRes<Withdrawal[]>>)
           .catch((e: unknown) => ({ data: null, error: e }));
 
-        const fetchRequests = withTimeout(supabase.from('ringtone_requests').select('*').eq('user_id', user.id).order('created_at', { ascending: false }) as unknown as Promise<SupabaseRes<any[]>>)
+        const fetchRequests = withTimeout(supabase.from('ringtone_requests').select('*').eq('user_id', user.id).order('created_at', { ascending: false }) as unknown as Promise<SupabaseRes<RingtoneRequest[]>>)
           .catch((e: unknown) => ({ data: null, error: e }));
 
 
-        const [profileRes, uploadsRes, badgesRes, withdrawalsRes, requestsRes] = await Promise.all([
-          fetchProfile, fetchUploads, fetchBadges, fetchWithdrawals, fetchRequests
+        const [profileRes, uploadsRes, withdrawalsRes, requestsRes] = await Promise.all([
+          fetchProfile, fetchUploads, fetchWithdrawals, fetchRequests
         ]);
 
         if (!mounted) return;
 
-        if (badgesRes.data) setUserBadges(badgesRes.data);
         if (withdrawalsRes.data) setWithdrawals(withdrawalsRes.data as Withdrawal[]);
         if (requestsRes.data) setRingtoneRequests(requestsRes.data);
 
@@ -127,8 +130,6 @@ export default function ProfilePage() {
         if (profileRes.data) {
           const profileData = profileRes.data;
           setProfile(profileData);
-          setFullName(profileData.full_name || '');
-          setBio(profileData.bio || '');
           setWebsite(profileData.website_url || '');
           setInstagram(profileData.instagram_handle || '');
           setTwitter(profileData.twitter_handle || '');
@@ -142,14 +143,14 @@ export default function ProfilePage() {
 
         // Server-Side Gamification Sync
         syncProfileStats(user.id)
-          .then((res: any) => {
+          .then((res: SyncProfileStatsResponse) => {
             if (res.success && res.stats && mounted) {
               setProfile((prev) => prev ? ({
                 ...prev,
-                points: res.stats.points,
-                level: res.stats.level,
-                total_withdrawn: res.stats.totalWithdrawn,
-                lifetime_points: res.stats.lifetimePoints
+                points: res.stats!.points,
+                level: res.stats!.level,
+                total_withdrawn: res.stats!.totalWithdrawn,
+                lifetime_points: res.stats!.lifetimePoints
               }) : null);
             }
           })
@@ -171,7 +172,7 @@ export default function ProfilePage() {
     try {
       await supabase.auth.signOut();
       window.location.href = '/';
-    } catch (e) {
+    } catch {
       window.location.href = '/';
     }
   };
@@ -208,7 +209,7 @@ export default function ProfilePage() {
       const { error } = await supabase.from('ringtones').delete().eq('id', id);
       if (error) throw error;
       setUploads(prev => prev.filter(r => r.id !== id));
-    } catch (error) {
+    } catch {
       alert('Error deleting ringtone');
     }
   };
@@ -261,7 +262,7 @@ export default function ProfilePage() {
       } else {
         setWithdrawError(res.error || 'Withdrawal failed');
       }
-    } catch (err) {
+    } catch {
       setWithdrawError('An unexpected error occurred');
     } finally {
       setIsWithdrawing(false);
@@ -492,7 +493,7 @@ export default function ProfilePage() {
                     className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-sm focus:border-brand-accent outline-none transition-all font-mono text-brand-dark"
                   />
                   {profile && !profile.upi_id && upiId && (
-                    <p className="text-[9px] font-bold text-brand-accent mt-1 animate-pulse">✨ We'll save this to your explorer profile</p>
+                    <p className="text-[9px] font-bold text-brand-accent mt-1 animate-pulse">✨ We&apos;ll save this to your explorer profile</p>
                   )}
                 </div>
 
@@ -520,7 +521,7 @@ export default function ProfilePage() {
           {['upload', 'uploads', 'liked', 'ledger'].map((tab) => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab as any)}
+              onClick={() => setActiveTab(tab as 'upload' | 'uploads' | 'liked' | 'ledger')}
               className={`flex-1 py-4 text-[10px] font-black uppercase tracking-widest border-b-2 transition-all flex items-center justify-center gap-2 ${activeTab === tab ? 'border-brand-accent text-brand-accent bg-brand-accent/5' : 'border-transparent text-zinc-400 hover:text-brand-dark'}`}
             >
               {tab === 'liked' && <Heart size={14} />}

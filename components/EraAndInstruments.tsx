@@ -1,11 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { Guitar, Keyboard, LucideIcon, LucideProps } from 'lucide-react';
+import { Guitar, Keyboard } from 'lucide-react';
 import { VeenaIcon, TrumpetIcon, WhistleIcon, SaxophoneIcon, FluteIcon, ViolinIcon, NadaswaramIcon, DrumsIcon } from './InstrumentIcons';
 import { ERAS, INSTRUMENTS } from '@/lib/constants';
 import { useLanguage } from '@/context/LanguageContext';
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ICON_MAP: Record<string, any> = {
     flute: FluteIcon,
     violin: ViolinIcon,
