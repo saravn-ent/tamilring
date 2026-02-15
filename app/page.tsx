@@ -27,8 +27,8 @@ export const metadata = generateHomeMetadata();
 export default async function Home() {
   console.log('--- Homepage Render Start (Instant Shell) ---');
 
-  // 1. Get user language (Hardcoded for English)
-  const lang = 'en';
+  // 1. Content Language (We show Tamil content by default on TamilRing, even if UI is English)
+  const lang = 'tamil';
 
   // 2. Prepare structured data
   const organizationSchema = generateOrganizationSchema();

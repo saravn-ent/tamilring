@@ -22,6 +22,8 @@ const getRecentRingtones = unstable_cache(
         }
 
         const { data: ringtones } = await query
+            .not('poster_url', 'is', null)
+            .neq('poster_url', '')
             .order('created_at', { ascending: false })
             .limit(6);
 
@@ -31,6 +33,8 @@ const getRecentRingtones = unstable_cache(
                 .from('ringtones')
                 .select('*')
                 .eq('status', 'approved')
+                .not('poster_url', 'is', null)
+                .neq('poster_url', '')
                 .order('created_at', { ascending: false })
                 .limit(6);
 

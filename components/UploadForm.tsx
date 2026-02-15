@@ -13,6 +13,7 @@ import { handleUploadReward } from '@/app/actions/user';
 import { MOODS, DEITY_CATEGORIES } from '@/lib/constants';
 import { generateAcousticFingerprint } from '@/lib/audio-utils';
 import Image from 'next/image';
+import ImageWithFallback from './ImageWithFallback';
 import Script from 'next/script';
 
 const TAG_CATEGORIES = {
@@ -1065,7 +1066,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                     >
                       {movie.poster_path ? (
                         <div className="relative w-10 h-14 shrink-0 rounded-lg overflow-hidden shadow-sm border border-brand-border/20">
-                          <Image src={getImageUrl(movie.poster_path, 'w92')} alt={movie.title} fill className="object-cover" />
+                          <ImageWithFallback src={getImageUrl(movie.poster_path, 'w92')} alt={movie.title} fill className="object-cover" />
                         </div>
                       ) : (
                         <div className="w-10 h-14 bg-brand-wash rounded-lg flex items-center justify-center shrink-0 text-zinc-400"><Film size={16} /></div>
@@ -1102,7 +1103,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
           <div className="flex bg-white p-4 rounded-2xl gap-4 shadow-sm border border-brand-border items-center">
             {selectedMovie?.poster_path ? (
               <div className="relative w-12 h-16 bg-brand-wash rounded-lg overflow-hidden shrink-0 shadow-sm border border-brand-border/20">
-                <Image src={getImageUrl(selectedMovie.poster_path)} alt={manualMovieName} fill className="object-cover" />
+                <ImageWithFallback src={getImageUrl(selectedMovie.poster_path)} alt={manualMovieName} fill className="object-cover" />
               </div>
             ) : (
               <div className="w-12 h-16 bg-brand-wash rounded-lg flex items-center justify-center text-zinc-400"><Film size={20} /></div>
@@ -1525,7 +1526,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                 <div className="flex items-start gap-4 pr-16">
                   <div className="w-12 h-12 bg-brand-wash rounded-lg flex items-center justify-center text-brand-accent shrink-0 border border-brand-border/20 overflow-hidden relative">
                     {selectedArtwork ? (
-                      <Image src={selectedArtwork} alt={songName} fill className="object-cover" />
+                      <ImageWithFallback src={selectedArtwork} alt={songName} fill className="object-cover" />
                     ) : (
                       <Music size={20} />
                     )}

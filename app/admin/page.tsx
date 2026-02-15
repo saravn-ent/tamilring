@@ -4,6 +4,8 @@ import { useEffect, useState, useMemo } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { LucideIcon, Loader2, Music, Users, Download, Clock, TrendingUp, CircleAlert, RefreshCcw, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
+import ImageWithFallback from '@/components/ImageWithFallback';
+import { getImageUrl } from '@/lib/tmdb';
 
 interface RingtoneSummary {
     id: string;
@@ -231,12 +233,15 @@ export default function AdminDashboard() {
                     </div>
                     <div className="space-y-4">
                         {recentUploads.map((item) => (
-                            <div key={item.id} className="flex items-center gap-4 p-3 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
-                                <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 
-                                    ${item.status === 'approved' ? 'bg-emerald-50 text-emerald-600' :
-                                        item.status === 'rejected' ? 'bg-red-50 text-red-600' : 'bg-amber-50 text-amber-600'}`}>
-                                    {item.status === 'approved' ? <TrendingUp size={18} /> :
-                                        item.status === 'rejected' ? <CircleAlert size={18} /> : <Clock size={18} />}
+                            <div key={item.id} className="flex items-center gap-4 p-3 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100 group">
+                                <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-slate-100 shrink-0 border border-slate-200">
+                                    <ImageWithFallback 
+                                        src={getImageUrl(item.poster_url)} 
+                                        alt={item.title} 
+                                        fill 
+                                        className="object-cover" 
+                                        showIcon 
+                                    />
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <h4 className="text-sm font-medium text-slate-900 truncate">{item.title}</h4>

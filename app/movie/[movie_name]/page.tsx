@@ -59,11 +59,12 @@ export default async function MoviePage({
   searchParams
 }: {
   params: Promise<{ movie_name: string }>,
-  searchParams: Promise<{ sort?: string }>
+  searchParams: Promise<{ sort?: string; page?: string }>
 }) {
   const { movie_name } = await params;
-  const { sort } = await searchParams;
+  const { sort, page } = await searchParams;
   const movieName = decodeURIComponent(movie_name);
+  const currentPage = page ? parseInt(page) : 1;
 
   // Quick fetch for Movie Header Details (Single row)
   const { data: movieData } = await supabase
@@ -149,7 +150,7 @@ export default async function MoviePage({
 
         {/* Ringtones List - Streams in */}
         <Suspense fallback={<div className="space-y-4"><RingtoneGridSkeleton count={4} /></div>}>
-          <MovieRingtonesList movieName={movieName} sort={sort} />
+          <MovieRingtonesList movieName={movieName} sort={sort} page={currentPage} />
         </Suspense>
 
       </div>

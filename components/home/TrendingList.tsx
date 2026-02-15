@@ -3,6 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Play, Pause } from 'lucide-react';
+import '../../app/animations.css';
 import TMDBImage from '@/components/TMDBImage';
 import { Ringtone } from '@/types';
 import { usePlayer } from '@/context/PlayerContext';

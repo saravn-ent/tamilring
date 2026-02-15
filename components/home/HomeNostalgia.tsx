@@ -11,6 +11,8 @@ const getNostalgiaRingtones = unstable_cache(
                 .from('ringtones')
                 .select('*')
                 .eq('status', 'approved')
+                .not('poster_url', 'is', null)
+                .neq('poster_url', '')
                 .lt('movie_year', 2015)
                 .order('likes', { ascending: false })
                 .limit(50);
@@ -41,6 +43,8 @@ const getNostalgiaRingtones = unstable_cache(
                 .from('ringtones')
                 .select('*')
                 .eq('status', 'approved')
+                .not('poster_url', 'is', null)
+                .neq('poster_url', '')
                 .lte('movie_year', 2018) // Relax to 2018
                 .order('likes', { ascending: false })
                 .limit(50);

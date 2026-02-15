@@ -16,9 +16,10 @@ export const revalidate = 0;
 export default async function RecentPage({
   searchParams
 }: {
-  searchParams: Promise<{ sort?: string }>
+  searchParams: Promise<{ sort?: string; page?: string }>
 }) {
-  const { sort } = await searchParams;
+  const { sort, page } = await searchParams;
+  const currentPage = page ? parseInt(page) : 1;
 
   return (
     <div className="max-w-md md:max-w-4xl lg:max-w-6xl mx-auto p-4 pb-24">
@@ -32,7 +33,7 @@ export default async function RecentPage({
       </div>
 
       <Suspense fallback={<RingtoneGridSkeleton count={6} />}>
-        <RecentRingtonesList sort={sort} />
+        <RecentRingtonesList sort={sort} page={currentPage} />
       </Suspense>
     </div>
   );

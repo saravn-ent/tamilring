@@ -11,6 +11,7 @@ import {
     CheckSquare, Square, Save, RefreshCw, BarChart, HardDrive, Film, Sparkles, Brain
 } from 'lucide-react';
 import Image from 'next/image';
+import ImageWithFallback from '@/components/ImageWithFallback';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import {
@@ -476,11 +477,7 @@ export default function RingtoneManagement() {
                                 <div className="flex p-3 gap-3">
                                     {/* Image & Play */}
                                     <div className="relative w-24 h-24 rounded-lg overflow-hidden bg-slate-100 shrink-0 border border-slate-100">
-                                        {r.poster_url ? (
-                                            <Image src={getImageUrl(r.poster_url)} alt={r.title} fill className="object-cover" />
-                                        ) : (
-                                            <div className="w-full h-full flex items-center justify-center text-slate-400"><Music size={24} /></div>
-                                        )}
+                                        <ImageWithFallback src={getImageUrl(r.poster_url)} alt={r.title} fill className="object-cover" showIcon />
                                         <button
                                             onClick={() => playRingtone(r)}
                                             className="absolute inset-0 flex items-center justify-center bg-black/10"
@@ -573,13 +570,7 @@ export default function RingtoneManagement() {
                                             <td className="p-4">
                                                 <div className="flex items-center gap-4">
                                                     <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-slate-100 shrink-0 border border-slate-200 group-hover:border-indigo-200 transition-colors">
-                                                        {r.poster_url ? (
-                                                            <Image src={getImageUrl(r.poster_url)} alt={r.title} fill className="object-cover" />
-                                                        ) : (
-                                                            <div className="w-full h-full flex items-center justify-center text-slate-400">
-                                                                <Music size={20} />
-                                                            </div>
-                                                        )}
+                                                        <ImageWithFallback src={getImageUrl(r.poster_url)} alt={r.title} fill className="object-cover" showIcon />
                                                         <button
                                                             onClick={() => playRingtone(r)}
                                                             className={`absolute inset-0 flex items-center justify-center bg-black/10 transition-opacity ${currentRingtone?.id === r.id && isPlaying ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}

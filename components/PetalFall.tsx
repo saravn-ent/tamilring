@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import '../app/animations.css';
 
 export default function PetalFall() {
     const [petals, setPetals] = useState<Array<{ left: string, delay: string, duration: string, fontSize: string, color: string, transform: string }>>([]);

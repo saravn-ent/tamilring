@@ -40,8 +40,8 @@ async function backfill() {
 
     for (const r of ringtones) {
         const movieName = r.movie_name;
-        if (!movieName || movieName === 'F1' || movieName === 'Other' || movieName === 'Murugan' || movieName === 'Siva') {
-            console.log(`Skipping: ${r.title} (Movie: ${movieName})`);
+        if (!movieName || movieName === 'F1' || movieName === 'Other') {
+            console.log(`Skipping: ${r.title} (Generic Movie: ${movieName})`);
             continue;
         }
 

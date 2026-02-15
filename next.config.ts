@@ -39,10 +39,11 @@ const config: NextConfig = {
     return [
       {
         // Only enable SharedArrayBuffer (COEP/COOP) for routes that explicitly need it (client-side FFmpeg)
-        // Applying this globally breaks cross-origin images (TMDB, etc) unless they send specific CORP headers
+        // Using 'credentialless' instead of 'require-corp' allows cross-origin images (TMDB, etc) to load
+        // without needing specific CORP headers from those third-party domains.
         source: '/tools/:path*',
         headers: [
-          { key: 'Cross-Origin-Embedder-Policy', value: 'require-corp' },
+          { key: 'Cross-Origin-Embedder-Policy', value: 'credentialless' },
           { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
           { key: 'Cross-Origin-Resource-Policy', value: 'cross-origin' },
         ],
@@ -50,7 +51,7 @@ const config: NextConfig = {
       {
         source: '/upload/:path*',
         headers: [
-          { key: 'Cross-Origin-Embedder-Policy', value: 'require-corp' },
+          { key: 'Cross-Origin-Embedder-Policy', value: 'credentialless' },
           { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
           { key: 'Cross-Origin-Resource-Policy', value: 'cross-origin' },
         ],
@@ -60,7 +61,7 @@ const config: NextConfig = {
         headers: [
           { key: 'Cache-Control', value: 'no-store, must-revalidate' },
           { key: 'Cross-Origin-Resource-Policy', value: 'cross-origin' },
-          { key: 'Cross-Origin-Embedder-Policy', value: 'require-corp' },
+          { key: 'Cross-Origin-Embedder-Policy', value: 'credentialless' },
           { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
         ],
       },
@@ -69,7 +70,7 @@ const config: NextConfig = {
         headers: [
           { key: 'Cache-Control', value: 'no-store, must-revalidate' },
           { key: 'Cross-Origin-Resource-Policy', value: 'cross-origin' },
-          { key: 'Cross-Origin-Embedder-Policy', value: 'require-corp' },
+          { key: 'Cross-Origin-Embedder-Policy', value: 'credentialless' },
           { key: 'Cross-Origin-Opener-Policy', value: 'same-origin' },
         ],
       },
