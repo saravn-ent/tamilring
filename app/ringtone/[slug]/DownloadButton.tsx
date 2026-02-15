@@ -3,7 +3,8 @@
 import { useState, useRef } from 'react';
 import { Download, CheckCircle2 } from 'lucide-react';
 import { Ringtone } from '@/types';
-import { incrementDownloads } from '@/app/actions/ringtones';
+// incrementDownloads moved to API route
+import { generateRingtoneFilename } from '@/lib/utils';
 
 interface DownloadButtonProps {
     ringtone: Ringtone;
@@ -18,64 +19,46 @@ export default function DownloadButton({ ringtone }: DownloadButtonProps) {
         if (isDownloading) return;
         setIsDownloading(true);
         try {
-            // 1. Increment Count
-            incrementDownloads(ringtone.id);
-
-            // 2. Detect OS
+            // Detect OS for format selection (keep this logic as it helps choose correct source URL)
             const userAgent = window.navigator.userAgent;
             const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !('MSStream' in window);
-
-            // 3. Select Format
+            
             let targetUrl = ringtone.audio_url;
             let targetExt = 'mp3';
 
-            if (isIOS) {
-                if (ringtone.audio_url_iphone) {
-                    targetUrl = ringtone.audio_url_iphone;
-                    targetExt = 'm4r';
-                }
+            if (isIOS && ringtone.audio_url_iphone) {
+                 targetUrl = ringtone.audio_url_iphone;
+                 targetExt = 'm4r';
             }
 
-            // 4. Trigger Download
-            const response = await fetch(targetUrl);
+            // 1. Generate Filename (Shared Logic)
+            const finalFilename = generateRingtoneFilename(
+                ringtone.title, 
+                ringtone.song_name, 
+                ringtone.movie_name, 
+                targetExt
+            );
+
+            // 2. Fetch via API Proxy (Handles CORS + Counting)
+            // We pass the ID so the API calls incrementDownloads server-side
+            const apiUrl = `/api/download?url=${encodeURIComponent(targetUrl)}&filename=${encodeURIComponent(finalFilename)}&id=${ringtone.id}`;
+            
+            const response = await fetch(apiUrl);
+            if (!response.ok) throw new Error('Download request failed');
+            
             const blob = await response.blob();
             const url = window.URL.createObjectURL(blob);
 
-            // Clean filename
-            let segment = ringtone.title;
-            const song = ringtone.song_name ? ringtone.song_name.trim() : '';
-            const movie = ringtone.movie_name ? ringtone.movie_name.trim() : '';
-
-            const cleanText = (text: string, toRemove: string) => {
-                if (!toRemove) return text;
-                const escaped = toRemove.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                return text.replace(new RegExp(escaped, 'gi'), '').trim();
-            };
-
-            segment = cleanText(segment, movie);
-            if (song) segment = cleanText(segment, song);
-            segment = segment.replace(/\bVocal\b/gi, '').trim();
-            segment = segment
-                .replace(/\(From.*?\)/gi, '')
-                .replace(/^[-–—:|]+|[-–—:|]+$/g, '')
-                .replace(/\s+[-–—:|]+\s+/g, ' - ')
-                .trim();
-
-            let cleanFilename = '';
-            if (segment && song) {
-                cleanFilename = `${segment} - ${song}`;
-            } else if (segment) {
-                cleanFilename = segment;
-            } else if (song) {
-                cleanFilename = song;
-            } else {
-                cleanFilename = ringtone.title;
-            }
-
-            cleanFilename = cleanFilename.replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, ' ');
-            const finalFilename = `TamilRing.in - ${cleanFilename}.${targetExt}`;
-
-            triggerDownload(url, finalFilename);
+            // 3. Trigger Download
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = finalFilename; // Same-origin blob URL respects this attribute
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Cleanup
+            setTimeout(() => window.URL.revokeObjectURL(url), 1000);
 
             // Show success state
             setShowSuccess(true);
@@ -86,16 +69,6 @@ export default function DownloadButton({ ringtone }: DownloadButtonProps) {
         } finally {
             setIsDownloading(false);
         }
-    };
-
-    const triggerDownload = (url: string, filename: string) => {
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
     };
 
     return (

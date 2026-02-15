@@ -132,8 +132,19 @@ export interface PersonResult {
   gender: number; // 1 = Female, 2 = Male, 0 = Unknown
 }
 
+
+const TMDB_SEARCH_ALIASES: Record<string, string> = {
+  "Vijay": "Joseph Vijay",
+  "Vikram": "Chiyaan Vikram",
+  "Suriya": "Suriya Sivakumar",
+};
+
 export const searchPerson = async (query: string): Promise<PersonResult | null> => {
   if (!query) return null;
+
+  // Utilize alias if available
+  const queryToUse = TMDB_SEARCH_ALIASES[query] ?? query;
+
 
   // 1. Check Database Uploads first (Highest Priority)
   // ... (keep existing db code)
@@ -141,7 +152,7 @@ export const searchPerson = async (query: string): Promise<PersonResult | null> 
     const { data: dbImage } = await supabase
       .from('artist_images')
       .select('image_url')
-      .eq('artist_name', query)
+      .eq('artist_name', query) // Maintain original query for DB lookups
       .single();
 
     if (dbImage && dbImage.image_url) {
@@ -178,7 +189,7 @@ export const searchPerson = async (query: string): Promise<PersonResult | null> 
   }
 
   try {
-    const searchUrl = `${BASE_URL}/search/person?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&language=en-US&page=1&include_adult=false`;
+    const searchUrl = `${BASE_URL}/search/person?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(queryToUse)}&language=en-US&page=1&include_adult=false`;
 
     // Add timeout to prevent hanging
     const controller = new AbortController();

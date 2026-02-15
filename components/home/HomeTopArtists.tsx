@@ -126,7 +126,7 @@ const getTopArtists = unstable_cache(
                 // If found in TMDB with image
                 if (person && person.profile_path) {
                     return {
-                        name: person.name || name,
+                        name: name, // Prefer our curated name (e.g. "Vijay") over TMDB name ("Joseph Vijay")
                         image: getImageUrl(person.profile_path, 'w185')
                     };
                 }

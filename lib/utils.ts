@@ -75,3 +75,42 @@ export function fuzzySearchPattern(query: string): string {
 
     return fuzzy;
 }
+
+/**
+ * Generates a clean, SEO-friendly filename for ringtone downloads.
+ * Follows the pattern: "TamilRing.in - [Segment] - [Song].mp3"
+ */
+export function generateRingtoneFilename(title: string, songName?: string | null, movieName?: string | null, ext: string = 'mp3'): string {
+    let segment = title || '';
+    const song = songName ? songName.trim() : '';
+    const movie = movieName ? movieName.trim() : '';
+
+    const cleanText = (text: string, toRemove: string) => {
+        if (!toRemove) return text;
+        const escaped = toRemove.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        return text.replace(new RegExp(escaped, 'gi'), '').trim();
+    };
+
+    segment = cleanText(segment, movie);
+    if (song) segment = cleanText(segment, song);
+    segment = segment.replace(/\bVocal\b/gi, '').trim();
+    segment = segment
+        .replace(/\(From.*?\)/gi, '')
+        .replace(/^[-–—:|]+|[-–—:|]+$/g, '')
+        .replace(/\s+[-–—:|]+\s+/g, ' - ')
+        .trim();
+
+    let cleanFilename = '';
+    if (segment && song) {
+        cleanFilename = `${segment} - ${song}`;
+    } else if (segment) {
+        cleanFilename = segment;
+    } else if (song) {
+        cleanFilename = song;
+    } else {
+        cleanFilename = title;
+    }
+
+    cleanFilename = cleanFilename.replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, ' ');
+    return `TamilRing.in - ${cleanFilename}.${ext}`;
+}

@@ -2,7 +2,7 @@
 
 
 import { useState, useEffect, useRef } from 'react';
-import { Play, Pause, Heart, Share2 } from 'lucide-react';
+import { Play, Pause, Heart, Share2, Download } from 'lucide-react';
 import { Ringtone } from '@/types';
 import { usePlayer } from '@/context/PlayerContext';
 import { incrementLikes } from '@/app/actions/ringtones';
@@ -13,6 +13,7 @@ import { useFavorites } from '@/context/FavoritesContext';
 import { useRouter } from 'next/navigation';
 import { hapticFeedback } from '@/lib/haptics';
 import { useTitleParser } from '@/hooks/useTitleParser';
+import { generateRingtoneFilename } from '@/lib/utils';
 
 
 
@@ -151,6 +152,30 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
     }
   };
 
+  const handleDownload = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    hapticFeedback(15);
+
+    // OS Detection for Format
+    const userAgent = window.navigator.userAgent;
+    const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !('MSStream' in window);
+            
+    let targetUrl = ringtone.audio_url;
+    let targetExt = 'mp3';
+
+    if (isIOS && ringtone.audio_url_iphone) {
+            targetUrl = ringtone.audio_url_iphone;
+            targetExt = 'm4r';
+    }
+
+    const filename = generateRingtoneFilename(ringtone.title, ringtone.song_name, ringtone.movie_name, targetExt);
+    const apiUrl = `/api/download?url=${encodeURIComponent(targetUrl)}&filename=${encodeURIComponent(filename)}&id=${ringtone.id}`;
+    
+    // Trigger download via API
+    window.location.href = apiUrl;
+  };
+
   const handleCardClick = () => {
     router.push(`/ringtone/${ringtone.slug}`);
   };
@@ -276,6 +301,15 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
               aria-label="Share"
             >
               <Share2 size={18} />
+            </button>
+
+            {/* Download */}
+            <button
+              onClick={handleDownload}
+              className="flex items-center justify-center w-10 h-10 text-zinc-500 hover:text-brand-accent hover:bg-brand-wash rounded-full transition-all touch-manipulation active:scale-90"
+              aria-label="Download"
+            >
+              <Download size={18} />
             </button>
 
             {/* Assign Button - Only when assigning */}
