@@ -206,11 +206,23 @@ export default async function RingtonePage({ params }: Props) {
           </div>
 
           {/* Play & Download Buttons */}
-          <div className="flex flex-wrap items-center justify-center gap-3 w-full max-w-sm">
-            <PlayButton ringtone={ringtone} />
-            <div className="flex-1 min-w-[140px]">
-              <DownloadButton ringtone={ringtone} />
+          <div className="flex flex-col items-center gap-3 w-full max-w-sm">
+            <div className="flex flex-wrap items-center justify-center gap-3 w-full">
+              <PlayButton ringtone={ringtone} />
+              <div className="flex-1 min-w-[140px]">
+                <DownloadButton ringtone={ringtone} />
+              </div>
             </div>
+            
+            {/* Adsterra Smart Link - Secondary Download */}
+            <a 
+              href="https://archaicmsflip.com/qz0pjyu8?key=e82880343c25413ced0e2df144a93900" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-xs text-zinc-400 hover:text-brand-accent transition-colors underline decoration-zinc-200 underline-offset-4"
+            >
+              High Speed Download (Support Us)
+            </a>
           </div>
 
           {/* Social Proof Badge */}
