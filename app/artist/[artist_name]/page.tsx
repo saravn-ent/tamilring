@@ -11,6 +11,7 @@ import { generateArtistMetadata } from '@/lib/seo';
 import ArtistRingtonesList from '@/components/artist/ArtistRingtonesList';
 import { Suspense } from 'react';
 import { RingtoneGridSkeleton } from '@/components/skeletons';
+import { Ringtone } from '@/types';
 
 export async function generateMetadata({ params }: { params: Promise<{ artist_name: string }> }): Promise<Metadata> {
   const { artist_name } = await params;
@@ -99,7 +100,7 @@ export default async function ArtistPage({
 
   // If Actor, fetch movie credits to find additional ringtones by movie association
   let movieTitles: string[] = [];
-  let actorMovieRingtones: any[] = [];
+  let actorMovieRingtones: Ringtone[] = [];
 
   if (artistType === 'Actor' && person) {
     try {
@@ -148,7 +149,7 @@ export default async function ArtistPage({
       {/* Sticky Compact Profile Header - Loads Instantly */}
       <CompactProfileHeader
         name={artistName}
-        type={artistType as any}
+        type={artistType as 'Actor' | 'Singer' | 'Music Director' | 'Movie Director' | 'Lyricist' | 'Deity'}
         imageUrl={artistImage}
         bio={artistBio}
         shareMetadata={{
