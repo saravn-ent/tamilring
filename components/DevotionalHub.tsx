@@ -1,18 +1,21 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useMounted } from '@/lib/hooks/use-mounted';
 import Link from 'next/link';
 import { Sparkles, ChevronRight } from 'lucide-react';
 
 const REL_DATA = [
-    { label: 'Hindu', emoji: '🕉️', id: 'Hindu' },
-    { label: 'Christian', emoji: '✝️', id: 'Christian' },
-    { label: 'Muslim', emoji: '☪️', id: 'Muslim' },
-    { label: 'Buddha', emoji: '☸️', id: 'Other' },
-    { label: 'Others', emoji: '✨', id: 'Other' }
+    { label: 'Hindu', emoji: '🕉️', id: 'Hindu' as const },
+    { label: 'Christian', emoji: '✝️', id: 'Christian' as const },
+    { label: 'Muslim', emoji: '☪️', id: 'Muslim' as const },
+    { label: 'Buddhist', emoji: '☸️', id: 'Buddhist & Jain' as const },
+    { label: 'Others', emoji: '✨', id: 'Other' as const }
 ];
 
 import { DEITY_CATEGORIES } from '@/lib/constants';
+
+type ReligionId = (typeof REL_DATA)[number]['id'];
 
 const EMOJI_MAP: Record<string, string> = {
     'Murugan': '🏹', 'Siva': '🕉️', 'Krishna': '🦚', 'Amman': '🔱',
@@ -22,24 +25,21 @@ const EMOJI_MAP: Record<string, string> = {
 };
 
 export default function DevotionalHub() {
-    const [activeRelId, setActiveRelId] = useState<string | null>(null);
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
+    const [activeRelId, setActiveRelId] = useState<ReligionId | null>(null);
+    const mounted = useMounted();
 
     // Return nothing during SSR to prevent hydration mismatches
     if (!mounted) return null;
 
     // Safely get deities for the active religion
     const getDeities = (): string[] => {
-        if (!activeRelId || !DEITY_CATEGORIES) return [];
-        const found = (DEITY_CATEGORIES as any)[activeRelId];
+        if (!activeRelId) return [];
+        if (activeRelId === 'Other') return [];
+        const found = DEITY_CATEGORIES[activeRelId as Exclude<ReligionId, 'Other'>];
         return Array.isArray(found) ? found : [];
     };
 
-    const deities = getDeities() || [];
+    const deities = getDeities();
 
     return (
         <section className="mb-14 px-4" id="devotional-section">

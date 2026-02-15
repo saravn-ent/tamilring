@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { useMounted } from '@/lib/hooks/use-mounted';
 import { useRouter } from 'next/navigation';
 import { useEditor } from '../editor-context';
 import { ArrowLeft } from 'lucide-react';
@@ -19,14 +20,13 @@ const AudioCutter = dynamic(() => import('@/components/AudioCutter'), {
 export default function EditorPage() {
     const { file, mode, setEditorData } = useEditor();
     const router = useRouter();
-    const [mounted, setMounted] = useState(false);
-
+    const mounted = useMounted();
+    
     useEffect(() => {
-        setMounted(true);
-        if (!file) {
+        if (mounted && !file) {
             router.replace('/tools');
         }
-    }, [file, router]);
+    }, [mounted, file, router]);
 
     if (!mounted || !file) return null;
 

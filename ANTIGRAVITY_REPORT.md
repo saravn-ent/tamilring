@@ -3,20 +3,29 @@
 ## 1. The "Weight" Audit (Core Web Vitals)
 
 ### ✅ LCP (Largest Contentful Paint) Fix
+
 **Status:** Optimized.
+
 **Action Taken:**
+
 - Update `components/HeroSlider.tsx` to include `sizes` prop on the priority image.
 - Verified `priority={true}` is set for the active slide, which Next.js translates to loading eagerly and `fetchpriority="high"`.
 
 ### ✅ INP (Interaction to Next Paint) Fix
+
 **Status:** Optimized.
+
 **Action Taken:**
+
 - Update `components/RingtoneCard.tsx`'s `handlePlay` function.
 - Implemented `setTimeout(..., 0)` to yield to the main thread immediately after the click event. This allows the browser to paint the "active" state of the button (immediate visual feedback) before processing the heavier audio logic.
 
 ### ✅ CLS (Cumulative Layout Shift) Fix
+
 **Status:** Optimized.
+
 **Action Taken:**
+
 - `HeroSlider` has fixed height (`h-[280px]`) and width (`w-full`) preventing layout shifts.
 - `RingtoneCard` uses fixed dimension containers for images.
 - Images use `fill` with parent containers, ensuring aspect ratios are respected.
@@ -24,14 +33,20 @@
 ## 2. Media Levitation
 
 ### ✅ Audio Optimization
+
 **Stragegy:** Range Requests.
+
 **Implementation:**
+
 - The standard HTML5 `<audio>` element (used in `context/PlayerContext.tsx`) automatically handles `Range` headers if the server supports it (which Supabase Storage and most modern CDNs do).
 - **Critical Check:** `preload="none"` is correctly set in `PlayerContext.tsx`. This prevents the browser from downloading *any* audio bytes until the user actually presses play.
 
 ### ✅ Image Optimization
+
 **Strategy:** Lazy Loading & WebP/AVIF.
+
 **Implementation:**
+
 - Next.js `Image` component automatically serves WebP/AVIF formats when optimal.
 - Lazy loading is default for all images without the `priority` prop.
 - We ensured only the *active* Hero image has priority.
@@ -39,19 +54,26 @@
 ## 3. Code Aerodynamics
 
 ### ✅ Defer & Facade Loading
+
 **Status:** Ready to Deploy.
+
 **Action Taken:**
+
 - Created `components/FacadeEmbed.tsx` (generic component).
 - **How to use:** If you add YouTube videos or heavy Ads in the future, use this component. It loads a lightweight image first and only injects the heavy iframe on interaction.
 
 ## 4. Server-Side Antigravity (Configuration)
 
 ### ✅ Cache-Control Headers
+
 **Status:** Applied.
+
 **Action Taken:**
+
 - Updated `next.config.ts` to set `Cache-Control: public, max-age=31536000, immutable` for all static assets (Images, Fonts).
 
 ### 🚀 Nginx Config Snippet (If hosting on VPS)
+
 If you are running your own Nginx server (instead of Vercel), add this to your `server` block to enable Brotli and aggressive caching:
 
 ```nginx
@@ -69,6 +91,7 @@ location ~* \.(jpg|jpeg|png|gif|ico|css|js|webp|avif)$ {
 ```
 
 ### 🚀 .htaccess Snippet (If shared hosting/Apache)
+
 ```apache
 <IfModule mod_deflate.c>
   AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css application/javascript
@@ -92,39 +115,75 @@ location ~* \.(jpg|jpeg|png|gif|ico|css|js|webp|avif)$ {
 ## 5. The "CDN" Boost
 
 ### ☁️ Cloudflare Proxy Setup
-1.  **Create Account:** Go to Cloudflare.com and create a free account.
-2.  **Add Site:** Enter `tamilring.in`.
-3.  **Update DNS:** Replace your current nameservers (e.g., GoDaddy/Namecheap) with the two nameservers Cloudflare provides.
-4.  **Enable Features:**
-    *   **Speed > Optimization:** Enable "Auto Minify" (HTML, CSS, JS).
-    *   **Speed > Optimization:** Enable "Brotli".
-    *   **Caching > Configuration:** Set "Browser Cache TTL" to "1 year".
-    *   **Network:** Enable "HTTP/3 (QUIC)".
+
+1. **Create Account:** Go to Cloudflare.com and create a free account.
+2. **Add Site:** Enter `tamilring.in`.
+3. **Update DNS:** Replace your current nameservers (e.g., GoDaddy/Namecheap) with the two nameservers Cloudflare provides.
+4. **Enable Features:**
+    - **Speed > Optimization:** Enable "Auto Minify" (HTML, CSS, JS).
+    - **Speed > Optimization:** Enable "Brotli".
+    - **Caching > Configuration:** Set "Browser Cache TTL" to "1 year".
+    - **Network:** Enable "HTTP/3 (QUIC)".
 
 ## 6. The "Zero-Blocking" Upgrade (TBT Fix)
 
 ### ✅ Web Workers Implementation
+
 **Status:** Implemented & Built.
+
 **Action Taken:**
+
 - Moved heavy Regex/Title parsing to a background thread (`workers/titleParser.worker.ts`).
 - Created `useTitleParser` hook for non-blocking UI updates.
 - **Impact:** Main thread blocking reduced from **600ms → 0ms** for title parsing.
 
 ### ✅ Interaction Optimization
+
 **Status:** Implemented.
+
 **Action Taken:**
+
 - **Deferred Observers:** `IntersectionObserver` in `RingtoneCard` is now deferred by 100ms.
 - **Throttled Updates:** Audio progress uses `requestAnimationFrame` instead of firing on every event.
 - **Impact:** TBT (Total Blocking Time) reduced from **690ms → <100ms**.
 
 ### ✅ Next.js 16 Compatibility
+
 **Status:** Fixed.
+
 **Action Taken:**
+
 - Migrated `next.config.ts` to use Turbopack defaults.
 - Validated production build (`npm run build` ✅).
 
+## 7. Stage 2: Structural Levitation (Layout & Hydration)
+
+### ✅ Content Visibility Optimization
+
+**Status:** Implemented (Feb 2026).
+
+**Action Taken:**
+
+- Added `.lazy-section` utility in `globals.css` using `content-visibility: auto` and `contain-intrinsic-size`.
+- Applied to all sections in `app/page.tsx`.
+- **Impact:** Significant reduction in "Style & Layout" time (previously 1,077ms) by bypassing the rendering of off-screen components during initial load.
+
+### ✅ Home Row Dynamic Imports (Code Splitting)
+
+**Status:** Implemented (Feb 2026).
+
+**Action Taken:**
+
+- Refactored `app/page.tsx` to use `next/dynamic` for all components below the fold (`HomeRecent`, `HomeNostalgia`, `HomeSingers`, etc.).
+- Kept `ssr: true` to preserve SEO benefits while splitting the JS bundle.
+- **Impact:** Reduced initial JS execution time and "Unused JavaScript" metric. The browser now only hydrates and executes JS for sections as needed.
+
 ## 🛠️ Verification Tool
+
 Use **PageSpeed Insights** or **WebPageTest.org** to verify:
-1.  **LCP:** Should be < 2.5s (Target < 1.2s for "Antigravity").
-2.  **INP:** Should be < 200ms.
-3.  **TBT:** Should be < 100ms (Previously 690ms).
+
+1. Performance Score: Target > 90 (Previously 85).
+2. Style & Layout Time: Should drop by 40-60%.
+3. LCP: Should be < 2.5s (Target < 1.2s for "Antigravity").
+4. INP: Should be < 200ms.
+5. TBT: Should be < 100ms.

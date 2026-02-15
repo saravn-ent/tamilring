@@ -3,6 +3,7 @@
 import { Share2, Check } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import { hapticFeedback, hapticPatterns } from '@/lib/haptics';
 
 interface ShareButtonProps {
     title: string;
@@ -24,12 +25,18 @@ export default function ShareButton({ title, text, url, className = '', variant 
         };
 
         // 1. Try Native Web Share API (Mobile/PWA)
-        if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+        if (typeof navigator !== 'undefined' && navigator.share) {
             try {
                 await navigator.share(shareData);
+                hapticFeedback(hapticPatterns.success);
                 return;
             } catch (err) {
-                console.warn('Share API failed, falling back to clipboard', err);
+                // Only log error if it's not a user cancellation
+                if ((err as Error).name !== 'AbortError') {
+                    console.warn('Share API failed', err);
+                } else {
+                    return; // User cancelled, don't fallback to clipboard
+                }
             }
         }
 
@@ -37,6 +44,7 @@ export default function ShareButton({ title, text, url, className = '', variant 
         try {
             await navigator.clipboard.writeText(shareUrl);
             setCopied(true);
+            hapticFeedback(hapticPatterns.selection);
             setTimeout(() => setCopied(false), 2000);
         } catch (err) {
             console.error('Failed to copy', err);

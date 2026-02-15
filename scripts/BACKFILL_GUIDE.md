@@ -9,6 +9,7 @@ I've created a script that automatically fills lyricist data for all existing ri
 **Location**: `scripts/backfill-lyricists.js`
 
 **What it does:**
+
 1. Fetches all ringtones without lyricist data
 2. Groups by movie (to avoid duplicate API calls)
 3. Looks up TMDB credits for each movie
@@ -26,7 +27,8 @@ node scripts/backfill-lyricists.js
 ```
 
 **Expected output:**
-```
+
+```bash
 🚀 Starting lyricist backfill...
 
 📊 Found 150 ringtones to process
@@ -75,6 +77,7 @@ If you have an admin panel, add a "Bulk Edit" feature to update lyricist for mul
 ### Option 4: Do Nothing
 
 Existing ringtones will have `lyricist = NULL`, which is fine:
+
 - They'll still appear in searches
 - New uploads will have lyricist data
 - You can backfill later when needed
@@ -84,6 +87,7 @@ Existing ringtones will have `lyricist = NULL`, which is fine:
 ## Recommendation
 
 **Use Option 1** (the backfill script) because:
+
 - ✅ Fully automated
 - ✅ Uses TMDB as source of truth
 - ✅ Handles all movies at once

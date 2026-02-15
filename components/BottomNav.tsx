@@ -1,20 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useMounted } from '@/lib/hooks/use-mounted';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, User, MessageSquare, Sparkles, Search } from 'lucide-react';
 import { useLanguage } from '@/context/LanguageContext';
-import { hapticFeedback } from '@/lib/haptics';
+import { hapticFeedback, hapticPatterns } from '@/lib/haptics';
 
 export default function BottomNav() {
   const pathname = usePathname();
   const { t } = useLanguage();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useMounted();
 
   if (pathname?.startsWith('/admin')) return null;
 
@@ -40,7 +36,10 @@ export default function BottomNav() {
   }
 
   return (
-    <div className="bottom-nav-fixed fixed bottom-0 left-0 right-0 z-100 bg-white/95 backdrop-blur-xl border-t border-brand-gray pb-safe transition-all duration-300 md:hidden shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.1)]">
+    <div 
+      className="bottom-nav-fixed fixed bottom-0 left-0 right-0 z-100 bg-white/95 backdrop-blur-xl border-t border-brand-gray transition-all duration-300 md:hidden shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.1)]"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+    >
       <div className="flex justify-around items-center h-16 max-w-md mx-auto px-2">
         {navItems.map((item) => {
           const active = isActive(item.href);
@@ -50,7 +49,7 @@ export default function BottomNav() {
             <Link
               key={item.href}
               href={item.href}
-              onClick={() => hapticFeedback(15)}
+              onClick={() => hapticFeedback(hapticPatterns.selection)}
               className={`relative flex flex-col items-center justify-center gap-1 transition-all duration-300 flex-1 h-full ${active ? 'text-brand-blue' : 'text-zinc-600 hover:text-brand-dark'
                 }`}
             >

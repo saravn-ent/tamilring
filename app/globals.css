@@ -17,6 +17,21 @@
   --font-display: var(--font-jakarta);
   --font-sans: var(--font-jakarta);
   --animate-aurora: aurora-1 15s infinite ease-in-out;
+  --animate-shimmer: shimmer 2s infinite linear;
+
+  --spacing-safe-top: env(safe-area-inset-top);
+  --spacing-safe-bottom: env(safe-area-inset-bottom);
+  --spacing-safe-left: env(safe-area-inset-left);
+  --spacing-safe-right: env(safe-area-inset-right);
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
 }
 
 :root {
@@ -70,9 +85,40 @@
   }
 }
 
+@utility shimmer {
+  @apply relative overflow-hidden bg-zinc-200/50 dark:bg-zinc-800/50;
+
+  &::after {
+    @apply absolute inset-0 content-[''];
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.2) 50%,
+      transparent 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite linear;
+  }
+
+  [data-theme='dark'] &::after {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.05) 50%,
+      transparent 100%
+    );
+  }
+}
+
 @layer utilities {
   .wavesurfer-container {
     border-radius: 24px !important;
     overflow: hidden !important;
+  }
+
+  /* Optimize LCP and Layout performance for long pages */
+  .lazy-section {
+    content-visibility: auto;
+    contain-intrinsic-size: 1px 500px;
   }
 }

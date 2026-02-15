@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useMounted } from '@/lib/hooks/use-mounted';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useLanguage } from '@/context/LanguageContext';
@@ -8,11 +8,7 @@ import { useLanguage } from '@/context/LanguageContext';
 export default function LegalFooter() {
     const { t } = useLanguage();
     const pathname = usePathname();
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
+    const mounted = useMounted();
 
     if (pathname?.startsWith('/admin')) return null;
 

@@ -1,15 +1,12 @@
 'use client';
 
 import { useTheme } from 'next-themes';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { useMounted } from '@/lib/hooks/use-mounted';
 
 export default function ThemeFix() {
     const { theme, resolvedTheme } = useTheme();
-    const [mounted, setMounted] = useState(false);
-
-    useEffect(() => {
-        setMounted(true);
-    }, []);
+    const mounted = useMounted();
 
     useEffect(() => {
         if (!mounted) return;

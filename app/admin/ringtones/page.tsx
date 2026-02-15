@@ -5,12 +5,11 @@ import { usePlayer } from '@/context/PlayerContext';
 import { createBrowserClient } from '@supabase/ssr';
 import { Ringtone, Profile } from '@/types';
 import {
-    Search, Filter, MoreVertical, Check, X, Trash2,
-    Play, Pause, Edit, ExternalLink, Loader2, Music,
-    Calendar, User, Tag, ChevronLeft, ChevronRight,
-    CheckSquare, Square, Save, RefreshCw, BarChart, HardDrive, Film, Sparkles, Brain
+    Search, Check, X, Trash2,
+    Play, Pause, Edit, ExternalLink, Loader2,
+    User, ChevronLeft, ChevronRight,
+    CheckSquare, Square, Save, BarChart, HardDrive, Film, Sparkles, Brain
 } from 'lucide-react';
-import Image from 'next/image';
 import ImageWithFallback from '@/components/ImageWithFallback';
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -83,7 +82,7 @@ export default function RingtoneManagement() {
         setToast({ message, type });
     };
 
-    const fetchStats = async () => {
+    const fetchStats = useCallback(async () => {
         const { count: pending } = await supabase.from('ringtones').select('*', { count: 'exact', head: true }).eq('status', 'pending');
         const { count: approved } = await supabase.from('ringtones').select('*', { count: 'exact', head: true }).eq('status', 'approved');
         const { count: rejected } = await supabase.from('ringtones').select('*', { count: 'exact', head: true }).eq('status', 'rejected');
@@ -95,7 +94,7 @@ export default function RingtoneManagement() {
             rejected: rejected || 0,
             total: total || 0
         });
-    };
+    }, [supabase]);
 
     const fetchRingtones = useCallback(async () => {
         setLoading(true);
@@ -127,18 +126,18 @@ export default function RingtoneManagement() {
 
             setRingtones(data as Ringtone[]);
             setTotalCount(count || 0);
-        } catch (err: any) {
+        } catch (err) {
             console.error(err);
             showToast('Failed to load ringtones', 'error');
         } finally {
             setLoading(false);
         }
-    }, [filter, search, page, userIdFilter]);
+    }, [filter, search, page, userIdFilter, supabase]);
 
     useEffect(() => {
         fetchRingtones();
         fetchStats();
-    }, [fetchRingtones]);
+    }, [fetchRingtones, fetchStats]);
 
     useEffect(() => {
         if (userIdFilter) {
@@ -685,7 +684,7 @@ export default function RingtoneManagement() {
 
             {/* Edit Modal */}
             {editingRingtone && (
-                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+                <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
                     <div className="bg-neutral-900 border border-white/10 rounded-2xl w-full max-w-lg shadow-2xl flex flex-col max-h-[90vh]">
                         <div className="p-6 border-b border-white/5 flex justify-between items-center">
                             <h3 className="text-lg font-bold text-white">Edit Ringtone Details</h3>
@@ -744,7 +743,7 @@ export default function RingtoneManagement() {
                                 <p className="text-[10px] text-zinc-600 mt-1">Used for search and recommendations.</p>
                             </div>
                         </div>
-                        <div className="p-6 border-t border-white/5 bg-white/[0.02] flex justify-end gap-3 rounded-b-2xl">
+                        <div className="p-6 border-t border-white/5 bg-white/2 flex justify-end gap-3 rounded-b-2xl">
                             <button
                                 onClick={() => setEditingRingtone(null)}
                                 className="px-5 py-2.5 rounded-xl text-sm font-medium text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"

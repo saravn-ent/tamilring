@@ -3,6 +3,7 @@
 import { Heart } from 'lucide-react';
 import { useFavorites, FavoriteItem } from '@/context/FavoritesContext';
 import RippleWrapper from './Ripple';
+import { hapticFeedback, hapticPatterns } from '@/lib/haptics';
 
 interface FavoriteButtonProps {
   item: FavoriteItem;
@@ -18,8 +19,10 @@ export default function FavoriteButton({ item, className = "" }: FavoriteButtonP
     e.stopPropagation();
     if (isFav) {
       removeFavorite(item.id);
+      hapticFeedback(hapticPatterns.selection);
     } else {
       addFavorite(item);
+      hapticFeedback(hapticPatterns.heartbeat);
     }
   };
 

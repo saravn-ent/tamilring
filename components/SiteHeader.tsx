@@ -1,24 +1,23 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useMounted } from '@/lib/hooks/use-mounted';
 import { useRouter, usePathname } from 'next/navigation';
 import { Sparkles, Loader2 } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
-import { hapticFeedback } from '@/lib/haptics';
+import { hapticFeedback, hapticPatterns } from '@/lib/haptics';
 
 export default function SiteHeader() {
   const router = useRouter();
   const pathname = usePathname();
   const [loading, setLoading] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useMounted();
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
 
-  if (pathname?.startsWith('/admin')) return null;
-
   useEffect(() => {
-    setMounted(true);
+    if (pathname?.startsWith('/admin')) return;
 
     // Hide header on scroll down (mobile only)
     const handleScroll = () => {
@@ -43,12 +42,15 @@ export default function SiteHeader() {
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [lastScrollY]);
+  }, [lastScrollY, pathname]);
+
+  if (pathname?.startsWith('/admin')) return null;
 
   const handleSurprise = async () => {
-    // ... same as before
+    // ...
     try {
       setLoading(true);
+      hapticFeedback(hapticPatterns.selection);
 
       const { count } = await supabase
         .from('ringtones')
@@ -80,9 +82,9 @@ export default function SiteHeader() {
     return (
       <header className="fixed top-0 left-0 right-0 z-40 bg-white border-b border-brand-gray h-14">
         <div className="max-w-6xl mx-auto px-4 md:px-6 h-14 flex items-center justify-between">
-          <a href="/" className="text-xl font-bold tracking-tighter text-brand-blue">
+          <Link href="/" className="text-xl font-bold tracking-tighter text-brand-blue">
             <span>Tamil</span><span className="text-brand-dark">Ring</span>
-          </a>
+          </Link>
           <nav className="hidden md:flex items-center gap-6 flex-1 justify-center">
             <div className="w-10 h-4" />
           </nav>
@@ -93,9 +95,12 @@ export default function SiteHeader() {
   }
 
   return (
-    <header className={`fixed top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-b border-brand-gray h-14 transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full md:translate-y-0'}`}>
+    <header 
+      className={`fixed top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-b border-brand-gray h-auto transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full md:translate-y-0'}`}
+      style={{ paddingTop: 'env(safe-area-inset-top)' }}
+    >
       <div className="max-w-6xl mx-auto px-4 md:px-6 h-14 flex items-center justify-between">
-        <Link href="/" className="text-xl font-display font-bold tracking-tighter text-brand-blue" onClick={() => hapticFeedback(10)}>
+        <Link href="/" className="text-xl font-display font-bold tracking-tighter text-brand-blue" onClick={() => hapticFeedback(hapticPatterns.selection)}>
           <span>Tamil</span><span className="text-brand-dark">Ring</span>
         </Link>
 

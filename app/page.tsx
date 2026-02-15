@@ -7,15 +7,17 @@ import StructuredData from '@/components/StructuredData';
 import { combineSchemas, generateHomeMetadata, generateOrganizationSchema, generateWebSiteSchema } from '@/lib/seo';
 
 // Homepage Row Components
-import { HomeSingers, HomeActors, HomeMusicDirectors, HomeMovieDirectors } from '@/components/home/HomeTopArtists';
-const HomeDeities = dynamic(() => import('@/components/home/HomeDeities'), {
-  ssr: true,
-});
-import HomeTrending from '@/components/home/HomeTrending';
-import HomeRecent from '@/components/home/HomeRecent';
-import HomeNostalgia from '@/components/home/HomeNostalgia';
-import HomeContributors from '@/components/home/HomeContributors';
-import HomeSEOContent from '@/components/home/HomeSEOContent';
+const HomeSingers = dynamic<{ lang: string }>(() => import('@/components/home/HomeTopArtists').then(m => m.HomeSingers), { ssr: true });
+const HomeActors = dynamic<{ lang: string }>(() => import('@/components/home/HomeTopArtists').then(m => m.HomeActors), { ssr: true });
+const HomeMusicDirectors = dynamic<{ lang: string }>(() => import('@/components/home/HomeTopArtists').then(m => m.HomeMusicDirectors), { ssr: true });
+const HomeMovieDirectors = dynamic<{ lang: string }>(() => import('@/components/home/HomeTopArtists').then(m => m.HomeMovieDirectors), { ssr: true });
+const HomeDeities = dynamic<{ lang: string }>(() => import('@/components/home/HomeDeities'), { ssr: true });
+const HomeTrending = dynamic<{ lang: string }>(() => import('@/components/home/HomeTrending'), { ssr: true });
+const HomeRecent = dynamic<{ lang: string }>(() => import('@/components/home/HomeRecent'), { ssr: true });
+const HomeNostalgia = dynamic<{ lang: string }>(() => import('@/components/home/HomeNostalgia'), { ssr: true });
+const HomeContributors = dynamic(() => import('@/components/home/HomeContributors'), { ssr: true });
+const HomeSEOContent = dynamic(() => import('@/components/home/HomeSEOContent'), { ssr: true });
+
 import { SectionSkeleton } from '@/components/skeletons';
 
 
@@ -58,43 +60,64 @@ export default async function Home() {
       {/* By Era & Instruments - Loads Instantly */}
       <EraAndInstruments />
 
-      <Suspense fallback={<SectionSkeleton type="trending" />}>
-        <HomeTrending lang={lang} />
-      </Suspense>
+      <div className="lazy-section">
+        <Suspense fallback={<SectionSkeleton type="trending" />}>
+          <HomeTrending lang={lang} />
+        </Suspense>
+      </div>
 
-      <Suspense fallback={<SectionSkeleton type="trending" />}>
-        <HomeNostalgia lang={lang} />
-      </Suspense>
+      <div className="lazy-section">
+        <Suspense fallback={<SectionSkeleton type="trending" />}>
+          <HomeNostalgia lang={lang} />
+        </Suspense>
+      </div>
 
-      <Suspense fallback={<SectionSkeleton type="horizontal" />}>
-        <HomeSingers lang={lang} />
-      </Suspense>
+      <div className="lazy-section">
+        <Suspense fallback={<SectionSkeleton type="horizontal" />}>
+          <HomeSingers lang={lang} />
+        </Suspense>
+      </div>
 
-      <Suspense fallback={<SectionSkeleton type="horizontal" />}>
-        <HomeActors lang={lang} />
-      </Suspense>
+      <div className="lazy-section">
+        <Suspense fallback={<SectionSkeleton type="horizontal" />}>
+          <HomeActors lang={lang} />
+        </Suspense>
+      </div>
 
-      <Suspense fallback={<SectionSkeleton type="horizontal" />}>
-        <HomeMusicDirectors lang={lang} />
-      </Suspense>
+      <div className="lazy-section">
+        <Suspense fallback={<SectionSkeleton type="horizontal" />}>
+          <HomeMusicDirectors lang={lang} />
+        </Suspense>
+      </div>
 
-      <Suspense fallback={<SectionSkeleton type="horizontal" />}>
-        <HomeMovieDirectors lang={lang} />
-      </Suspense>
+      <div className="lazy-section">
+        <Suspense fallback={<SectionSkeleton type="horizontal" />}>
+          <HomeMovieDirectors lang={lang} />
+        </Suspense>
+      </div>
 
-      <Suspense fallback={<SectionSkeleton type="grid" />}>
-        <HomeRecent lang={lang} />
-      </Suspense>
+      <div className="lazy-section">
+        <Suspense fallback={<SectionSkeleton type="grid" />}>
+          <HomeRecent lang={lang} />
+        </Suspense>
+      </div>
 
-      <Suspense fallback={<SectionSkeleton type="contributors" />}>
-        <HomeContributors lang={lang} />
-      </Suspense>
+      <div className="lazy-section">
+        <Suspense fallback={<SectionSkeleton type="contributors" />}>
+          <HomeContributors lang={lang} />
+        </Suspense>
+      </div>
 
-      <Suspense fallback={<SectionSkeleton type="horizontal" />}>
-        <HomeDeities lang={lang} />
-      </Suspense>
+      <div className="lazy-section">
+        <Suspense fallback={<SectionSkeleton type="horizontal" />}>
+          <HomeDeities lang={lang} />
+        </Suspense>
+      </div>
 
-      <HomeSEOContent />
+      <div className="lazy-section">
+        <HomeSEOContent />
+      </div>
     </div>
   );
 }
+

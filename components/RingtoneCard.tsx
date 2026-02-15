@@ -11,7 +11,7 @@ import { useFavorites } from '@/context/FavoritesContext';
 import { useLanguage } from '@/context/LanguageContext';
 
 import { useRouter } from 'next/navigation';
-import { hapticFeedback } from '@/lib/haptics';
+import { hapticFeedback, hapticPatterns } from '@/lib/haptics';
 import { useTitleParser } from '@/hooks/useTitleParser';
 import { generateRingtoneFilename } from '@/lib/utils';
 
@@ -68,7 +68,7 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
   const handlePlay = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    hapticFeedback(20);
+    hapticFeedback(hapticPatterns.impact);
     // Antigravity Fix: Yield to main thread to prioritize UI response (INP)
     setTimeout(() => {
       if (isActive) {
@@ -101,9 +101,9 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
   const handleLike = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    hapticFeedback(15);
 
     if (!isLiked) {
+      hapticFeedback(hapticPatterns.heartbeat);
       addFavorite({
         id: ringtone.id,
         name: ringtone.title,
@@ -114,6 +114,7 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
       });
       await incrementLikes(ringtone.id);
     } else {
+      hapticFeedback(hapticPatterns.selection);
       removeFavorite(ringtone.id);
     }
   };
@@ -121,7 +122,7 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
   const handleShare = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    hapticFeedback(10);
+    hapticFeedback(hapticPatterns.selection);
 
     const shareUrl = `${window.location.origin}/ringtone/${ringtone.slug}`;
     const shareData = {
@@ -144,7 +145,7 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
   const handleDownload = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    hapticFeedback(15);
+    hapticFeedback(hapticPatterns.success);
 
     // OS Detection for Format
     const userAgent = window.navigator.userAgent;
