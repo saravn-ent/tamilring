@@ -59,13 +59,13 @@ export default function VocalRemoverPage() {
                 </div>
 
                 {!activeFile ? (
-                    <div className="flex flex-col items-center justify-center min-h-[40vh] bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6 text-center animate-in fade-in slide-in-from-bottom-4 duration-700 relative overflow-hidden">
+                    <div className="flex flex-col items-center justify-center min-h-[40vh] bg-white rounded-4xl border border-slate-100 shadow-sm p-6 text-center animate-in fade-in slide-in-from-bottom-4 duration-700 relative overflow-hidden">
                         {/* Decorative background elements */}
                         <div className="absolute top-0 left-0 w-64 h-64 bg-violet-100/30 rounded-full blur-[100px] -translate-x-1/2 -translate-y-1/2" />
                         <div className="absolute bottom-0 right-0 w-64 h-64 bg-indigo-100/30 rounded-full blur-[100px] translate-x-1/2 translate-y-1/2" />
 
                         <div className="relative z-10 w-full max-w-sm flex flex-col items-center">
-                            <div className="w-16 h-16 bg-violet-600 text-white rounded-[1.5rem] flex items-center justify-center mb-6 shadow-2xl shadow-violet-500/40 -rotate-3 hover:rotate-0 transition-transform duration-500 relative">
+                            <div className="w-16 h-16 bg-violet-600 text-white rounded-3xl flex items-center justify-center mb-6 shadow-2xl shadow-violet-500/40 -rotate-3 hover:rotate-0 transition-transform duration-500 relative">
                                 <Mic2 size={32} />
                             </div>
 
@@ -79,7 +79,7 @@ export default function VocalRemoverPage() {
                             </p>
 
                             <label className="group relative cursor-pointer w-full">
-                                <div className="absolute -inset-1 bg-gradient-to-r from-violet-600 to-indigo-600 rounded-2xl blur opacity-25 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
+                                <div className="absolute -inset-1 bg-linear-to-r from-violet-600 to-indigo-600 rounded-2xl blur opacity-25 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
                                 <div className="relative h-14 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all active:scale-95 shadow-2xl">
                                     <Upload className="w-4 h-4" />
                                     Upload Song

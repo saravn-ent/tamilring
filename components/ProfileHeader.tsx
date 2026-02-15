@@ -56,7 +56,7 @@ export default function ProfileHeader({ name, type, imageUrl }: ProfileHeaderPro
       </div>
 
       {/* Banner / Background */}
-      <div className="h-32 w-full bg-gradient-to-b from-brand-wash to-white" />
+      <div className="h-32 w-full bg-linear-to-b from-brand-wash to-white" />
 
       <div className="px-6 -mt-12 flex flex-col items-center">
         {/* Avatar */}
@@ -81,7 +81,7 @@ export default function ProfileHeader({ name, type, imageUrl }: ProfileHeaderPro
           className={`
             relative w-full max-w-xs py-3 rounded-xl font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer
             ${isFan
-              ? 'bg-gradient-to-r from-amber-400 to-orange-500 text-black shadow-lg shadow-orange-500/20 scale-[1.02]'
+              ? 'bg-linear-to-r from-amber-400 to-orange-500 text-black shadow-lg shadow-orange-500/20 scale-[1.02]'
               : 'bg-white border border-brand-accent text-brand-accent hover:bg-brand-accent/5 shadow-sm'
             }
           `}

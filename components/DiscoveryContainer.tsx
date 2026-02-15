@@ -135,7 +135,7 @@ export default function DiscoveryContainer({ featuredArtists }: DiscoveryContain
 
             {/* Search Input */}
             {/* Search Input Container */}
-            <div className="relative mb-6 sticky top-0 z-30 pt-2 bg-[#F4F8FB]/90 pb-2 backdrop-blur-xl -mx-4 px-4 transition-colors duration-300">
+            <div className="mb-6 sticky top-0 z-30 pt-2 bg-[#F4F8FB]/90 pb-2 backdrop-blur-xl -mx-4 px-4 transition-colors duration-300">
                 <div className="relative w-full">
                     <input
                         type="text"
@@ -182,7 +182,7 @@ export default function DiscoveryContainer({ featuredArtists }: DiscoveryContain
                                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                                         {results.movies.map((item, idx) => (
                                             <Link href={`/movie/${encodeURIComponent(item.movie_name)}`} key={idx} className="flex flex-col gap-2 p-2 bg-white rounded-xl border border-[#E5EBF1] hover:shadow-md transition-colors group">
-                                                <div className="relative w-full aspect-[2/3] bg-zinc-100 rounded-lg overflow-hidden shrink-0">
+                                                <div className="relative w-full aspect-2/3 bg-zinc-100 rounded-lg overflow-hidden shrink-0">
                                                     {item.poster_url ? <Image src={item.poster_url} alt={item.movie_name} fill className="object-cover group-hover:scale-110 transition-transform duration-500" /> : null}
                                                 </div>
                                                 <div>
@@ -249,7 +249,7 @@ export default function DiscoveryContainer({ featuredArtists }: DiscoveryContain
                                 <button
                                     key={era.label}
                                     onClick={() => setQuery(era.label)}
-                                    className={`relative h-24 rounded-2xl overflow-hidden flex items-center justify-center bg-gradient-to-br ${era.color} border border-[#E5EBF1] hover:scale-[1.02] transition-transform group shadow-sm cursor-pointer`}
+                                    className={`relative h-24 rounded-2xl overflow-hidden flex items-center justify-center bg-linear-to-br ${era.color} border border-[#E5EBF1] hover:scale-[1.02] transition-transform group shadow-sm cursor-pointer`}
                                 >
                                     <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
                                     <span className="relative text-xl font-black italic text-white tracking-wider drop-shadow-sm opacity-90">{era.label}</span>
@@ -303,8 +303,8 @@ export default function DiscoveryContainer({ featuredArtists }: DiscoveryContain
                                         href={`/artist/${encodeURIComponent(artist.name)}`}
                                         className="group relative flex flex-col items-center justify-center w-28 h-28"
                                     >
-                                        <div className={`absolute inset-0 rounded-full bg-gradient-to-br ${color} opacity-20 blur-xl group-hover:opacity-40 transition-opacity duration-500 animate-pulse`} />
-                                        <div className={`relative w-20 h-20 rounded-full bg-gradient-to-br ${color} p-0.5 shadow-lg shadow-zinc-200 group-hover:scale-110 transition-transform duration-300`}>
+                                        <div className={`absolute inset-0 rounded-full bg-linear-to-br ${color} opacity-20 blur-xl group-hover:opacity-40 transition-opacity duration-500 animate-pulse`} />
+                                        <div className={`relative w-20 h-20 rounded-full bg-linear-to-br ${color} p-0.5 shadow-lg shadow-zinc-200 group-hover:scale-110 transition-transform duration-300`}>
                                             <div className="w-full h-full rounded-full bg-white backdrop-blur-sm flex items-center justify-center border border-zinc-100 overflow-hidden relative">
                                                 <ImageWithFallback
                                                     src={artist.image}
@@ -313,7 +313,7 @@ export default function DiscoveryContainer({ featuredArtists }: DiscoveryContain
                                                     fallbackClassName="bg-zinc-200 text-zinc-500"
                                                 />
                                             </div>
-                                            <div className="absolute top-2 left-4 w-4 h-2 bg-white/40 rounded-full blur-[1px] rotate-[-45deg] z-10" />
+                                            <div className="absolute top-2 left-4 w-4 h-2 bg-white/40 rounded-full blur-[1px] -rotate-45 z-10" />
                                         </div>
                                         <span className="mt-3 text-xs font-bold text-zinc-700 text-center line-clamp-1 w-full px-1 group-hover:text-[#15171A] transition-colors">{artist.name}</span>
                                     </Link>

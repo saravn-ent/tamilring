@@ -110,17 +110,18 @@ export default async function ActorPage({
                   <Link
                     key={movie.movie_name}
                     href={`/movie/${encodeURIComponent(movie.movie_name)}`}
-                    className="group relative aspect-[2/3] rounded-xl overflow-hidden bg-brand-wash border border-brand-border shadow-md"
+                    className="group relative aspect-2/3 rounded-xl overflow-hidden bg-brand-wash border border-brand-border shadow-md"
                   >
                     <TMDBImage
                       path={movie.poster_url}
-                      alt={movie.movie_name}
+                      alt=""
+                      fallbackAlt={movie.movie_name}
                       fill
                       className="object-cover transition-transform duration-500 group-hover:scale-110"
                       sizes="(max-width: 768px) 50vw, 33vw"
                       priority={idx < 2}
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity" />
+                    <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-transparent opacity-80 group-hover:opacity-100 transition-opacity" />
                     <div className="absolute bottom-0 left-0 right-0 p-3">
                       <h3 className="text-white font-bold text-sm leading-tight line-clamp-2 mb-1 group-hover:text-brand-accent transition-colors">
                         {movie.movie_name}

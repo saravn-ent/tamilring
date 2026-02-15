@@ -102,7 +102,7 @@ export default function InteractivePlayerBar({ ringtone }: { ringtone: Ringtone 
                 >
                     {/* Progress Fill */}
                     <div
-                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full transition-all duration-100"
+                        className="absolute inset-y-0 left-0 bg-linear-to-r from-emerald-500 to-emerald-400 rounded-full transition-all duration-100"
                         style={{ width: isCurrent ? `${progress}%` : '0%' }}
                     />
 

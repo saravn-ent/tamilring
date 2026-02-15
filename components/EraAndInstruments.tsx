@@ -39,7 +39,7 @@ export default function EraAndInstruments() {
                             <Link
                                 key={era.label}
                                 href={`/search?q=${encodeURIComponent(era.label)}&hideSearch=true`}
-                                className={`relative h-20 rounded-xl overflow-hidden flex items-center justify-center bg-gradient-to-br ${colorClass} hover:scale-[1.02] transition-transform shadow-sm group`}
+                                className={`relative h-20 rounded-xl overflow-hidden flex items-center justify-center bg-linear-to-br ${colorClass} hover:scale-[1.02] transition-transform shadow-sm group`}
                             >
                                 <div className="absolute inset-0 bg-white/10 group-hover:bg-transparent transition-colors" />
                                 <span className="relative text-lg font-black italic text-white tracking-widest opacity-100 drop-shadow-md">{era.label}</span>

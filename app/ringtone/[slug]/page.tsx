@@ -2,13 +2,11 @@ import { notFound } from 'next/navigation';
 export const revalidate = 0;
 import { supabase } from '@/lib/supabaseClient';
 
-import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowLeft, ChevronRight, Download, Music } from 'lucide-react';
+import { ChevronRight, Download } from 'lucide-react';
 import { Metadata } from 'next';
 import PlayButton from './PlayButton';
 import DownloadButton from './DownloadButton';
-import VideoDownloadButton from './VideoDownloadButton';
 import StreamButtons from '@/components/StreamButtons';
 import RingtoneSetGuideTrigger from './RingtoneSetGuideTrigger';
 import { splitArtists } from '@/lib/utils';
@@ -19,9 +17,9 @@ import { generateMusicRecordingSchema, generateBreadcrumbSchema, combineSchemas 
 import StructuredData from '@/components/StructuredData';
 import SimilarRingtonesSection from '@/components/ringtone/SimilarRingtonesSection';
 import { RingtoneGridSkeleton } from '@/components/skeletons';
-import { getImageUrl } from '@/lib/tmdb';
 import TMDBImage from '@/components/TMDBImage';
 import BackButton from '@/components/BackButton';
+import { Ringtone } from '@/types';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -50,7 +48,7 @@ const getRingtone = cache(async (slug: string) => {
           .single();
 
         if (profile) {
-          (ringtone as any).profile = profile;
+          (ringtone as Ringtone).profile = profile;
         }
       }
 
@@ -94,14 +92,15 @@ export default async function RingtonePage({ params }: Props) {
       <div className="absolute top-0 left-0 right-0 h-96 opacity-30 z-0">
         <TMDBImage
           path={ringtone.backdrop_url || ringtone.poster_url}
-          alt={ringtone.movie_name}
+          alt=""
+          fallbackAlt={ringtone.movie_name}
           fill
           priority
           sizes="100vw"
           className="object-cover mask-image-gradient"
           size="w780"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-background" />
+        <div className="absolute inset-0 bg-linear-to-b from-transparent to-background" />
       </div>
 
       <div className="relative z-10 p-4 pt-4 flex-1 pb-24">
@@ -119,7 +118,8 @@ export default async function RingtonePage({ params }: Props) {
           <div className="relative w-32 h-48 rounded-xl overflow-hidden shadow-2xl shadow-brand-dark/20 bg-brand-wash flex items-center justify-center">
             <TMDBImage
               path={ringtone.poster_url}
-              alt={ringtone.movie_name}
+              alt=""
+              fallbackAlt={ringtone.movie_name}
               fill
               priority
               quality={85}
@@ -179,7 +179,7 @@ export default async function RingtonePage({ params }: Props) {
                 </h1>
               );
             })()}
-            <Link href={`/movie/${encodeURIComponent(ringtone.movie_name)}`} className="inline-flex items-center gap-1 text-brand-accent font-medium text-base hover:underline transition-colors block">
+            <Link href={`/movie/${encodeURIComponent(ringtone.movie_name)}`} className="inline-flex items-center gap-1 text-brand-accent font-medium text-base hover:underline transition-colors">
               {ringtone.movie_name} <span className="text-zinc-400 font-normal">({ringtone.movie_year})</span>
               <ChevronRight size={16} className="text-brand-accent/70" />
             </Link>

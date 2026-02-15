@@ -69,7 +69,7 @@ export default function AdminHeader({ user, onMenuClick, collapsed }: AdminHeade
                             <p className="text-sm font-bold text-brand-dark">Admin User</p>
                             <p className="text-[10px] text-zinc-500 font-mono truncate max-w-[120px]">{user.email}</p>
                         </div>
-                        <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-brand-blue to-cyan-500 p-[1px]">
+                        <div className="w-9 h-9 rounded-full bg-linear-to-tr from-brand-blue to-cyan-500 p-px">
                             <div className="w-full h-full rounded-full bg-white flex items-center justify-center overflow-hidden">
                                 <span className="font-bold text-xs text-brand-blue">{user.email?.charAt(0).toUpperCase()}</span>
                             </div>

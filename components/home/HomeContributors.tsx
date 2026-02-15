@@ -68,7 +68,7 @@ export default async function HomeContributors() {
                             <p className="text-xs font-bold text-foreground truncate w-full">
                                 {c.name.includes(' ') && !c.name.includes('.') ? c.name.split(' ')[0] : c.name}
                             </p>
-                            <span className="text-[10px] text-amber-600 font-bold mt-1">{c.title}</span>
+                            <span className="text-[10px] text-amber-800 font-bold mt-1">{c.title}</span>
                         </div>
                     </Link>
                 ))}

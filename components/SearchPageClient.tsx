@@ -5,18 +5,28 @@ import { Search, Loader2, ChevronDown, Check } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import RingtoneCard from '@/components/RingtoneCard';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { splitArtists, fuzzySearchPattern } from '@/lib/utils';
 import { sanitizeSearchQuery } from '@/lib/sanitize';
-import { getImageUrl } from '@/lib/tmdb';
 import TMDBImage from './TMDBImage';
 import { MOODS, ERAS, INSTRUMENTS } from '@/lib/constants';
 import NoResults from '@/components/NoResults';
-import SortControl from './SortControl';
 import { hapticFeedback } from '@/lib/haptics';
 import { logSearch } from '@/app/actions/ringtones';
 import BackButton from '@/components/BackButton';
+import { Ringtone } from '@/types';
+
+interface SearchMovie {
+    movie_name: string;
+    movie_year: string;
+    poster_url: string;
+    likes?: number;
+}
+
+interface SearchArtist {
+    name: string;
+}
+
 
 
 
@@ -49,9 +59,9 @@ function SearchContent() {
 
     // Results State
     const [results, setResults] = useState<{
-        ringtones: any[];
-        movies: any[];
-        artists: any[];
+        ringtones: Ringtone[];
+        movies: SearchMovie[];
+        artists: SearchArtist[];
     }>({ ringtones: [], movies: [], artists: [] });
 
     const [activeTab, setActiveTab] = useState<'all' | 'ringtones' | 'movies' | 'artists'>(
@@ -59,7 +69,7 @@ function SearchContent() {
     );
 
     // Fetch defaults (Trending)
-    const [defaults, setDefaults] = useState<{ movies: any[], artists: any[] }>({ movies: [], artists: [] });
+    const [defaults, setDefaults] = useState<{ movies: SearchMovie[], artists: SearchArtist[] }>({ movies: [], artists: [] });
 
     useEffect(() => {
         // Fetch browsing data once on mount
@@ -105,13 +115,11 @@ function SearchContent() {
 
     useEffect(() => {
         // Clear results immediately
-        setResults({ ringtones: [], movies: [], artists: [] });
-        setLoading(true);
 
         const delayDebounceFn = setTimeout(async () => {
             if (query.length > 0) {
 
-                let newResults = { ringtones: [], movies: [], artists: [] };
+                let newResults: { ringtones: Ringtone[]; movies: SearchMovie[]; artists: SearchArtist[]; } = { ringtones: [], movies: [], artists: [] };
 
                 const matchedEra = ERAS.find(e => e.label.toLowerCase() === query.toLowerCase());
 
@@ -239,13 +247,13 @@ function SearchContent() {
 
                 if (activeTab === 'all') {
                     const [r, m, a] = await Promise.all([fetchRingtones(), fetchMovies(), fetchArtists()]);
-                    newResults = { ringtones: r, movies: m, artists: a } as any;
+                    newResults = { ringtones: r as Ringtone[], movies: m as SearchMovie[], artists: a as SearchArtist[] };
                 } else if (activeTab === 'ringtones') {
-                    newResults.ringtones = await fetchRingtones() as any;
+                    newResults.ringtones = await fetchRingtones() as Ringtone[];
                 } else if (activeTab === 'movies') {
-                    newResults.movies = await fetchMovies() as any;
+                    newResults.movies = await fetchMovies() as SearchMovie[];
                 } else if (activeTab === 'artists') {
-                    newResults.artists = await fetchArtists() as any;
+                    newResults.artists = await fetchArtists() as SearchArtist[];
                 }
 
                 setResults(newResults);
@@ -281,7 +289,7 @@ function SearchContent() {
     return (
         <div className="max-w-md md:max-w-4xl lg:max-w-6xl mx-auto min-h-screen bg-white pb-24">
             {isSpecialSearch && (
-                <div className="p-6 pt-8 bg-gradient-to-b from-brand-wash to-white">
+                <div className="p-6 pt-8 bg-linear-to-b from-brand-wash to-white">
                     <h1 className="text-3xl font-bold text-brand-dark capitalize tracking-tight">
                         {matchedEra ? matchedEra.label : matchedInstrument?.label}
                     </h1>
@@ -292,7 +300,7 @@ function SearchContent() {
             )}
 
             <div className="px-4 pt-4 flex items-center gap-3">
-                <BackButton fallbackHref="/" className="!px-3 !py-2.5" />
+                <BackButton fallbackHref="/" className="px-3! py-2.5!" />
 
 
                 {/* Search Input */
@@ -301,7 +309,10 @@ function SearchContent() {
                             <input
                                 type="text"
                                 value={query}
-                                onChange={(e) => setQuery(e.target.value)}
+                                onChange={(e) => {
+                                    setQuery(e.target.value);
+                                    setLoading(true);
+                                }}
                                 placeholder="Search rings, movies, artists..."
                                 className="w-full bg-white border border-brand-gray rounded-xl px-12 py-4 text-lg text-brand-dark focus:outline-none focus:border-brand-blue transition-colors shadow-sm placeholder:text-zinc-500"
                                 autoFocus
@@ -319,7 +330,7 @@ function SearchContent() {
                                     key={tab}
                                     onClick={() => {
                                         hapticFeedback(10);
-                                        setActiveTab(tab as any);
+                                        setActiveTab(tab as 'all' | 'ringtones' | 'movies' | 'artists');
                                     }}
                                     className={`px-4 py-2 rounded-full text-sm font-medium capitalize whitespace-nowrap transition-colors border ${activeTab === tab
                                         ? 'bg-brand-blue text-white border-brand-blue'
@@ -370,7 +381,7 @@ function SearchContent() {
                                                             key={opt.id}
                                                             onClick={() => {
                                                                 hapticFeedback(10);
-                                                                setSortBy(opt.id as any);
+                                                                setSortBy(opt.id as 'recent' | 'downloads' | 'likes' | 'year_desc' | 'year_asc');
                                                                 setIsSortOpen(false);
                                                             }}
                                                             className={`w-full flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors ${sortBy === opt.id
@@ -399,7 +410,7 @@ function SearchContent() {
                                         <div className="h-4 w-20 bg-zinc-200 rounded ml-1" />
                                         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                                             {[1, 2, 3, 4].map(i => (
-                                                <div key={i} className="aspect-[2/3] bg-zinc-100 rounded-xl border border-brand-gray" />
+                                                <div key={i} className="aspect-2/3 bg-zinc-100 rounded-xl border border-brand-gray" />
                                             ))}
                                         </div>
                                     </div>
@@ -425,7 +436,7 @@ function SearchContent() {
                                         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                                             {results.movies.map((item, idx) => (
                                                 <Link href={`/movie/${encodeURIComponent(item.movie_name)}`} key={idx} className="flex flex-col gap-2 p-2 bg-white rounded-xl border border-brand-gray hover:shadow-lg transition-all group">
-                                                    <div className="relative w-full aspect-[2/3] bg-zinc-100 rounded-lg overflow-hidden shrink-0">
+                                                    <div className="relative w-full aspect-2/3 bg-zinc-100 rounded-lg overflow-hidden shrink-0">
                                                         <TMDBImage
                                                             path={item.poster_url}
                                                             alt={item.movie_name}
@@ -509,7 +520,7 @@ function SearchContent() {
                                                 key={era.label}
                                                 href={`/search?q=${era.label}&hideSearch=true`}
                                                 onClick={() => hapticFeedback(15)}
-                                                className={`p-6 rounded-xl bg-gradient-to-br ${era.color} relative overflow-hidden group shadow-sm hover:shadow-lg transition-shadow`}
+                                                className={`p-6 rounded-xl bg-linear-to-br ${era.color} relative overflow-hidden group shadow-sm hover:shadow-lg transition-shadow`}
                                             >
                                                 <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
                                                 <span className="relative z-10 text-2xl font-black text-white italic tracking-tighter opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all block text-center shadow-sm">
@@ -529,7 +540,7 @@ function SearchContent() {
                                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                                     {defaults.movies.map((item, idx) => (
                                         <Link href={`/movie/${encodeURIComponent(item.movie_name)}`} key={idx} className="flex flex-col gap-2 p-2 bg-white rounded-xl border border-[#E5EBF1] hover:shadow-lg transition-all group">
-                                            <div className="relative w-full aspect-[2/3] bg-zinc-100 rounded-lg overflow-hidden shrink-0">
+                                            <div className="relative w-full aspect-2/3 bg-zinc-100 rounded-lg overflow-hidden shrink-0">
                                                 <TMDBImage
                                                     path={item.poster_url}
                                                     alt={item.movie_name}

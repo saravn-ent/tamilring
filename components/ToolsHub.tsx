@@ -138,8 +138,8 @@ export default function ToolsHub() {
                     icon={Scissors}
                     title="Cutter"
                     subtitle="Manual Trim"
-                    colorClass="bg-gradient-to-br from-indigo-500 to-indigo-600 shadow-lg shadow-indigo-500/30"
-                    gradientClass="bg-gradient-to-br from-indigo-500/5 to-purple-500/5"
+                    colorClass="bg-linear-to-br from-indigo-500 to-indigo-600 shadow-lg shadow-indigo-500/30"
+                    gradientClass="bg-linear-to-br from-indigo-500/5 to-purple-500/5"
                     shadowClass="hover:shadow-indigo-500/20"
                     rotateClass="rotate-3 group-hover:rotate-6"
                     onSelect={handleToolSelect}
@@ -150,8 +150,8 @@ export default function ToolsHub() {
                     icon={Mic2}
                     title="Vocals"
                     subtitle="Voice Extractor"
-                    colorClass="bg-gradient-to-br from-violet-600 to-indigo-700 shadow-lg shadow-violet-500/30"
-                    gradientClass="bg-gradient-to-br from-violet-500/5 to-fuchsia-500/5"
+                    colorClass="bg-linear-to-br from-violet-600 to-indigo-700 shadow-lg shadow-violet-500/30"
+                    gradientClass="bg-linear-to-br from-violet-500/5 to-fuchsia-500/5"
                     shadowClass="hover:shadow-violet-500/20"
                     rotateClass="rotate-2 group-hover:rotate-4"
                     isComingSoon={true}
@@ -163,8 +163,8 @@ export default function ToolsHub() {
                     icon={Music2}
                     title="Karaoke"
                     subtitle="Instrumental"
-                    colorClass="bg-gradient-to-br from-teal-500 to-emerald-600 shadow-lg shadow-teal-500/30"
-                    gradientClass="bg-gradient-to-br from-teal-500/5 to-emerald-500/5"
+                    colorClass="bg-linear-to-br from-teal-500 to-emerald-600 shadow-lg shadow-teal-500/30"
+                    gradientClass="bg-linear-to-br from-teal-500/5 to-emerald-500/5"
                     shadowClass="hover:shadow-teal-500/20"
                     rotateClass="-rotate-2 group-hover:-rotate-4"
                     isComingSoon={true}
@@ -176,8 +176,8 @@ export default function ToolsHub() {
                     icon={Sparkles}
                     title="Name Tone"
                     subtitle="Generator"
-                    colorClass="bg-gradient-to-br from-rose-500 to-pink-600 shadow-lg shadow-rose-500/30"
-                    gradientClass="bg-gradient-to-br from-rose-500/5 to-pink-500/5"
+                    colorClass="bg-linear-to-br from-rose-500 to-pink-600 shadow-lg shadow-rose-500/30"
+                    gradientClass="bg-linear-to-br from-rose-500/5 to-pink-500/5"
                     shadowClass="hover:shadow-rose-500/20"
                     rotateClass="rotate-3 group-hover:rotate-6"
                     href="/tools/name-ringtone"
@@ -192,8 +192,8 @@ export default function ToolsHub() {
                     icon={Wand2}
                     title="AI Enhance"
                     subtitle="Noise Remover"
-                    colorClass="bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/30"
-                    gradientClass="bg-gradient-to-br from-cyan-500/5 to-blue-500/5"
+                    colorClass="bg-linear-to-br from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/30"
+                    gradientClass="bg-linear-to-br from-cyan-500/5 to-blue-500/5"
                     shadowClass="hover:shadow-cyan-500/20"
                     rotateClass="-rotate-1 group-hover:-rotate-3"
                     isComingSoon={true}
@@ -205,8 +205,8 @@ export default function ToolsHub() {
                     icon={Ghost}
                     title="Voice Changer"
                     subtitle="Funny Effects"
-                    colorClass="bg-gradient-to-br from-fuchsia-500 to-pink-600 shadow-lg shadow-fuchsia-500/30"
-                    gradientClass="bg-gradient-to-br from-fuchsia-500/5 to-pink-500/5"
+                    colorClass="bg-linear-to-br from-fuchsia-500 to-pink-600 shadow-lg shadow-fuchsia-500/30"
+                    gradientClass="bg-linear-to-br from-fuchsia-500/5 to-pink-500/5"
                     shadowClass="hover:shadow-fuchsia-500/20"
                     rotateClass="rotate-2 group-hover:rotate-4"
                     isComingSoon={true}

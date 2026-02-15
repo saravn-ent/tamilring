@@ -1,9 +1,8 @@
-import { Suspense } from 'react';
 import Link from 'next/link';
 import { Heart, Music, Sparkles, ArrowLeft, Star, PlayCircle, Quote } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
-import { SectionSkeleton } from '@/components/skeletons';
 import TMDBImage from '@/components/TMDBImage';
+import PetalFall from '@/components/PetalFall';
 
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -52,7 +51,7 @@ function ValentinesMovieCard({
             href={`/movie/${encodeURIComponent(movieName)}`}
             className="group relative flex flex-col md:flex-row gap-8 items-center bg-white/40 backdrop-blur-3xl rounded-[3rem] p-6 border border-rose-200/50 shadow-[0_20px_60px_-15px_rgba(244,63,94,0.1)] transition-all duration-700 hover:shadow-rose-500/20 hover:-translate-y-2"
         >
-            <div className="relative w-full md:w-56 aspect-[2/3] shrink-0 rounded-[2rem] overflow-hidden shadow-2xl">
+            <div className="relative w-full md:w-56 aspect-2/3 shrink-0 rounded-4xl overflow-hidden shadow-2xl">
                 <TMDBImage
                     path={movieData.poster_url}
                     alt={movieName}
@@ -60,7 +59,7 @@ function ValentinesMovieCard({
                     className="object-cover transition-transform duration-1000 group-hover:scale-110"
                     sizes="(max-width: 768px) 100vw, 250px"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-rose-900/40 to-transparent" />
+                <div className="absolute inset-0 bg-linear-to-t from-rose-900/40 to-transparent" />
                 <div className="absolute bottom-4 left-0 right-0 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                     <div className="px-4 py-2 bg-white/90 backdrop-blur-md rounded-full shadow-lg border border-rose-100">
                         <PlayCircle className="w-6 h-6 text-rose-500" />
@@ -97,29 +96,7 @@ function ValentinesMovieCard({
     );
 }
 
-function PetalFall() {
-    return (
-        <div className="absolute inset-0 pointer-events-none overflow-hidden select-none z-0">
-            {[...Array(12)].map((_, i) => (
-                <div
-                    key={i}
-                    className="absolute animate-float opacity-0 rotate-12"
-                    style={{
-                        left: `${Math.random() * 100}%`,
-                        top: `-10%`,
-                        '--delay': `${Math.random() * 20}s`,
-                        '--duration': `${10 + Math.random() * 15}s`,
-                        fontSize: `${10 + Math.random() * 20}px`,
-                        color: `rgba(244, 63, 94, ${0.1 + Math.random() * 0.2})`,
-                        transform: `rotate(${Math.random() * 360}deg)`
-                    } as any}
-                >
-                    <div className="w-4 h-6 bg-rose-200/40 rounded-full blur-[1px] rotate-45" />
-                </div>
-            ))}
-        </div>
-    );
-}
+
 
 export default async function ValentinesPage() {
     // Pre-fetch all movie data to ensure sequential numbering for visible items
@@ -143,7 +120,7 @@ export default async function ValentinesPage() {
         <div className="min-h-screen relative bg-[#fffafb] selection:bg-rose-100 text-[#2d0a12]">
             {/* Background Aesthetic */}
             <div className="fixed inset-0 z-0">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_#fff,_#fff5f6,_#ffe4e9)]" />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,#fff,#fff5f6,#ffe4e9)]" />
                 <div className="absolute top-[10%] right-[10%] w-[50%] h-[50%] bg-pink-100/50 blur-[120px] rounded-full" />
                 <div className="absolute bottom-[20%] left-[5%] w-[30%] h-[30%] bg-rose-50 blur-[100px] rounded-full" />
                 <div className="absolute inset-0 opacity-[0.4] mix-blend-overlay" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/cubes.png")' }} />
@@ -176,7 +153,7 @@ export default async function ValentinesPage() {
                             <Star size={16} fill="currentColor" />
                         </div>
                         <h1 className="text-7xl md:text-9xl font-black tracking-tight text-rose-950 leading-none">
-                            The Music <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-pink-400">of Hearts.</span>
+                            The Music <br /> <span className="text-transparent bg-clip-text bg-linear-to-r from-rose-500 to-pink-400">of Hearts.</span>
                         </h1>
                         <p className="text-xl md:text-2xl text-rose-900/40 font-medium max-w-2xl mx-auto italic">
                             A hand-picked collection of stories that move us.
@@ -200,7 +177,7 @@ export default async function ValentinesPage() {
                 {/* Final Chapter */}
                 <footer className="relative mt-64 py-24 text-center bg-rose-950 rounded-[4rem] text-white shadow-2xl overflow-hidden group">
                     <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/black-paper.png')] opacity-20" />
-                    <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-transparent via-rose-500 to-transparent" />
+                    <div className="absolute top-0 inset-x-0 h-1 bg-linear-to-r from-transparent via-rose-500 to-transparent" />
 
                     <div className="relative z-10 px-8">
                         <Sparkles className="w-12 h-12 text-rose-400 mx-auto mb-8 animate-pulse" />
@@ -221,7 +198,7 @@ export default async function ValentinesPage() {
             </div>
 
             {/* Background Watermark */}
-            <div className="fixed -bottom-10 left-10 text-[20rem] font-black text-rose-500/[0.03] pointer-events-none select-none z-0">
+            <div className="fixed -bottom-10 left-10 text-[20rem] font-black text-rose-500/3 pointer-events-none select-none z-0">
                 L_O_V_E
             </div>
         </div>

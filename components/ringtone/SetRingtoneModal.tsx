@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { X, Smartphone, Tablet, ChevronRight, HelpCircle } from 'lucide-react';
+import { X, Smartphone, Tablet, HelpCircle } from 'lucide-react';
 
 interface SetRingtoneModalProps {
     isOpen: boolean;
@@ -14,7 +14,7 @@ export default function SetRingtoneModal({ isOpen, onClose }: SetRingtoneModalPr
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
             <div
                 className="relative w-full max-w-lg bg-white rounded-3xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200"
                 onClick={(e) => e.stopPropagation()}
@@ -85,7 +85,7 @@ export default function SetRingtoneModal({ isOpen, onClose }: SetRingtoneModalPr
 
                             <div className="mt-6 p-4 bg-brand-wash rounded-2xl border border-brand-border/30">
                                 <p className="text-xs text-zinc-600 font-medium leading-relaxed">
-                                    <span className="font-bold text-brand-accent">Note:</span> On some Samsung phones, you might need to use the "My Files" app to find the downloaded song and select "Set as ringtone" from the menu.
+                                    <span className="font-bold text-brand-accent">Note:</span> On some Samsung phones, you might need to use the &quot;My Files&quot; app to find the downloaded song and select &quot;Set as ringtone&quot; from the menu.
                                 </p>
                             </div>
                         </div>
@@ -123,7 +123,7 @@ export default function SetRingtoneModal({ isOpen, onClose }: SetRingtoneModalPr
 
                             <div className="mt-6 p-4 bg-zinc-50 rounded-2xl border border-zinc-200">
                                 <p className="text-xs text-zinc-600 font-medium leading-relaxed flex items-start gap-2">
-                                    <HelpCircle size={14} className="mt-0.5 text-zinc-400 flex-shrink-0" />
+                                    <HelpCircle size={14} className="mt-0.5 text-zinc-400 shrink-0" />
                                     iPhone security restricts direct ringtone settings. Using GarageBand is the standard way to set any custom tone without a computer.
                                 </p>
                             </div>
@@ -148,7 +148,7 @@ export default function SetRingtoneModal({ isOpen, onClose }: SetRingtoneModalPr
 function Step({ num, text, isLast }: { num: number; text: string; isLast?: boolean }) {
     return (
         <div className="flex gap-4">
-            <div className="flex flex-col items-center flex-shrink-0">
+            <div className="flex flex-col items-center shrink-0">
                 <div className="w-8 h-8 rounded-full bg-brand-accent text-white flex items-center justify-center text-sm font-black shadow-lg shadow-brand-accent/20">
                     {num}
                 </div>

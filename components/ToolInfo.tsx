@@ -56,7 +56,7 @@ export default function ToolInfo({ title, description, faqs, features }: ToolInf
 
                     <div className="space-y-2.5">
                         <div className="flex items-center gap-2.5 mb-4 pt-4 border-t border-slate-100">
-                            <div className="w-8 h-8 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <div className="w-8 h-8 bg-amber-50 text-amber-800 rounded-lg flex items-center justify-center flex-shrink-0">
                                 <HelpCircle size={16} />
                             </div>
                             <h3 className="text-lg font-bold text-slate-900">

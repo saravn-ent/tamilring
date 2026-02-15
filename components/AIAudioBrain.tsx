@@ -57,7 +57,7 @@ export default function AIAudioBrain({ file }: AIAudioBrainProps) {
 
     if (result) {
         return (
-            <div className="bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-3xl p-6 border border-white/10 shadow-2xl animate-in zoom-in duration-500">
+            <div className="bg-linear-to-br from-slate-900 to-indigo-950 text-white rounded-3xl p-6 border border-white/10 shadow-2xl animate-in zoom-in duration-500">
                 <div className="flex items-center gap-3 mb-6">
                     <div className="w-10 h-10 bg-indigo-500/20 rounded-2xl flex items-center justify-center border border-indigo-500/30">
                         <Brain className="text-indigo-400" size={20} />

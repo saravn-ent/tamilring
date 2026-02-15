@@ -18,7 +18,7 @@ import HomeNostalgia from '@/components/home/HomeNostalgia';
 import HomeContributors from '@/components/home/HomeContributors';
 import HomeSEOContent from '@/components/home/HomeSEOContent';
 import { SectionSkeleton } from '@/components/skeletons';
-import { HeroSearchSkeleton } from '@/components/HeroSearchSkeleton';
+
 
 export const revalidate = 3600; // Revalidate every hour
 
@@ -50,16 +50,18 @@ export default async function Home() {
          (Header/Nav) is sent to the browser immediately while rows stream in.
       */}
 
-      {/* Hero Section with Search - Loads via Suspense */}
-      <Suspense fallback={<HeroSearchSkeleton />}>
-        <HeroSearchServer />
-      </Suspense>
+      {/* Hero Section with Search - Loads Instantly (Static Shell) */}
+      <HeroSearchServer />
 
       {/* Collections Grid - Visual Categories - Loads Instantly */}
       <CategoryGrid />
 
       {/* By Era & Instruments - Loads Instantly */}
       <EraAndInstruments />
+
+      <Suspense fallback={<SectionSkeleton type="trending" />}>
+        <HomeTrending lang={lang} />
+      </Suspense>
 
       <Suspense fallback={<SectionSkeleton type="trending" />}>
         <HomeNostalgia lang={lang} />
@@ -83,10 +85,6 @@ export default async function Home() {
 
       <Suspense fallback={<SectionSkeleton type="grid" />}>
         <HomeRecent lang={lang} />
-      </Suspense>
-
-      <Suspense fallback={<SectionSkeleton type="trending" />}>
-        <HomeTrending lang={lang} />
       </Suspense>
 
       <Suspense fallback={<SectionSkeleton type="contributors" />}>

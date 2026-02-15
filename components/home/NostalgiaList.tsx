@@ -47,10 +47,11 @@ export default function NostalgiaList({ nostalgia }: NostalgiaListProps) {
                         onClick={() => handleCardClick(ringtone.slug)}
                         className="snap-start shrink-0 w-32 sm:w-36 md:w-full group cursor-pointer"
                     >
-                        <div className="relative w-32 sm:w-36 md:w-full h-44 sm:h-48 md:h-auto md:aspect-[2/3] rounded-xl overflow-hidden mb-2 bg-brand-wash shadow-lg group-hover:shadow-brand-accent/20 transition-all border border-brand-border/50 active:scale-95">
+                        <div className="relative w-32 sm:w-36 md:w-full h-44 sm:h-48 md:h-auto md:aspect-2/3 rounded-xl overflow-hidden mb-2 bg-brand-wash shadow-lg group-hover:shadow-brand-accent/20 transition-all border border-brand-border/50 active:scale-95">
                             <TMDBImage
                                 path={ringtone.poster_url}
-                                alt={ringtone.title}
+                                alt=""
+                                fallbackAlt={ringtone.title}
                                 fill
                                 sizes="(max-width: 768px) 33vw, (max-width: 1200px) 20vw, 16vw"
                                 quality={75}
@@ -58,7 +59,7 @@ export default function NostalgiaList({ nostalgia }: NostalgiaListProps) {
                             />
 
                             {/* Overlay Gradient */}
-                            <div className={`absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-80 group-hover:opacity-90'}`} />
+                            <div className={`absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-transparent transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-80 group-hover:opacity-90'}`} />
 
                             {/* Year Badge */}
                             <div className="absolute top-2 left-2 bg-black/70 px-1.5 py-0.5 rounded text-[10px] text-white font-medium backdrop-blur-sm z-20">
@@ -80,6 +81,7 @@ export default function NostalgiaList({ nostalgia }: NostalgiaListProps) {
                                     type="button"
                                     onClick={(e) => handlePlay(e, ringtone)}
                                     className={`w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-md border border-white/30 shadow-2xl transition-all duration-300 hover:scale-110 active:scale-90 pointer-events-auto ${isActive ? 'bg-brand-accent text-white scale-110' : 'bg-white/20 text-white hover:bg-white/40'}`}
+                                    aria-label={isActive ? `Pause ${ringtone.title}` : `Play ${ringtone.title}`}
                                 >
                                     {isActive ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="ml-0.5" />}
                                 </button>

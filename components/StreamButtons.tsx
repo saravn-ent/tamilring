@@ -66,7 +66,7 @@ export default function StreamButtons({
           className={`
           flex items-center justify-between px-4 py-3.5 rounded-2xl font-bold transition-all group
           ${isIOS
-              ? 'bg-gradient-to-r from-rose-500 to-pink-600 text-white shadow-xl shadow-rose-500/20 scale-[1.02]'
+              ? 'bg-linear-to-r from-rose-500 to-pink-600 text-white shadow-xl shadow-rose-500/20 scale-[1.02]'
               : 'bg-[#000000] text-white hover:bg-zinc-900 border border-zinc-800'
             }
         `}

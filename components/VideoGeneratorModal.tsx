@@ -34,19 +34,19 @@ export default function VideoGeneratorModal({ isOpen, onClose, ringtone }: Video
 
                         <div className="space-y-6">
                             {/* Coming Soon Badge */}
-                            <div className="bg-gradient-to-r from-emerald-500/10 to-blue-500/10 border border-emerald-500/20 p-6 rounded-xl">
+                            <div className="bg-linear-to-r from-emerald-500/10 to-blue-500/10 border border-emerald-500/20 p-6 rounded-xl">
                                 <div className="flex items-center gap-3 mb-3">
                                     <Sparkles className="text-emerald-500" size={24} />
                                     <h3 className="text-lg font-bold text-white">Coming Soon!</h3>
                                 </div>
                                 <p className="text-zinc-400 text-sm leading-relaxed">
-                                    We're building an amazing video generator that will create stunning social media stories for Instagram, WhatsApp, and TikTok.
+                                    We&apos;re building an amazing video generator that will create stunning social media stories for Instagram, WhatsApp, and TikTok.
                                 </p>
                             </div>
 
                             {/* Features List */}
                             <div className="space-y-3">
-                                <p className="text-xs font-bold text-zinc-500 uppercase tracking-wider">What's Coming:</p>
+                                <p className="text-xs font-bold text-zinc-500 uppercase tracking-wider">What&apos;s Coming:</p>
                                 <ul className="space-y-2 text-sm text-zinc-400">
                                     <li className="flex items-start gap-2">
                                         <Video size={16} className="text-emerald-500 mt-0.5 shrink-0" />

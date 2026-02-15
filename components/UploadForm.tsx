@@ -1355,7 +1355,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
               </div>
             )}
             {duplicateWarning && (
-              <div className="flex items-center gap-2 text-amber-600 text-xs font-bold bg-amber-50 p-2 rounded-lg border border-amber-200">
+              <div className="flex items-center gap-2 text-amber-800 text-xs font-bold bg-amber-50 p-2 rounded-lg border border-amber-200">
                 <Sparkles size={14} />
                 <span>{duplicateWarning}</span>
               </div>

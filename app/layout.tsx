@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import Script from "next/script";
-import dynamic from "next/dynamic";
+
 
 import "./globals.css";
 import { PlayerProvider } from "@/context/PlayerContext";
@@ -98,10 +98,9 @@ export default async function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <head>
         <Script
-          id="adsense"
+          id="google-adsense"
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8222339857289632"
-          crossOrigin="anonymous"
           strategy="lazyOnload"
         />
       </head>

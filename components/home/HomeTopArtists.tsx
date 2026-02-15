@@ -4,7 +4,6 @@ import HeroCard from '@/components/HeroCard';
 import { supabase } from '@/lib/supabaseClient';
 import { unstable_cache } from 'next/cache';
 import { searchPerson, getImageUrl } from '@/lib/tmdb';
-import { getUserLanguage } from '@/app/actions/ringtones';
 import { TOP_ACTORS_BY_LANGUAGE, TOP_SINGERS_BY_LANGUAGE, TOP_MUSIC_DIRECTORS_BY_LANGUAGE, MOODS, INSTRUMENTS } from '@/lib/constants';
 
 const getTopArtists = unstable_cache(
@@ -180,7 +179,7 @@ export async function HomeSingers({ lang }: { lang: string }) {
                         image={singer.image}
                         href={`/artist/${encodeURIComponent(singer.name)}`}
                         priority={idx < 4}
-                        className="md:w-full md:h-auto md:aspect-[2/3]"
+                        className="md:w-full md:h-auto md:aspect-2/3"
                     />
                 ))}
             </div>
@@ -206,7 +205,7 @@ export async function HomeMusicDirectors({ lang }: { lang: string }) {
                         image={md.image}
                         href={`/artist/${encodeURIComponent(md.name)}`}
                         priority={false}
-                        className="md:w-full md:h-auto md:aspect-[2/3]"
+                        className="md:w-full md:h-auto md:aspect-2/3"
                     />
                 ))}
             </div>
@@ -232,7 +231,7 @@ export async function HomeActors({ lang }: { lang: string }) {
                         image={actor.image}
                         href={`/artist/${encodeURIComponent(actor.name)}`}
                         priority={false}
-                        className="md:w-full md:h-auto md:aspect-[2/3]"
+                        className="md:w-full md:h-auto md:aspect-2/3"
                     />
                 ))}
             </div>
@@ -258,7 +257,7 @@ export async function HomeMovieDirectors({ lang }: { lang: string }) {
                         image={director.image}
                         href={`/artist/${encodeURIComponent(director.name)}`}
                         priority={false}
-                        className="md:w-full md:h-auto md:aspect-[2/3]"
+                        className="md:w-full md:h-auto md:aspect-2/3"
                     />
                 ))}
             </div>

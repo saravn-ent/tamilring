@@ -1,13 +1,11 @@
 'use client';
 
+
 import { useState, useEffect, useRef } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { Play, Pause, Heart, Share2, Music, Download, Clock } from 'lucide-react';
+import { Play, Pause, Heart, Share2 } from 'lucide-react';
 import { Ringtone } from '@/types';
 import { usePlayer } from '@/context/PlayerContext';
 import { incrementLikes } from '@/app/actions/ringtones';
-import { getImageUrl } from '@/lib/tmdb';
 import MiniPlayerBar from './MiniPlayerBar';
 import TMDBImage from './TMDBImage';
 import { useFavorites } from '@/context/FavoritesContext';
@@ -24,22 +22,12 @@ interface RingtoneCardProps {
   assignTo?: string;
 }
 
-const TAGS_WHITELIST = [
-  'bgm', 'vocal', 'instrumental', 'interlude', 'humming', 'dialogue',
-  'remix', '8d audio', 'whistle', 'theme', 'background', 'flute',
-  'violin', 'guitar', 'piano', 'snippet', 'bit', 'cut'
-];
+
 
 export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) {
   const { currentRingtone, isPlaying, playRingtone, togglePlay } = usePlayer();
   const { isFavorite, addFavorite, removeFavorite } = useFavorites();
-  const [isLiked, setIsLiked] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-
-  useEffect(() => {
-    setIsMounted(true);
-    setIsLiked(isFavorite(ringtone.id));
-  }, [ringtone.id, isFavorite]);
+  const isLiked = isFavorite(ringtone.id);
   // We rely on either DB duration or the player's duration for performance
   const [loadedDuration] = useState<number | null>(ringtone.duration || null);
 
@@ -124,7 +112,7 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
     hapticFeedback(15);
 
     if (!isLiked) {
-      setIsLiked(true);
+
       addFavorite({
         id: ringtone.id,
         name: ringtone.title,
@@ -135,7 +123,7 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
       });
       await incrementLikes(ringtone.id);
     } else {
-      setIsLiked(false);
+
       removeFavorite(ringtone.id);
     }
   };
@@ -180,14 +168,17 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
         <div className="flex items-center gap-3 sm:gap-4">
 
           {/* 1. Left Section: Album Art + Play Button + Duration */}
-          <div className="flex flex-col items-center gap-1.5 flex-shrink-0">
-            <div
+          <div className="flex flex-col items-center gap-1.5 shrink-0">
+            <button
               onClick={handlePlay}
-              className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-brand-wash flex items-center justify-center border border-brand-border group/play cursor-pointer shadow-sm active:scale-95 transition-transform"
+              type="button"
+              aria-label={isActive ? `Pause ${ringtone.title}` : `Play ${ringtone.title}`}
+              className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-brand-wash flex items-center justify-center border border-brand-border group/play cursor-pointer shadow-sm active:scale-95 transition-transform p-0"
             >
               <TMDBImage
                 path={ringtone.poster_url}
-                alt={ringtone.title}
+                alt=""
+                fallbackAlt={ringtone.title}
                 fill
                 sizes="(max-width: 640px) 56px, 64px"
                 className="object-cover transition-transform duration-500 group-hover/play:scale-110"
@@ -199,9 +190,9 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
                   {isActive ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" className="ml-0.5" />}
                 </div>
               </div>
+            </button>
 
 
-            </div>
 
             {/* Duration Badge below Art (Only when NOT playing) */}
             {!isActive && loadedDuration && (

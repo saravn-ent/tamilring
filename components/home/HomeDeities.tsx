@@ -1,12 +1,10 @@
 import React from 'react';
 import SectionHeader from '@/components/SectionHeader';
-import HeroCard from '@/components/HeroCard';
 import { supabase } from '@/lib/supabaseClient';
 import { unstable_cache } from 'next/cache';
 import Link from 'next/link';
 import Image from 'next/image';
 import { DEITY_CATEGORIES } from '@/lib/constants';
-import { getUserLanguage } from '@/app/actions/ringtones';
 
 // Fetch top deities using client-side aggregation for now to avoid migration dependency
 const getTopDeities = unstable_cache(
@@ -147,7 +145,7 @@ export default async function HomeDeities({ lang }: { lang: string }) {
                                     sizes="(max-width: 768px) 80px, 96px"
                                 />
                             ) : (
-                                <div className="w-full h-full bg-gradient-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
+                                <div className="w-full h-full bg-linear-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
                                     <span className="text-2xl">🕉️</span>
                                 </div>
                             )}

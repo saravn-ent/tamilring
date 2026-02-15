@@ -2,13 +2,34 @@
 'use client';
 
 import { useState, useRef, useEffect, useMemo } from 'react';
-import { Sparkles, Music, Type, Phone, Download, Play, Pause, Loader2, ArrowLeft, CheckCircle2, ChevronRight, Volume2, Wand2, HelpCircle, Search, X, User, UserCheck } from 'lucide-react';
+import { Sparkles, Music, Type, Phone, Download, Play, Pause, Loader2, ArrowLeft, CheckCircle2, ChevronRight, Wand2, HelpCircle, Search, X } from 'lucide-react';
 import Link from 'next/link';
 import Script from 'next/script';
 import { hapticFeedback } from '@/lib/haptics';
 import SetRingtoneModal from '@/components/ringtone/SetRingtoneModal';
 import { detectLanguage } from '@/lib/utils/lang-detect';
 import { transliterate } from '@/lib/utils/translit';
+
+interface Ringtone {
+    id: string;
+    title: string;
+    movieName?: string;
+    audioUrl: string;
+}
+
+interface FFmpegInstance {
+    isLoaded: () => boolean;
+    load: () => Promise<void>;
+    FS: (method: string, filename: string, data?: Uint8Array | string) => unknown;
+    run: (...args: string[]) => Promise<void>;
+}
+
+interface WindowWithFFmpeg extends Window {
+    FFmpeg?: {
+        createFFmpeg: (options: { log: boolean; corePath: string; mainName: string }) => FFmpegInstance;
+        fetchFile: (url: string) => Promise<Uint8Array>;
+    };
+}
 
 const backgroundTracks = [
     { id: 'romantic', name: 'Romantic', file: '/audio/romantic.mp3', color: 'bg-pink-500', shadow: 'shadow-pink-500/20', gradient: 'from-pink-500 to-rose-500' },
@@ -128,13 +149,13 @@ export default function NameRingtone() {
     const [isBgmModalOpen, setIsBgmModalOpen] = useState(false);
     const [bgmSearch, setBgmSearch] = useState('');
     const [isTransliterating, setIsTransliterating] = useState(false);
-    const timerRef = useRef<NodeJS.Timeout | null>(null);
-    const ffmpegRef = useRef<any>(null);
+
+    const ffmpegRef = useRef<FFmpegInstance | null>(null);
 
     const bgAudioRef = useRef<HTMLAudioElement | null>(null);
     const ttsAudioRef = useRef<HTMLAudioElement | null>(null);
 
-    const [libraryRingtones, setLibraryRingtones] = useState<any[]>([]);
+    const [libraryRingtones, setLibraryRingtones] = useState<Ringtone[]>([]);
     const [isLoadingLibrary, setIsLoadingLibrary] = useState(false);
 
     const filteredLibrary = useMemo(() => {
@@ -169,16 +190,16 @@ export default function NameRingtone() {
         return () => {
             if (bgAudioRef.current) bgAudioRef.current.pause();
             if (ttsAudioRef.current) ttsAudioRef.current.pause();
-            if (timerRef.current) clearInterval(timerRef.current);
         };
     }, []);
 
     const loadFFmpeg = async () => {
         if (ffmpegRef.current && ffmpegRef.current.isLoaded()) return ffmpegRef.current;
-        if (!(window as any).FFmpeg) return null;
+        const win = window as unknown as WindowWithFFmpeg;
+        if (!win.FFmpeg) return null;
         const corePath = `${window.location.origin}/ffmpeg-st/ffmpeg-core.js`;
         try {
-            const ffmpeg = (window as any).FFmpeg.createFFmpeg({ log: false, corePath, mainName: 'main' });
+            const ffmpeg = win.FFmpeg.createFFmpeg({ log: false, corePath, mainName: 'main' });
             await ffmpeg.load();
             ffmpegRef.current = ffmpeg;
             return ffmpeg;
@@ -265,7 +286,9 @@ export default function NameRingtone() {
         try {
             const ffmpeg = await loadFFmpeg();
             if (!ffmpeg) throw new Error('FFmpeg not loaded');
-            const { fetchFile } = (window as any).FFmpeg;
+            const win = window as unknown as WindowWithFFmpeg;
+            if (!win.FFmpeg) throw new Error('FFmpeg fetchFile not found');
+            const { fetchFile } = win.FFmpeg;
             let messageToSpeak = fullMessage;
             if (lang !== 'en' && detectLanguage(fullMessage) === 'en') {
                 setLoadingMessage(`${languages.find(l => l.id === lang)?.name} Voice Optimization...`);
@@ -291,8 +314,8 @@ export default function NameRingtone() {
                 setLoadingMessage('Finalizing voice...');
                 await ffmpeg.run('-i', 'tts.mp3', '-c:a', format === 'm4r' ? 'aac' : 'libmp3lame', 'output.' + format);
             }
-            const data = ffmpeg.FS('readFile', 'output.' + format);
-            const blob = new Blob([data.buffer], { type: format === 'm4r' ? 'audio/x-m4r' : 'audio/mpeg' });
+            const data = ffmpeg.FS('readFile', 'output.' + format) as Uint8Array;
+            const blob = new Blob([(data.buffer as ArrayBuffer)], { type: format === 'm4r' ? 'audio/x-m4r' : 'audio/mpeg' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -342,7 +365,7 @@ export default function NameRingtone() {
 
                 <div className="space-y-6">
                     {/* STEP 1: NAME & LANGUAGE */}
-                    <section className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 space-y-8">
+                    <section className="bg-white rounded-4xl p-6 shadow-sm border border-slate-100 space-y-8">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6 border-b border-slate-50">
                             <div className="space-y-3">
                                 <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
@@ -388,7 +411,7 @@ export default function NameRingtone() {
                                             placeholder="Enter your name or custom call message..."
                                             value={customMessage}
                                             onChange={(e) => handleMessageChange(e.target.value)}
-                                            className="w-full px-6 py-4 bg-white border border-slate-200 rounded-[2rem] text-base font-bold text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 transition-all resize-none shadow-sm"
+                                            className="w-full px-6 py-4 bg-white border border-slate-200 rounded-4xl text-base font-bold text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 transition-all resize-none shadow-sm"
                                         />
                                         <div className="absolute right-4 bottom-4 flex items-center gap-2">
                                             {lang !== 'en' && customMessage.trim() && detectLanguage(customMessage) === 'en' && (
@@ -404,7 +427,7 @@ export default function NameRingtone() {
                                     <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Quick Templates</h3>
                                     <div className="flex md:flex-wrap overflow-x-auto md:overflow-x-visible pb-2 md:pb-0 gap-2 scrollbar-none">
                                         {(templates[lang as keyof typeof templates] || templates.en).map((msg, idx) => (
-                                            <button key={idx} onClick={() => setCustomMessage(msg.text)} className="whitespace-nowrap px-4 py-2 bg-white border border-slate-100 rounded-xl text-[10px] font-bold text-slate-600 hover:border-rose-500 hover:text-rose-500 transition-all flex-shrink-0 text-center">
+                                            <button key={idx} onClick={() => setCustomMessage(msg.text)} className="whitespace-nowrap px-4 py-2 bg-white border border-slate-100 rounded-xl text-[10px] font-bold text-slate-600 hover:border-rose-500 hover:text-rose-500 transition-all shrink-0 text-center">
                                                 {msg.category}
                                             </button>
                                         ))}
@@ -455,7 +478,7 @@ export default function NameRingtone() {
                     </div>
 
                     {/* STEP 5: BACKGROUND MUSIC */}
-                    <section className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-100 space-y-4">
+                    <section className="bg-white rounded-4xl p-6 shadow-sm border border-slate-100 space-y-4">
                         <div className="flex items-center gap-2">
                             <div className="w-6 h-6 bg-indigo-50 text-indigo-500 rounded-lg flex items-center justify-center text-[10px] font-black">03</div>
                             <h2 className="text-xs font-black text-slate-900 uppercase tracking-widest">Pick Your Mood</h2>
@@ -496,7 +519,7 @@ export default function NameRingtone() {
                                 <button
                                     onClick={handlePreview}
                                     disabled={isGenerating || !customMessage.trim()}
-                                    className={`w-full h-20 rounded-[2rem] flex items-center justify-center gap-4 font-black text-sm uppercase tracking-[0.2em] transition-all shadow-2xl ${!customMessage.trim() || isGenerating ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-white text-slate-900 hover:bg-rose-500 hover:text-white shadow-xl active:scale-[0.98]'}`}
+                                    className={`w-full h-20 rounded-4xl flex items-center justify-center gap-4 font-black text-sm uppercase tracking-[0.2em] transition-all shadow-2xl ${!customMessage.trim() || isGenerating ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-white text-slate-900 hover:bg-rose-500 hover:text-white shadow-xl active:scale-[0.98]'}`}
                                 >
                                     {isGenerating ? <><Loader2 className="animate-spin" size={24} /> {loadingMessage || 'Mixing Audio...'}</> : <><Sparkles size={24} /> Generate Ringtone</>}
                                 </button>
@@ -540,7 +563,7 @@ export default function NameRingtone() {
             {/* BGM LIBRARY MODAL */}
             {
                 isBgmModalOpen && (
-                    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
                         <div className="w-full max-w-lg bg-white rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col max-h-[80vh]">
                             <div className="p-6 border-b border-slate-100 flex items-center justify-between">
                                 <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest">Site Library</h2>
@@ -566,7 +589,7 @@ export default function NameRingtone() {
                                     </div>
                                 ) : filteredLibrary.length > 0 ? (
                                     <div className="grid grid-cols-1 gap-2">
-                                        {filteredLibrary.map((r: any) => (
+                                        {filteredLibrary.map((r: Ringtone) => (
                                             <button
                                                 key={r.id}
                                                 onClick={() => {
@@ -596,7 +619,7 @@ export default function NameRingtone() {
                 )
             }
 
-            <Script src="/ffmpeg/ffmpeg.min.js" strategy="afterInteractive" onLoad={() => { if ((window as any).FFmpeg) loadFFmpeg(); }} />
+            <Script src="/ffmpeg/ffmpeg.min.js" strategy="afterInteractive" onLoad={() => { const win = window as unknown as WindowWithFFmpeg; if (win.FFmpeg) loadFFmpeg(); }} />
             <SetRingtoneModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
         </main >
     );

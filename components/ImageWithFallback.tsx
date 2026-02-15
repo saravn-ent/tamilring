@@ -7,6 +7,7 @@ import { Music } from 'lucide-react';
 interface ImageWithFallbackProps {
   src?: string;
   alt: string;
+  fallbackAlt?: string; // Add this prop
   className?: string;
   fallbackClassName?: string;
   showIcon?: boolean;
@@ -21,6 +22,7 @@ interface ImageWithFallbackProps {
 export default function ImageWithFallback({
   src,
   alt,
+  fallbackAlt,
   className = "object-cover",
   fallbackClassName = "bg-neutral-800 text-zinc-400",
   showIcon = false,
@@ -48,7 +50,7 @@ export default function ImageWithFallback({
     return (
       <div className={`w-full h-full flex flex-col items-center justify-center ${fallbackClassName}`}>
         {showIcon && <Music size={20} className="mb-1 opacity-50" />}
-        <span className="font-bold text-xs opacity-70">{fallbackText || getInitials(alt)}</span>
+        <span className="font-bold text-xs opacity-70">{fallbackText || getInitials(fallbackAlt || alt)}</span>
       </div>
     );
   }

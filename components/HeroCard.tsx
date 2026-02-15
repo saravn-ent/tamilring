@@ -28,7 +28,8 @@ export default function HeroCard({ name, image, href, subtitle, index = 0, prior
       <div className="absolute inset-0 bg-brand-wash">
         <ImageWithFallback
           src={image}
-          alt={name}
+          alt=""
+          fallbackAlt={name}
           sizes="128px"
           priority={priority}
           className="object-cover transition-transform duration-700 group-hover:scale-110"
@@ -36,7 +37,7 @@ export default function HeroCard({ name, image, href, subtitle, index = 0, prior
       </div>
 
       {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
+      <div className="absolute inset-0 bg-linear-to-t from-black via-black/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
 
       {/* Content */}
       <div className="absolute bottom-0 left-0 right-0 p-3 flex flex-col justify-end h-full">
@@ -53,7 +54,7 @@ export default function HeroCard({ name, image, href, subtitle, index = 0, prior
       </div>
 
       {/* Shine Effect on Hover */}
-      <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+      <div className="absolute inset-0 bg-linear-to-tr from-white/0 via-white/10 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
     </Link>
   );
 }

@@ -4,6 +4,7 @@ import { getImageUrl, TMDBImageSize } from '@/lib/tmdb';
 interface TMDBImageProps {
     path: string | null | undefined;
     alt: string;
+    fallbackAlt?: string; // Add this prop
     size?: TMDBImageSize;
     priority?: boolean;
     className?: string;
@@ -21,6 +22,7 @@ interface TMDBImageProps {
 export default function TMDBImage({
     path,
     alt,
+    fallbackAlt,
     size = 'w342',
     priority = false,
     className = '',
@@ -34,6 +36,7 @@ export default function TMDBImage({
         <ImageWithFallback
             src={src}
             alt={alt}
+            fallbackAlt={fallbackAlt}
             fill={fill}
             sizes={sizes}
             quality={quality}

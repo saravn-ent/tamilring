@@ -10,7 +10,7 @@ export default function SpotifyCard({ ringtone, className = '' }: SpotifyCardPro
     const cleanTitle = ringtone.title.replace(/\(From ".*?"\)/i, '').trim();
 
     return (
-        <div className={`relative aspect-[9/16] w-full max-w-sm bg-black rounded-3xl overflow-hidden shadow-2xl ${className}`}>
+        <div className={`relative aspect-9/16 w-full max-w-sm bg-black rounded-3xl overflow-hidden shadow-2xl ${className}`}>
             {/* Background Layer - heavily blurred */}
             <div className="absolute inset-0 z-0">
                 {ringtone.poster_url && (
@@ -21,7 +21,7 @@ export default function SpotifyCard({ ringtone, className = '' }: SpotifyCardPro
                         className="object-cover blur-xl opacity-60 scale-150"
                     />
                 )}
-                <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/40 to-black/90" />
+                <div className="absolute inset-0 bg-linear-to-b from-black/20 via-black/40 to-black/90" />
             </div>
 
             {/* Content Layer - Centered and Compact (approx 35% visual weight) */}

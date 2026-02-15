@@ -181,8 +181,8 @@ export default async function UserProfilePage({
 
                 const getBadgeColor = (name: string) => {
                   switch (name) {
-                    case 'crown': return 'bg-amber-50 text-amber-600 border-amber-100';
-                    case 'zap': return 'bg-yellow-50 text-yellow-600 border-yellow-100';
+                    case 'crown': return 'bg-amber-50 text-amber-800 border-amber-100';
+                    case 'zap': return 'bg-yellow-50 text-yellow-800 border-yellow-100';
                     case 'heart': return 'bg-rose-50 text-rose-600 border-rose-100';
                     case 'scissors': return 'bg-cyan-50 text-cyan-600 border-cyan-100';
                     case 'music': return 'bg-violet-50 text-violet-600 border-violet-100';

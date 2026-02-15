@@ -103,11 +103,11 @@ export default async function MoviePage({
           className="object-cover opacity-50"
           size="w780"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-neutral-900 via-neutral-900/60 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-t from-neutral-900 via-neutral-900/60 to-transparent" />
 
         {/* Navigation & Actions */}
         <div className="absolute top-4 inset-x-4 z-10 flex items-center justify-between">
-          <BackButton fallbackHref="/" className="!px-3 !py-2 shadow-lg" />
+          <BackButton fallbackHref="/" className="px-3! py-2! shadow-lg" />
 
           <FavoriteButton
             item={{

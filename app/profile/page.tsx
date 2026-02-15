@@ -344,7 +344,7 @@ export default function ProfilePage() {
             <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mt-1">Ringtones</span>
           </div>
           <div className="flex flex-col items-center border-x border-brand-wash">
-            <span className="text-lg font-black text-amber-500">
+            <span className="text-lg font-black text-amber-800">
               {getLevelTitle(profile?.level || 1)}
             </span>
             <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mt-1">Explorer Rank</span>
@@ -393,7 +393,7 @@ export default function ProfilePage() {
 
       {/* Edit Profile Modal */}
       {isEditing && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
           <div className="w-full max-w-md bg-white border border-brand-border rounded-3xl p-6 shadow-2xl relative overflow-hidden">
             <button onClick={() => setIsEditing(false)} className="absolute top-4 right-4 text-zinc-400 hover:text-brand-dark transition-colors">
               <X size={20} />
@@ -436,7 +436,7 @@ export default function ProfilePage() {
 
       {/* Withdrawal Modal */}
       {isWithdrawModalOpen && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
           <div className="w-full max-w-sm bg-white border border-brand-border rounded-3xl p-6 shadow-2xl relative">
             <button onClick={() => setIsWithdrawModalOpen(false)} className="absolute top-4 right-4 text-zinc-400 hover:text-brand-dark transition-colors">
               <X size={20} />
@@ -566,7 +566,7 @@ export default function ProfilePage() {
                       <div className="flex items-center gap-2 mt-1.5">
                         <span className={`text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-tighter border ${ringtone.status === 'approved' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
                           ringtone.status === 'rejected' ? 'bg-red-50 text-red-500 border-red-100' :
-                            'bg-amber-50 text-amber-600 border-amber-100'
+                            'bg-amber-50 text-amber-800 border-amber-100'
                           }`}>
                           {ringtone.status}
                         </span>
@@ -649,7 +649,7 @@ export default function ProfilePage() {
                     <div className="flex items-center gap-4">
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0
                         ${item.type === 'upload' ? 'bg-emerald-50 text-emerald-500' :
-                          item.type === 'withdrawal' ? 'bg-amber-50 text-amber-500' :
+                          item.type === 'withdrawal' ? 'bg-amber-50 text-amber-800' :
                             'bg-blue-50 text-blue-500'}`}>
                         {item.type === 'upload' ? <CloudUpload size={18} /> :
                           item.type === 'withdrawal' ? <Wallet size={18} /> :
@@ -673,7 +673,7 @@ export default function ProfilePage() {
                       <span className={`text-[8px] font-black uppercase tracking-tighter
                         ${item.status === 'completed' || item.status === 'fulfilled' ? 'text-emerald-500' :
                           item.status === 'rejected' ? 'text-red-500' :
-                            'text-amber-500 animate-pulse'}`}>
+                            'text-amber-800 animate-pulse'}`}>
                         {item.status}
                       </span>
                     </div>

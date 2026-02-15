@@ -55,7 +55,7 @@ export default async function HomeFemaleSingers() {
                         image={singer.image}
                         href={`/artist/${encodeURIComponent(singer.name)}`}
                         priority={idx < 4}
-                        className="md:w-full md:h-auto md:aspect-[2/3]"
+                        className="md:w-full md:h-auto md:aspect-2/3"
                     />
                 ))}
             </div>
