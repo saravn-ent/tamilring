@@ -158,7 +158,7 @@ const getTopArtists = unstable_cache(
             topActors: topActorsRaw.slice(0, 8)
         };
     },
-    ['home-top-artists-dynamic-v8'], // Updated version
+    ['home-top-artists-dynamic-v9'], // Updated version - cache invalidation
     { revalidate: 3600, tags: ['homepage-artists'] }
 );
 

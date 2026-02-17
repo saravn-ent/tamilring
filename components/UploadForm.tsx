@@ -721,18 +721,88 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
       let insertData: any = baseData;
 
+      // Deity to image mapping (fallback for devotional content)
+      const DEITY_IMAGES: Record<string, string> = {
+        'Murugan': 'https://images.unsplash.com/photo-1604608672516-f1b1f1c0b4e1?w=600',
+        'Siva': 'https://images.unsplash.com/photo-1582552938357-32b906df40cb?w=600',
+        'Shiva': 'https://images.unsplash.com/photo-1582552938357-32b906df40cb?w=600',
+        'Ganesha': 'https://images.unsplash.com/photo-1597262975002-c5c3b14bbd62?w=600',
+        'Vinayagar': 'https://images.unsplash.com/photo-1597262975002-c5c3b14bbd62?w=600',
+        'Krishna': 'https://images.unsplash.com/photo-1580477667995-2b94f01c9516?w=600',
+        'Vishnu': 'https://images.unsplash.com/photo-1580477667995-2b94f01c9516?w=600',
+        'Lakshmi': 'https://images.unsplash.com/photo-1604608672516-f1b1f1c0b4e1?w=600',
+        'Saraswati': 'https://images.unsplash.com/photo-1604608672516-f1b1f1c0b4e1?w=600',
+        'Durga': 'https://images.unsplash.com/photo-1604608672516-f1b1f1c0b4e1?w=600',
+        'Kali': 'https://images.unsplash.com/photo-1604608672516-f1b1f1c0b4e1?w=600',
+        'Hanuman': 'https://images.unsplash.com/photo-1604608672516-f1b1f1c0b4e1?w=600',
+        'Rama': 'https://images.unsplash.com/photo-1580477667995-2b94f01c9516?w=600',
+        'Sai': 'https://images.unsplash.com/photo-1604608672516-f1b1f1c0b4e1?w=600',
+        'Ayyappan': 'https://images.unsplash.com/photo-1604608672516-f1b1f1c0b4e1?w=600',
+        'Perumal': 'https://images.unsplash.com/photo-1580477667995-2b94f01c9516?w=600'
+      };
+
+      // Generic category placeholders
+      const CATEGORY_PLACEHOLDERS: Record<string, string> = {
+        'devotional': 'https://images.unsplash.com/photo-1604608672516-f1b1f1c0b4e1?w=600',
+        'movie': 'https://images.unsplash.com/photo-1574267432644-f610a5e0d4c5?w=600',
+        'album': 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600',
+        'default': 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=600'
+      };
+
+      // Helper to get deity image from movie name
+      const getDeityImage = (movieName: string): string | null => {
+        const lowerMovieName = movieName.toLowerCase();
+        for (const [deity, imageUrl] of Object.entries(DEITY_IMAGES)) {
+          if (lowerMovieName.includes(deity.toLowerCase())) {
+            return imageUrl;
+          }
+        }
+        return null;
+      };
+
+      // Helper to get category placeholder
+      const getCategoryPlaceholder = (): string => {
+        if (selectedTags.includes('Devotional')) {
+          return CATEGORY_PLACEHOLDERS.devotional;
+        }
+        if (contentType === 'album') {
+          return CATEGORY_PLACEHOLDERS.album;
+        }
+        return CATEGORY_PLACEHOLDERS.movie;
+      };
+
       // Helper to determine poster URL
-      const getPosterUrl = async () => {
+      const getPosterUrl = async (): Promise<string> => {
         // 1. Prefer Movie Poster (high quality)
         if (contentType === 'movie' && selectedMovie?.poster_path) {
           return getImageUrl(selectedMovie.poster_path, 'w342');
         }
+        
         // 2. Use iTunes Artwork (upscaled)
         if (selectedArtwork) {
           return selectedArtwork.replace(/\/\d+x\d+bb/, '/600x600bb');
         }
 
-        // 3. AUTO-FETCH FALLBACK: If we have a name but no selection, try a quick search
+        // 3. DEITY IMAGE FALLBACK: For devotional ringtones (check early)
+        if (contentType === 'devotional' && deityCategory) {
+          // Try database first
+          try {
+            const { data } = await supabase
+              .from('deity_images')
+              .select('image_url')
+              .eq('deity_name', deityCategory)
+              .single();
+            if (data?.image_url) return data.image_url;
+          } catch (e) {
+            // Deity image not found in database, continue to hardcoded mapping
+          }
+          
+          // Try hardcoded deity mapping
+          const deityImage = getDeityImage(deityCategory);
+          if (deityImage) return deityImage;
+        }
+
+        // 4. AUTO-FETCH FALLBACK: If we have a name but no selection, try a quick search
         if (manualMovieName) {
           try {
             if (contentType === 'album') {
@@ -751,21 +821,9 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
           }
         }
 
-        // 4. DEITY IMAGE FALLBACK: For devotional ringtones
-        if (contentType === 'devotional' && deityCategory) {
-          try {
-            const { data } = await supabase
-              .from('deity_images')
-              .select('image_url')
-              .eq('deity_name', deityCategory)
-              .single();
-            if (data && data.image_url) return data.image_url;
-          } catch (e) {
-            // Deity image not found or error
-          }
-        }
-
-        return undefined;
+        // 5. FINAL FALLBACK: Use category-based placeholder (NEVER return undefined)
+        console.warn('No poster found, using category placeholder');
+        return getCategoryPlaceholder();
       };
 
       const finalPosterUrl = await getPosterUrl();
