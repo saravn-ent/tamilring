@@ -113,11 +113,13 @@ async function fixPosterForRingtone(ringtone) {
 
     const tmdbResults = await searchMovies(movieName);
     if (tmdbResults.length > 0) {
-        const best = tmdbResults[0];
-        if (best.poster_path) {
-            const posterUrl = `https://image.tmdb.org/t/p/w342${best.poster_path}`;
-            const backdropUrl = best.backdrop_path ? `https://image.tmdb.org/t/p/w780${best.backdrop_path}` : null;
-            const year = best.release_date ? best.release_date.split('-')[0] : null;
+        // Check top 3 results for one with a poster
+        const bestMatch = tmdbResults.slice(0, 3).find(m => m.poster_path);
+        
+        if (bestMatch?.poster_path) {
+            const posterUrl = `https://image.tmdb.org/t/p/w342${bestMatch.poster_path}`;
+            const backdropUrl = bestMatch.backdrop_path ? `https://image.tmdb.org/t/p/w780${bestMatch.backdrop_path}` : null;
+            const year = bestMatch.release_date ? bestMatch.release_date.split('-')[0] : null;
             
             await updatePoster(ringtone.id, posterUrl, backdropUrl, year);
             return { success: true, method: 'tmdb' };

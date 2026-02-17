@@ -812,8 +812,16 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
               }
             } else if (contentType === 'movie') {
               const results = await searchMovies(manualMovieName);
-              if (results && results.length > 0 && results[0].poster_path) {
-                return getImageUrl(results[0].poster_path, 'w342');
+              // Check top 3 results for one with a poster
+              const bestMatch = results?.slice(0, 3).find(m => m.poster_path);
+              if (bestMatch?.poster_path) {
+                return getImageUrl(bestMatch.poster_path, 'w342');
+              }
+
+              // Fallback to iTunes search for the movie if TMDB failed or has no posters
+              const itunesResults = await searchRings(manualMovieName);
+              if (itunesResults && itunesResults.length > 0 && itunesResults[0].artworkUrl100) {
+                return itunesResults[0].artworkUrl100.replace(/\/\d+x\d+bb/, '/600x600bb');
               }
             }
           } catch (e) {

@@ -123,13 +123,15 @@ async function fixPosterForRingtone(ringtone) {
     console.log(`  🎬 Searching TMDB for "${movieName}"...`);
     const tmdbResults = await searchMovies(movieName);
     if (tmdbResults.length > 0) {
-        const best = tmdbResults[0];
-        if (best.poster_path) {
-            const posterUrl = `https://image.tmdb.org/t/p/w342${best.poster_path}`;
-            const backdropUrl = best.backdrop_path ? `https://image.tmdb.org/t/p/w780${best.backdrop_path}` : null;
-            const year = best.release_date ? best.release_date.split('-')[0] : null;
+        // Check top 3 results for one with a poster
+        const bestMatch = tmdbResults.slice(0, 3).find(m => m.poster_path);
+        
+        if (bestMatch?.poster_path) {
+            const posterUrl = `https://image.tmdb.org/t/p/w342${bestMatch.poster_path}`;
+            const backdropUrl = bestMatch.backdrop_path ? `https://image.tmdb.org/t/p/w780${bestMatch.backdrop_path}` : null;
+            const year = bestMatch.release_date ? bestMatch.release_date.split('-')[0] : null;
             
-            console.log(`  ✅ Found TMDB poster: ${best.title} (${year})`);
+            console.log(`  ✅ Found TMDB poster: ${bestMatch.title} (${year})`);
             await updatePoster(ringtone.id, posterUrl, backdropUrl, year);
             return { success: true, method: 'tmdb' };
         }
@@ -149,7 +151,7 @@ async function fixPosterForRingtone(ringtone) {
     }
 
     // 4. Last resort: Use category placeholder
-    console.log(`  ⚠️  No match found, using placeholder`);
+    console.log(`  ⚠️  No match found on TMDB or iTunes, using placeholder`);
     const placeholder = getCategoryPlaceholder(ringtone);
     await updatePoster(ringtone.id, placeholder, null, null);
     return { success: true, method: 'placeholder' };
@@ -174,12 +176,12 @@ async function updatePoster(ringtoneId, posterUrl, backdropUrl, year) {
 async function main() {
     console.log('🚀 Starting Comprehensive Poster Fix...\n');
 
-    // Fetch all approved ringtones with missing posters
+    // Fetch ringtones with missing posters (both approved and pending)
     const { data: ringtones, error } = await supabase
         .from('ringtones')
-        .select('id, title, movie_name, tags')
+        .select('id, title, movie_name, tags, status')
         .is('poster_url', null)
-        .eq('status', 'approved')
+        .in('status', ['approved', 'pending'])
         .limit(100); // Process in batches
 
     if (error) {

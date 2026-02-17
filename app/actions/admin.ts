@@ -32,7 +32,7 @@ export async function approveRingtone(id: string, userId?: string) {
             await awardPoints(supabase, userId, POINTS_PER_UPLOAD);
 
             // First Upload Bonus (15 Points)
-            const { data: profile, error: profileErr } = await supabase
+            const { data: profile } = await supabase
                 .from('profiles')
                 .select('is_first_upload_rewarded, points')
                 .eq('id', userId)
@@ -244,7 +244,7 @@ export async function deleteRingtone(id: string) {
                     if (!url) return null;
                     const parts = url.split('/ringtone-files/');
                     return parts.length > 1 ? parts[1] : null;
-                } catch (e) { return null; }
+                } catch { return null; }
             };
 
             if (ringtone.audio_url) {
@@ -282,11 +282,11 @@ export async function deleteRingtone(id: string) {
         // 3. Clear cache
         // Revalidate specific tags used in home page components
         try {
-            // @ts-expect-error - revalidateTag has types issues in some Next versions
+            // @ts-expect-error - Tag caching type mismatch
             revalidateTag('contributors');
-            // @ts-expect-error
+            // @ts-expect-error - Tag caching type mismatch
             revalidateTag('trending');
-            // @ts-expect-error
+            // @ts-expect-error - Tag caching type mismatch
             revalidateTag('recent');
 
             revalidatePath('/');
@@ -356,11 +356,11 @@ export async function bulkDeleteRingtones(ids: string[]) {
 
     // 3. Revalidate
     try {
-        // @ts-expect-error
+        // @ts-expect-error - Tag caching type mismatch
         revalidateTag('contributors');
-        // @ts-expect-error
+        // @ts-expect-error - Tag caching type mismatch
         revalidateTag('trending');
-        // @ts-expect-error
+        // @ts-expect-error - Tag caching type mismatch
         revalidateTag('recent');
 
         revalidatePath('/', 'layout');
@@ -451,24 +451,42 @@ export async function backfillRingtoneArtwork(id: string) {
             return { success: false, error: 'No valid movie name to search' };
         }
 
-        // 2. Clear cache of TMDB to ensure fresh result if needed (optional)
+        // 2. Fetch from TMDB
         const { searchMovies } = await import('@/lib/tmdb');
-        const results = await searchMovies(movieName);
+        const tmdbResults = await searchMovies(movieName);
+        let posterUrl = null;
+        let backdropUrl = null;
+        let movieYear = null;
 
-        if (!results || results.length === 0) {
-            return { success: false, error: `No TMDB match found for "${movieName}"` };
+        if (tmdbResults && tmdbResults.length > 0) {
+            // Check top 3 results for a poster
+            const bestMatch = tmdbResults.slice(0, 3).find(m => m.poster_path);
+            if (bestMatch) {
+                posterUrl = `https://image.tmdb.org/t/p/w342${bestMatch.poster_path}`;
+                backdropUrl = bestMatch.backdrop_path ? `https://image.tmdb.org/t/p/w780${bestMatch.backdrop_path}` : null;
+                movieYear = bestMatch.release_date ? bestMatch.release_date.split('-')[0] : null;
+            }
         }
 
-        const bestMatch = results[0];
-        const posterUrl = bestMatch.poster_path ? `https://image.tmdb.org/t/p/w342${bestMatch.poster_path}` : null;
-        const backdropUrl = bestMatch.backdrop_path ? `https://image.tmdb.org/t/p/w780${bestMatch.backdrop_path}` : null;
-        const movieYear = bestMatch.release_date ? bestMatch.release_date.split('-')[0] : null;
+        // 3. Fallback to iTunes if TMDB failed
+        if (!posterUrl) {
+            console.log(`[AdminAction] TMDB failed for "${movieName}", trying iTunes...`);
+            const { searchRings } = await import('@/lib/itunes');
+            const itunesResults = await searchRings(movieName, 'movie');
+            
+            if (itunesResults && itunesResults.length > 0) {
+                const best = itunesResults[0];
+                if (best.artworkUrl100) {
+                    posterUrl = best.artworkUrl100.replace(/\/\d+x\d+bb/, '/600x600bb');
+                }
+            }
+        }
 
         if (!posterUrl) {
-            return { success: false, error: 'Match found but no poster available' };
+            return { success: false, error: 'No artwork found on TMDB or iTunes' };
         }
 
-        // 3. Update database
+        // 4. Update database
         const { error: updateError } = await supabase
             .from('ringtones')
             .update({

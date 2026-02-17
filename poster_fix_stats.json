@@ -1,11 +1,11 @@
 {
-  "timestamp": "2026-02-16T00:06:58.228Z",
+  "timestamp": "2026-02-17T08:52:29.275Z",
   "stats": {
-    "total": 21,
-    "tmdb": 0,
-    "itunes": 4,
-    "deity": 8,
-    "placeholder": 9,
+    "total": 5,
+    "tmdb": 3,
+    "itunes": 1,
+    "deity": 0,
+    "placeholder": 1,
     "failed": 0
   }
 }
