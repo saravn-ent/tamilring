@@ -65,6 +65,7 @@ export const translations = {
         unlike: 'Unlike',
         assign: 'Assign',
         likes: 'Likes',
+        likedSongs: 'Songs Liked by You',
     },
     ta: {
         home: 'Home',
@@ -130,6 +131,7 @@ export const translations = {
         unlike: 'விருப்பத்தை நீக்கு',
         assign: 'ஒதுக்கு',
         likes: 'விருப்பங்கள்',
+        likedSongs: 'நீங்கள் விரும்பிய பாடல்கள்',
     },
     hi: {
         home: 'Home',
@@ -189,6 +191,7 @@ export const translations = {
         dialogue: 'Dialogue',
         devotional: 'Devotional',
         remix: 'Remix',
+        likedSongs: 'Songs Liked by You',
     },
     te: {
         home: 'Home',
@@ -248,6 +251,7 @@ export const translations = {
         dialogue: 'Dialogue',
         devotional: 'Devotional',
         remix: 'Remix',
+        likedSongs: 'Songs Liked by You',
     },
     ml: {
         home: 'Home',
@@ -307,6 +311,7 @@ export const translations = {
         dialogue: 'Dialogue',
         devotional: 'Devotional',
         remix: 'Remix',
+        likedSongs: 'Songs Liked by You',
     },
     kn: {
         home: 'Home',
@@ -366,6 +371,7 @@ export const translations = {
         dialogue: 'Dialogue',
         devotional: 'Devotional',
         remix: 'Remix',
+        likedSongs: 'Songs Liked by You',
     }
 };
 

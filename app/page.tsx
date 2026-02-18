@@ -12,6 +12,7 @@ const HomeActors = dynamic<{ lang: string }>(() => import('@/components/home/Hom
 const HomeMusicDirectors = dynamic<{ lang: string }>(() => import('@/components/home/HomeTopArtists').then(m => m.HomeMusicDirectors), { ssr: true });
 const HomeMovieDirectors = dynamic<{ lang: string }>(() => import('@/components/home/HomeTopArtists').then(m => m.HomeMovieDirectors), { ssr: true });
 const HomeDeities = dynamic<{ lang: string }>(() => import('@/components/home/HomeDeities'), { ssr: true });
+const HomeLikedSongs = dynamic(() => import('@/components/home/HomeLikedSongs'));
 const HomeTrending = dynamic<{ lang: string }>(() => import('@/components/home/HomeTrending'), { ssr: true });
 const HomeRecent = dynamic<{ lang: string }>(() => import('@/components/home/HomeRecent'), { ssr: true });
 const HomeNostalgia = dynamic<{ lang: string }>(() => import('@/components/home/HomeNostalgia'), { ssr: true });
@@ -112,6 +113,10 @@ export default async function Home() {
         <Suspense fallback={<SectionSkeleton type="horizontal" />}>
           <HomeDeities lang={lang} />
         </Suspense>
+      </div>
+
+      <div className="lazy-section">
+        <HomeLikedSongs />
       </div>
 
       <div className="lazy-section">
