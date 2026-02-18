@@ -280,35 +280,37 @@ const getTrendingTagsInternal = unstable_cache(
         const supabase = getPublicSupabase();
         const allTags = new Map<string, number>();
 
-        // 1. Fetch Search Trends (High Priority)
+        // 1. Fetch Search Trends and Content Trends in parallel
         try {
-            const { data: searchTrends } = await supabase.rpc('get_trending_search_tags', { limit_count: 5 });
-            if (searchTrends) {
-                searchTrends.forEach((t: { tag: string, score: number }) => {
-                    if (t.tag) allTags.set(t.tag, (allTags.get(t.tag) || 0) + (t.score * 5)); // Higher weight for searches
+            const [searchTrendsRes, trendingRingtones] = await Promise.all([
+                supabase.rpc('get_trending_search_tags', { limit_count: 5 }),
+                getTrendingRingtonesInternal(20, lang)
+            ]);
+
+            // Process search trends
+            if (searchTrendsRes.data) {
+                searchTrendsRes.data.forEach((t: { tag: string, score: number }) => {
+                    if (t.tag) allTags.set(t.tag, (allTags.get(t.tag) || 0) + (t.score * 5));
+                });
+            }
+
+            // Process content trends
+            if (trendingRingtones) {
+                trendingRingtones.forEach((r: { tags?: string[], movie_name?: string }) => {
+                    // Use movie name and tags
+                    if (r.tags && Array.isArray(r.tags)) {
+                        r.tags.forEach((t: string) => {
+                            allTags.set(t, (allTags.get(t) || 0) + 1);
+                        });
+                    }
+                    // Also add movie name as a potential tag
+                    if (r.movie_name) {
+                        allTags.set(r.movie_name, (allTags.get(r.movie_name) || 0) + 2);
+                    }
                 });
             }
         } catch (e) {
-            console.warn('Search trends fetch failed', e);
-        }
-
-        // 2. Fetch Content Trends (Backup/Volume)
-        try {
-            const trendingRingtones = await getTrendingRingtonesInternal(20, lang);
-            trendingRingtones.forEach((r: { tags?: string[], movie_name?: string }) => {
-                // Use movie name and tags
-                if (r.tags && Array.isArray(r.tags)) {
-                    r.tags.forEach((t: string) => {
-                        allTags.set(t, (allTags.get(t) || 0) + 1);
-                    });
-                }
-                // Also add movie name as a potential tag
-                if (r.movie_name) {
-                    allTags.set(r.movie_name, (allTags.get(r.movie_name) || 0) + 2);
-                }
-            });
-        } catch (e) {
-            console.warn('Content trends fetch failed', e);
+            console.warn('Trends fetch failed', e);
         }
 
         // Sort and cleanup

@@ -24,22 +24,32 @@ try {
 export async function middleware(request: NextRequest) {
   // 0. Bot & Music Label Scanner Protection
   const userAgent = request.headers.get('user-agent')?.toLowerCase() || '';
-  const botKeywords = [
+  
+  // Whitelist Beneficial Bots (SEO & Performance)
+  // We must allow Lighthouse and Googlebot to avoid 403s on PageSpeed Insights
+  const beneficialBots = ['lighthouse', 'pagespeed', 'googlebot', 'bingbot', 'yandexbot', 'duckduckbot', 'baiduspider'];
+  const isBeneficial = beneficialBots.some(bot => userAgent.includes(bot));
+
+  if (isBeneficial) {
+    return NextResponse.next();
+  }
+
+  const blockList = [
     'markmonitor', 'opsec', 'corsearch', 'digimarc', 'audiolock', 'red points', 
     'link-busters', 'muso', 'aiplex', 'websiren', 'copytrack', 'picrights', 
     'leakid', 'entura', 'marketly', 'grayzone', 'rivendell', 'ifpi', 'riaa',
-    'copyright', 'piracy', 'dmca', 'legal', 'enforcement', 'scanner', 
-    'spider', 'crawler', 'python-requests', 'node-fetch', 'axios', 'curl', 
-    'wget', 'selenium', 'puppeteer', 'playwright', 'headless', 'scan',
-    'compliance', 'infringement', 'report', 'evidence', 'collector'
+    'copyright', 'piracy', 'dmca', 'legal', 'enforcement',
+    'python-requests', 'node-fetch', 'axios', 'curl', 'wget', 
+    'selenium', 'puppeteer', 'playwright', 'headless', 'scanner'
   ];
 
-  const isBot = botKeywords.some(keyword => userAgent.includes(keyword));
+  const isMaliciousBot = blockList.some(keyword => userAgent.includes(keyword));
   
-  // Also block empty User Agents or very short ones
-  if (isBot || userAgent.length < 10) {
-    console.log(`[Blocked Bot] UA: ${userAgent} | IP: ${request.headers.get('x-forwarded-for')}`);
-    return new NextResponse(null, { status: 403 });
+  // Also block empty User Agents or very short ones (less than 10 chars)
+  // EXCEPT for known short UAs if any emerge (none for major bots)
+  if (isMaliciousBot || (userAgent.length < 10 && userAgent.length > 0)) {
+    console.log(`[Blocked Malicious Bot] UA: ${userAgent} | IP: ${request.headers.get('x-forwarded-for')}`);
+    return new NextResponse('Access Denied', { status: 403 });
   }
 
   const requestHeaders = new Headers(request.headers)

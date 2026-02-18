@@ -56,15 +56,15 @@ const getRecentRingtones = unstable_cache(
         }
 
         // Fetch profiles for main result
-        const userIds = Array.from(new Set(ringtones.map((r: any) => r.user_id).filter(Boolean)));
+        const userIds = Array.from(new Set(ringtones.map(r => r.user_id).filter((id): id is string => !!id)));
         if (userIds.length > 0) {
             const { data: profiles } = await supabase
                 .from('profiles')
                 .select('id, full_name')
                 .in('id', userIds);
 
-            const profileMap = new Map(profiles?.map((p: any) => [p.id, p]));
-            return ringtones.map((r: any) => ({ ...r, profile: profileMap.get(r.user_id) }));
+            const profileMap = new Map(profiles?.map(p => [p.id, p]));
+            return ringtones.map(r => ({ ...r, profile: profileMap.get(r.user_id || '') }));
         }
 
         return ringtones;
@@ -81,8 +81,8 @@ export default async function HomeRecent({ lang }: { lang: string }) {
         <div className="px-4 mb-10">
             <SectionHeader title="Just Added" translationKey="justAdded" />
             <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 mb-6">
-                {recent?.map((ringtone: Ringtone) => (
-                    <RingtoneCard key={ringtone.id} ringtone={ringtone} />
+                {recent?.map((ringtone: Ringtone, idx: number) => (
+                    <RingtoneCard key={ringtone.id} ringtone={ringtone} priority={idx < 2} />
                 ))}
             </div>
 

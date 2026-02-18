@@ -18,9 +18,10 @@ import { generateRingtoneFilename } from '@/lib/utils';
 interface RingtoneCardProps {
   ringtone: Ringtone;
   assignTo?: string;
+  priority?: boolean;
 }
 
-export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) {
+export default function RingtoneCard({ ringtone, assignTo, priority }: RingtoneCardProps) {
   const { currentRingtone, isPlaying, playRingtone, togglePlay } = usePlayer();
   const { isFavorite, addFavorite, removeFavorite } = useFavorites();
   const { t } = useLanguage();
@@ -196,6 +197,7 @@ export default function RingtoneCard({ ringtone, assignTo }: RingtoneCardProps) 
                 fallbackAlt={ringtone.title}
                 fill
                 sizes="(max-width: 640px) 56px, 64px"
+                priority={priority}
                 className="object-cover transition-transform duration-500 group-hover/play:scale-110"
               />
 

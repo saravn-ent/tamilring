@@ -110,7 +110,7 @@ export default async function RootLayout({
         <Script
           id="adsterra-popunder"
           src="https://archaicmsflip.com/c1/5a/9f/c15a9ffe85c9eb11538a47b0e0bb3f1d.js"
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         />
       </head>
       <body

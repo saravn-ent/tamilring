@@ -19,7 +19,7 @@ const HomeNostalgia = dynamic<{ lang: string }>(() => import('@/components/home/
 const HomeContributors = dynamic(() => import('@/components/home/HomeContributors'), { ssr: true });
 const HomeSEOContent = dynamic(() => import('@/components/home/HomeSEOContent'), { ssr: true });
 
-import { SectionSkeleton } from '@/components/skeletons';
+import { SectionSkeleton, HeroSkeleton } from '@/components/skeletons';
 
 
 export const revalidate = 3600; // Revalidate every hour
@@ -52,8 +52,10 @@ export default async function Home() {
          (Header/Nav) is sent to the browser immediately while rows stream in.
       */}
 
-      {/* Hero Section with Search - Loads Instantly (Static Shell) */}
-      <HeroSearchServer />
+      {/* Hero Section with Search - Now Suspended to allow Shell streaming */}
+      <Suspense fallback={<HeroSkeleton />}>
+        <HeroSearchServer />
+      </Suspense>
 
       {/* Collections Grid - Visual Categories - Loads Instantly */}
       <CategoryGrid />

@@ -62,7 +62,21 @@ export default function ImageWithFallback({
     );
   }
 
-  const isExternal = src?.startsWith('http');
+  // Optimization Logic:
+  // 1. Local images (relative paths) are ALWAYS optimized.
+  // 2. External images are optimized IF their domain is in next.config.ts (remotePatterns).
+  // 3. We use unoptimized={true} only for unknown domains to prevent Next.js build errors.
+  const isOptimizable = !src || !src.startsWith('http') || 
+                        src.includes('tmdb.org') || 
+                        src.includes('themoviedb.org') || 
+                        src.includes('supabase.co') ||
+                        src.includes('mzstatic.com') ||
+                        src.includes('apple.com') ||
+                        src.includes('scdn.co') ||
+                        src.includes('googleusercontent.com') ||
+                        src.includes('unsplash.com');
+
+  const shouldSkipOptimization = src?.startsWith('http') && !isOptimizable;
 
   return (
     <Image
@@ -74,7 +88,7 @@ export default function ImageWithFallback({
       quality={quality}
       loading={loading || (priority ? 'eager' : 'lazy')}
       className={className}
-      unoptimized={isExternal}
+      unoptimized={shouldSkipOptimization}
       placeholder="blur"
       blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2UwZTBlMCIvPjwvc3ZnPg=="
       onError={() => setError(true)}

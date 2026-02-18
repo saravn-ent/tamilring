@@ -40,7 +40,7 @@ export default function TrendingList({ trending }: TrendingListProps) {
 
     return (
         <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide snap-x md:grid md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-10 md:overflow-visible">
-            {trending.map((ringtone: Ringtone) => {
+            {trending.map((ringtone: Ringtone, idx: number) => {
                 const isCurrent = currentRingtone?.id === ringtone.id;
                 const isActive = isCurrent && isPlaying;
 
@@ -56,6 +56,7 @@ export default function TrendingList({ trending }: TrendingListProps) {
                                 alt=""
                                 fallbackAlt={ringtone.title}
                                 fill
+                                priority={idx < 2}
                                 sizes="(max-width: 768px) 33vw, (max-width: 1200px) 20vw, 16vw"
                                 quality={75}
                                 className="object-cover group-hover:scale-110 transition-transform duration-700"
