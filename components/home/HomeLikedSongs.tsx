@@ -39,15 +39,16 @@ export default function HomeLikedSongs() {
   const handlePlay = (e: React.MouseEvent, ringtone: Ringtone) => {
     e.preventDefault();
     e.stopPropagation();
+
+    if (!ringtone.audio_url) return;
+
     hapticFeedback(25); // Increased intensity
 
     // Use standard sync toggle if already current, but yield for play
     if (currentRingtone?.id === ringtone.id) {
       togglePlay();
     } else {
-      setTimeout(() => {
-        playRingtone(ringtone);
-      }, 0);
+      playRingtone(ringtone);
     }
   };
 
