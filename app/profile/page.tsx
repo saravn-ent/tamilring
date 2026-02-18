@@ -564,13 +564,20 @@ export default function ProfilePage() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold text-brand-dark truncate">{ringtone.title}</p>
-                      <div className="flex items-center gap-2 mt-1.5">
-                        <span className={`text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-tighter border ${ringtone.status === 'approved' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                          ringtone.status === 'rejected' ? 'bg-red-50 text-red-500 border-red-100' :
-                            'bg-amber-50 text-amber-800 border-amber-100'
-                          }`}>
-                          {ringtone.status}
-                        </span>
+                      <div className="flex flex-col gap-1.5 mt-1.5">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-tighter border ${ringtone.status === 'approved' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                            ringtone.status === 'rejected' ? 'bg-red-50 text-red-500 border-red-100' :
+                              'bg-amber-50 text-amber-800 border-amber-100'
+                            }`}>
+                            {ringtone.status}
+                          </span>
+                        </div>
+                        {ringtone.rejection_reason && (
+                          <p className="text-[10px] text-red-500 font-medium leading-tight px-1">
+                            Reason: {ringtone.rejection_reason}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <button onClick={(e) => handleDelete(ringtone.id, e)} className="p-2 text-zinc-400 hover:text-red-500 transition-colors">

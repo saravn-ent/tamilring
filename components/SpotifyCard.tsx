@@ -1,4 +1,4 @@
-import Image from 'next/image';
+import ImageWithFallback from './ImageWithFallback';
 import { Ringtone } from '@/types';
 
 interface SpotifyCardProps {
@@ -14,7 +14,7 @@ export default function SpotifyCard({ ringtone, className = '' }: SpotifyCardPro
             {/* Background Layer - heavily blurred */}
             <div className="absolute inset-0 z-0">
                 {ringtone.poster_url && (
-                    <Image
+                    <ImageWithFallback
                         src={ringtone.poster_url}
                         alt="Background"
                         fill
@@ -30,7 +30,7 @@ export default function SpotifyCard({ ringtone, className = '' }: SpotifyCardPro
                 {/* Album Art - Smaller (matches ~33% width of video canvas) */}
                 <div className="relative w-32 h-44 rounded-lg overflow-hidden shadow-2xl shadow-black/50 ring-1 ring-white/10 rotate-2 hover:rotate-0 transition-transform duration-500 ease-out mb-3">
                     {ringtone.poster_url ? (
-                        <Image
+                        <ImageWithFallback
                             src={ringtone.poster_url}
                             alt={ringtone.movie_name}
                             fill

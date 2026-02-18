@@ -2,10 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Plus, Music, User, X, Search } from 'lucide-react';
+import { Plus, User, X, Search } from 'lucide-react';
 import { Ringtone } from '@/types';
-import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import ImageWithFallback from './ImageWithFallback';
 import { getImageUrl } from '@/lib/tmdb';
 
 interface CollectionItem {
@@ -27,7 +26,6 @@ export default function PersonalCollections() {
     const [isAdding, setIsAdding] = useState(false);
     const [newLabel, setNewLabel] = useState('');
     const [newEmoji, setNewEmoji] = useState('👤');
-    const router = useRouter();
 
     useEffect(() => {
         const saved = localStorage.getItem('user_collections');
@@ -135,7 +133,7 @@ export default function PersonalCollections() {
                             <div className="relative bg-zinc-50 rounded-lg p-2 flex gap-2 items-center group/card border border-transparent hover:border-[#E5EBF1]">
                                 <div className="relative w-10 h-10 rounded-md overflow-hidden shrink-0 bg-zinc-200">
                                     {item.ringtone.poster_url && (
-                                        <Image src={getImageUrl(item.ringtone.poster_url)} alt={item.ringtone.title} fill className="object-cover" />
+                                        <ImageWithFallback src={getImageUrl(item.ringtone.poster_url)} alt={item.ringtone.title} fill className="object-cover" />
                                     )}
                                 </div>
                                 <div className="min-w-0 flex-1">
@@ -152,7 +150,7 @@ export default function PersonalCollections() {
                         ) : (
                             <Link
                                 href={`/search?assignTo=${item.id}&q=${item.label}`}
-                                className="block w-full py-2 rounded-lg border border-dashed border-zinc-300 text-zinc-500 text-xs text-center hover:bg-zinc-50 hover:text-[#3EB0EF] hover:border-[#3EB0EF]/50 transition-all flex items-center justify-center gap-1"
+                                className="w-full py-2 rounded-lg border border-dashed border-zinc-300 text-zinc-500 text-xs text-center hover:bg-zinc-50 hover:text-[#3EB0EF] hover:border-[#3EB0EF]/50 transition-all flex items-center justify-center gap-1"
                             >
                                 <Search size={12} /> Assign Ringtone
                             </Link>

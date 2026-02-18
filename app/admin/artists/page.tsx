@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { Loader2, Search, Upload, Trash2, Plus } from 'lucide-react';
-import Image from 'next/image';
+import ImageWithFallback from '@/components/ImageWithFallback';
 
 interface ArtistImage {
     id: string;
@@ -27,11 +27,7 @@ export default function ArtistManagement() {
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     ), []);
 
-    useEffect(() => {
-        fetchArtists();
-    }, [supabase]);
-
-    const fetchArtists = async () => {
+    const fetchArtists = useCallback(async () => {
         setLoading(true);
         const { data } = await supabase
             .from('artist_images')
@@ -40,7 +36,11 @@ export default function ArtistManagement() {
 
         if (data) setArtists(data as ArtistImage[]);
         setLoading(false);
-    };
+    }, [supabase]);
+
+    useEffect(() => {
+        fetchArtists();
+    }, [supabase, fetchArtists]);
 
     const handleUpload = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -83,9 +83,9 @@ export default function ArtistManagement() {
                 alert('Artist image added successfully!');
             }
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Upload error:", error);
-            alert(`Failed to upload: ${error.message}`);
+            alert(`Failed to upload: ${error instanceof Error ? error.message : 'Unknown error'}`);
         } finally {
             setIsUploading(false);
         }
@@ -173,7 +173,7 @@ export default function ArtistManagement() {
                         filteredArtists.map(artist => (
                             <div key={artist.id} className="group relative bg-white border border-slate-200 rounded-xl p-3 flex flex-col items-center text-center hover:border-indigo-200 hover:shadow-md transition-all">
                                 <div className="relative w-24 h-24 rounded-full overflow-hidden mb-3 bg-slate-100 border border-slate-100">
-                                    <Image src={artist.image_url} alt={artist.artist_name} fill className="object-cover" />
+                                    <ImageWithFallback src={artist.image_url} alt={artist.artist_name} fill className="object-cover" />
                                 </div>
                                 <h4 className="text-sm font-bold text-slate-900 line-clamp-2">{artist.artist_name}</h4>
                                 <p className="text-[10px] text-slate-500 mt-1">{new Date(artist.created_at).toLocaleDateString()}</p>

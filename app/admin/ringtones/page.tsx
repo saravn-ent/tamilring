@@ -67,7 +67,8 @@ export default function RingtoneManagement() {
         movie_name: '',
         singers: '',
         music_director: '',
-        tags: ''
+        tags: '',
+        rejection_reason: ''
     });
     const [saving, setSaving] = useState(false);
 
@@ -273,7 +274,8 @@ export default function RingtoneManagement() {
             movie_name: r.movie_name || '',
             singers: r.singers || '',
             music_director: r.music_director || '',
-            tags: r.tags?.join(', ') || ''
+            tags: r.tags?.join(', ') || '',
+            rejection_reason: r.rejection_reason || ''
         });
     };
 
@@ -287,7 +289,8 @@ export default function RingtoneManagement() {
             movie_name: editForm.movie_name,
             singers: editForm.singers,
             music_director: editForm.music_director,
-            tags: tagsArray
+            tags: tagsArray,
+            rejection_reason: editForm.rejection_reason
         });
 
         if (res.success) {
@@ -498,9 +501,15 @@ export default function RingtoneManagement() {
                                                     {r.status}
                                                 </span>
                                             </div>
-                                            <p className="text-xs text-slate-500 truncate mt-1">{r.movie_name || 'N/A'}</p>
+                                            <div className="flex flex-col gap-1 mt-1">
+                                                <p className="text-xs text-slate-500 truncate">{r.movie_name || 'N/A'}</p>
+                                                {r.rejection_reason && (
+                                                    <p className={`text-[10px] leading-tight font-medium ${r.status === 'rejected' ? 'text-red-500' : 'text-amber-600'}`}>
+                                                        Note: {r.rejection_reason}
+                                                    </p>
+                                                )}
+                                            </div>
                                         </div>
-
                                         <div className="flex items-center justify-between mt-2">
                                             <div className="flex gap-1 text-slate-500">
                                                 {r.tags?.[0] && <span className="text-[10px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 border border-slate-200">{r.tags[0]}</span>}
@@ -612,7 +621,9 @@ export default function RingtoneManagement() {
                                                         {r.status}
                                                     </span>
                                                     {r.rejection_reason && (
-                                                        <span className="text-[10px] text-red-500 max-w-[120px] leading-tight">{r.rejection_reason}</span>
+                                                        <span className={`text-[10px] max-w-[120px] leading-tight ${r.status === 'rejected' ? 'text-red-500' : 'text-amber-600 font-medium'}`}>
+                                                            {r.rejection_reason}
+                                                        </span>
                                                     )}
                                                 </div>
                                             </td>
@@ -741,6 +752,16 @@ export default function RingtoneManagement() {
                                     className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-emerald-500/50 outline-none text-sm"
                                 />
                                 <p className="text-[10px] text-zinc-600 mt-1">Used for search and recommendations.</p>
+                            </div>
+                            <div>
+                                <label className="text-xs font-bold text-zinc-500 uppercase block mb-1.5">Rejection / Status Reason</label>
+                                <textarea
+                                    value={editForm.rejection_reason}
+                                    onChange={(e) => setEditForm(prev => ({ ...prev, rejection_reason: e.target.value }))}
+                                    placeholder="e.g. Copyright issue, Low quality audio, etc."
+                                    className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-red-500/50 outline-none text-sm min-h-[80px]"
+                                />
+                                <p className="text-[10px] text-zinc-600 mt-1">This will be visible to the uploader.</p>
                             </div>
                         </div>
                         <div className="p-6 border-t border-white/5 bg-white/2 flex justify-end gap-3 rounded-b-2xl">

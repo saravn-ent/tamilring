@@ -496,7 +496,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
 
 
-  const convertAudio = async (inputFile: File, targetFormat: 'mp3' | 'm4r', startTime: number = 0, duration: number = 0, applyFade: boolean = true): Promise<Blob> => {
+  const convertAudio = async (inputFile: File, targetFormat: 'mp3' | 'm4r', startTime: number = 0, duration: number = 0, applyFade: boolean = false): Promise<Blob> => {
     const ffmpeg = await loadFFmpeg();
     const { fetchFile } = (window as any).FFmpeg;
 
@@ -643,14 +643,14 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       const baseName = `${slug}-${Date.now()}`;
 
       // Conversion Logic
-      setLoadingMessage('Processing audio & auto-fading...');
+      setLoadingMessage('Processing audio...');
 
       try {
         // We ALWAYS try to process now to apply the auto-fade
         try {
           const duration = (trimEnd > trimStart) ? (trimEnd - trimStart) : 0;
-          mp3Blob = await convertAudio(file, 'mp3', trimStart, duration, true);
-          console.log('MP3 processing (with fade) successful');
+          mp3Blob = await convertAudio(file, 'mp3', trimStart, duration, false);
+          console.log('MP3 processing successful');
         } catch (mp3Err) {
           console.error('MP3 Processing Error:', mp3Err);
           console.log('Falling back to original file (no fade)');
@@ -660,7 +660,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
         // M4R (iPhone)
         try {
           const duration = (trimEnd > trimStart) ? (trimEnd - trimStart) : 0;
-          m4rBlob = await convertAudio(file, 'm4r', trimStart, duration, true);
+          m4rBlob = await convertAudio(file, 'm4r', trimStart, duration, false);
         } catch (m4rErr) {
           console.warn('M4R processing failed', m4rErr);
         }
