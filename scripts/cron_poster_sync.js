@@ -28,29 +28,29 @@ const supabase = createClient(
 
 // Deity to image mapping
 const DEITY_IMAGES = {
-    'Murugan': 'https://images.unsplash.com/photo-1604608672516-f1b1f1c0b4e1?w=600',
-    'Siva': 'https://images.unsplash.com/photo-1582552938357-32b906df40cb?w=600',
-    'Shiva': 'https://images.unsplash.com/photo-1582552938357-32b906df40cb?w=600',
-    'Ganesha': 'https://images.unsplash.com/photo-1597262975002-c5c3b14bbd62?w=600',
-    'Vinayagar': 'https://images.unsplash.com/photo-1597262975002-c5c3b14bbd62?w=600',
-    'Krishna': 'https://images.unsplash.com/photo-1580477667995-2b94f01c9516?w=600',
-    'Vishnu': 'https://images.unsplash.com/photo-1580477667995-2b94f01c9516?w=600',
-    'Lakshmi': 'https://images.unsplash.com/photo-1604608672516-f1b1f1c0b4e1?w=600',
-    'Saraswati': 'https://images.unsplash.com/photo-1604608672516-f1b1f1c0b4e1?w=600',
-    'Durga': 'https://images.unsplash.com/photo-1604608672516-f1b1f1c0b4e1?w=600',
-    'Kali': 'https://images.unsplash.com/photo-1604608672516-f1b1f1c0b4e1?w=600',
-    'Hanuman': 'https://images.unsplash.com/photo-1604608672516-f1b1f1c0b4e1?w=600',
-    'Rama': 'https://images.unsplash.com/photo-1580477667995-2b94f01c9516?w=600',
-    'Sai': 'https://images.unsplash.com/photo-1604608672516-f1b1f1c0b4e1?w=600',
-    'Ayyappan': 'https://images.unsplash.com/photo-1604608672516-f1b1f1c0b4e1?w=600',
-    'Perumal': 'https://images.unsplash.com/photo-1580477667995-2b94f01c9516?w=600'
+    'Murugan': 'https://ui-avatars.com/api/?name=Murugan&background=ffcc00&color=fff&size=512',
+    'Siva': 'https://ui-avatars.com/api/?name=Siva&background=333&color=fff&size=512',
+    'Shiva': 'https://ui-avatars.com/api/?name=Shiva&background=333&color=fff&size=512',
+    'Ganesha': 'https://ui-avatars.com/api/?name=Ganesha&background=ff9900&color=fff&size=512',
+    'Vinayagar': 'https://ui-avatars.com/api/?name=Vinayagar&background=ff9900&color=fff&size=512',
+    'Krishna': 'https://ui-avatars.com/api/?name=Krishna&background=3399ff&color=fff&size=512',
+    'Vishnu': 'https://ui-avatars.com/api/?name=Vishnu&background=3399ff&color=fff&size=512',
+    'Lakshmi': 'https://ui-avatars.com/api/?name=Lakshmi&background=ff66cc&color=fff&size=512',
+    'Saraswati': 'https://ui-avatars.com/api/?name=Saraswati&background=ffffff&color=000&size=512',
+    'Durga': 'https://ui-avatars.com/api/?name=Durga&background=ff3300&color=fff&size=512',
+    'Kali': 'https://ui-avatars.com/api/?name=Kali&background=000&color=fff&size=512',
+    'Hanuman': 'https://ui-avatars.com/api/?name=Hanuman&background=ff6600&color=fff&size=512',
+    'Rama': 'https://ui-avatars.com/api/?name=Rama&background=33cc33&color=fff&size=512',
+    'Sai': 'https://ui-avatars.com/api/?name=Sai&background=e0e0e0&color=000&size=512',
+    'Ayyappan': 'https://ui-avatars.com/api/?name=Ayyappan&background=333&color=fff&size=512',
+    'Perumal': 'https://ui-avatars.com/api/?name=Perumal&background=3399ff&color=fff&size=512'
 };
 
 const CATEGORY_PLACEHOLDERS = {
-    'devotional': 'https://images.unsplash.com/photo-1604608672516-f1b1f1c0b4e1?w=600',
-    'movie': 'https://images.unsplash.com/photo-1574267432644-f610a5e0d4c5?w=600',
-    'album': 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=600',
-    'default': 'https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=600'
+    'devotional': 'https://ui-avatars.com/api/?name=Devotional&background=ffcc00&color=fff&size=512',
+    'movie': 'https://ui-avatars.com/api/?name=Movie&background=333&color=fff&size=512',
+    'album': 'https://ui-avatars.com/api/?name=Album&background=666&color=fff&size=512',
+    'default': 'https://ui-avatars.com/api/?name=TR&background=f43f5e&color=fff&size=512'
 };
 
 async function searchMovies(query) {

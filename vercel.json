@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/sync-posters",
       "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/sync-artists",
+      "schedule": "0 3 * * *"
     }
   ]
 }
