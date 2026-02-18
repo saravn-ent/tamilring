@@ -179,8 +179,8 @@ async function main() {
     // Fetch ringtones with missing posters (both approved and pending)
     const { data: ringtones, error } = await supabase
         .from('ringtones')
-        .select('id, title, movie_name, tags, status')
-        .is('poster_url', null)
+        .select('id, title, movie_name, tags, status, poster_url')
+        .or(`poster_url.is.null,poster_url.in.(${Object.values(CATEGORY_PLACEHOLDERS).map(p => `"${p}"`).join(',')})`)
         .in('status', ['approved', 'pending'])
         .limit(100); // Process in batches
 

@@ -162,8 +162,8 @@ async function main() {
 
     const { data: ringtones, error } = await supabase
         .from('ringtones')
-        .select('id, title, movie_name, tags')
-        .is('poster_url', null)
+        .select('id, title, movie_name, tags, poster_url')
+        .or(`poster_url.is.null,poster_url.in.(${Object.values(CATEGORY_PLACEHOLDERS).map(p => `"${p}"`).join(',')})`)
         .eq('status', 'approved')
         .limit(50);
 

@@ -137,6 +137,15 @@ const TMDB_SEARCH_ALIASES: Record<string, string> = {
   "Vijay": "Joseph Vijay",
   "Vikram": "Chiyaan Vikram",
   "Suriya": "Suriya Sivakumar",
+  "Ilaiyaraaja": "Ilaiyaraaja",
+  "Ilayaraja": "Ilaiyaraaja",
+  "A.R. Rahman": "A. R. Rahman",
+  "AR Rahman": "A. R. Rahman",
+  "GV Prakash": "G.V. Prakash Kumar",
+  "G.V. Prakash": "G.V. Prakash Kumar",
+  "Yuvan": "Yuvan Shankar Raja",
+  "Santhosh Narayanan": "Santhosh Narayanan",
+  "Harris Jayaraj": "Harris Jayaraj",
 };
 
 export const searchPerson = async (query: string): Promise<PersonResult | null> => {

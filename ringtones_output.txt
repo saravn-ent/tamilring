@@ -1,6 +1,1 @@
 Ringtones with NULL poster_url:
-a168efba-499f-4e73-b1d2-0fca14cbbdf1 | Manathinil Kadhal Konde | Aan | null
-188064c6-a9f6-4b1c-bac2-d8f56c3be4e8 |  Mohamutham Tharum | Aan | null
-f25977f6-61c2-4b1b-be1c-d7a578e7fab2 | Naan Raniye Rajavin | Aan | null
-b1448f38-2745-48f1-995c-a7969d12512b | Cycle Varuthu Cycle | Neelavukku Neranja Manasu | null
-94615ef2-6e0c-44e0-83ab-9637a5548c52 | A Smile | Retro | null
