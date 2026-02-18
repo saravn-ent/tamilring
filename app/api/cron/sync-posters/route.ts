@@ -2,6 +2,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { invalidateRingtoneCache } from '@/lib/cache';
 
 // Reusing constants from script
 const DEITY_IMAGES: Record<string, string> = {
@@ -42,6 +43,7 @@ const supabase = createClient(
 interface Ringtone {
     id: string;
     title: string;
+    slug: string;
     movie_name: string;
     tags: string[] | null;
     poster_url: string | null;
@@ -184,7 +186,7 @@ export async function GET(req: NextRequest) {
         
         const { data, error } = await supabase
             .from('ringtones')
-            .select('id, title, movie_name, tags, poster_url')
+            .select('id, title, slug, movie_name, tags, poster_url')
             .or(`poster_url.is.null,poster_url.in.(${placeholders})`)
             .eq('status', 'approved')
             .limit(20);
@@ -212,6 +214,7 @@ export async function GET(req: NextRequest) {
                 const result = await fixPosterForRingtone(ringtone);
                 if (result.success) {
                     stats[result.method]++;
+                    await invalidateRingtoneCache(ringtone.id, ringtone.slug);
                     results.push({ id: ringtone.id, status: 'fixed', method: result.method });
                 }
             } catch (err: unknown) {
