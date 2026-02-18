@@ -22,6 +22,26 @@ try {
 
 
 export async function middleware(request: NextRequest) {
+  // 0. Bot & Music Label Scanner Protection
+  const userAgent = request.headers.get('user-agent')?.toLowerCase() || '';
+  const botKeywords = [
+    'markmonitor', 'opsec', 'corsearch', 'digimarc', 'audiolock', 'red points', 
+    'link-busters', 'muso', 'aiplex', 'websiren', 'copytrack', 'picrights', 
+    'leakid', 'entura', 'marketly', 'grayzone', 'rivendell', 'ifpi', 'riaa',
+    'copyright', 'piracy', 'dmca', 'legal', 'enforcement', 'scanner', 
+    'spider', 'crawler', 'python-requests', 'node-fetch', 'axios', 'curl', 
+    'wget', 'selenium', 'puppeteer', 'playwright', 'headless', 'scan',
+    'compliance', 'infringement', 'report', 'evidence', 'collector'
+  ];
+
+  const isBot = botKeywords.some(keyword => userAgent.includes(keyword));
+  
+  // Also block empty User Agents or very short ones
+  if (isBot || userAgent.length < 10) {
+    console.log(`[Blocked Bot] UA: ${userAgent} | IP: ${request.headers.get('x-forwarded-for')}`);
+    return new NextResponse(null, { status: 403 });
+  }
+
   const requestHeaders = new Headers(request.headers)
 
   // 1. Language Detection (Region-based without GPS)

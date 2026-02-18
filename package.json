@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "index:submit": "node scripts/index-now.js",
-    "index:status": "node scripts/check-indexing-status.js"
+    "index:status": "node scripts/check-indexing-status.js",
+    "backup:csv": "node scripts/export-ringtones-csv.js"
   },
   "dependencies": {
     "@distube/ytdl-core": "^4.16.12",
