@@ -252,8 +252,8 @@ export default async function RingtonePage({ params }: Props) {
           {/* Streaming Section - The "Safe Zone" */}
           <div className="w-full max-w-sm mt-4 pt-6 border-t border-zinc-100 flex flex-col items-center">
             <StreamButtons
-              songTitle={cleanTitle}
-              artistName={ringtone.singers}
+              songTitle={ringtone.song_name || cleanTitle}
+              artistName={[ringtone.music_director, ringtone.singers].filter(Boolean).join(', ')}
               movieName={ringtone.movie_name}
               appleMusicLink={ringtone.apple_music_link}
               spotifyLink={ringtone.spotify_link}
