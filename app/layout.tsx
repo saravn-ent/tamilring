@@ -105,11 +105,11 @@ export default async function RootLayout({
           crossOrigin="anonymous"
           strategy="afterInteractive"
         />
-        {/* Adsterra Social Bar Monetization */}
+
+        {/* Adsterra Popunder */}
         <Script
-          id="adsterra-social-bar"
-          async
-          src="https://pl28718011.effectivegatecpm.com/06/14/fb/0614fb27b8aebd4ac059b5266d474303.js"
+          id="adsterra-popunder"
+          src="https://archaicmsflip.com/c1/5a/9f/c15a9ffe85c9eb11538a47b0e0bb3f1d.js"
           strategy="afterInteractive"
         />
       </head>

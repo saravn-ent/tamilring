@@ -93,3 +93,16 @@ export interface RingtoneRequest {
   updated_at?: string;
 }
 
+export interface DmcaRequest {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  work_description: string;
+  infringing_urls: string;
+  good_faith: boolean;
+  accurate: boolean;
+  status: 'pending' | 'approved' | 'rejected';
+  admin_notes?: string;
+  created_at: string;
+}

@@ -1,9 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Mail, Shield, ExternalLink, CircleCheckBig, TriangleAlert, ArrowRight } from 'lucide-react';
+import { Shield, ExternalLink, CircleCheckBig, ArrowRight, Loader2 } from 'lucide-react';
+import { submitDmcaRequest } from '@/app/actions/dmca';
 
 export default function DMCAForm() {
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isSuccess, setIsSuccess] = useState(false);
+    const [errorMessage, setErrorMessage] = useState('');
+    
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -27,42 +32,56 @@ export default function DMCAForm() {
         setLegalChecks(prev => ({ ...prev, [name]: checked }));
     };
 
-    const handleDraftEmail = () => {
-        const subject = `DMCA Takedown Request - ${formData.name}`;
-        const body = `
-DMCA TAKEDOWN NOTICE
+    const handleSubmit = async () => {
+        setIsSubmitting(true);
+        setErrorMessage('');
+        try {
+            const res = await submitDmcaRequest({
+                name: formData.name,
+                email: formData.email,
+                phone: formData.phone,
+                workDescription: formData.workDescription,
+                infringingUrls: formData.infringingUrls,
+                goodFaith: legalChecks.goodFaith,
+                accurate: legalChecks.accurate
+            });
 
-To: TamilRing Copyright Agent
-From: ${formData.name}
-Email: ${formData.email}
-Phone: ${formData.phone}
-
-I am the copyright owner (or authorized to act on behalf of the owner) of the following copyrighted work:
-${formData.workDescription}
-
-I claim that the following material on TamilRing is infringing my copyright:
-${formData.infringingUrls}
-
-STATEMENTS AND DECLARATIONS:
-
-[x] I have a good faith belief that the use of the material in the manner complained of is not authorized by the copyright owner, its agent, or the law.
-
-[x] The information in this notification is accurate, and under penalty of perjury, I am authorized to act on behalf of the owner of an exclusive right that is allegedly infringed.
-
-Signed: ${formData.name}
-        `.trim();
-
-        const mailtoLink = `mailto:tamilring.in@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-
-        // Create temporary link and click it - more reliable than window.location.href
-        const link = document.createElement('a');
-        link.href = mailtoLink;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+            if (res.success) {
+                setIsSuccess(true);
+            } else {
+                setErrorMessage(res.error || 'Failed to submit request.');
+            }
+        } catch (error) {
+            setErrorMessage('An unexpected error occurred.');
+            console.error(error);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const isFormValid = formData.name && formData.email && formData.workDescription && formData.infringingUrls && legalChecks.goodFaith && legalChecks.accurate;
+
+    if (isSuccess) {
+        return (
+            <div className="bg-green-50 border border-green-200 rounded-3xl p-12 text-center space-y-6">
+                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto text-green-600">
+                    <CircleCheckBig size={40} />
+                </div>
+                <h2 className="text-3xl font-black text-green-800">Request Received</h2>
+                <p className="text-green-700 font-medium max-w-lg mx-auto">
+                    We have received your DMCA takedown notice. Our legal team will review it and take appropriate action within 24-48 hours. A confirmation email has been sent to {formData.email}.
+                </p>
+                <div className="pt-4">
+                    <button 
+                        onClick={() => window.location.reload()}
+                        className="text-sm font-bold text-green-700 hover:text-green-900 underline"
+                    >
+                        Submit another request
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
 
@@ -115,7 +134,8 @@ Signed: ${formData.name}
                             name="name"
                             value={formData.name}
                             onChange={handleChange}
-                            className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:ring-2 focus:ring-brand-accent/20 focus:border-brand-accent outline-none transition-all placeholder:text-zinc-400 font-medium"
+                            disabled={isSubmitting}
+                            className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:ring-2 focus:ring-brand-accent/20 focus:border-brand-accent outline-none transition-all placeholder:text-zinc-400 font-medium disabled:opacity-50"
                             placeholder="Copyright Owner or Agent Name"
                         />
                     </div>
@@ -126,7 +146,8 @@ Signed: ${formData.name}
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
-                            className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:ring-2 focus:ring-brand-accent/20 focus:border-brand-accent outline-none transition-all placeholder:text-zinc-400 font-medium"
+                            disabled={isSubmitting}
+                            className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:ring-2 focus:ring-brand-accent/20 focus:border-brand-accent outline-none transition-all placeholder:text-zinc-400 font-medium disabled:opacity-50"
                             placeholder="Where can we contact you?"
                         />
                     </div>
@@ -139,7 +160,8 @@ Signed: ${formData.name}
                         name="phone"
                         value={formData.phone}
                         onChange={handleChange}
-                        className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:ring-2 focus:ring-brand-accent/20 focus:border-brand-accent outline-none transition-all placeholder:text-zinc-400 font-medium"
+                        disabled={isSubmitting}
+                        className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:ring-2 focus:ring-brand-accent/20 focus:border-brand-accent outline-none transition-all placeholder:text-zinc-400 font-medium disabled:opacity-50"
                         placeholder="Contact number"
                     />
                 </div>
@@ -150,8 +172,9 @@ Signed: ${formData.name}
                         name="workDescription"
                         value={formData.workDescription}
                         onChange={handleChange}
+                        disabled={isSubmitting}
                         rows={3}
-                        className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:ring-2 focus:ring-brand-accent/20 focus:border-brand-accent outline-none transition-all placeholder:text-zinc-400 font-medium resize-none"
+                        className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:ring-2 focus:ring-brand-accent/20 focus:border-brand-accent outline-none transition-all placeholder:text-zinc-400 font-medium resize-none disabled:opacity-50"
                         placeholder="Describe the copyrighted work (e.g., 'Song Name by Artist Name' or link to original work)."
                     />
                 </div>
@@ -162,14 +185,21 @@ Signed: ${formData.name}
                         name="infringingUrls"
                         value={formData.infringingUrls}
                         onChange={handleChange}
+                        disabled={isSubmitting}
                         rows={4}
-                        className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:ring-2 focus:ring-brand-accent/20 focus:border-brand-accent outline-none transition-all font-mono text-xs placeholder:text-zinc-400"
+                        className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:ring-2 focus:ring-brand-accent/20 focus:border-brand-accent outline-none transition-all font-mono text-xs placeholder:text-zinc-400 disabled:opacity-50"
                         placeholder="https://tamilring.in/ringtone/..."
                     />
                     <p className="text-xs text-zinc-500 ml-1 font-medium">Please provide direct links to the content you want removed.</p>
                 </div>
 
                 <div className="pt-6 border-t border-brand-border space-y-4">
+                    {errorMessage && (
+                        <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-medium border border-red-100 flex items-center gap-2">
+                            <span className="font-bold">Error:</span> {errorMessage}
+                        </div>
+                    )}
+
                     <label className="flex items-start gap-3 cursor-pointer group bg-brand-wash/50 p-4 rounded-xl border border-transparent hover:border-brand-border transition-colors">
                         <div className="relative flex items-center pt-0.5">
                             <input
@@ -177,6 +207,7 @@ Signed: ${formData.name}
                                 name="goodFaith"
                                 checked={legalChecks.goodFaith}
                                 onChange={handleCheckbox}
+                                disabled={isSubmitting}
                                 className="peer sr-only"
                             />
                             <div className="w-5 h-5 border-2 border-zinc-300 rounded-md bg-white peer-checked:bg-brand-accent peer-checked:border-brand-accent transition-colors"></div>
@@ -194,6 +225,7 @@ Signed: ${formData.name}
                                 name="accurate"
                                 checked={legalChecks.accurate}
                                 onChange={handleCheckbox}
+                                disabled={isSubmitting}
                                 className="peer sr-only"
                             />
                             <div className="w-5 h-5 border-2 border-zinc-300 rounded-md bg-white peer-checked:bg-brand-accent peer-checked:border-brand-accent transition-colors"></div>
@@ -208,19 +240,19 @@ Signed: ${formData.name}
                 <div className="pt-2">
                     <button
                         type="button"
-                        onClick={handleDraftEmail}
-                        disabled={!isFormValid}
-                        className={`w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg active:scale-[0.98] ${isFormValid
+                        onClick={handleSubmit}
+                        disabled={!isFormValid || isSubmitting}
+                        className={`w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg active:scale-[0.98] ${isFormValid && !isSubmitting
                             ? 'bg-brand-dark text-white hover:bg-neutral-800 shadow-brand-dark/20'
                             : 'bg-zinc-100 text-zinc-400 cursor-not-allowed shadow-none'
                             }`}
                     >
-                        <Mail size={20} />
-                        <span>Draft Email Report</span>
-                        {isFormValid && <ArrowRight size={18} />}
+                        {isSubmitting ? <Loader2 size={20} className="animate-spin" /> : <Shield size={20} />}
+                        <span>{isSubmitting ? 'Submitting Report...' : 'Submit Takedown Notice'}</span>
+                        {!isSubmitting && isFormValid && <ArrowRight size={18} />}
                     </button>
                     <p className="text-center text-xs text-zinc-400 mt-3 font-medium">
-                        This button will open your default email client with a pre-filled message.
+                        By clicking submit, you agree to our Terms of Service and swear under penalty of perjury that the information provided is accurate.
                     </p>
                 </div>
             </div>

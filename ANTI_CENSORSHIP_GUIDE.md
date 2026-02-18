@@ -7,20 +7,34 @@ This guide outlines technical measures to prevent **ISP Blocking**, **DNS Poison
 The most effective way to avoid ISP blocking is to hide your Origin IP and encrypt the handshake so ISPs cannot easily inspect the traffic.
 
 ### ✅ Encrypted Client Hello (ECH) - *CRITICAL*
-ISPs often block sites by inspecting the **SNI (Server Name Indication)** in the TLS handshake (which is usually unencrypted). ECH encrypts this, preventing the ISP from knowing which specific site on Cloudflare the user is visiting.
+
+ISPs often block sites by inspecting the **SNI (Server Name Indication)** in the TLS handshake (which is usually unencrypted). ECH encrypts this.
+
+> **Note:** On many Cloudflare **Free Plans**, ECH is now **Enabled by Default** and the toggle may be hidden from the dashboard.
+>
+> **If you do not see the ECH setting:**
+>
+> 1. It is likely already active for your specific zone.
+> 2. You can verify this by checking if your site works on networks that typically filter by SNI.
+> 3. Ensure **TLS 1.3** is enabled (required for ECH).
+
+**If the setting is visible:**
 
 1. Go to **Cloudflare Dashboard** > **SSL/TLS** > **Edge Certificates**.
 2. Scroll to **Encrypted Client Hello (ECH)**.
 3. Set to **On**.
 
 ### ✅ HTTP/3 (QUIC)
+
 HTTP/3 uses QUIC (UDP) instead of TCP. Many legacy deep-packet inspection (DPI) boxes cannot easily parse QUIC packets or block them without blocking all UDP traffic (which breaks gaming/VoIP).
 
-1. Go to **Network**.
-2. Toggle **HTTP/3 (QUIC)** to **On**.
-3. Toggle **0-RTT Connection Resumption** to **On** (Faster, harder to interrupt).
+1. Go to **Speed** > **Optimization** (or **Settings**).
+2. Scroll to **Protocol Optimization**.
+3. Toggle **HTTP/3 (QUIC)** to **On**.
+4. Toggle **0-RTT Connection Resumption** to **On** (Faster, harder to interrupt).
 
 ### ✅ TLS 1.3 Only (Optional)
+
 TLS 1.3 encrypts more of the handshake than 1.2.
 
 1. Go to **SSL/TLS** > **Edge Certificates**.
@@ -30,13 +44,17 @@ TLS 1.3 encrypts more of the handshake than 1.2.
 ## 2. DNS Resilience
 
 ### ✅ DNSSEC
+
 Prevents DNS poisoning attacks where an ISP injects fake IP addresses for your domain.
 
-1. Go to **DNS** > **Settings**.
-2. Enable **DNSSEC**.
-3. Follow the instructions to add the DS record to your domain registrar (GoDaddy, Namecheap, etc.).
+1. Go to **DNS** in the left sidebar.
+2. Click on **Settings** (Look for the **Enable DNSSEC** button).
+3. Click **Enable DNSSEC**.
+4. **CRITICAL:** Cloudflare will give you a **DS Record** (Key Tag, Algorithm, Digest Type, Digest). You must log in to your **Domain Registrar** (where you bought the domain, e.g., GoDaddy, Namecheap) and add this record there.
+   * *Without adding the DS record at your registrar, DNSSEC is **NOT** active.*
 
 ### ✅ CNAME Flattening
+
 Ensure you are using CNAME flattening at the root (Cloudflare default) to hide your origin structure.
 
 ## 3. Origin Server Protection
@@ -44,6 +62,7 @@ Ensure you are using CNAME flattening at the root (Cloudflare default) to hide y
 If an ISP or attacker finds your **Real Origin IP**, they can ban that IP directly, bypassing Cloudflare.
 
 ### ✅ Authenticated Origin Pulls
+
 Ensures your server *only* accepts traffic from Cloudflare.
 
 1. Go to **SSL/TLS** > **Origin Server**.
@@ -51,7 +70,9 @@ Ensures your server *only* accepts traffic from Cloudflare.
 3. You may need to install the Cloudflare Origin CA certificate on your web server (Vercel/Supabase usually handle this automatically, but for VPS/DigitalOcean, you must configure Nginx).
 
 ### ✅ Rotate Origin IP (If compromised)
+
 If your site is suddenly blocked in a specific region but Cloudflare status is normal, your Origin IP might be leaked.
+
 * **Action:** Request a new static IP from your hosting provider or rotate the droplet/server.
 
 ## 4. Alternate Domains (Mirrors)
@@ -73,9 +94,11 @@ Add a generic "Help" page explaining how to bypass blocks if they occur.
 * **VPN:** Recommend usage of trusted VPNs.
 
 ---
+
 ### Summary Checklist
-- [ ] Enable **ECH** (SSL/TLS > Edge Certificates)
-- [ ] Enable **HTTP/3** (Network)
-- [ ] Enable **DNSSEC** (DNS)
-- [ ] Verify **HSTS** is active (SSL/TLS > Edge Certificates)
-- [ ] Keep a backup domain registered
+
+* [ ] Enable **ECH** (SSL/TLS > Edge Certificates)
+* [ ] Enable **HTTP/3** (Network)
+* [ ] Enable **DNSSEC** (DNS)
+* [ ] Verify **HSTS** is active (SSL/TLS > Edge Certificates)
+* [ ] Keep a backup domain registered

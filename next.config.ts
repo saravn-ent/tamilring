@@ -39,6 +39,15 @@ const config: NextConfig = {
   async headers() {
     return [
       {
+        source: '/:path*',
+        headers: [
+          { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+        ],
+      },
+      {
         // Only enable SharedArrayBuffer (COEP/COOP) for routes that explicitly need it (client-side FFmpeg)
         // Using 'credentialless' instead of 'require-corp' allows cross-origin images (TMDB, etc) to load
         // without needing specific CORP headers from those third-party domains.

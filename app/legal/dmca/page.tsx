@@ -2,7 +2,13 @@
 import React from 'react';
 import DMCAForm from '@/components/DMCAForm';
 
-export default function DMCA() {
+import { getDmcaStats } from '@/lib/dmca';
+
+export const revalidate = 3600;
+
+export default async function DMCA() {
+    const stats = await getDmcaStats();
+
     return (
         <div className="min-h-screen bg-white">
             <div className="max-w-3xl mx-auto px-4 py-12 text-zinc-600 space-y-8 pb-32">
@@ -95,7 +101,7 @@ export default function DMCA() {
                     <h2 className="text-xl font-bold text-amber-600 mb-3">⚠️ Warning About False Claims</h2>
                     <p className="text-amber-800 font-medium">
                         Under 17 U.S.C. § 512(f), any person who knowingly materially misrepresents that material is
-                        infringing may be subject to liability for damages, including costs and attorneys' fees.
+                        infringing may be subject to liability for damages, including costs and attorneys&apos; fees.
                     </p>
                 </section>
 
@@ -116,11 +122,11 @@ export default function DMCA() {
                     </p>
                     <div className="grid grid-cols-3 gap-4 text-center">
                         <div className="bg-white p-4 rounded-xl shadow-sm border border-brand-border">
-                            <p className="text-2xl font-black text-brand-dark">0</p>
+                            <p className="text-2xl font-black text-brand-dark">{stats.total}</p>
                             <p className="text-xs text-zinc-400 font-bold uppercase tracking-wider mt-1">Requests</p>
                         </div>
                         <div className="bg-white p-4 rounded-xl shadow-sm border border-brand-border">
-                            <p className="text-2xl font-black text-brand-dark">0</p>
+                            <p className="text-2xl font-black text-brand-dark">{stats.approved}</p>
                             <p className="text-xs text-zinc-400 font-bold uppercase tracking-wider mt-1">Removed</p>
                         </div>
                         <div className="bg-white p-4 rounded-xl shadow-sm border border-brand-border">
@@ -128,7 +134,7 @@ export default function DMCA() {
                             <p className="text-xs text-zinc-400 font-bold uppercase tracking-wider mt-1">Avg Time</p>
                         </div>
                     </div>
-                    <p className="text-zinc-400 text-xs mt-4 font-medium">Last Updated: December 2025</p>
+                    <p className="text-zinc-400 text-xs mt-4 font-medium">Last Updated: Real-time</p>
                 </section>
 
                 <p className="text-zinc-500 text-sm">
