@@ -15,6 +15,8 @@ import { generateAcousticFingerprint } from '@/lib/audio-utils';
 import Image from 'next/image';
 import ImageWithFallback from './ImageWithFallback';
 import Script from 'next/script';
+import { Turnstile } from '@marsidev/react-turnstile';
+import { validateCaptcha } from '@/app/actions/security';
 
 const TAG_CATEGORIES = {
   "Moods": ["Love", "Sad", "Mass", "BGM", "Motivational", "Devotional", "Funny"],
@@ -130,6 +132,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
   const [movieQuery, setMovieQuery] = useState('');
   const [movies, setMovies] = useState<MovieResult[]>([]);
   const [isSearchingMovie, setIsSearchingMovie] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
 
   // Dynamic Deities State
   const [knownDeities, setKnownDeities] = useState<string[]>([]);
@@ -616,17 +619,31 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       finalTitle = `${segmentName} - ${songName}`;
     }
 
-    try {
-      let mp3Blob: Blob | File = file;
-      let m4rBlob: Blob | File | null = null;
-      let iphoneUrl: string | null = null;
+    // Turnstile Validation
+    if (!turnstileToken) {
+      alert('Please complete the security challenge.');
+      return;
+    }
 
+    setLoading(true);
+    setLoadingMessage('Verifying safety...');
+
+    const captchaRes = await validateCaptcha(turnstileToken);
+    if (!captchaRes.success) {
+      setLoading(false);
+      alert(captchaRes.error);
+      return;
+    }
+
+    let mp3Blob: Blob | File = file;
+    let m4rBlob: Blob | File | null = null;
+    let iphoneUrl: string | null = null;
+
+    try {
       const baseName = `${slug}-${Date.now()}`;
 
       // Conversion Logic
       setLoadingMessage('Processing audio & auto-fading...');
-
-      const needsTrimming = (trimEnd > 0 && trimStart > 0);
 
       try {
         // We ALWAYS try to process now to apply the auto-fade
@@ -696,7 +713,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       }
 
       // Calculate final duration for DB
-      const finalDuration = (trimEnd > trimStart) ? (trimEnd - trimStart) : 0;
+      const currentDuration = (trimEnd > trimStart) ? (trimEnd - trimStart) : 0;
 
       // 3. Insert into Database - Different data based on content type
       const baseData = {
@@ -713,7 +730,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
         audio_hash: fileHash,
         acoustic_fingerprint: acousticFingerprint,
         tags: selectedTags,
-        duration: Math.round(finalDuration), // Store in seconds
+        duration: Math.round(currentDuration), // Store in seconds
         status: duplicateWarning ? 'pending' : 'approved', // Moderation Queue if flagged
         is_suspected_duplicate: !!duplicateWarning,
         duplicate_reason: duplicateWarning || undefined
@@ -1800,6 +1817,18 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
             )}
           </div>
 
+          <div className="flex justify-center py-2">
+            <Turnstile
+              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'}
+              onSuccess={(token) => setTurnstileToken(token)}
+              onExpire={() => setTurnstileToken(null)}
+              onError={() => setTurnstileToken(null)}
+              options={{
+                theme: 'light',
+              }}
+            />
+          </div>
+
           <div className="flex justify-between pt-4">
             <button
               onClick={() => setStep(1.8)}
@@ -1809,7 +1838,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
             </button>
             <button
               onClick={handleSubmit}
-              disabled={loading || !!duplicateError || !segmentName || !manualMovieName}
+              disabled={loading || !!duplicateError || !segmentName || !manualMovieName || !turnstileToken}
               className="flex-1 ml-4 bg-brand-dark text-white font-black py-4 rounded-xl hover:bg-neutral-800 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-brand-dark/20 uppercase tracking-wide text-sm"
             >
               {loading ? (
@@ -2085,6 +2114,18 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
             )}
           </div>
 
+          <div className="flex justify-center py-2">
+            <Turnstile
+              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'}
+              onSuccess={(token) => setTurnstileToken(token)}
+              onExpire={() => setTurnstileToken(null)}
+              onError={() => setTurnstileToken(null)}
+              options={{
+                theme: 'light',
+              }}
+            />
+          </div>
+
           <div className="flex justify-between pt-4">
             <button
               onClick={() => setStep(1.8)}
@@ -2094,7 +2135,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
             </button>
             <button
               onClick={handleSubmit}
-              disabled={loading || !!duplicateError || !segmentName || !deityCategory}
+              disabled={loading || !!duplicateError || !segmentName || !deityCategory || !turnstileToken}
               className="flex-1 ml-4 bg-brand-dark text-white font-black py-4 rounded-xl hover:bg-neutral-800 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-brand-dark/20 uppercase tracking-wide text-sm"
             >
               {loading ? (

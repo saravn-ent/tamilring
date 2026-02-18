@@ -69,7 +69,7 @@ const getRecentRingtones = unstable_cache(
 
         return ringtones;
     },
-    ['recent-ringtones-v11'], // Updated version
+    ['recent-ringtones-v12'], // Updated version
     { revalidate: 3600, tags: ['recent'] }
 );
 

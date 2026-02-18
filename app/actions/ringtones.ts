@@ -171,7 +171,7 @@ const getTrendingRingtonesInternal = unstable_cache(
             query = query.eq('language', lang);
         }
 
-        const { data: trending, error } = await query
+        const { data: trending } = await query
             .order('likes', { ascending: false })
             .order('downloads', { ascending: false })
             .limit(limit);
@@ -194,20 +194,20 @@ const getTrendingRingtonesInternal = unstable_cache(
         if (result.length === 0) return [];
 
         // ENRICH WITH PROFILES (Cached inside the same block)
-        const userIds = Array.from(new Set(result.map((r: any) => r.user_id).filter(Boolean)));
+        const userIds = Array.from(new Set(result.map((r: { user_id: string }) => r.user_id).filter(Boolean)));
         if (userIds.length > 0) {
             const { data: profiles } = await supabase
                 .from('profiles')
                 .select('id, full_name')
                 .in('id', userIds);
 
-            const profileMap = new Map(profiles?.map((p: any) => [p.id, p]));
-            result = result.map((r: any) => ({ ...r, profile: profileMap.get(r.user_id) }));
+            const profileMap = new Map((profiles || []).map((p: { id: string, full_name: string | null }) => [p.id, p]));
+            result = result.map((r: { user_id: string }) => ({ ...r, profile: profileMap.get(r.user_id) }));
         }
 
         return result;
     },
-    ['trending-ringtones-v15'], // Bump version
+    ['trending-ringtones-v16'], // Bump version
     { revalidate: 3600, tags: ['trending'] }
 );
 
@@ -295,7 +295,7 @@ const getTrendingTagsInternal = unstable_cache(
         // 2. Fetch Content Trends (Backup/Volume)
         try {
             const trendingRingtones = await getTrendingRingtonesInternal(20, lang);
-            trendingRingtones.forEach((r: any) => {
+            trendingRingtones.forEach((r: { tags?: string[], movie_name?: string }) => {
                 // Use movie name and tags
                 if (r.tags && Array.isArray(r.tags)) {
                     r.tags.forEach((t: string) => {
@@ -422,11 +422,11 @@ export async function processAutoApproval(userId: string) {
         await checkUploadBadges(supabase, userId);
 
         // Revalidate to show new points immediately
-        // @ts-ignore
+        // @ts-expect-error - Next.js types might vary
         revalidateTag('user-profile');
-        // @ts-ignore
+        // @ts-expect-error - Next.js types might vary
         revalidateTag('recent');
-        // @ts-ignore
+        // @ts-expect-error - Next.js types might vary
         revalidateTag('trending');
         revalidatePath('/profile');
         revalidatePath('/', 'page');

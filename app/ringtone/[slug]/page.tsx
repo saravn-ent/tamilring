@@ -254,6 +254,7 @@ export default async function RingtonePage({ params }: Props) {
             <StreamButtons
               songTitle={cleanTitle}
               artistName={ringtone.singers}
+              movieName={ringtone.movie_name}
               appleMusicLink={ringtone.apple_music_link}
               spotifyLink={ringtone.spotify_link}
             />

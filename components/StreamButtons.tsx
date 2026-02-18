@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { ExternalLink, Music } from 'lucide-react';
+import { splitArtists } from '@/lib/utils';
 
 interface StreamButtonsProps {
   songTitle: string;
   artistName: string;
+  movieName?: string;
   appleMusicLink?: string;
   spotifyLink?: string;
 }
@@ -21,29 +23,52 @@ const SpotifyIcon = () => (
 export default function StreamButtons({
   songTitle,
   artistName,
+  movieName,
   appleMusicLink,
   spotifyLink,
 }: StreamButtonsProps) {
   const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
-    // Simple iOS detection
-    const userAgent = window.navigator.userAgent.toLowerCase();
-    setIsIOS(/iphone|ipad|ipod/.test(userAgent));
+    // Check if running in browser and set iOS flag
+    if (typeof window !== 'undefined') {
+      const userAgent = window.navigator.userAgent.toLowerCase();
+      const isIOSDevice = /iphone|ipad|ipod/.test(userAgent);
+      // Use setTimeout to avoid synchronous setState during render/mount phase lint warning
+      const timer = setTimeout(() => {
+        setIsIOS(isIOSDevice);
+      }, 0);
+      return () => clearTimeout(timer);
+    }
   }, []);
 
   // --- Link Generation Logic ---
 
+  const getCleanQuery = () => {
+    // Clean up song title (remove extra descriptors)
+    const cleanTitle = songTitle.replace(/\(From.*?\)/gi, '').trim();
+    const artists = splitArtists(artistName).join(' ');
+    
+    // Prioritize Movie + Artist Name first for better Album results
+    // This helps when the ringtone name is descriptive (e.g. "Karthik Sees Salim's Certificates")
+    // and not a standard song title.
+    const parts = [
+      movieName,
+      artists,
+      cleanTitle
+    ].filter(Boolean);
+    
+    return encodeURIComponent(parts.join(' '));
+  };
+
   const getAppleLink = () => {
     if (appleMusicLink) return appleMusicLink;
-    const query = encodeURIComponent(`${songTitle} ${artistName}`);
-    return `https://music.apple.com/in/search?term=${query}`;
+    return `https://music.apple.com/in/search?term=${getCleanQuery()}`;
   };
 
   const getSpotifyLink = () => {
     if (spotifyLink) return spotifyLink;
-    const query = encodeURIComponent(`${songTitle} ${artistName}`);
-    return `https://open.spotify.com/search/${query}`;
+    return `https://open.spotify.com/search/${getCleanQuery()}`;
   };
 
   return (

@@ -4,26 +4,43 @@
 import { useState, useEffect } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import {
-    Brain, ShieldCheck, Scale, TrendingUp, AlertTriangle,
-    Sparkles, ListChecks, CheckCircle2, ChevronRight,
-    Terminal, Zap, Target, FileText, Loader2, RefreshCcw
+    ShieldCheck, Scale, TrendingUp, AlertTriangle,
+    CheckCircle2, Zap, Loader2
 } from 'lucide-react';
 import { hapticFeedback } from '@/lib/haptics';
 
 export default function AICommandCenter() {
+    interface Action {
+        type: string;
+        target_id?: string;
+        description: string;
+        payload?: {
+            reason?: string;
+        };
+    }
+
+    interface RingtoneItem {
+        id: string;
+        title: string;
+        movie_name: string;
+        status: string;
+        created_at: string;
+        tags: string[] | null;
+    }
+
+    interface Stats {
+        totalRingtones: number | null;
+        pendingRingtones: number | null;
+        recentUploads: RingtoneItem[] | null;
+    }
+
     const [loading, setLoading] = useState(true);
     const [agentResponse, setAgentResponse] = useState<string | null>(null);
-    const [proposedActions, setProposedActions] = useState<any[]>([]);
+    const [proposedActions, setProposedActions] = useState<Action[]>([]);
     const [isThinking, setIsThinking] = useState(false);
     const [executionStatus, setExecutionStatus] = useState<Record<string, 'pending' | 'success' | 'error'>>({});
-    const [stats, setStats] = useState<any>(null);
+    const [stats, setStats] = useState<Stats | null>(null);
     const [activeModule, setActiveModule] = useState<'moderation' | 'legal' | 'business' | 'strategy'>('moderation');
-
-    const [connectionStatus, setConnectionStatus] = useState<{
-        supabase: 'testing' | 'secure' | 'error';
-        gemini: 'testing' | 'enhanced' | 'error';
-        risk: 'testing' | 'active' | 'error';
-    }>({ supabase: 'testing', gemini: 'testing', risk: 'testing' });
 
     const supabase = createBrowserClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -32,6 +49,7 @@ export default function AICommandCenter() {
 
     useEffect(() => {
         fetchInitialData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     // ... (keep connection checking effect if desired, or simplify)
@@ -55,7 +73,7 @@ export default function AICommandCenter() {
         }
     };
 
-    const consultAgent = async (task: string, contextOverride?: any) => {
+    const consultAgent = async (task: string, contextOverride?: Stats | null) => {
         setIsThinking(true);
         setProposedActions([]);
         setAgentResponse(null);
@@ -89,15 +107,16 @@ export default function AICommandCenter() {
             setProposedActions(parsed.actions || []);
             hapticFeedback(10);
 
-        } catch (error: any) {
+        } catch (error) {
+            const message = error instanceof Error ? error.message : 'Unknown error';
             console.error("AI consult error:", error);
-            setAgentResponse(`CRITICAL ERROR: ${error.message}`);
+            setAgentResponse(`CRITICAL ERROR: ${message}`);
         } finally {
             setIsThinking(false);
         }
     };
 
-    const handleExecuteAction = async (action: any, index: number) => {
+    const handleExecuteAction = async (action: Action, index: number) => {
         setExecutionStatus(prev => ({ ...prev, [index]: 'pending' }));
 
         try {
@@ -169,9 +188,9 @@ export default function AICommandCenter() {
                         return (
                             <button
                                 key={m.id}
-                                onClick={() => { setActiveModule(m.id as any); consultAgent(m.task); }}
+                                onClick={() => { setActiveModule(m.id as 'moderation' | 'legal' | 'business' | 'strategy'); consultAgent(m.task); }}
                                 disabled={isThinking}
-                                className={`w-full flex items-center gap-4 p-5 rounded-[2rem] border text-left transition-all ${activeModule === m.id ? 'bg-slate-900 text-white border-slate-900' : 'bg-white hover:border-indigo-200'}`}
+                                className={`w-full flex items-center gap-4 p-5 rounded-4xl border text-left transition-all ${activeModule === m.id ? 'bg-slate-900 text-white border-slate-900' : 'bg-white hover:border-indigo-200'}`}
                             >
                                 <Icon size={24} className={activeModule === m.id ? 'text-indigo-400' : m.color} />
                                 <div>
@@ -222,7 +241,7 @@ export default function AICommandCenter() {
                                                 <span className="text-[10px] font-mono text-slate-400">{action.target_id || 'N/A'}</span>
                                             </div>
                                             <p className="text-sm font-medium text-slate-800 mb-2">{action.description}</p>
-                                            {action.payload?.reason && <p className="text-xs text-slate-500 italic">"Reason: {action.payload.reason}"</p>}
+                                            {action.payload?.reason && <p className="text-xs text-slate-500 italic">&quot;Reason: {action.payload.reason}&quot;</p>}
                                         </div>
 
                                         <button

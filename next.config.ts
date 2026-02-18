@@ -21,6 +21,7 @@ const config: NextConfig = {
       { protocol: 'https', hostname: 'i.ytimg.com' },
       { protocol: 'https', hostname: '**.tmdb.org' },
       { protocol: 'https', hostname: '**.themoviedb.org' },
+      { protocol: 'https', hostname: 'images.unsplash.com' },
     ],
     deviceSizes: [640, 750, 828, 1080, 1200],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],

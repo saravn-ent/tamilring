@@ -17,6 +17,30 @@ export default function robots(): MetadataRoute.Robots {
                     '/static/',
                 ],
             },
+            {
+                userAgent: [
+                    'GPTBot',
+                    'ChatGPT-User',
+                    'Google-Extended',
+                    'CCBot',
+                    'OAI-SearchBot',
+                    'Claude-Web',
+                    'ClaudeBot',
+                    'Anthropic-AI',
+                    'PerplexityBot',
+                    'YouBot',
+                    'Meta-ExternalAgent',
+                    'Meta-ExternalFetcher',
+                    'Amazonbot',
+                    'Applebot-Extended',
+                    'Bytespider',
+                    'Diffbot',
+                    'FacebookBot',
+                    'ImagesiftBot',
+                    'cohere-ai'
+                ],
+                disallow: ['/'],
+            }
         ],
         sitemap: `${SITE_URL}/sitemap.xml`,
     };
