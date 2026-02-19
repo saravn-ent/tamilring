@@ -47,9 +47,10 @@ export async function createRingtoneRequest(formData: {
         revalidatePath('/requests');
         revalidatePath('/profile');
         return { success: true };
-    } catch (e: any) {
-        console.error('Request creation failed:', e);
-        return { success: false, error: e.message || 'Failed to create request' };
+    } catch (e) {
+        const error = e as Error;
+        console.error('Request creation failed:', error);
+        return { success: false, error: error.message || 'Failed to create request' };
     }
 }
 
@@ -68,8 +69,9 @@ export async function fulfillRequest(requestId: string) {
 
         revalidatePath('/requests');
         return { success: true };
-    } catch (e: any) {
-        return { success: false, error: e.message };
+    } catch (e) {
+        const error = e as Error;
+        return { success: false, error: error.message };
     }
 }
 
@@ -96,7 +98,8 @@ export async function deleteRequest(requestId: string) {
         revalidatePath('/requests');
         revalidatePath('/profile');
         return { success: true };
-    } catch (e: any) {
-        return { success: false, error: e.message };
+    } catch (e) {
+        const error = e as Error;
+        return { success: false, error: error.message };
     }
 }

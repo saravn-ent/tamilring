@@ -16,15 +16,9 @@ export default function SortControl() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isOpen, setIsOpen] = useState(false);
-  const [currentSort, setCurrentSort] = useState('recent');
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const sort = searchParams.get('sort');
-    if (sort) {
-      setCurrentSort(sort);
-    }
-  }, [searchParams]);
+  const currentSort = searchParams.get('sort') || 'recent';
 
   // Close dropdown when clicking outside
   useEffect(() => {

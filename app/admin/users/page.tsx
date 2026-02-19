@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import { Profile } from '@/types';
 import {
     Search, Shield,
     User as UserIcon, Loader2, Music,
-    Eye, History, Wallet, Coins, Star, CloudUpload, X, ArrowUpRight, CheckCircle
+    Eye, History, Wallet, Star, CloudUpload, X
 } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -25,12 +25,8 @@ export default function UserManagement() {
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     ), []);
 
-    useEffect(() => {
-        fetchUsers();
-    }, [supabase]);
-
-    async function fetchUsers() {
-        setLoading(true);
+    const fetchUsers = useCallback(async (isInitial = false) => {
+        if (!isInitial) setLoading(true);
         // Fetch profiles - 100 limit for now
         const { data } = await supabase
             .from('profiles')
@@ -40,7 +36,11 @@ export default function UserManagement() {
 
         if (data) setUsers(data as Profile[]);
         setLoading(false);
-    }
+    }, [supabase]);
+
+    useEffect(() => {
+        Promise.resolve().then(() => fetchUsers(true));
+    }, [fetchUsers]);
 
     const filteredUsers = users.filter(u =>
         (u.full_name?.toLowerCase() || '').includes(search.toLowerCase()) ||

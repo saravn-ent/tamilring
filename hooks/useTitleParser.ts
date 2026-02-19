@@ -47,12 +47,6 @@ export function useTitleParser(
     const requestIdRef = useRef<string | undefined>(undefined);
 
     useEffect(() => {
-        if (typeof window === 'undefined') {
-            // SSR fallback
-            setDisplayName(title);
-            return;
-        }
-
         const worker = getWorker();
         const requestId = `${title}-${Date.now()}-${Math.random()}`;
         requestIdRef.current = requestId;

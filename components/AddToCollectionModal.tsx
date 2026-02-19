@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { X, Check } from 'lucide-react';
 import { Ringtone } from '@/types';
 
@@ -25,20 +25,12 @@ interface AddToCollectionModalProps {
 }
 
 export default function AddToCollectionModal({ isOpen, onClose, ringtone }: AddToCollectionModalProps) {
-    const [collections, setCollections] = useState<CollectionItem[]>([]);
+    const [collections, setCollections] = useState<CollectionItem[]>(() => {
+        if (typeof window === 'undefined') return DEFAULT_COLLECTIONS;
+        const saved = localStorage.getItem('user_collections');
+        return saved ? JSON.parse(saved) : DEFAULT_COLLECTIONS;
+    });
     const [assignedTo, setAssignedTo] = useState<string | null>(null);
-
-    useEffect(() => {
-        if (isOpen) {
-            const saved = localStorage.getItem('user_collections');
-            if (saved) {
-                setCollections(JSON.parse(saved));
-            } else {
-                setCollections(DEFAULT_COLLECTIONS);
-                localStorage.setItem('user_collections', JSON.stringify(DEFAULT_COLLECTIONS));
-            }
-        }
-    }, [isOpen]);
 
     const handleAssign = (collectionId: string) => {
         const updated = collections.map(c => {

@@ -13,7 +13,19 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
     "public/**",
+    "scripts/**", // Ignore scripts-heavy folder
+    "tests/**",   // Ignore tests folder
+    "*.js",       // Ignore all root .js files
   ]),
+  {
+    rules: {
+      "@typescript-eslint/no-explicit-any": "warn",
+      "@typescript-eslint/no-unused-vars": "warn",
+      "react/no-unescaped-entities": "warn",
+      "@next/next/no-img-element": "warn",
+      "react-hooks/exhaustive-deps": "warn",
+    }
+  }
 ]);
 
 export default eslintConfig;

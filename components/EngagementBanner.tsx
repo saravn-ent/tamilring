@@ -1,13 +1,16 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Sparkles, X, Upload, ArrowRight } from 'lucide-react';
+import { X, Upload, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { createBrowserClient } from '@supabase/ssr';
 
 export default function EngagementBanner() {
     const [isVisible, setIsVisible] = useState(false);
-    const [isDismissed, setIsDismissed] = useState(false);
+    const [isDismissed, setIsDismissed] = useState(() => {
+        if (typeof window === 'undefined') return false;
+        return localStorage.getItem('engagement_banner_dismissed') === 'true';
+    });
     const [user, setUser] = useState<any>(null);
     const [isRewarded, setIsRewarded] = useState(false);
 
@@ -17,13 +20,6 @@ export default function EngagementBanner() {
     );
 
     useEffect(() => {
-        // 0. Check LocalStorage for dismissal
-        const dismissed = localStorage.getItem('engagement_banner_dismissed');
-        if (dismissed === 'true') {
-            setIsDismissed(true);
-            return;
-        }
-
         // 1. Check if user is logged in and already rewarded
         const checkUser = async () => {
             const { data: { user } } = await supabase.auth.getUser();

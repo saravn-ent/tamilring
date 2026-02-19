@@ -13,7 +13,7 @@ export const LEVEL_TITLES = {
 };
 
 export function getLevelTitle(level: number): string {
-    // @ts-ignore
+    // @ts-expect-error - mapping number to string
     return LEVEL_TITLES[level] || `Level ${level}`;
 }
 

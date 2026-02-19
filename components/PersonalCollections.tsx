@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { Plus, User, X, Search } from 'lucide-react';
 import { Ringtone } from '@/types';
@@ -22,20 +22,14 @@ const DEFAULT_COLLECTIONS: CollectionItem[] = [
 ];
 
 export default function PersonalCollections() {
-    const [collections, setCollections] = useState<CollectionItem[]>([]);
+    const [collections, setCollections] = useState<CollectionItem[]>(() => {
+        if (typeof window === 'undefined') return DEFAULT_COLLECTIONS;
+        const saved = localStorage.getItem('user_collections');
+        return saved ? JSON.parse(saved) : DEFAULT_COLLECTIONS;
+    });
     const [isAdding, setIsAdding] = useState(false);
     const [newLabel, setNewLabel] = useState('');
     const [newEmoji, setNewEmoji] = useState('👤');
-
-    useEffect(() => {
-        const saved = localStorage.getItem('user_collections');
-        if (saved) {
-            setCollections(JSON.parse(saved));
-        } else {
-            setCollections(DEFAULT_COLLECTIONS);
-            localStorage.setItem('user_collections', JSON.stringify(DEFAULT_COLLECTIONS));
-        }
-    }, []);
 
     const saveCollections = (newCollections: CollectionItem[]) => {
         setCollections(newCollections);

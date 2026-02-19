@@ -222,7 +222,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       const movieOrContextName = contentType === 'devotional' ? deityCategory : manualMovieName;
 
       if (movieOrContextName && segmentName) {
-        let textParts = [segmentName];
+        const textParts = [segmentName];
         if (songName) textParts.push(songName);
         textParts.push(movieOrContextName);
         activeSeoTags.forEach(tag => {
@@ -509,14 +509,14 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       // Build filter chain for fading
       // We apply 2s fade in and 2s fade out by default
       const actualDuration = duration > 0 ? duration : (trimEnd - startTime);
-      let filters = [];
+      const filters = [];
       if (applyFade && actualDuration > 4) {
         filters.push(`afade=t=in:ss=0:d=2`);
         filters.push(`afade=t=out:st=${(actualDuration - 2).toFixed(2)}:d=2`);
       }
 
       // Command args
-      let args: string[] = ['-i', inputName];
+      const args: string[] = ['-i', inputName];
 
       // Trimming
       if (duration > 0 || startTime > 0) {
@@ -703,8 +703,8 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
       // Auto-fix: If song_name is empty but the entered Ringtone Name contains a dash
       // Move the first part to song_name if it looks like one (not a tag)
-      let derivedSongName = songName;
-      let titleToSave = finalTitle;
+      const derivedSongName = songName;
+      const titleToSave = finalTitle;
 
       if (!derivedSongName && titleToSave.includes(' - ')) {
         // Since we now auto-combine, we might need to be careful here or remove this legacy logic.
