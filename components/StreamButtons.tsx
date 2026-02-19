@@ -58,7 +58,11 @@ export default function StreamButtons({
       cleanTitle
     ].filter(Boolean);
     
-    return encodeURIComponent(parts.join(' '));
+    // Join parts and replace potential URL-breaking characters (like slashes) with spaces
+    // Also normalize spaces to avoid double spaces
+    const query = parts.join(' ').replace(/[\\/]/g, ' ').replace(/\s+/g, ' ').trim();
+
+    return encodeURIComponent(query);
   };
 
   const getAppleLink = () => {

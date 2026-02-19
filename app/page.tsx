@@ -13,13 +13,13 @@ const HomeMusicDirectors = dynamic<{ lang: string }>(() => import('@/components/
 const HomeMovieDirectors = dynamic<{ lang: string }>(() => import('@/components/home/HomeTopArtists').then(m => m.HomeMovieDirectors), { ssr: true });
 const HomeDeities = dynamic<{ lang: string }>(() => import('@/components/home/HomeDeities'), { ssr: true });
 const HomeLikedSongs = dynamic(() => import('@/components/home/HomeLikedSongs'));
-const HomeTrending = dynamic<{ lang: string }>(() => import('@/components/home/HomeTrending'), { ssr: true });
+import HomeTrending from '@/components/home/HomeTrending';
 const HomeRecent = dynamic<{ lang: string }>(() => import('@/components/home/HomeRecent'), { ssr: true });
 const HomeNostalgia = dynamic<{ lang: string }>(() => import('@/components/home/HomeNostalgia'), { ssr: true });
 const HomeContributors = dynamic(() => import('@/components/home/HomeContributors'), { ssr: true });
 const HomeSEOContent = dynamic(() => import('@/components/home/HomeSEOContent'), { ssr: true });
 
-import { SectionSkeleton, HeroSkeleton } from '@/components/skeletons';
+import { SectionSkeleton } from '@/components/skeletons';
 
 
 export const revalidate = 3600; // Revalidate every hour
@@ -53,9 +53,7 @@ export default async function Home() {
       */}
 
       {/* Hero Section with Search - Now Suspended to allow Shell streaming */}
-      <Suspense fallback={<HeroSkeleton />}>
-        <HeroSearchServer />
-      </Suspense>
+      <HeroSearchServer />
 
       {/* Collections Grid - Visual Categories - Loads Instantly */}
       <CategoryGrid />
@@ -64,9 +62,7 @@ export default async function Home() {
       <EraAndInstruments />
 
       <div className="lazy-section">
-        <Suspense fallback={<SectionSkeleton type="trending" />}>
-          <HomeTrending lang={lang} />
-        </Suspense>
+        <HomeTrending lang={lang} />
       </div>
 
       <div className="lazy-section">
