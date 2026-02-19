@@ -27,7 +27,7 @@ const config: NextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     formats: ['image/webp'],
     qualities: [25, 75, 85],
-    unoptimized: false,
+    unoptimized: true,
   },
   async redirects() {
     return [

@@ -16,12 +16,12 @@ interface CategoryItem {
 
 const CATEGORIES: CategoryItem[] = [
     { id: 'valentines', label: "Valentine's", translationKey: 'valentine', icon: Heart, className: 'bg-rose-500 text-white border-rose-600 shadow-rose-200 shadow-md animate-pulse', href: '/valentines' },
-    { id: 'bgm', label: 'BGM', translationKey: 'bgm', icon: Music, className: 'bg-violet-100 text-violet-700 border-violet-200', href: '/category/bgm' },
+    { id: 'bgm', label: 'BGM', translationKey: 'bgm', icon: Music, className: 'bg-violet-100 text-violet-700 border-violet-200', href: '/mood/BGM' },
     { id: 'love', label: 'Love', translationKey: 'love', icon: Heart, className: 'bg-rose-100 text-rose-700 border-rose-200', href: '/mood/Love' },
     { id: 'mass', label: 'Mass', translationKey: 'mass', icon: Flame, className: 'bg-orange-100 text-orange-700 border-orange-200', href: '/mood/Mass' },
     { id: 'melody', label: 'Melody', translationKey: 'melody', icon: Music, className: 'bg-cyan-100 text-cyan-700 border-cyan-200', href: '/mood/Melody' },
     { id: 'sad', label: 'Sad', translationKey: 'sad', icon: CloudRain, className: 'bg-indigo-100 text-indigo-700 border-indigo-200', href: '/mood/Sad' },
-    { id: 'dialogue', label: 'Dialogue', translationKey: 'dialogue', icon: MessageCircle, className: 'bg-blue-100 text-blue-700 border-blue-200', href: '/category/dialogue' },
+    { id: 'dialogue', label: 'Dialogue', translationKey: 'dialogue', icon: MessageCircle, className: 'bg-blue-100 text-blue-700 border-blue-200', href: '/mood/Dialogue' },
     { id: 'devotional', label: 'Devotional', translationKey: 'devotional', icon: Zap, className: 'bg-emerald-100 text-emerald-700 border-emerald-200', href: '/mood/Devotional' },
     { id: 'remix', label: 'Remix', translationKey: 'remix', icon: Star, className: 'bg-fuchsia-100 text-fuchsia-700 border-fuchsia-200', href: '/mood/Remix' },
 ];
