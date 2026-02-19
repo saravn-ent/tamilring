@@ -44,6 +44,7 @@ export default function StreamButtons({
 
   // --- Link Generation Logic ---
 
+  // Fix for Spotify search query encoding
   const getCleanQuery = () => {
     // Clean up song title (remove extra descriptors)
     const cleanTitle = songTitle.replace(/\(From.*?\)/gi, '').trim();
