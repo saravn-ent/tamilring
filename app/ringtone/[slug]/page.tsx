@@ -213,17 +213,6 @@ export default async function RingtonePage({ params }: Props) {
                 <DownloadButton ringtone={ringtone} />
               </div>
             </div>
-            
-            {/* Adsterra Smart Link - Secondary Download */}
-            <a 
-              href="https://archaicmsflip.com/qz0pjyu8?key=e82880343c25413ced0e2df144a93900" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 text-sm font-medium text-brand-accent hover:text-brand-dark transition-colors border border-brand-accent/20 hover:border-brand-accent/40 rounded-lg px-4 py-2 bg-brand-accent/5 hover:bg-brand-accent/10"
-            >
-              <Download size={16} strokeWidth={2} />
-              <span>Mirror Download (Support Us)</span>
-            </a>
           </div>
 
           {/* Social Proof Badge */}

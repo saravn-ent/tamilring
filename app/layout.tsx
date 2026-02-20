@@ -106,12 +106,6 @@ export default async function RootLayout({
           strategy="lazyOnload"
         />
 
-        {/* Adsterra Popunder */}
-        <Script
-          id="adsterra-popunder"
-          src="https://archaicmsflip.com/c1/5a/9f/c15a9ffe85c9eb11538a47b0e0bb3f1d.js"
-          strategy="lazyOnload"
-        />
       </head>
       <body
         className={`${jakarta.className} font-sans antialiased scrollbar-hide transition-colors duration-300 bg-background text-foreground`}
