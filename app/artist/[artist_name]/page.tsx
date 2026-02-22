@@ -7,20 +7,31 @@ import SortControl from '@/components/SortControl';
 import ViewToggle from '@/components/ViewToggle';
 import { getArtistBio } from '@/lib/constants';
 import { Metadata } from 'next';
-import { generateArtistMetadata } from '@/lib/seo';
+import { generateArtistMetadata, generatePersonSchema, generateBreadcrumbSchema, combineSchemas } from '@/lib/seo';
 import ArtistRingtonesList from '@/components/artist/ArtistRingtonesList';
 import { Suspense } from 'react';
 import { RingtoneGridSkeleton } from '@/components/skeletons';
 import { Ringtone } from '@/types';
+import StructuredData from '@/components/StructuredData';
 
 export async function generateMetadata({ params }: { params: Promise<{ artist_name: string }> }): Promise<Metadata> {
   const { artist_name } = await params;
   const artistName = decodeURIComponent(artist_name);
+  
+  // Use TMDB data for better metadata (cached by Next.js fetch revalidate)
+  const person = await searchPerson(artistName);
 
-  // Basic metadata without heavy fetching
+  let role: 'singer' | 'music_director' | 'movie_director' = 'singer';
+  if (person?.known_for_department === 'Sound' || person?.known_for_department === 'Composing') {
+    role = 'music_director';
+  } else if (person?.known_for_department === 'Directing') {
+    role = 'movie_director';
+  }
+
   return generateArtistMetadata({
     name: artistName,
-    role: 'singer', // Default
+    role,
+    image_url: person?.profile_path || undefined
   });
 }
 
@@ -50,11 +61,12 @@ export default async function ArtistPage({
     artistType = 'Lyricist';
   }
 
-  // Build role-specific query to avoid name collisions
-  // (e.g., "Vivek" the actor vs "Vivek" the lyricist)
+  // ... (rest of the component logic)
+
+  // Combined logic for search/bio
+  // Query ringtones with role-specific filter
   let roleSpecificQuery;
   if (artistType === 'Actor') {
-    // For actors, only search cast_members (we'll add movie-based ringtones separately)
     roleSpecificQuery = `cast_members.ilike.%${artistName}%`;
   } else if (artistType === 'Music Director') {
     roleSpecificQuery = `music_director.ilike.%${artistName}%`;
@@ -63,11 +75,9 @@ export default async function ArtistPage({
   } else if (artistType === 'Lyricist') {
     roleSpecificQuery = `lyricist.ilike.%${artistName}%`;
   } else {
-    // Singer or unknown - search singers field
     roleSpecificQuery = `singers.ilike.%${artistName}%`;
   }
 
-  // Query ringtones with role-specific filter
   const { data: ringtoneData } = await supabase
     .from('ringtones')
     .select('*')
@@ -75,7 +85,6 @@ export default async function ArtistPage({
     .or(roleSpecificQuery)
     .limit(100);
 
-  // Filter precisely
   const searchLow = artistName.toLowerCase().trim();
   const ringtones = (ringtoneData || []).filter(r => {
     const checkMatch = (str: string | undefined | null) => {
@@ -84,21 +93,13 @@ export default async function ArtistPage({
       return parts.includes(searchLow);
     };
 
-    // Only check the role-specific field
-    if (artistType === 'Actor') {
-      return checkMatch(r.cast_members);
-    } else if (artistType === 'Music Director') {
-      return checkMatch(r.music_director);
-    } else if (artistType === 'Movie Director') {
-      return checkMatch(r.movie_director);
-    } else if (artistType === 'Lyricist') {
-      return checkMatch(r.lyricist);
-    } else {
-      return checkMatch(r.singers);
-    }
+    if (artistType === 'Actor') return checkMatch(r.cast_members);
+    if (artistType === 'Music Director') return checkMatch(r.music_director);
+    if (artistType === 'Movie Director') return checkMatch(r.movie_director);
+    if (artistType === 'Lyricist') return checkMatch(r.lyricist);
+    return checkMatch(r.singers);
   });
 
-  // If Actor, fetch movie credits to find additional ringtones by movie association
   let movieTitles: string[] = [];
   let actorMovieRingtones: Ringtone[] = [];
 
@@ -111,7 +112,6 @@ export default async function ArtistPage({
           .slice(0, 100)
           .map(m => m.title);
 
-        // Fetch ringtones from actor's movies
         if (movieTitles.length > 0) {
           const { data } = await supabase
             .from('ringtones')
@@ -127,7 +127,6 @@ export default async function ArtistPage({
     }
   }
 
-  // Merge and deduplicate ringtones (same logic as ArtistRingtonesList)
   const combined = [...ringtones, ...actorMovieRingtones];
   const uniqueMap = new Map();
   combined.forEach(item => uniqueMap.set(item.id, item));
@@ -137,15 +136,32 @@ export default async function ArtistPage({
     ? getImageUrl(person.profile_path, 'w185')
     : null;
 
-  // Get artist bio
   const artistBio = getArtistBio(artistName);
 
   if (allRingtones.length === 0) {
     notFound();
   }
 
+  // Generate Structured Data
+  const personSchema = generatePersonSchema({
+    name: artistName,
+    image_url: artistImage || undefined,
+    role: artistType.toLowerCase().replace(' ', '_') as any,
+    description: artistBio
+  });
+
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: 'Artists', url: '/categories' },
+    { name: artistName, url: `/artist/${encodeURIComponent(artistName)}` },
+  ]);
+
+  const combinedSchema = combineSchemas(personSchema, breadcrumbSchema);
+
   return (
     <div className="max-w-md md:max-w-4xl lg:max-w-6xl mx-auto pb-24">
+      <StructuredData data={combinedSchema} />
+      
       {/* Sticky Compact Profile Header - Loads Instantly */}
       <CompactProfileHeader
         name={artistName}

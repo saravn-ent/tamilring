@@ -673,28 +673,36 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       // 1. Upload MP3
       setLoadingMessage('Uploading MP3...');
       console.log('Starting MP3 upload...');
-      const mp3Name = `${baseName}.mp3`;
+      const mp3Path = `${userId}/${baseName}.mp3`;
       const { error: mp3Error } = await supabase.storage
         .from('ringtone-files')
-        .upload(mp3Name, mp3Blob);
+        .upload(mp3Path, mp3Blob, {
+          contentType: 'audio/mpeg',
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (mp3Error) {
         console.error('MP3 Upload Error:', mp3Error);
         throw new Error(`MP3 Upload failed: ${mp3Error.message}`);
       }
       console.log('MP3 upload done');
-      const { data: { publicUrl: mp3Url } } = supabase.storage.from('ringtone-files').getPublicUrl(mp3Name);
+      const { data: { publicUrl: mp3Url } } = supabase.storage.from('ringtone-files').getPublicUrl(mp3Path);
 
       // 2. Upload M4R
       if (m4rBlob) {
         setLoadingMessage('Uploading iPhone version...');
-        const m4rName = `${baseName}.m4r`;
+        const m4rPath = `${userId}/${baseName}.m4r`;
         const { error: m4rError } = await supabase.storage
           .from('ringtone-files')
-          .upload(m4rName, m4rBlob);
+          .upload(m4rPath, m4rBlob, {
+            contentType: 'audio/x-m4r',
+            cacheControl: '3600',
+            upsert: false
+          });
 
         if (!m4rError) {
-          const { data: { publicUrl } } = supabase.storage.from('ringtone-files').getPublicUrl(m4rName);
+          const { data: { publicUrl } } = supabase.storage.from('ringtone-files').getPublicUrl(m4rPath);
           iphoneUrl = publicUrl;
         }
       }
@@ -902,18 +910,26 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
         if (userId) {
           try {
             // 1. Process Auto-Approval Rewards (Points + Badges)
-            await processAutoApproval(userId);
+            // ONLY if NOT flagged for duplicate (duplicateWarning is null)
+            if (!duplicateWarning) {
+              await processAutoApproval(userId);
+            }
 
             // 2. Check First Upload Reward
             const rewardRes = await handleUploadReward(userId);
-            if (rewardRes.success && rewardRes.bonusGiven) {
+            
+            if (duplicateWarning) {
+              alert('Ringtone submitted for review! It was flagged as a potential duplicate and will be live once approved by a moderator.');
+            } else if (rewardRes.success && rewardRes.bonusGiven) {
               alert('🎉 BINGO! You earned 15 Reputation Points (₹15) for your first upload! Go to your Profile to withdraw it instantly to your UPI.');
             } else {
               alert('Ringtone uploaded successfully! It is now live on the site.');
             }
           } catch (rewardErr) {
             console.warn("Reward processing failed", rewardErr);
-            alert('Ringtone uploaded successfully! It is now live on the site.');
+            alert(duplicateWarning 
+              ? 'Ringtone submitted for review!' 
+              : 'Ringtone uploaded successfully! It is now live on the site.');
           }
         } else {
           alert('Ringtone uploaded successfully! It is now live on the site.');

@@ -3,7 +3,8 @@ export const revalidate = 3600;
 import CompactProfileHeader from '@/components/CompactProfileHeader';
 import SortControl from '@/components/SortControl';
 import { Metadata } from 'next';
-import { generateDeityMetadata } from '@/lib/seo';
+import { generateDeityMetadata, generateBreadcrumbSchema } from '@/lib/seo';
+import StructuredData from '@/components/StructuredData';
 import DeityRingtonesList from '@/components/devotional/DeityRingtonesList';
 import { Suspense } from 'react';
 import { RingtoneGridSkeleton } from '@/components/skeletons';
@@ -73,8 +74,6 @@ export default async function DeityPage({
         imageUrl = data?.[0]?.poster_url;
     }
 
-    // We can't get count efficiently from just one select usually unless we use count(), but let's just let the list component handle showing items.
-    // However, CompactProfileHeader likes a count.
     // Quick count query
     const { count } = await supabase
         .from('ringtones')
@@ -85,8 +84,15 @@ export default async function DeityPage({
 
     const ringCount = count || 0;
 
+    const breadcrumbSchema = generateBreadcrumbSchema([
+        { name: 'Home', url: '/' },
+        { name: 'Devotional', url: '/categories' },
+        { name: deityName, url: `/devotional/${encodeURIComponent(deityName)}` },
+    ]);
+
     return (
         <div className="max-w-md mx-auto pb-24">
+            <StructuredData data={breadcrumbSchema} />
             {/* Sticky Compact Profile Header - Loads Instantly */}
             <CompactProfileHeader
                 name={deityName}
@@ -101,7 +107,6 @@ export default async function DeityPage({
 
             {/* Sticky Controls Bar - Minimal, no View Toggle as it's not needed for Deities usually */}
             <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-brand-border px-4 py-3 shadow-md flex items-center justify-end gap-2">
-                {/* We hide ViewToggle as we only have one view for now */}
                 <SortControl />
             </div>
 

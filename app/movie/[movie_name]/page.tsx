@@ -66,29 +66,42 @@ export default async function MoviePage({
   const movieName = decodeURIComponent(movie_name);
   const currentPage = page ? parseInt(page) : 1;
 
-  // Quick fetch for Movie Header Details (Single row)
-  const { data: movieData } = await supabase
-    .from('ringtones')
-    .select('movie_year, poster_url, backdrop_url, music_director, movie_director')
-    .eq('status', 'approved')
-    .eq('movie_name', movieName)
-    .limit(1)
-    .maybeSingle();
+  // Fetch movie details with caching (Shared with generateMetadata)
+  const movieData = await cacheGetOrSet(
+    CacheKeys.movie.byName(movieName),
+    async () => {
+      const { data } = await supabase
+        .from('ringtones')
+        .select('movie_year, music_director, movie_director, poster_url, backdrop_url')
+        .eq('status', 'approved')
+        .eq('movie_name', movieName)
+        .limit(1)
+        .maybeSingle();
+      return data;
+    },
+    { ttl: CacheTTL.movie.details }
+  );
 
   if (!movieData) {
     notFound();
   }
 
   // Generate structured data
-  // Note: We can't list all ringtones in schema efficiently without fetching them, 
-  // but for "blink of eye" loading, we prioritize the page render. 
-  // We'll generate basic Breadcrumb only for now to save time, or use the movieData.
+  const movieSchema = generateMovieSchema({
+    name: movieName,
+    poster_url: movieData.poster_url,
+    year: movieData.movie_year,
+    director: movieData.movie_director,
+    music_director: movieData.music_director,
+  });
 
   const breadcrumbSchema = generateBreadcrumbSchema([
     { name: 'Home', url: '/' },
     { name: 'Categories', url: '/categories' },
     { name: movieName, url: `/movie/${encodeURIComponent(movieName)}` },
   ]);
+
+  const combinedSchema = combineSchemas(movieSchema, breadcrumbSchema);
 
   return (
     <div className="max-w-md mx-auto">
@@ -156,7 +169,7 @@ export default async function MoviePage({
       </div>
 
       {/* Structured Data */}
-      <StructuredData data={breadcrumbSchema} />
+      <StructuredData data={combinedSchema} />
     </div>
   );
 }

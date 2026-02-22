@@ -31,51 +31,15 @@ export const viewport: Viewport = {
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tamilring.in';
 
+import { generateOrganizationSchema, generateWebSiteSchema } from "@/lib/seo/structured-data";
+import StructuredData from "@/components/StructuredData";
+
 // Enhanced metadata using our SEO system
 export const metadata: Metadata = {
   ...generateBaseMetadata(),
-  description: "Download high quality Tamil ringtones, BGM, and love songs.",
-  keywords: [
-    "tamil ringtones", "bgm download", "tamil cut songs", "latest tamil ringtones", "iphone ringtones",
-    "love bgm", "mass bgm", "ringtone tamil",
-    "tamil love songs", "south indian ringtones", "tamil movie ringtones", "devotional ringtones",
-    "tamil cinema music", "kollywood ringtones"
-  ],
-  openGraph: {
-    title: 'TamilRing - Tamil Ringtones & Music',
-    description: 'Download the latest Tamil movie ringtones, devotional songs, and music. High-quality ringtones from Tamil cinema.',
-    url: SITE_URL,
-    siteName: 'TamilRing',
-    locale: 'en_US',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'TamilRing - Tamil Ringtones & Music',
-    description: 'Download the latest Tamil movie ringtones, devotional songs, and music.',
-    creator: '@tamilring',
-    site: '@tamilring',
-  },
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "TamilRing",
-  },
-  formatDetection: {
-    telephone: false,
-    email: false,
-    address: false,
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
+  title: {
+    default: "TamilRing - Download Best Tamil Ringtones & BGM",
+    template: "%s | TamilRing",
   },
 };
 
@@ -86,15 +50,15 @@ import { Suspense } from "react";
 import ThemeFix from "@/components/ThemeFix";
 import MainLayout from "@/components/MainLayout";
 
-
-
-
 // Force Rebuild - Fix Hydration V2
 export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const orgSchema = generateOrganizationSchema();
+  const websiteSchema = generateWebSiteSchema();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -105,7 +69,6 @@ export default async function RootLayout({
           crossOrigin="anonymous"
           strategy="lazyOnload"
         />
-
       </head>
       <body
         className={`${jakarta.className} font-sans antialiased scrollbar-hide transition-colors duration-300 bg-background text-foreground`}
@@ -180,50 +143,11 @@ export default async function RootLayout({
               </LanguageProvider>
             </FavoritesProvider>
           </PlayerProvider>
-          {/* Global Schema for AEO/SEO */}
-          <script
-            type="application/ld+json"
-            suppressHydrationWarning
-            dangerouslySetInnerHTML={{
-              __html: JSON.stringify({
-                "@context": "https://schema.org",
-                "@graph": [
-                  {
-                    "@type": "Organization",
-                    "@id": "https://tamilring.in/#organization",
-                    "name": "TamilRing",
-                    "url": "https://tamilring.in",
-                    "logo": {
-                      "@type": "ImageObject",
-                      "url": "https://tamilring.in/icons/icon-512x512.png",
-                      "width": 512,
-                      "height": 512
-                    },
-                    "sameAs": [
-                      "https://twitter.com/tamilring",
-                      "https://instagram.com/tamilring"
-                    ]
-                  },
-                  {
-                    "@type": "WebSite",
-                    "@id": "https://tamilring.in/#website",
-                    "url": "https://tamilring.in",
-                    "name": "TamilRing",
-                    "publisher": {
-                      "@id": "https://tamilring.in/#organization"
-                    },
-                    "potentialAction": {
-                      "@type": "SearchAction",
-                      "target": "https://tamilring.in/search?q={search_term_string}",
-                      "query-input": "required name=search_term_string"
-                    }
-                  }
-                ]
-              })
-            }}
-          />
+          {/* Global Schemas for SEO/AEO */}
+          <StructuredData data={orgSchema} />
+          <StructuredData data={websiteSchema} />
         </ThemeProvider>
       </body>
-    </html >
+    </html>
   );
 }

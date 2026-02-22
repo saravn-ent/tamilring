@@ -1,7 +1,8 @@
 import { supabase } from '@/lib/supabaseClient';
 import { unstable_cache } from 'next/cache';
 import DiscoveryContainer from '@/components/DiscoveryContainer';
-import { generateCategoryMetadata } from '@/lib/seo';
+import { generateCategoryMetadata, generateBreadcrumbSchema } from '@/lib/seo';
+import StructuredData from '@/components/StructuredData';
 
 export const metadata = generateCategoryMetadata();
 
@@ -56,5 +57,15 @@ const getFeaturedArtists = unstable_cache(
 export default async function DiscoveryHub() {
   const featuredArtists = await getFeaturedArtists();
 
-  return <DiscoveryContainer featuredArtists={featuredArtists} />;
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: 'Categories', url: '/categories' },
+  ]);
+
+  return (
+    <>
+      <StructuredData data={breadcrumbSchema} />
+      <DiscoveryContainer featuredArtists={featuredArtists} />
+    </>
+  );
 }
