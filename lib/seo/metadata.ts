@@ -212,6 +212,7 @@ export function generateHomeMetadata(): Metadata {
  */
 export function generateRingtoneMetadata(ringtone: {
     title: string;
+    song_name?: string;
     movie_name?: string;
     singers?: string;
     music_director?: string;
@@ -223,19 +224,38 @@ export function generateRingtoneMetadata(ringtone: {
     const singers = ringtone.singers || 'Unknown Artist';
     const movie = ringtone.movie_name || '';
     const musicDirector = ringtone.music_director || '';
+    const songName = ringtone.song_name || '';
 
-    const title = movie
-        ? `${ringtone.title} - ${movie} Ringtone`
-        : `${ringtone.title} Ringtone`;
+    // Avoid repeating movie/song name in the title when they're the same as the ringtone title
+    const titleLower = ringtone.title.toLowerCase().trim();
+    const movieLower = movie.toLowerCase().trim();
+    const songLower = songName.toLowerCase().trim();
+
+    // Build a clean display title: avoid "Aa Kaalam - Aa Kaalam Ringtone" repetition
+    const titleIsSameAsMovie = titleLower === movieLower || movieLower.includes(titleLower);
+    const titleIsSameAsSong = songLower && (titleLower === songLower || songLower.includes(titleLower));
+
+    let title: string;
+    if (movie && !titleIsSameAsMovie) {
+        // e.g. "Pallavi - Aa Kaalam Ringtone"
+        title = `${ringtone.title} - ${movie} Ringtone`;
+    } else if (songName && !titleIsSameAsSong) {
+        // e.g. "Aa Kaalam (Pallavi) Ringtone"
+        title = `${songName} - ${ringtone.title} Ringtone`;
+    } else {
+        // Fallback: just use movie name once
+        title = movie ? `${movie} Ringtone` : `${ringtone.title} Ringtone`;
+    }
 
     const description = movie
-        ? `Download ${ringtone.title} ringtone from ${movie}. Sung by ${singers}${musicDirector ? `, Music by ${musicDirector}` : ''}. High-quality Tamil ringtone free download.`
+        ? `Download ${songName || ringtone.title} ringtone from ${movie}. Sung by ${singers}${musicDirector ? `, Music by ${musicDirector}` : ''}. High-quality Tamil ringtone free download.`
         : `Download ${ringtone.title} ringtone by ${singers}. High-quality Tamil ringtone free download.`;
 
     const keywords = [
         ringtone.title,
         `${ringtone.title} ringtone`,
-        movie ? `${movie} ringtone` : '',
+        movie && !titleIsSameAsMovie ? `${movie} ringtone` : '',
+        songName && !titleIsSameAsSong ? songName : '',
         singers,
         musicDirector,
         'tamil ringtone',

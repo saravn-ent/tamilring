@@ -220,17 +220,33 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       const movieOrContextName = contentType === 'devotional' ? deityCategory : manualMovieName;
 
       if (movieOrContextName && segmentName) {
-        const textParts = [segmentName];
-        if (songName) textParts.push(songName);
-        textParts.push(movieOrContextName);
+        // Build slug parts — deduplicate to avoid repetition like "aa-kaalam-aa-kaalam-aa-kaalam"
+        const toSlugPart = (text: string) => text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+        const segmentSlug = toSlugPart(segmentName);
+        const songSlug = songName ? toSlugPart(songName) : '';
+        const movieSlug = toSlugPart(movieOrContextName);
+
+        const parts: string[] = [segmentSlug];
+
+        // Only add song slug if it's not already fully contained within segment slug
+        if (songSlug && !segmentSlug.includes(songSlug) && !songSlug.includes(segmentSlug)) {
+          parts.push(songSlug);
+        }
+
+        // Only add movie slug if it's not already contained in segment or song portions
+        const existingText = parts.join('-');
+        if (!existingText.includes(movieSlug) && !movieSlug.includes(segmentSlug)) {
+          parts.push(movieSlug);
+        }
+
+        // Add SEO tags not already in segment name
         activeSeoTags.forEach(tag => {
           if (!segmentName.toLowerCase().includes(tag.toLowerCase())) {
-            textParts.push(tag);
+            parts.push(toSlugPart(tag));
           }
         });
 
-        const text = textParts.join(' ');
-        const newSlug = text.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+        const newSlug = parts.join('-').replace(/-+/g, '-').replace(/(^-|-$)+/g, '');
         setSlug(newSlug);
 
         setIsCheckingDuplicate(true);
@@ -1301,14 +1317,38 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
           </div>
 
           <div>
-            <label className="block text-xs text-zinc-500 mb-1 ml-1 font-bold uppercase tracking-wider">Ringtone Name</label>
+            <label className="block text-xs text-zinc-500 mb-1 ml-1 font-bold uppercase tracking-wider">Segment Name</label>
             <input
               type="text"
               value={segmentName}
               onChange={(e) => setSegmentName(e.target.value.replace(/[()]/g, ''))}
-              placeholder="e.g., BGM, Whistle, Lyrics..."
-              className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-brand-accent transition-colors font-medium placeholder:text-zinc-400"
+              placeholder="e.g., BGM, Whistle, Pallavi, Chorus..."
+              className={`w-full bg-brand-wash border rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-brand-accent transition-colors font-medium placeholder:text-zinc-400 ${
+                segmentName && songName &&
+                segmentName.toLowerCase().trim() === songName.toLowerCase().trim()
+                  ? 'border-amber-400 bg-amber-50'
+                  : 'border-brand-border'
+              }`}
             />
+            {segmentName && songName &&
+             segmentName.toLowerCase().trim() === songName.toLowerCase().trim() && (
+              <div className="mt-2 p-3 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-800">
+                <p className="font-black mb-1">⚠️ Segment name is the same as the song name &ldquo;{songName}&rdquo;.</p>
+                <p className="font-medium">This creates a repetitive SEO URL. Please describe which part of the song this is:</p>
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {["Pallavi", "Anupallavi", "Charanam", "BGM", "Chorus", "Whistle", "Intro", "Interlude", "Humming"].map(s => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setSegmentName(s)}
+                      className="px-2 py-1 rounded-lg bg-amber-100 border border-amber-300 text-amber-900 font-bold hover:bg-amber-200 transition-colors text-[11px]"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
 
@@ -1703,19 +1743,43 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
             </div>
           )}
 
-          {/* 3. Ringtone Name (Always Visible if Selected/Manual) */}
+          {/* 3. Segment Name (Always Visible if Selected/Manual) */}
           {isAlbumSongSelected && (
             <div className="animate-in fade-in slide-in-from-top-4 duration-500">
               <div className="mb-4">
-                <label className="block text-xs text-zinc-500 mb-1 ml-1 font-bold uppercase tracking-wider">Ringtone Name</label>
+                <label className="block text-xs text-zinc-500 mb-1 ml-1 font-bold uppercase tracking-wider">Segment Name</label>
                 <input
                   type="text"
                   value={segmentName}
                   onChange={(e) => setSegmentName(e.target.value.replace(/[()]/g, ''))}
                   placeholder="e.g., Pallavi, Charanam, BGM..."
-                  className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-brand-accent transition-colors font-medium placeholder:text-zinc-400"
+                  className={`w-full bg-brand-wash border rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-brand-accent transition-colors font-medium placeholder:text-zinc-400 ${
+                    segmentName && songName &&
+                    segmentName.toLowerCase().trim() === songName.toLowerCase().trim()
+                      ? 'border-amber-400 bg-amber-50'
+                      : 'border-brand-border'
+                  }`}
                   autoFocus
                 />
+                {segmentName && songName &&
+                 segmentName.toLowerCase().trim() === songName.toLowerCase().trim() && (
+                  <div className="mt-2 p-3 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-800">
+                    <p className="font-black mb-1">⚠️ Segment name is the same as the song name &ldquo;{songName}&rdquo;.</p>
+                    <p className="font-medium">This creates a repetitive SEO URL. Please describe which part of the song this is:</p>
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {["Pallavi", "Anupallavi", "Charanam", "BGM", "Chorus", "Whistle", "Intro", "Interlude", "Humming"].map(s => (
+                        <button
+                          key={s}
+                          type="button"
+                          onClick={() => setSegmentName(s)}
+                          className="px-2 py-1 rounded-lg bg-amber-100 border border-amber-300 text-amber-900 font-bold hover:bg-amber-200 transition-colors text-[11px]"
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -1985,14 +2049,38 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
           </div>
 
           <div>
-            <label className="block text-xs text-zinc-500 mb-1 ml-1 font-bold uppercase tracking-wider">Ringtone Name</label>
+            <label className="block text-xs text-zinc-500 mb-1 ml-1 font-bold uppercase tracking-wider">Segment Name</label>
             <input
               type="text"
               value={segmentName}
               onChange={(e) => setSegmentName(e.target.value.replace(/[()]/g, ''))}
               placeholder="e.g., Pallavi, Charanam, BGM..."
-              className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-brand-accent transition-colors font-medium placeholder:text-zinc-400"
+              className={`w-full bg-brand-wash border rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-brand-accent transition-colors font-medium placeholder:text-zinc-400 ${
+                segmentName && songName &&
+                segmentName.toLowerCase().trim() === songName.toLowerCase().trim()
+                  ? 'border-amber-400 bg-amber-50'
+                  : 'border-brand-border'
+              }`}
             />
+            {segmentName && songName &&
+             segmentName.toLowerCase().trim() === songName.toLowerCase().trim() && (
+              <div className="mt-2 p-3 bg-amber-50 border border-amber-300 rounded-xl text-xs text-amber-800">
+                <p className="font-black mb-1">⚠️ Segment name is the same as the song name &ldquo;{songName}&rdquo;.</p>
+                <p className="font-medium">This creates a repetitive SEO URL. Please describe which part of the song this is:</p>
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {["Pallavi", "Anupallavi", "Charanam", "BGM", "Chorus", "Whistle", "Intro", "Interlude", "Humming"].map(s => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setSegmentName(s)}
+                      className="px-2 py-1 rounded-lg bg-amber-100 border border-amber-300 text-amber-900 font-bold hover:bg-amber-200 transition-colors text-[11px]"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
 
