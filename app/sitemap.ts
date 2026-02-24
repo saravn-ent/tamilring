@@ -64,6 +64,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             lastModified: new Date(),
             changeFrequency: 'yearly',
             priority: 0.3,
+        },
+        {
+            url: `${SITE_URL}/directory`,
+            lastModified: new Date(),
+            changeFrequency: 'daily',
+            priority: 0.9,
         }
     );
 

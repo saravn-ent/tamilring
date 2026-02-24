@@ -2,15 +2,15 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Upload, Search, Music, Check, Loader2, X, RefreshCw, CircleAlert, Film, ChevronDown, Wand2, ArrowRight, Sparkles, Heart, Pencil, Scissors } from 'lucide-react';
+import { Upload, Search, Music, Check, Loader2, X, RefreshCw, CircleAlert, Film, ChevronDown, Sparkles, Heart, Pencil } from 'lucide-react';
 import ArtistAutocomplete from './ArtistAutocomplete';
 
-import { searchMovies, MovieResult, getImageUrl, getMovieCredits, TMDB_GENRE_TO_TAG } from '@/lib/tmdb';
+import { searchMovies, MovieResult, getImageUrl, getMovieCredits } from '@/lib/tmdb';
 import { getSongsByMovie, iTunesRing, searchRings } from '@/lib/itunes';
 import { createBrowserClient } from '@supabase/ssr';
 import { notifyAdminOnUpload, processAutoApproval } from '@/app/actions/ringtones';
 import { handleUploadReward } from '@/app/actions/user';
-import { MOODS, DEITY_CATEGORIES } from '@/lib/constants';
+import { DEITY_CATEGORIES } from '@/lib/constants';
 import { generateAcousticFingerprint } from '@/lib/audio-utils';
 import Image from 'next/image';
 import ImageWithFallback from './ImageWithFallback';
@@ -19,13 +19,13 @@ import { Turnstile } from '@marsidev/react-turnstile';
 import { validateCaptcha } from '@/app/actions/security';
 
 const TAG_CATEGORIES = {
-  "Moods": ["Love", "Sad", "Mass", "BGM", "Motivational", "Devotional", "Funny"],
+  "Moods": ["Love", "Sad", "Mass", "BGM", "Motivational", "Devotional", "Funny", "Melody"],
   "Types": ["Vocal", "Instrumental", "Interlude", "Humming", "Dialogue", "Remix", "8D Audio", "Intro", "Chorus", "Slowed + Reverb", "Cover", "Lo-fi"],
   "Vocals": ["Male", "Female", "Duet"],
   "Instruments": ["Flute", "Violin", "Guitar", "Piano", "Keyboard", "Whistle", "Saxophone", "Veena", "Drums", "Trumpet", "Nadaswaram", "Sitar", "Tabla", "Mridangam", "Harmonica", "Cello"]
 };
 
-const SEGMENT_SUGGESTIONS = ["Pallavi", "Charanam", "BGM", "Whistle", "Flute Version", "Violin Version", "Climax BGM", "Intro", "Interlude"];
+
 
 interface UploadFormProps {
   userId?: string;
@@ -44,7 +44,6 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
   const [step, setStep] = useState(1);
   const [file, setFile] = useState<File | null>(null);
-  const [trimStart, setTrimStart] = useState(0);
   const [trimEnd, setTrimEnd] = useState(0);
 
   // Content Type Selection
@@ -58,8 +57,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
   const [userId, setUserId] = useState<string | null>(propUserId || null);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const ffmpegRef = useRef<any>(null);
-  const [ffmpegLoaded, setFfmpegLoaded] = useState(false);
+  const ffmpegRef = useRef<Record<string, any> | null>(null);
   const [isAuthChecking, setIsAuthChecking] = useState(!propUserId);
 
   useEffect(() => {
@@ -83,7 +81,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       }
     };
     getUser();
-  }, [propUserId]);
+  }, [propUserId, DEV_MODE, supabase.auth]);
 
   const [songName, setSongName] = useState('');
   const [segmentName, setSegmentName] = useState(''); // e.g., "Pallavi", "BGM"
@@ -147,13 +145,13 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
           .eq('status', 'approved');
 
         if (data) {
-          const names = Array.from(new Set(data.map((d: any) => d.movie_name).filter(Boolean)));
-          setKnownDeities(names.sort() as string[]);
+          const names = Array.from(new Set(data.map((d: { movie_name: string }) => d.movie_name).filter(Boolean)));
+          setKnownDeities(names.sort());
         }
       };
       fetchDeities();
     }
-  }, [step, contentType]);
+  }, [step, contentType, supabase]);
 
   // STEP 3 EFFECT: Fetch Songs
   useEffect(() => {
@@ -174,7 +172,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
             collectionName: selectedMovie.title,
             previewUrl: '',
             musicDirector: item.music_director
-          } as any));
+          } as iTunesRing));
 
           const seen = new Set();
           const merged = [...itunesSongs, ...communitySongs].filter(song => {
@@ -193,7 +191,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       }
       fetchSongs();
     }
-  }, [step, selectedMovie]);
+  }, [step, selectedMovie, supabase]);
 
   // DEVOTIONAL EFFECT
   useEffect(() => {
@@ -247,10 +245,10 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
           }
 
           // 2. Perform Advanced Duplicate Search (RPC)
-          const { data: matches, error: rpcError } = await supabase.rpc('check_for_duplicates', {
+          const { data: matches } = await supabase.rpc('check_for_duplicates', {
             p_title: segmentName,
             p_movie_name: movieOrContextName,
-            p_duration: Math.round(trimEnd - trimStart),
+            p_duration: Math.round(trimEnd),
             p_audio_hash: fileHash,
             p_acoustic_fingerprint: acousticFingerprint
           });
@@ -275,7 +273,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
     };
     const timer = setTimeout(generateAndCheckSlug, 500);
     return () => clearTimeout(timer);
-  }, [songName, manualMovieName, segmentName, contentType, deityCategory, selectedTags, fileHash, acousticFingerprint]);
+  }, [songName, manualMovieName, segmentName, contentType, deityCategory, selectedTags, fileHash, acousticFingerprint, trimEnd, supabase]);
 
   const isVocalSelected = selectedTags.includes('Vocal');
   const isInstrumentalSelected = selectedTags.includes('Instrumental');
@@ -353,11 +351,11 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
     if (changed) {
       setSelectedTags(Array.from(new Set(newTags)));
     }
-  }, [segmentName]);
+  }, [segmentName, selectedTags]);
 
   const loadFFmpeg = async () => {
-    if (ffmpegRef.current && ffmpegRef.current.isLoaded()) return ffmpegRef.current;
-    const FFmpeg = (window as any).FFmpeg;
+  if (ffmpegRef.current && (ffmpegRef.current as Record<string, unknown> & { isLoaded: () => boolean }).isLoaded()) return ffmpegRef.current;
+  const FFmpeg = (window as Window & { FFmpeg?: { createFFmpeg: (opts: Record<string, unknown>) => Record<string, unknown>, fetchFile: (file: File | Blob) => Promise<Uint8Array> } }).FFmpeg;
     if (!FFmpeg) throw new Error('Audio processor component not loaded. Please refresh the page.');
     try {
       const { createFFmpeg } = FFmpeg;
@@ -369,19 +367,22 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
         });
       }
       const ffmpeg = ffmpegRef.current;
-      if (!ffmpeg.isLoaded()) await ffmpeg.load();
-      setFfmpegLoaded(true);
-      return ffmpeg;
-    } catch (e: any) {
-      console.error("FFmpeg load failed:", e);
-      const isIsolated = typeof window !== 'undefined' && (window as any).crossOriginIsolated;
+      if (ffmpeg) {
+        if (!ffmpeg.isLoaded()) await ffmpeg.load();
+        return ffmpeg;
+      }
+      throw new Error('Failed to initialize audio processor.');
+    } catch (e: unknown) {
+      const err = e instanceof Error ? e : new Error(String(e));
+      console.error("FFmpeg load failed:", err);
+      const isIsolated = typeof window !== 'undefined' && (window as Window & { crossOriginIsolated?: boolean }).crossOriginIsolated;
       const hasSAB = typeof SharedArrayBuffer !== 'undefined';
       console.log("[FFmpeg] Load Failure Diagnostic:", { isIsolated, hasSAB });
 
       if (!isIsolated) {
         throw new Error('Audio processor requires Cross-Origin Isolation. Please ensure COOP/COEP headers are set.');
       }
-      throw new Error(`Failed to start audio processing engine: ${e.message}`);
+      throw new Error(`Failed to start audio processing engine: ${err.message}`);
     }
   };
 
@@ -497,8 +498,8 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
 
   const convertAudio = async (inputFile: File, targetFormat: 'mp3' | 'm4r', startTime: number = 0, duration: number = 0, applyFade: boolean = false): Promise<Blob> => {
-    const ffmpeg = await loadFFmpeg();
-    const { fetchFile } = (window as any).FFmpeg;
+  const ffmpeg = await loadFFmpeg();
+  const { fetchFile } = (window as Window & { FFmpeg?: { createFFmpeg: (opts: Record<string, unknown>) => Record<string, unknown>, fetchFile: (file: File | Blob) => Promise<Uint8Array> } }).FFmpeg!;
 
     const inputName = `input_${Date.now()}.audio`;
     const outputName = `output_${Date.now()}.${targetFormat}`;
@@ -540,9 +541,11 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       return new Blob([data.buffer], { type: targetFormat === 'm4r' ? 'audio/x-m4r' : 'audio/mpeg' });
     } finally {
       try {
-        ffmpeg.FS('unlink', inputName);
-        ffmpeg.FS('unlink', outputName);
-      } catch (e) { /* ignore */ }
+        if (ffmpeg) {
+          ffmpeg.FS('unlink', inputName);
+          ffmpeg.FS('unlink', outputName);
+        }
+      } catch { /* ignore */ }
     }
   };
 
@@ -567,7 +570,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
     }
 
     // Validation: Max duration 45s
-    const finalDuration = (trimEnd > trimStart) ? (trimEnd - trimStart) : 0;
+    const finalDuration = trimEnd;
     if (finalDuration > 45) {
       alert('The ringtone duration cannot exceed 45 seconds. Please use our Ringtone Cutter tool or upload a shorter file.');
       return;
@@ -598,15 +601,8 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       }
     }
 
-    // ... rest of validation logic ...
     setLoading(true);
     setLoadingMessage('Initializing...');
-
-    const movieOrContextName = contentType === 'devotional' ? deityCategory : manualMovieName;
-
-    // Build SEO dynamic title including whitelist tags
-    const SEO_TAG_WHITELIST = ["BGM", "Vocal", "Instrumental", "Interlude", "Humming", "Dialogue", "Remix", "8D Audio"];
-    const activeSeoTags = selectedTags.filter(tag => SEO_TAG_WHITELIST.includes(tag));
 
     // Use the user-entered Ringtone Name as the main title for the Ringtone Card
     // Logic: Segment Name - Song Name (Correct naming convention)
@@ -648,8 +644,8 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       try {
         // We ALWAYS try to process now to apply the auto-fade
         try {
-          const duration = (trimEnd > trimStart) ? (trimEnd - trimStart) : 0;
-          mp3Blob = await convertAudio(file, 'mp3', trimStart, duration, false);
+          const duration = trimEnd;
+          mp3Blob = await convertAudio(file, 'mp3', 0, duration, false);
           console.log('MP3 processing successful');
         } catch (mp3Err) {
           console.error('MP3 Processing Error:', mp3Err);
@@ -659,15 +655,16 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
         // M4R (iPhone)
         try {
-          const duration = (trimEnd > trimStart) ? (trimEnd - trimStart) : 0;
-          m4rBlob = await convertAudio(file, 'm4r', trimStart, duration, false);
+          const duration = trimEnd;
+          m4rBlob = await convertAudio(file, 'm4r', 0, duration, false);
         } catch (m4rErr) {
           console.warn('M4R processing failed', m4rErr);
         }
 
-      } catch (convErr: any) {
-        console.error('General Audio Processing Error:', convErr);
-        throw new Error(`Audio processing failed: ${convErr?.message || 'The file might be unsupported or too large.'}`);
+      } catch (convErr: unknown) {
+        const err = convErr as Error;
+        console.error('General Audio Processing Error:', err);
+        throw new Error(`Audio processing failed: ${err?.message || 'The file might be unsupported or too large.'}`);
       }
 
       // 1. Upload MP3
@@ -721,7 +718,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       }
 
       // Calculate final duration for DB
-      const currentDuration = (trimEnd > trimStart) ? (trimEnd - trimStart) : 0;
+      const currentDuration = trimEnd;
 
       // 3. Insert into Database - Different data based on content type
       const baseData = {
@@ -744,7 +741,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
         duplicate_reason: duplicateWarning || undefined
       };
 
-      let insertData: any = baseData;
+      let insertData: Record<string, unknown> = { ...baseData };
 
       // Deity to image mapping (fallback for devotional content)
       const DEITY_IMAGES: Record<string, string> = {
@@ -818,7 +815,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
               .eq('deity_name', deityCategory)
               .single();
             if (data?.image_url) return data.image_url;
-          } catch (e) {
+          } catch {
             // Deity image not found in database, continue to hardcoded mapping
           }
           
@@ -849,8 +846,8 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                 return itunesResults[0].artworkUrl100.replace(/\/\d+x\d+bb/, '/600x600bb');
               }
             }
-          } catch (e) {
-            console.warn('Auto-poster fetch failed:', e);
+          } catch {
+            console.warn('Auto-poster fetch failed');
           }
         }
 
@@ -957,9 +954,10 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       if (onComplete) {
         onComplete();
       }
-    } catch (error: any) {
-      console.error('Upload failed:', error);
-      const msg = error?.message || (typeof error === 'object' ? JSON.stringify(error) : String(error));
+    } catch (error: unknown) {
+      const err = error instanceof Error ? error : new Error(String(error));
+      console.error('Upload failed:', err);
+      const msg = err.message;
       alert(`Upload failed: ${msg}`);
     } finally {
       setLoading(false);
@@ -977,18 +975,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
     );
   }
 
-  // Helper function for tag filtering
-  const getFilteredTagCategories = () => {
-    if (contentType === 'devotional') {
-      return {
-        "Moods": ["Devotional"], // Only Devotional tag
-        "Types": TAG_CATEGORIES["Types"], // Keep all Types
-        // Vocals and Instruments categories removed
-      };
-    }
-    // For movie, album or initial null state, return all categories
-    return TAG_CATEGORIES;
-  };
+
 
   if (!userId) {
     return (
@@ -1230,7 +1217,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
               ].map((lang) => (
                 <button
                   key={lang.id}
-                  onClick={() => setLanguage(lang.id as any)}
+                  onClick={() => setLanguage(lang.id as typeof language)}
                   className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-2 ${language === lang.id
                     ? 'bg-brand-dark border-brand-dark text-white shadow-lg'
                     : 'bg-white border-brand-border text-zinc-500 hover:border-brand-dark hover:text-brand-dark'
@@ -1288,7 +1275,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                         </div>
                       ) : (
                         <div className="space-y-3">
-                          <p>We couldn't find any official songs for this title.</p>
+                          <p>We couldn&apos;t find any official songs for this title.</p>
                           <div className="p-3 bg-brand-wash rounded-xl border border-brand-border text-left">
                             <p className="text-[10px] text-zinc-400 uppercase font-black mb-1">Manual Entry (Only if missing)</p>
                             <input
@@ -1910,7 +1897,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                 <option key={`dyn-${deity}`} value={deity} />
               ))}
               {/* Static Categories Fallback */}
-              {Object.entries(DEITY_CATEGORIES).flatMap(([religion, deities]) =>
+              {Object.entries(DEITY_CATEGORIES).flatMap(([, deities]) =>
                 deities.map(d => (
                   !knownDeities.includes(d) ? <option key={`stat-${d}`} value={d} /> : null
                 ))
@@ -2177,7 +2164,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
         src="/ffmpeg/ffmpeg.min.js"
         strategy="afterInteractive"
         onLoad={() => {
-          if ((window as any).FFmpeg) loadFFmpeg();
+          if ((window as Window & { FFmpeg?: unknown }).FFmpeg) loadFFmpeg();
         }}
       />
     </div>

@@ -29,7 +29,7 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://tamilring.in';
+
 
 import { generateOrganizationSchema, generateWebSiteSchema } from "@/lib/seo/structured-data";
 import StructuredData from "@/components/StructuredData";
@@ -62,6 +62,11 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Preconnect to critical external domains for faster loading */}
+        <link rel="preconnect" href="https://image.tmdb.org" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://image.tmdb.org" />
+        <link rel="preconnect" href="https://api.themoviedb.org" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://api.themoviedb.org" />
         <Script
           id="google-adsense"
           async

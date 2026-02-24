@@ -48,9 +48,9 @@ const getFeaturedArtists = unstable_cache(
       [allArtists[i], allArtists[j]] = [allArtists[j], allArtists[i]];
     }
 
-    return allArtists.slice(0, 9); // Return top 9 random
+    return allArtists.slice(0, 40); // Increased from 9 to 40 for better SEO internal linking
   },
-  ['featured-artists-discovery'],
+  ['featured-artists-discovery-v2'],
   { revalidate: 60 }
 );
 

@@ -8,9 +8,10 @@ import { generateRingtoneFilename } from '@/lib/utils';
 
 interface DownloadButtonProps {
     ringtone: Ringtone;
+    onDownload?: () => void;
 }
 
-export default function DownloadButton({ ringtone }: DownloadButtonProps) {
+export default function DownloadButton({ ringtone, onDownload }: DownloadButtonProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [isDownloading, setIsDownloading] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
@@ -18,6 +19,10 @@ export default function DownloadButton({ ringtone }: DownloadButtonProps) {
     const handleSmartDownload = async () => {
         if (isDownloading) return;
         setIsDownloading(true);
+
+        // Notify parent (optimistic update)
+        if (onDownload) onDownload();
+
         try {
             // Detect OS for format selection (keep this logic as it helps choose correct source URL)
             const userAgent = window.navigator.userAgent;
@@ -39,26 +44,35 @@ export default function DownloadButton({ ringtone }: DownloadButtonProps) {
                 targetExt
             );
 
-            // 2. Fetch via API Proxy (Handles CORS + Counting)
-            // We pass the ID so the API calls incrementDownloads server-side
-            const apiUrl = `/api/download?url=${encodeURIComponent(targetUrl)}&filename=${encodeURIComponent(finalFilename)}&id=${ringtone.id}`;
-            
-            const response = await fetch(apiUrl);
-            if (!response.ok) throw new Error('Download request failed');
-            
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
+            // 2. Build API URL with metadata for ID3 tag embedding
+            const params = new URLSearchParams({
+                url: targetUrl,
+                filename: finalFilename,
+                id: ringtone.id,
+            });
+            if (ringtone.title) params.set('title', ringtone.title);
+            if (ringtone.singers || ringtone.music_director) {
+                params.set('artist', ringtone.singers || ringtone.music_director || '');
+            }
+            if (ringtone.movie_name) params.set('album', ringtone.movie_name);
+            if (ringtone.poster_url) params.set('poster', ringtone.poster_url);
 
-            // 3. Trigger Download
+            // 3. Fetch via API (with ID3 tags baked in), then trigger download
+            const response = await fetch(`/api/download?${params.toString()}`);
+            if (!response.ok) throw new Error('Download request failed');
+
+            const blob = await response.blob();
+            const blobUrl = window.URL.createObjectURL(blob);
+
             const link = document.createElement('a');
-            link.href = url;
-            link.download = finalFilename; // Same-origin blob URL respects this attribute
+            link.href = blobUrl;
+            link.download = finalFilename;
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            
-            // Cleanup
-            setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+
+            // Cleanup blob URL
+            setTimeout(() => window.URL.revokeObjectURL(blobUrl), 1000);
 
             // Show success state
             setShowSuccess(true);

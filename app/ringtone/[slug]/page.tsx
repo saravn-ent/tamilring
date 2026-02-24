@@ -1,12 +1,11 @@
 import { notFound } from 'next/navigation';
-export const revalidate = 0;
+export const revalidate = 3600;
 import { supabase } from '@/lib/supabaseClient';
 
 import Link from 'next/link';
-import { ChevronRight, Download } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { Metadata } from 'next';
-import PlayButton from './PlayButton';
-import DownloadButton from './DownloadButton';
+import DownloadSection from './DownloadSection';
 import StreamButtons from '@/components/StreamButtons';
 import RingtoneSetGuideTrigger from './RingtoneSetGuideTrigger';
 import { splitArtists } from '@/lib/utils';
@@ -203,37 +202,37 @@ export default async function RingtonePage({ params }: Props) {
                 Music: <Link href={`/artist/${encodeURIComponent(ringtone.music_director)}`} className="text-zinc-700 hover:text-brand-accent transition-colors">{ringtone.music_director}</Link>
               </div>
             )}
-          </div>
-
-          {/* Play & Download Buttons */}
-          <div className="flex flex-col items-center gap-3 w-full max-w-sm">
-            <div className="flex flex-wrap items-center justify-center gap-3 w-full">
-              <PlayButton ringtone={ringtone} />
-              <div className="flex-1 min-w-[140px]">
-                <DownloadButton ringtone={ringtone} />
+            {ringtone.movie_director && (
+              <div className="text-zinc-500 text-xs mt-1">
+                Directed by: <Link href={`/artist/${encodeURIComponent(ringtone.movie_director)}`} className="text-zinc-700 hover:text-brand-accent transition-colors">{ringtone.movie_director}</Link>
               </div>
+            )}
+            {ringtone.lyricist && (
+              <div className="text-zinc-500 text-xs mt-1">
+                Lyrics: <Link href={`/artist/${encodeURIComponent(ringtone.lyricist)}`} className="text-zinc-700 hover:text-brand-accent transition-colors">{ringtone.lyricist}</Link>
+              </div>
+            )}
+            <div className="flex flex-wrap justify-center gap-2 mt-3">
+              {ringtone.mood && (
+                <Link href={`/mood/${ringtone.mood}`} className="px-3 py-1 rounded-full bg-brand-accent/10 text-brand-accent text-[10px] font-bold uppercase tracking-wider">
+                  {ringtone.mood}
+                </Link>
+              )}
+              {ringtone.tags?.slice(0, 3).map((tag: string) => (
+                <span key={tag} className="px-3 py-1 rounded-full bg-zinc-100 text-zinc-500 text-[10px] font-bold uppercase tracking-wider">
+                  {tag}
+                </span>
+              ))}
             </div>
+            {ringtone.cast_members && (
+              <div className="text-zinc-400 text-[10px] mt-3 max-w-xs mx-auto">
+                Cast: {ringtone.cast_members}
+              </div>
+            )}
           </div>
 
-          {/* Social Proof Badge */}
-          <div className="flex items-center justify-center gap-1.5 text-xs font-semibold text-zinc-500 mt-1">
-            {ringtone.profile?.full_name && (
-              <>
-                <span className="flex items-center gap-1">
-                  Uploaded by
-                  <Link
-                    href={`/user/${ringtone.profile.id}`}
-                    className="text-brand-accent hover:underline decoration-brand-accent/30 underline-offset-2 transition-all"
-                  >
-                    {ringtone.profile.full_name}
-                  </Link>
-                </span>
-                <span className="text-zinc-300 mx-1">|</span>
-              </>
-            )}
-            <Download size={14} className="text-brand-accent/80" />
-            <span><span className="text-brand-dark">{ringtone.downloads?.toLocaleString() || 0}</span> people downloaded this</span>
-          </div>
+          {/* Action Section (Play, Download, Stats) */}
+          <DownloadSection ringtone={ringtone} />
 
           <div className="h-4" />
 

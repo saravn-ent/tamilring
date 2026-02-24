@@ -40,9 +40,13 @@ function saveProgress(progress) {
 async function main() {
   console.log('🚀 Google Indexing Script - Smart Resume Mode\n');
 
-  if (!fs.existsSync(SERVICE_ACCOUNT_FILE)) {
-    console.error('❌ Error: service_account.json not found in root directory.');
-    console.error('Please download your Service Account JSON key from Google Cloud Console and save it as "service_account.json".');
+  const hasCredentials = process.env.GOOGLE_SERVICE_ACCOUNT_CREDENTIALS || fs.existsSync(SERVICE_ACCOUNT_FILE);
+  
+  if (!hasCredentials) {
+    console.error('❌ Error: No Google Indexing credentials found.');
+    console.error('Please either:');
+    console.error('1. Save your Service Account JSON key as "service_account.json" in root.');
+    console.error('2. Set the GOOGLE_SERVICE_ACCOUNT_CREDENTIALS environment variable.');
     return;
   }
 
@@ -66,10 +70,17 @@ async function main() {
   const supabase = createClient(supabaseUrl, supabaseKey);
 
   // 2. Init Google Auth
-  const auth = new google.auth.GoogleAuth({
-    keyFile: SERVICE_ACCOUNT_FILE,
+  let authConfig = {
     scopes: ['https://www.googleapis.com/auth/indexing'],
-  });
+  };
+
+  if (process.env.GOOGLE_SERVICE_ACCOUNT_CREDENTIALS) {
+    authConfig.credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_CREDENTIALS);
+  } else {
+    authConfig.keyFile = SERVICE_ACCOUNT_FILE;
+  }
+
+  const auth = new google.auth.GoogleAuth(authConfig);
   const indexing = google.indexing({ version: 'v3', auth });
 
   console.log('🔍 Fetching all ringtones from Supabase...');

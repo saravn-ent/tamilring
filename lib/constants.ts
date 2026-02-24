@@ -1,4 +1,4 @@
-export const MOODS = ["Love", "Mass", "Sad", "BGM", "Funny", "Melody", "Remix", "Devotional"];
+export const MOODS = ["Love", "Mass", "Sad", "BGM", "Funny", "Melody", "Remix", "Devotional", "Motivational"];
 export const COLLECTIONS = [
   { label: "Mom", emoji: "❤️" },
   { label: "Dad", emoji: "👨‍👧" },
@@ -77,7 +77,8 @@ export const DEITY_CATEGORIES = {
 };
 
 // Helper function to get artist bio (Placeholder for now as we don't have a bio DB)
-export function getArtistBio(artistName: string): string | undefined {
+export function getArtistBio(artistName?: string): string | undefined {
+  void artistName;
   return undefined;
 }
 

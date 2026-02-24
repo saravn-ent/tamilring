@@ -45,6 +45,11 @@ export default function LegalFooter() {
                     <span className="text-base">💬</span>
                     <span>{t('contact')}</span>
                 </Link>
+                <span className="text-zinc-700">•</span>
+                <Link href="/directory" className="text-zinc-600 hover:text-emerald-600 transition-colors flex items-center gap-1.5">
+                    <span className="text-base">📁</span>
+                    <span>Directory</span>
+                </Link>
             </div>
             <p suppressHydrationWarning className="text-[11px] text-zinc-600">
                 TamilRing © {new Date().getFullYear()} • {t('userGeneratedContent')}

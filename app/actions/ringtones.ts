@@ -2,6 +2,7 @@
 
 import { revalidateTag, revalidatePath, unstable_cache } from 'next/cache'
 import { getSupabaseServer } from '@/lib/auth-server'
+import { indexUrl } from '@/lib/google-indexing'
 import { createClient } from '@supabase/supabase-js';
 import { cookies, headers } from 'next/headers';
 
@@ -409,11 +410,25 @@ export async function getSimilarRingtones(source: {
         return [];
     }
 }
-
 export async function processAutoApproval(userId: string) {
     try {
         const { getSupabaseAdmin } = await import('@/lib/auth-server');
         const supabase = await getSupabaseAdmin();
+
+        // 1. Fetch the ringtone slug to construct the URL
+        const { data: ringtone } = await supabase
+            .from('ringtones')
+            .select('slug, status')
+            .eq('user_id', userId)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+
+        if (ringtone && ringtone.status === 'approved') {
+            const url = `https://tamilring.in/ringtone/${ringtone.slug}`;
+            // Trigger indexing in the background (don't wait for it to finish to speed up UI)
+            indexUrl(url).catch(err => console.error('Background indexing failed:', err));
+        }
 
         const { awardPoints, checkUploadBadges, POINTS_PER_UPLOAD } = await import('@/lib/gamification');
 

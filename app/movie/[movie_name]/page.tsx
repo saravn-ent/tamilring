@@ -1,9 +1,7 @@
 import { notFound } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 export const revalidate = 3600;
-import RingtoneCard from '@/components/RingtoneCard';
 import SortControl from '@/components/SortControl';
-import Image from 'next/image';
 import TMDBImage from '@/components/TMDBImage';
 import FavoriteButton from '@/components/FavoriteButton';
 import { Metadata } from 'next';

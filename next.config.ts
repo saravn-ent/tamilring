@@ -25,9 +25,8 @@ const config: NextConfig = {
     ],
     deviceSizes: [640, 750, 828, 1080, 1200],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    formats: ['image/webp'],
-    qualities: [25, 75, 85],
-    unoptimized: true,
+    formats: ['image/webp', 'image/avif'],
+    minimumCacheTTL: 86400, // 24 hour CDN caching for images
   },
   async redirects() {
     return [
@@ -45,6 +44,7 @@ const config: NextConfig = {
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          { key: 'X-DNS-Prefetch-Control', value: 'on' },
         ],
       },
       {

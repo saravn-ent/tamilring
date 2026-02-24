@@ -160,14 +160,18 @@ export function generateMovieSchema(movie: {
 export function generatePersonSchema(artist: {
     name: string;
     image_url?: string;
-    role?: 'singer' | 'music_director' | 'movie_director';
+    role?: 'singer' | 'music_director' | 'movie_director' | 'actor' | 'lyricist';
     description?: string;
 }) {
     const jobTitle = artist.role === 'singer'
         ? 'Playback Singer'
         : artist.role === 'music_director'
             ? 'Music Director'
-            : 'Film Director';
+            : artist.role === 'movie_director'
+                ? 'Film Director'
+                : artist.role === 'actor'
+                    ? 'Actor'
+                    : 'Lyricist';
 
     return {
         '@context': 'https://schema.org',
@@ -274,7 +278,7 @@ export function generateFAQPageSchema(faqs: Array<{ question: string; answer: st
 /**
  * Helper to combine multiple schemas
  */
-export function combineSchemas(...schemas: any[]) {
+export function combineSchemas(...schemas: Record<string, unknown>[]) {
     return {
         '@context': 'https://schema.org',
         '@graph': schemas,
@@ -284,6 +288,6 @@ export function combineSchemas(...schemas: any[]) {
 /**
  * Serialize schema to JSON-LD script tag
  */
-export function serializeSchema(schema: any): string {
+export function serializeSchema(schema: Record<string, unknown>): string {
     return JSON.stringify(schema, null, 0);
 }

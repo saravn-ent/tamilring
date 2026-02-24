@@ -124,7 +124,7 @@ export function generateMetadata(config: SEOConfig): Metadata {
         canonical,
     } = config;
 
-    const fullTitle = title.includes(SITE_NAME) ? title : `${title} | ${SITE_NAME}`;
+    const fullTitle = title;
     const fullUrl = url ? `${SITE_URL}${url}` : SITE_URL;
     const canonicalUrl = canonical || fullUrl;
 
@@ -295,7 +295,7 @@ export function generateMovieMetadata(movie: {
 export function generateArtistMetadata(artist: {
     name: string;
     image_url?: string;
-    role?: 'singer' | 'music_director' | 'movie_director' | 'actor';
+    role?: 'singer' | 'music_director' | 'movie_director' | 'actor' | 'lyricist';
 }): Metadata {
     const roleText = artist.role === 'singer'
         ? 'Singer'
@@ -303,7 +303,9 @@ export function generateArtistMetadata(artist: {
             ? 'Music Director'
             : artist.role === 'movie_director'
                 ? 'Director'
-                : 'Actor';
+                : artist.role === 'lyricist'
+                    ? 'Lyricist'
+                    : 'Actor';
 
     const title = `${artist.name} - Tamil ${roleText} Ringtones`;
 

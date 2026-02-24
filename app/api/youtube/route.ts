@@ -1,6 +1,5 @@
 
 import { NextResponse } from 'next/server';
-import ytdl from '@distube/ytdl-core';
 
 export const runtime = 'nodejs'; // Required for ytdl-core (uses internal modules)
 
@@ -40,7 +39,7 @@ export async function GET(request: Request) {
             });
             if (!res.ok) return null;
             return await res.json();
-        } catch (e) {
+        } catch {
             return null;
         }
     };
@@ -69,9 +68,9 @@ export async function GET(request: Request) {
         const audioStreams = streamData.audioStreams;
 
         // Sort by bitrate descending
-        audioStreams.sort((a: any, b: any) => b.bitrate - a.bitrate);
+        audioStreams.sort((a: { bitrate: number }, b: { bitrate: number }) => b.bitrate - a.bitrate);
 
-        const bestStream = audioStreams.find((s: any) => s.format === 'm4a') || audioStreams[0];
+        const bestStream = audioStreams.find((s: { format: string }) => s.format === 'm4a') || audioStreams[0];
 
         if (!bestStream) {
             throw new Error('No compatible audio stream found.');
@@ -92,10 +91,11 @@ export async function GET(request: Request) {
 
         return proxyResponse(response);
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+        const message = error instanceof Error ? error.message : 'Failed to extract audio';
         console.error('[YouTubeRouter] Mission Failed:', error);
         return NextResponse.json(
-            { error: error.message || 'Failed to extract audio' },
+            { error: message },
             { status: 500 }
         );
     }
@@ -104,7 +104,15 @@ export async function GET(request: Request) {
 function proxyResponse(response: Response) {
     const headers = new Headers();
     headers.set('Content-Type', 'audio/mpeg');
-    headers.set('Content-Disposition', `attachment; filename="audio.mp3"`);
+    
+    // We use a generic name but make the header robust
+    const filename = "TamilRing.in - YouTube Audio.mp3";
+    const encodedFilename = encodeURIComponent(filename)
+        .replace(/['()*]/g, (c) => `%${c.charCodeAt(0).toString(16).toUpperCase()}`);
+    
+    headers.set('Content-Disposition', `attachment; filename="${filename.replace(/"/g, '\\"')}"; filename*=UTF-8''${encodedFilename}`);
+    headers.set('Access-Control-Expose-Headers', 'Content-Disposition');
+    
     if (response.headers.get('content-length')) {
         headers.set('Content-Length', response.headers.get('content-length')!);
     }

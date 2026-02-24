@@ -1,6 +1,3 @@
-import { supabase } from '@/lib/supabaseClient';
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
 import SortControl from '@/components/SortControl';
 import RecentRingtonesList from '@/components/recent/RecentRingtonesList';
 import { Suspense } from 'react';
@@ -31,7 +28,7 @@ export default async function RecentPage({
     <div className="max-w-md md:max-w-4xl lg:max-w-6xl mx-auto p-4 pb-24">
       <StructuredData data={breadcrumbSchema} />
       <header className="flex items-center gap-4 py-4 mb-3">
-        <BackButton fallbackHref="/" variant="minimal" className="!bg-zinc-100 rounded-full" />
+        <BackButton fallbackHref="/" variant="minimal" className="bg-zinc-100! rounded-full" />
         <h1 className="text-xl font-black text-zinc-900">Just Added</h1>
       </header>
 

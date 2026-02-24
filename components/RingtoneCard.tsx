@@ -171,6 +171,10 @@ export default function RingtoneCard({ ringtone, assignTo, priority }: RingtoneC
     router.push(`/ringtone/${ringtone.slug}`);
   };
 
+  const handleMouseEnter = () => {
+    router.prefetch(`/ringtone/${ringtone.slug}`);
+  };
+
   // Use Web Worker for background title parsing (zero main thread blocking)
   const displayName = useTitleParser(ringtone.title, ringtone.song_name, ringtone.movie_name);
 
@@ -179,6 +183,7 @@ export default function RingtoneCard({ ringtone, assignTo, priority }: RingtoneC
       <div
         ref={cardRef}
         onClick={handleCardClick}
+        onMouseEnter={handleMouseEnter}
         className="group relative bg-white border border-zinc-200 rounded-xl p-3 sm:p-4 transition-all duration-200 hover:border-zinc-300 hover:shadow-md cursor-pointer active:scale-[0.98] active:bg-zinc-50"
       >
         <div className="flex items-center gap-3 sm:gap-4">

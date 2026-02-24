@@ -67,8 +67,9 @@ const getArtistRingtones = unstable_cache(
             // Otherwise check name match
             const checkMatch = (str: string | undefined | null) => {
                 if (!str) return false;
-                const parts = str.split(/[,&]|\band\b/i).map(s => s.trim().toLowerCase());
-                return parts.includes(searchLow);
+                const lowerStr = str.toLowerCase();
+                const parts = lowerStr.split(/[,&]|\band\b/i).map(s => s.trim());
+                return parts.some(p => p === searchLow || p.includes(searchLow));
             };
 
             return checkMatch(r.singers) ||
@@ -88,8 +89,9 @@ const getArtistRingtones = unstable_cache(
             return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         });
     },
-    ['artist-ringtones-v3'], // Bump cache version
-    { revalidate: 3600 }
+    // The cache key must be static. Next.js incorporates function args automatically.
+    ['artist-ringtones-v4'],
+    { revalidate: 3600, tags: ['artists'] }
 );
 
 export default async function ArtistRingtonesList({
