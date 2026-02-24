@@ -517,8 +517,8 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
   const ffmpeg = await loadFFmpeg();
   const { fetchFile } = (window as Window & { FFmpeg?: { createFFmpeg: (opts: Record<string, unknown>) => Record<string, unknown>, fetchFile: (file: File | Blob) => Promise<Uint8Array> } }).FFmpeg!;
 
-    const inputName = `input_${Date.now()}.audio`;
-    const outputName = `output_${Date.now()}.${targetFormat}`;
+    const inputName = `input_${Date.now()}_${Math.random().toString(36).slice(2, 7)}.audio`;
+    const outputName = `output_${Date.now()}_${Math.random().toString(36).slice(2, 7)}.${targetFormat}`;
 
     try {
       ffmpeg.FS('writeFile', inputName, await fetchFile(inputFile));
@@ -548,7 +548,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       if (targetFormat === 'm4r') {
         args.push('-c:a', 'aac', '-b:a', '192k', '-vn', '-f', 'mp4', outputName);
       } else {
-        args.push('-c:a', 'libmp3lame', '-b:a', '320k', '-vn', '-f', 'mp3', outputName);
+        args.push('-c:a', 'libmp3lame', '-b:a', '192k', '-vn', '-f', 'mp3', outputName);
       }
 
       await ffmpeg.run(...args);
@@ -654,70 +654,78 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
     try {
       const baseName = `${slug}-${Date.now()}`;
 
-      // Conversion Logic
-      setLoadingMessage('Processing audio...');
+      setLoadingMessage('Optimizing audio...');
+
+      let mp3Url: string | null = null;
+      let m4rUrl: string | null = null;
 
       try {
-        // We ALWAYS try to process now to apply the auto-fade
+        const duration = trimEnd;
+        
+        // --- STAGE 1: Convert MP3 ---
+        setLoadingMessage('Processing MP3...');
         try {
-          const duration = trimEnd;
           mp3Blob = await convertAudio(file, 'mp3', 0, duration, false);
-          console.log('MP3 processing successful');
+          console.log('MP3 optimization successful');
         } catch (mp3Err) {
-          console.error('MP3 Processing Error:', mp3Err);
-          console.log('Falling back to original file (no fade)');
-          mp3Blob = file;
+          console.warn('MP3 Conversion Error:', mp3Err);
+          mp3Blob = file; // Fallback to original
         }
 
-        // M4R (iPhone)
-        try {
-          const duration = trimEnd;
-          m4rBlob = await convertAudio(file, 'm4r', 0, duration, false);
-        } catch (m4rErr) {
-          console.warn('M4R processing failed', m4rErr);
+        // --- STAGE 2: Pipelined Upload MP3 & Convert M4R ---
+        setLoadingMessage('Processing iPhone version & Uploading...');
+        
+        // Define MP3 Upload Task
+        const uploadMp3Task = (async () => {
+          const mp3Path = `${userId}/${baseName}.mp3`;
+          console.log('Starting MP3 upload in background...');
+          const { error: mp3Error } = await supabase.storage
+            .from('ringtone-files')
+            .upload(mp3Path, mp3Blob, {
+              contentType: 'audio/mpeg',
+              cacheControl: '3600',
+              upsert: false
+            });
+          if (mp3Error) throw mp3Error;
+          const { data: { publicUrl } } = supabase.storage.from('ringtone-files').getPublicUrl(mp3Path);
+          mp3Url = publicUrl;
+          console.log('MP3 upload finished');
+        })();
+
+        // Define M4R Conversion Task
+        const convertM4rTask = (async () => {
+          try {
+            m4rBlob = await convertAudio(file, 'm4r', 0, duration, false);
+            console.log('M4R optimization successful');
+          } catch (m4rErr) {
+            console.warn('M4R conversion failed', m4rErr);
+          }
+        })();
+
+        // Wait for both Stage 2 tasks
+        await Promise.all([uploadMp3Task, convertM4rTask]);
+
+        // --- STAGE 3: Finalize M4R Upload ---
+        if (m4rBlob) {
+          setLoadingMessage('Uploading iPhone version...');
+          const m4rPath = `${userId}/${baseName}.m4r`;
+          const { error: m4rError } = await supabase.storage
+            .from('ringtone-files')
+            .upload(m4rPath, m4rBlob, {
+              contentType: 'audio/x-m4r',
+              cacheControl: '3600',
+              upsert: false
+            });
+          if (!m4rError) {
+            const { data: { publicUrl } } = supabase.storage.from('ringtone-files').getPublicUrl(m4rPath);
+            m4rUrl = publicUrl;
+            iphoneUrl = m4rUrl;
+          }
         }
-
-      } catch (convErr: unknown) {
-        const err = convErr as Error;
-        console.error('General Audio Processing Error:', err);
-        throw new Error(`Audio processing failed: ${err?.message || 'The file might be unsupported or too large.'}`);
-      }
-
-      // 1. Upload MP3
-      setLoadingMessage('Uploading MP3...');
-      console.log('Starting MP3 upload...');
-      const mp3Path = `${userId}/${baseName}.mp3`;
-      const { error: mp3Error } = await supabase.storage
-        .from('ringtone-files')
-        .upload(mp3Path, mp3Blob, {
-          contentType: 'audio/mpeg',
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (mp3Error) {
-        console.error('MP3 Upload Error:', mp3Error);
-        throw new Error(`MP3 Upload failed: ${mp3Error.message}`);
-      }
-      console.log('MP3 upload done');
-      const { data: { publicUrl: mp3Url } } = supabase.storage.from('ringtone-files').getPublicUrl(mp3Path);
-
-      // 2. Upload M4R
-      if (m4rBlob) {
-        setLoadingMessage('Uploading iPhone version...');
-        const m4rPath = `${userId}/${baseName}.m4r`;
-        const { error: m4rError } = await supabase.storage
-          .from('ringtone-files')
-          .upload(m4rPath, m4rBlob, {
-            contentType: 'audio/x-m4r',
-            cacheControl: '3600',
-            upsert: false
-          });
-
-        if (!m4rError) {
-          const { data: { publicUrl } } = supabase.storage.from('ringtone-files').getPublicUrl(m4rPath);
-          iphoneUrl = publicUrl;
-        }
+      } catch (err: unknown) {
+        const error = err instanceof Error ? err : new Error(String(err));
+        console.error('Audio Pipeline Error:', error);
+        throw new Error(`Upload failed during processing: ${error.message || 'Check your connection.'}`);
       }
 
       setLoadingMessage('Finalizing...');
