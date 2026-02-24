@@ -74,33 +74,42 @@ const getTopDeities = unstable_cache(
             if (!name) return;
             const lowerName = name.toLowerCase();
 
-            // Stricter Filter: Must match a known deity name (exact, as a word, or normalized)
-            // This prevents movies like "Leo" or "Coolie" from showing up even if mis-tagged as "Devotional"
+            // Find the matched deity name (word-boundary match)
+            // Group ALL songs by the DEITY they match, not by their raw movie_name.
+            // This means "Thank You Allah", "Allahi Allah Kiya Karo" etc. all group under "Allah".
             const words = lowerName.split(/[^a-z0-9]+/).filter((w: string) => w.length > 0);
-            const normalizedLower = lowerName.replace(/[^a-z0-9]/g, '');
 
-            const isKnown = allowedDeities.some(d => {
+            let matchedDeity: string | null = null;
+            for (const d of allowedDeities) {
                 const ld = d.toLowerCase();
-                const nld = ld.replace(/[^a-z0-9]/g, '');
-                // Match exact name, deity name as a word, or matching normalized forms
-                return lowerName === ld || words.includes(ld) || normalizedLower === nld;
-            });
+                // Require the deity name to appear as a whole word in the movie_name
+                if (words.includes(ld) || lowerName === ld) {
+                    // Find the original-case deity name from DEITY_CATEGORIES
+                    const originalCase = Object.values(DEITY_CATEGORIES).flat().find(
+                        dc => dc.toLowerCase() === ld
+                    ) || d;
+                    matchedDeity = originalCase;
+                    break;
+                }
+            }
 
-            if (!isKnown) return;
+            if (!matchedDeity) return;
 
-            if (!deityMap.has(lowerName)) {
+            const deityKey = matchedDeity.toLowerCase();
+
+            if (!deityMap.has(deityKey)) {
                 // Check if we have a custom image for this deity
-                const customUrl = customImageMap.get(lowerName);
+                const customUrl = customImageMap.get(deityKey);
 
-                deityMap.set(lowerName, {
-                    name,
+                deityMap.set(deityKey, {
+                    name: matchedDeity,
                     total_likes: 0,
                     count: 0,
                     poster_url: customUrl || null
                 });
             }
 
-            const entry = deityMap.get(lowerName)!;
+            const entry = deityMap.get(deityKey)!;
             entry.total_likes += (r.likes || 0);
             entry.count += 1;
 
@@ -114,7 +123,7 @@ const getTopDeities = unstable_cache(
             .sort((a, b) => b.total_likes - a.total_likes)
             .slice(0, 10);
     },
-    ['top-deities-home-v8'], // Bump cache version
+    ['top-deities-home-v9'], // Bump cache version
     { revalidate: 3600, tags: ['homepage-deities'] }
 );
 

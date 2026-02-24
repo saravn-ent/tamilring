@@ -9,7 +9,7 @@ const getDeityRingtones = unstable_cache(
             .from('ringtones')
             .select('*')
             .eq('status', 'approved')
-            .eq('movie_name', deityName)
+            .ilike('movie_name', `%${deityName}%`)
             .contains('tags', ['Devotional']);
 
         // Apply sort
@@ -32,7 +32,7 @@ const getDeityRingtones = unstable_cache(
         const { data } = await query.limit(100);
         return data || [];
     },
-    ['deity-ringtones-v1'],
+    ['deity-ringtones-v2'],
     { revalidate: 3600 }
 );
 
