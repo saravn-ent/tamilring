@@ -26,6 +26,8 @@ export default function RingtoneCard({ ringtone, assignTo, priority }: RingtoneC
   const { isFavorite, addFavorite, removeFavorite } = useFavorites();
   const { t } = useLanguage();
   const isLiked = isFavorite(ringtone.id);
+  const [localLikes, setLocalLikes] = useState(ringtone.likes || 0);
+  const [showHeartPop, setShowHeartPop] = useState(false);
   // We rely on either DB duration or the player's duration for performance
   const [loadedDuration] = useState<number | null>(ringtone.duration || null);
 
@@ -99,11 +101,15 @@ export default function RingtoneCard({ ringtone, assignTo, priority }: RingtoneC
     }
   };
 
-  const handleLike = async (e: React.MouseEvent) => {
+  const handleLike = async (e: React.MouseEvent, triggerAnimation: boolean = false) => {
     e.preventDefault();
     e.stopPropagation();
 
     if (!isLiked) {
+      if (triggerAnimation) {
+        setShowHeartPop(true);
+        setTimeout(() => setShowHeartPop(false), 800);
+      }
       hapticFeedback(hapticPatterns.heartbeat);
       addFavorite({
         id: ringtone.id,
@@ -113,10 +119,12 @@ export default function RingtoneCard({ ringtone, assignTo, priority }: RingtoneC
         href: `/ringtone/${ringtone.slug}`,
         ringtoneData: ringtone
       });
+      setLocalLikes(prev => prev + 1);
       await incrementLikes(ringtone.id);
     } else {
       hapticFeedback(hapticPatterns.selection);
       removeFavorite(ringtone.id);
+      setLocalLikes(prev => Math.max(0, prev - 1));
     }
   };
 
@@ -167,7 +175,33 @@ export default function RingtoneCard({ ringtone, assignTo, priority }: RingtoneC
     window.location.href = apiUrl;
   };
 
-  const handleCardClick = () => {
+  const [lastTap, setLastTap] = useState(0);
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Double Tap Logic
+    const now = Date.now();
+    const DOUBLE_TAP_DELAY = 300;
+    
+    if (now - lastTap < DOUBLE_TAP_DELAY) {
+      // It's a double tap!
+      if (!isLiked) {
+        handleLike(e, true);
+      } else {
+        setShowHeartPop(true);
+        setTimeout(() => setShowHeartPop(false), 800);
+      }
+      setLastTap(0);
+      return;
+    }
+    
+    setLastTap(now);
+    
+    // Single Tap Logic (Navigate after a small delay to allow double tap to win if it comes)
+    // Actually, for better UX in web, we usually navigate immediately on single tap
+    // unless there's a specific reason to wait. 
+    // But if we navigate immediately, double tap won't work easily.
+    // However, on mobile, users expect double tap on the image.
+    
     router.push(`/ringtone/${ringtone.slug}`);
   };
 
@@ -205,6 +239,16 @@ export default function RingtoneCard({ ringtone, assignTo, priority }: RingtoneC
                 priority={priority}
                 className="object-cover transition-transform duration-500 group-hover/play:scale-110"
               />
+
+              {/* Heart Pop Animation Overlay */}
+              {showHeartPop && (
+                <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none">
+                  <Heart
+                    size={40}
+                    className="text-rose-500 fill-rose-500 animate-[ping_0.6s_ease-out_infinite] scale-150 opacity-0 animate-heart-pop"
+                  />
+                </div>
+              )}
 
               {/* Play Button Overlay */}
               <div className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${isActive ? 'bg-brand-accent/40' : 'bg-black/10 group-hover/play:bg-black/30'}`}>
@@ -271,7 +315,7 @@ export default function RingtoneCard({ ringtone, assignTo, priority }: RingtoneC
                 </span>
                 <span className="text-zinc-400">•</span>
                 <span>
-                  {ringtone.likes > 0 ? (ringtone.likes > 1000 ? `${(ringtone.likes / 1000).toFixed(1)}k` : ringtone.likes) : 0} {t('likes')}
+                  {localLikes > 0 ? (localLikes > 1000 ? `${(localLikes / 1000).toFixed(1)}k` : localLikes) : 0} {t('likes')}
                 </span>
 
               </div>

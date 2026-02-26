@@ -10,31 +10,35 @@ Copy and paste the following expression into a **Cloudflare WAF Custom Rule** (S
 **Expression:**
 
 ```sql
-(http.user_agent contains "MarkMonitor") or 
-(http.user_agent contains "OpSec") or 
-(http.user_agent contains "Corsearch") or 
-(http.user_agent contains "Digimarc") or 
-(http.user_agent contains "AudioLock") or 
-(http.user_agent contains "Red Points") or 
-(http.user_agent contains "Link-Busters") or 
-(http.user_agent contains "MUSO") or 
-(http.user_agent contains "AiPlex") or 
-(http.user_agent contains "WebSiren") or 
-(http.user_agent contains "CopyTrack") or 
-(http.user_agent contains "PicRights") or 
-(http.user_agent contains "LeakID") or 
-(http.user_agent contains "Entura") or 
-(http.user_agent contains "Marketly") or 
-(http.user_agent contains "GrayZone") or 
-(http.user_agent contains "Rivendell") or 
-(http.user_agent contains "IFPI") or 
-(http.user_agent contains "RIAA") or 
-(http.user_agent contains "Copyright") or 
-(http.user_agent contains "DMCA") or 
-(http.user_agent contains "Legal") or 
-(http.user_agent contains "Enforcement") or
-(ip.src.asnum in {55195 6461}) or
-(cf.client.bot)
+(
+  (
+    (http.user_agent contains "MarkMonitor") or 
+    (http.user_agent contains "OpSec") or 
+    (http.user_agent contains "Corsearch") or 
+    (http.user_agent contains "Digimarc") or 
+    (http.user_agent contains "AudioLock") or 
+    (http.user_agent contains "Red Points") or 
+    (http.user_agent contains "Link-Busters") or 
+    (http.user_agent contains "MUSO") or 
+    (http.user_agent contains "AiPlex") or 
+    (http.user_agent contains "WebSiren") or 
+    (http.user_agent contains "CopyTrack") or 
+    (http.user_agent contains "PicRights") or 
+    (http.user_agent contains "LeakID") or 
+    (http.user_agent contains "Entura") or 
+    (http.user_agent contains "Marketly") or 
+    (http.user_agent contains "GrayZone") or 
+    (http.user_agent contains "Rivendell") or 
+    (http.user_agent contains "IFPI") or 
+    (http.user_agent contains "RIAA") or 
+    (http.user_agent contains "Copyright") or 
+    (http.user_agent contains "DMCA") or 
+    (http.user_agent contains "Legal") or 
+    (http.user_agent contains "Enforcement") or
+    (ip.src.asnum in {55195 6461})
+  )
+  and (not cf.client.bot)
+)
 ```
 
 ## 2. Block Known Bot ASNs (Autonomous System Numbers)

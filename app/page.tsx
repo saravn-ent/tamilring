@@ -47,18 +47,18 @@ export default async function Home() {
         TamilRing - Download Best Tamil Ringtones & BGM
       </h1>
 
-      {/* 
-         CRITICAL: No top-level awaits below this point ensures the Shell 
-         (Header/Nav) is sent to the browser immediately while rows stream in.
-      */}
-
-      {/* Hero Section with Search - Now Suspended to allow Shell streaming */}
+      {/* Hero Section with Search */}
       <HeroSearchServer />
 
-      {/* Collections Grid - Visual Categories - Loads Instantly */}
+      {/* Liked Songs - User's Personal Collection - HIGHER PRIORITY */}
+      <div className="lazy-section">
+        <HomeLikedSongs />
+      </div>
+
+      {/* Collections Grid - Visual Categories */}
       <CategoryGrid />
 
-      {/* By Era & Instruments - Loads Instantly */}
+      {/* By Era & Instruments */}
       <EraAndInstruments />
 
       <div className="lazy-section">
@@ -107,15 +107,10 @@ export default async function Home() {
         </Suspense>
       </div>
 
-
       <div className="lazy-section">
         <Suspense fallback={<SectionSkeleton type="horizontal" />}>
           <HomeDeities lang={lang} />
         </Suspense>
-      </div>
-
-      <div className="lazy-section">
-        <HomeLikedSongs />
       </div>
 
       <div className="lazy-section">
@@ -124,4 +119,3 @@ export default async function Home() {
     </div>
   );
 }
-

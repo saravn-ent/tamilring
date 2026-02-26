@@ -3,6 +3,7 @@ import Script from "next/script";
 
 
 import "./globals.css";
+import "./animations.css";
 import { PlayerProvider } from "@/context/PlayerContext";
 import { FavoritesProvider } from "@/context/FavoritesContext";
 import { LanguageProvider } from "@/context/LanguageContext";

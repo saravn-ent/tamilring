@@ -1500,6 +1500,18 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
             )}
           </div>
 
+          <div className="flex justify-center py-2">
+            <Turnstile
+              siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || '1x00000000000000000000AA'}
+              onSuccess={(token) => setTurnstileToken(token)}
+              onExpire={() => setTurnstileToken(null)}
+              onError={() => setTurnstileToken(null)}
+              options={{
+                theme: 'light',
+              }}
+            />
+          </div>
+
           <div className="flex justify-between pt-4">
             <button
               onClick={() => setStep(2)}
@@ -1509,7 +1521,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
             </button>
             <button
               onClick={handleSubmit}
-              disabled={loading || !!duplicateError || !segmentName || (contentType === 'movie' && !manualMovieName)}
+              disabled={loading || !!duplicateError || !segmentName || (contentType === 'movie' && !manualMovieName) || !turnstileToken}
               className="flex-1 ml-4 bg-brand-dark text-white font-black py-4 rounded-xl hover:bg-neutral-800 transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-xl shadow-brand-dark/20 uppercase tracking-wide text-sm"
             >
               {loading ? (

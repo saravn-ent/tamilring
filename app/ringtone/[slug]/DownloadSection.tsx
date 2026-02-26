@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { Download } from 'lucide-react';
+import { Download, Heart } from 'lucide-react';
 import Link from 'next/link';
 import { Ringtone } from '@/types';
 import PlayButton from './PlayButton';
 import DownloadButton from './DownloadButton';
+import LikeButton from './LikeButton';
 
 interface DownloadSectionProps {
     ringtone: Ringtone;
@@ -13,6 +14,7 @@ interface DownloadSectionProps {
 
 export default function DownloadSection({ ringtone }: DownloadSectionProps) {
     const [downloadCount, setDownloadCount] = useState(ringtone.downloads || 0);
+    const [likeCount, setLikeCount] = useState(ringtone.likes || 0);
     const [hasIncremented, setHasIncremented] = useState(false);
 
     const handleDownload = () => {
@@ -24,11 +26,15 @@ export default function DownloadSection({ ringtone }: DownloadSectionProps) {
 
     return (
         <>
-            {/* Play & Download Buttons */}
+            {/* Play, Download & Like Buttons */}
             <div className="flex flex-col items-center gap-3 w-full max-w-sm">
-                <div className="flex flex-wrap items-center justify-center gap-3 w-full">
+                <div className="grid grid-cols-2 gap-3 w-full">
                     <PlayButton ringtone={ringtone} />
-                    <div className="flex-1 min-w-[140px]">
+                    <LikeButton 
+                        ringtone={ringtone} 
+                        onLike={(count: number) => setLikeCount(count)}
+                    />
+                    <div className="col-span-2">
                         <DownloadButton 
                             ringtone={ringtone} 
                             onDownload={handleDownload}
@@ -38,11 +44,30 @@ export default function DownloadSection({ ringtone }: DownloadSectionProps) {
             </div>
 
             {/* Social Proof Badge */}
-            <div className="flex items-center justify-center gap-1.5 text-xs font-semibold text-zinc-500 mt-1">
+            <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] font-semibold text-zinc-500 mt-2">
+                <div className="flex items-center gap-1.5">
+                    <Download size={14} className="text-brand-accent/80" />
+                    <span>
+                        <span className="text-brand-dark">
+                            {downloadCount.toLocaleString()}
+                        </span> downloads
+                    </span>
+                </div>
+                <span className="text-zinc-300">|</span>
+                <div className="flex items-center gap-1.5">
+                    <Heart size={14} className="text-rose-500/80 fill-rose-500/20" />
+                    <span>
+                        <span className="text-brand-dark">
+                            {likeCount.toLocaleString()}
+                        </span> likes
+                    </span>
+                </div>
+
                 {ringtone.profile?.full_name && (
                     <>
+                        <span className="text-zinc-300">|</span>
                         <span className="flex items-center gap-1">
-                            Uploaded by
+                            By
                             <Link
                                 href={`/user/${ringtone.profile.id}`}
                                 className="text-brand-accent hover:underline decoration-brand-accent/30 underline-offset-2 transition-all"
@@ -50,15 +75,8 @@ export default function DownloadSection({ ringtone }: DownloadSectionProps) {
                                 {ringtone.profile.full_name}
                             </Link>
                         </span>
-                        <span className="text-zinc-300 mx-1">|</span>
                     </>
                 )}
-                <Download size={14} className="text-brand-accent/80" />
-                <span>
-                    <span className="text-brand-dark">
-                        {downloadCount.toLocaleString()}
-                    </span> people downloaded this
-                </span>
             </div>
         </>
     );

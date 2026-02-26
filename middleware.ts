@@ -27,7 +27,11 @@ export async function middleware(request: NextRequest) {
   
   // Whitelist Beneficial Bots (SEO & Performance)
   // We must allow Lighthouse and Googlebot to avoid 403s on PageSpeed Insights
-  const beneficialBots = ['lighthouse', 'pagespeed', 'googlebot', 'bingbot', 'yandexbot', 'duckduckbot', 'baiduspider'];
+  const beneficialBots = [
+    'lighthouse', 'pagespeed', 'googlebot', 'bingbot', 'yandexbot', 
+    'duckduckbot', 'baiduspider', 'ia_archiver', 'facebot', 'facebookexternalhit',
+    'twitterbot', 'linkedinbot', 'slackbot', 'telegrambot', 'whatsapp'
+  ];
   const isBeneficial = beneficialBots.some(bot => userAgent.includes(bot));
 
   if (isBeneficial) {
