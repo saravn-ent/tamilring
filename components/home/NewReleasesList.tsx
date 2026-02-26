@@ -24,52 +24,50 @@ export default function NewReleasesList({ releases }: NewReleasesListProps) {
     };
 
     return (
-        <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide snap-x md:grid md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-8 md:overflow-visible">
+        <div className="px-4 pb-4 space-y-3 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4">
             {releases.map((release) => (
                 <button
                     key={release.movie_name}
                     type="button"
                     onClick={() => handleClick(release.movie_name)}
-                    className="snap-start shrink-0 w-32 sm:w-36 md:w-full group cursor-pointer text-left focus:outline-none"
+                    className="flex text-left w-full items-center gap-3 sm:gap-4 bg-white border border-zinc-200 rounded-xl p-3 sm:p-4 transition-all duration-200 hover:border-zinc-300 hover:shadow-md cursor-pointer active:scale-[0.98] active:bg-zinc-50 group focus:outline-none"
                 >
-                    {/* Poster */}
-                    <div className="relative w-32 sm:w-36 md:w-full h-44 sm:h-48 md:h-auto md:aspect-2/3 rounded-xl overflow-hidden mb-2 bg-brand-wash shadow-lg group-hover:shadow-brand-accent/30 transition-all border border-brand-border/50 active:scale-95">
+                    {/* Left Section: Poster */}
+                    <div className="relative w-16 h-24 sm:w-20 sm:h-28 rounded-xl overflow-hidden shrink-0 border border-brand-border bg-brand-wash shadow-sm group-hover:shadow-brand-accent/20 transition-all">
                         <TMDBImage
                             path={release.poster_url}
                             alt={release.movie_name}
                             fallbackAlt={release.movie_name}
                             fill
-                            sizes="(max-width: 768px) 33vw, (max-width: 1200px) 20vw, 13vw"
+                            sizes="(max-width: 640px) 64px, 80px"
                             quality={75}
-                            className="object-cover group-hover:scale-110 transition-transform duration-700"
+                            className="object-cover group-hover:scale-105 transition-transform duration-500"
                         />
-
-                        {/* Gradient overlay */}
-                        <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/10 to-transparent opacity-80 group-hover:opacity-90 transition-opacity duration-300" />
-
                         {/* NEW badge */}
-                        <div className="absolute top-2 left-2 flex items-center gap-0.5 bg-brand-accent/90 backdrop-blur-sm px-1.5 py-0.5 rounded-full z-20">
-                            <Sparkles size={9} className="text-white" />
-                            <span className="text-[9px] font-bold text-white tracking-wide uppercase">New</span>
-                        </div>
-
-                        {/* Year badge */}
-                        <div className="absolute top-2 right-2 bg-black/60 px-1.5 py-0.5 rounded text-[10px] text-white font-medium backdrop-blur-sm z-20">
-                            {release.movie_year}
-                        </div>
-
-                        {/* Ringtone count */}
-                        <div className="absolute bottom-2 left-2 right-2 z-20">
-                            <p className="text-[10px] text-white/80 font-medium">
-                                {release.ringtone_count} ringtone{release.ringtone_count !== 1 ? 's' : ''}
-                            </p>
+                        <div className="absolute top-1.5 left-1.5 flex items-center gap-0.5 bg-brand-accent/90 backdrop-blur-sm px-1.5 py-0.5 rounded-md z-20 shadow-sm">
+                            <Sparkles size={10} className="text-white fill-white" />
                         </div>
                     </div>
 
-                    {/* Movie name */}
-                    <p className="text-xs font-bold text-black truncate group-hover:text-brand-accent transition-colors leading-snug px-0.5">
-                        {release.movie_name}
-                    </p>
+                    {/* Content Info */}
+                    <div className="flex-1 min-w-0 py-1">
+                        <h3 className="text-sm sm:text-[15px] font-bold text-zinc-900 line-clamp-2 leading-tight group-hover:text-brand-accent transition-colors">
+                            {release.movie_name}
+                        </h3>
+                        
+                        <div className="flex flex-col gap-1.5 mt-2">
+                            {release.movie_year && (
+                                <div className="flex items-center">
+                                    <span className="bg-zinc-100 text-zinc-600 px-1.5 py-0.5 rounded text-[10px] font-black border border-zinc-200/80 leading-none">
+                                        {release.movie_year}
+                                    </span>
+                                </div>
+                            )}
+                            <span className="text-xs font-semibold text-zinc-500">
+                                {release.ringtone_count} ringtone{release.ringtone_count !== 1 ? 's' : ''}
+                            </span>
+                        </div>
+                    </div>
                 </button>
             ))}
         </div>
