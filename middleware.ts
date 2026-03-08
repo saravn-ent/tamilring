@@ -63,9 +63,9 @@ export async function middleware(request: NextRequest) {
   // const geoCountry = request.headers.get('x-vercel-ip-country') || ''; // Vercel support
   // const geoRegion = request.headers.get('x-vercel-ip-country-region') || '';
 
-  const detectedLang = 'en';
+  const detectedLang = 'ta';
 
-  const userLangCookie = detectedLang; // Force English regardless of cookie
+  const userLangCookie = detectedLang; 
   requestHeaders.set('x-user-language', userLangCookie);
 
   let response = NextResponse.next({

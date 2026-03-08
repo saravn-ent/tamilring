@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Play, Pause } from 'lucide-react';
 import '../../app/animations.css';
 import TMDBImage from '@/components/TMDBImage';
@@ -17,7 +17,6 @@ interface TrendingListProps {
 export default function TrendingList({ trending }: TrendingListProps) {
     const { currentRingtone, isPlaying, playRingtone, togglePlay } = usePlayer();
     const { t } = useLanguage();
-    const router = useRouter();
 
     const handlePlay = (e: React.MouseEvent, ringtone: Ringtone) => {
         e.preventDefault();
@@ -34,10 +33,6 @@ export default function TrendingList({ trending }: TrendingListProps) {
         }
     };
 
-    const handleCardClick = (slug: string) => {
-        router.push(`/ringtone/${slug}`);
-    };
-
     return (
         <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide snap-x md:grid md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-10 md:overflow-visible">
             {trending.map((ringtone: Ringtone, idx: number) => {
@@ -45,10 +40,10 @@ export default function TrendingList({ trending }: TrendingListProps) {
                 const isActive = isCurrent && isPlaying;
 
                 return (
-                    <div
+                    <Link
                         key={ringtone.id}
-                        onClick={() => handleCardClick(ringtone.slug)}
-                        className="snap-start shrink-0 w-32 sm:w-36 md:w-full group cursor-pointer"
+                        href={`/ringtone/${ringtone.slug}`}
+                        className="snap-start shrink-0 w-32 sm:w-36 md:w-full group cursor-pointer block"
                     >
                         <div className="relative w-32 sm:w-36 md:w-full h-44 sm:h-48 md:h-auto md:aspect-2/3 rounded-xl overflow-hidden mb-2 bg-brand-wash shadow-lg group-hover:shadow-brand-accent/20 transition-all border border-brand-border/50 active:scale-95">
                             <TMDBImage
@@ -92,7 +87,7 @@ export default function TrendingList({ trending }: TrendingListProps) {
                         {ringtone.profile?.full_name && (
                             <p className="text-[9px] text-zinc-500 truncate mt-0.5">{t('by')} {ringtone.profile.full_name}</p>
                         )}
-                    </div>
+                    </Link>
                 );
             })}
         </div>

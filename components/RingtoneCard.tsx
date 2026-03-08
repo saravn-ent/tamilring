@@ -9,7 +9,7 @@ import MiniPlayerBar from './MiniPlayerBar';
 import TMDBImage from './TMDBImage';
 import { useFavorites } from '@/context/FavoritesContext';
 import { useLanguage } from '@/context/LanguageContext';
-
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { hapticFeedback, hapticPatterns } from '@/lib/haptics';
 import { useTitleParser } from '@/hooks/useTitleParser';
@@ -39,7 +39,7 @@ export default function RingtoneCard({ ringtone, assignTo, priority }: RingtoneC
   };
 
   const router = useRouter();
-  const cardRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLAnchorElement>(null);
 
   const isCurrent = currentRingtone?.id === ringtone.id;
   const isActive = isCurrent && isPlaying;
@@ -202,7 +202,7 @@ export default function RingtoneCard({ ringtone, assignTo, priority }: RingtoneC
     // But if we navigate immediately, double tap won't work easily.
     // However, on mobile, users expect double tap on the image.
     
-    router.push(`/ringtone/${ringtone.slug}`);
+    // router.push(`/ringtone/${ringtone.slug}`); // Removed manual push
   };
 
   const handleMouseEnter = () => {
@@ -214,12 +214,13 @@ export default function RingtoneCard({ ringtone, assignTo, priority }: RingtoneC
 
   return (
     <>
-      <div
-        ref={cardRef}
-        onClick={handleCardClick}
-        onMouseEnter={handleMouseEnter}
-        className="group relative bg-white border border-zinc-200 rounded-xl p-3 sm:p-4 transition-all duration-200 hover:border-zinc-300 hover:shadow-md cursor-pointer active:scale-[0.98] active:bg-zinc-50"
-      >
+    <Link
+      href={`/ringtone/${ringtone.slug}`}
+      ref={cardRef}
+      onClick={handleCardClick}
+      onMouseEnter={handleMouseEnter}
+      className="group relative bg-white border border-zinc-200 rounded-xl p-3 sm:p-4 transition-all duration-200 hover:border-zinc-300 hover:shadow-md cursor-pointer active:scale-[0.98] active:bg-zinc-50 block"
+    >
         <div className="flex items-center gap-3 sm:gap-4">
 
           {/* 1. Left Section: Album Art + Play Button + Duration */}
@@ -365,7 +366,7 @@ export default function RingtoneCard({ ringtone, assignTo, priority }: RingtoneC
 
           </div>
         </div>
-      </div>
+      </Link>
     </>
   );
 }

@@ -7,14 +7,15 @@ import StructuredData from '@/components/StructuredData';
 import { combineSchemas, generateHomeMetadata, generateOrganizationSchema, generateWebSiteSchema } from '@/lib/seo';
 
 // Homepage Row Components
-const HomeSingers = dynamic<{ lang: string }>(() => import('@/components/home/HomeTopArtists').then(m => m.HomeSingers), { ssr: true });
-const HomeActors = dynamic<{ lang: string }>(() => import('@/components/home/HomeTopArtists').then(m => m.HomeActors), { ssr: true });
-const HomeMusicDirectors = dynamic<{ lang: string }>(() => import('@/components/home/HomeTopArtists').then(m => m.HomeMusicDirectors), { ssr: true });
-const HomeMovieDirectors = dynamic<{ lang: string }>(() => import('@/components/home/HomeTopArtists').then(m => m.HomeMovieDirectors), { ssr: true });
-const HomeDeities = dynamic<{ lang: string }>(() => import('@/components/home/HomeDeities'), { ssr: true });
-const HomeLikedSongs = dynamic(() => import('@/components/home/HomeLikedSongs'));
+// Homepage Row Components - Optimized Dynamic Imports
+const HomeSingers = dynamic<{ lang: string }>(() => import('@/components/home/HomeTopArtists').then(m => m.HomeSingers), { ssr: true, loading: () => <SectionSkeleton type="horizontal" /> });
+const HomeActors = dynamic<{ lang: string }>(() => import('@/components/home/HomeTopArtists').then(m => m.HomeActors), { ssr: true, loading: () => <SectionSkeleton type="horizontal" /> });
+const HomeMusicDirectors = dynamic<{ lang: string }>(() => import('@/components/home/HomeTopArtists').then(m => m.HomeMusicDirectors), { ssr: true, loading: () => <SectionSkeleton type="horizontal" /> });
+const HomeMovieDirectors = dynamic<{ lang: string }>(() => import('@/components/home/HomeTopArtists').then(m => m.HomeMovieDirectors), { ssr: true, loading: () => <SectionSkeleton type="horizontal" /> });
+const HomeDeities = dynamic<{ lang: string }>(() => import('@/components/home/HomeDeities'), { ssr: true, loading: () => <SectionSkeleton type="horizontal" /> });
+const HomeLikedSongs = dynamic(() => import('@/components/home/HomeLikedSongs'), { ssr: true });
 import HomeTrending from '@/components/home/HomeTrending';
-const HomeNewReleases = dynamic<{ lang: string }>(() => import('@/components/home/HomeNewReleases'), { ssr: true });
+const HomeNewReleases = dynamic<{ lang: string }>(() => import('@/components/home/HomeNewReleases'), { ssr: true, loading: () => <SectionSkeleton type="horizontal" /> });
 const HomeNostalgia = dynamic<{ lang: string }>(() => import('@/components/home/HomeNostalgia'), { ssr: true });
 const HomeSEOContent = dynamic(() => import('@/components/home/HomeSEOContent'), { ssr: true });
 

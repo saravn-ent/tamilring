@@ -78,16 +78,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         console.log('[Sitemap] Fetching ringtones...');
         const { data: ringtones } = await supabase
             .from('ringtones')
-            .select('slug, updated_at, created_at')
+            .select('slug, created_at')
             .eq('status', 'approved')
-            .order('updated_at', { ascending: false })
+            .order('created_at', { ascending: false })
             .limit(10000);
 
         if (ringtones) {
             ringtones.forEach((ring) => {
                 sitemap.push({
                     url: `${SITE_URL}/ringtone/${ring.slug}`,
-                    lastModified: new Date(ring.updated_at || ring.created_at),
+                    lastModified: new Date(ring.created_at),
                     changeFrequency: 'weekly',
                     priority: 0.8,
                 });

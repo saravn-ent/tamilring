@@ -1,0 +1,122 @@
+﻿
+> tamilring@0.1.0 build
+> next build
+
+Ôû▓ Next.js 16.1.6 (Turbopack)
+- Environments: .env.local
+
+node.exe : ÔÜá The 
+"middleware" file convention 
+is deprecated. Please use 
+"proxy" instead. Learn more: h
+ttps://nextjs.org/docs/message
+s/middleware-to-proxy
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~
+    + CategoryInfo          : 
+    NotSpecified: (ÔÜá The "  
+  middle...leware-to-proxy:   
+ String) [], RemoteExcepti    
+on
+    + FullyQualifiedErrorId : 
+    NativeCommandError
+ 
+  Creating an optimized production build ...
+Ô£ô Compiled successfully in 13.6s
+  Running TypeScript ...
+  Collecting page data using 15 workers ...
+ÔÜá Using edge runtime on a 
+page currently disables 
+static generation for that 
+page
+  Generating static pages using 15 workers (0/55) ...
+--- Homepage Render Start (Instant Shell) ---
+  Generating static pages using 15 workers (13/55) 
+  Generating static pages using 15 workers (27/55) 
+HomeDeities: count = 4
+  Generating static pages using 15 workers (41/55) 
+Ô£ô Generating static pages using 15 workers (55/55) in 3.2s
+  Finalizing page optimization ...
+
+Route (app)                           Revalidate  Expire
+Ôöî Ôùï /                                        30m      1y
+Ôö£ Ôùï /_not-found
+Ôö£ Ôùï /~offline
+Ôö£ ãÆ /actor/[actor_name]
+Ôö£ ãÆ /admin
+Ôö£ ãÆ /admin/activity
+Ôö£ ãÆ /admin/ai-agent
+Ôö£ ãÆ /admin/artists
+Ôö£ ãÆ /admin/deities
+Ôö£ ãÆ /admin/dmca
+Ôö£ ãÆ /admin/ringtones
+Ôö£ ãÆ /admin/users
+Ôö£ ãÆ /admin/withdrawals
+Ôö£ ãÆ /api/admin/debug
+Ôö£ ãÆ /api/ai/analyze
+Ôö£ ãÆ /api/ai/ops-agent
+Ôö£ ãÆ /api/ai/transcribe
+Ôö£ ãÆ /api/album/search
+Ôö£ ãÆ /api/artists/search
+Ôö£ ãÆ /api/check-env
+Ôö£ ãÆ /api/cron/sync-artists
+Ôö£ ãÆ /api/cron/sync-posters
+Ôö£ ãÆ /api/devotional/search
+Ôö£ ãÆ /api/download
+Ôö£ ãÆ /api/health
+Ôö£ ãÆ /api/proxy-audio
+Ôö£ ãÆ /api/proxy-image
+Ôö£ ãÆ /api/purge-cache
+Ôö£ ãÆ /api/ringtones
+Ôö£ ãÆ /api/upload
+Ôö£ ãÆ /api/youtube
+Ôö£ Ôùï /apple-icon.png
+Ôö£ ãÆ /artist/[artist_name]
+Ôö£ Ôùï /auth/auth-code-error
+Ôö£ ãÆ /auth/callback
+Ôö£ Ôùï /categories                               1m      1y
+Ôö£ Ôùï /contact
+Ôö£ ãÆ /devotional/[name]
+Ôö£ ãÆ /director/[director_name]
+Ôö£ Ôùï /directory                                1d      1y
+Ôö£ Ôùï /icon.png
+Ôö£ Ôùï /legal/dmca                               1h      1y
+Ôö£ Ôùï /legal/terms
+Ôö£ Ôùï /manifest.webmanifest
+Ôö£ ãÆ /mood/[tag]
+Ôö£ ãÆ /movie/[movie_name]
+Ôö£ Ôùï /opengraph-image.png
+Ôö£ Ôùï /privacy
+Ôö£ Ôùï /profile
+Ôö£ ãÆ /recent
+Ôö£ Ôùï /requests
+Ôö£ ãÆ /ringtone/[slug]
+Ôö£ Ôùï /robots.txt
+Ôö£ ãÆ /search
+Ôö£ ãÆ /sitemap.xml
+Ôö£ Ôùï /studio/name-ringtone
+Ôö£ Ôùï /tools
+Ôö£ Ôùï /tools/cutter
+Ôö£ Ôùï /tools/editor
+Ôö£ Ôùï /tools/karaoke
+Ôö£ Ôùï /tools/name-ringtone
+Ôö£ Ôùï /tools/vocal-remover
+Ôö£ Ôùï /trim
+Ôö£ Ôùï /twitter-image.png
+Ôö£ Ôùï /upload
+Ôö£ ãÆ /user/[username]
+Ôö£ ãÆ /user/[username]/opengraph-image
+Ôöö Ôùï /valentines                               1h      1y
+
+
+ãÆ Proxy (Middleware)
+
+Ôùï  (Static)   prerendered as static content
+ãÆ  (Dynamic)  server-rendered on demand
+

@@ -61,7 +61,7 @@ export default async function RootLayout({
   const websiteSchema = generateWebSiteSchema();
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="ta" suppressHydrationWarning>
       <head>
         {/* Preconnect to critical external domains for faster loading */}
         <link rel="preconnect" href="https://image.tmdb.org" crossOrigin="anonymous" />
