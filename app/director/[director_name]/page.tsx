@@ -3,6 +3,17 @@ import { searchPerson, getImageUrl } from '@/lib/tmdb';
 import RingtoneCard from '@/components/RingtoneCard';
 import { Clapperboard } from 'lucide-react';
 import FavoriteButton from '@/components/FavoriteButton';
+import { Metadata } from 'next';
+import { generateArtistMetadata, generatePersonSchema, generateBreadcrumbSchema, generateItemListSchema, combineSchemas } from '@/lib/seo';
+import StructuredData from '@/components/StructuredData';
+
+export const revalidate = 3600;
+
+export async function generateMetadata({ params }: { params: Promise<{ director_name: string }> }): Promise<Metadata> {
+  const { director_name } = await params;
+  const directorName = decodeURIComponent(director_name);
+  return generateArtistMetadata({ name: directorName, role: 'movie_director' });
+}
 
 export default async function DirectorPage({ params }: { params: Promise<{ director_name: string }> }) {
   const { director_name } = await params;
@@ -11,15 +22,42 @@ export default async function DirectorPage({ params }: { params: Promise<{ direc
   const { data: ringtones } = await supabase
     .from('ringtones')
     .select('*')
+    .eq('status', 'approved')
     .ilike('movie_director', `%${directorName}%`)
-    .order('created_at', { ascending: false });
+    .order('downloads', { ascending: false });
 
   // Fetch director image from TMDB
   const person = await searchPerson(directorName);
   const directorImage = person?.profile_path ? getImageUrl(person.profile_path, 'w185') : null;
 
+  // --- Structured Data ---
+  const personSchema = generatePersonSchema({
+    name: directorName,
+    image_url: directorImage || undefined,
+    role: 'movie_director',
+    description: `Tamil Movie Director known for ${ringtones?.slice(0, 3).map(r => r.movie_name).filter(Boolean).join(', ') || 'Tamil Cinema'}`,
+  });
+
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: 'Artists', url: '/categories' },
+    { name: directorName, url: `/director/${encodeURIComponent(directorName)}` },
+  ]);
+
+  const itemListSchema = ringtones?.length ? generateItemListSchema({
+    name: `${directorName} Movie Ringtones`,
+    description: `Download Tamil movie ringtones from films directed by ${directorName}. Free download for Android and iPhone.`,
+    items: ringtones.slice(0, 10).map(r => ({ title: r.title, slug: r.slug })),
+  }) : null;
+
+  const combinedSchema = itemListSchema
+    ? combineSchemas(personSchema, itemListSchema, breadcrumbSchema)
+    : combineSchemas(personSchema, breadcrumbSchema);
+
   return (
     <div className="max-w-md mx-auto">
+      <StructuredData data={combinedSchema} />
+
       <div className="relative p-8 flex flex-col items-center justify-center bg-neutral-800/30 border-b border-neutral-800">
         {/* Favorite Button */}
         <div className="absolute top-4 right-4">

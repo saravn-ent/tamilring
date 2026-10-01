@@ -127,3 +127,38 @@ export function generateRingtoneFilename(title: string, songName?: string | null
     cleanFilename = cleanFilename.replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, ' ');
     return `TamilRing.in - ${cleanFilename}.${ext}`;
 }
+
+/**
+ * Converts a Tamil movie/artist name to a clean, SEO-friendly URL slug.
+ * Spaces become hyphens, special chars are stripped, Tamil Unicode is preserved.
+ * 
+ * @example
+ * slugifyMovieName("Vikram Vedha")  // "vikram-vedha"
+ * slugifyMovieName("96")            // "96"
+ * slugifyMovieName("Aa... Aa")      // "aa-aa"
+ */
+export function slugifyMovieName(name: string): string {
+    if (!name) return '';
+    return name
+        .toLowerCase()
+        .normalize('NFC')
+        // Keep: alphanumeric, Tamil Unicode block (U+0B80–U+0BFF), hyphens, spaces
+        .replace(/[^a-z0-9\u0B80-\u0BFF\s-]/g, '')
+        .trim()
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '');
+}
+
+/**
+ * Reverses a slug back to a display name (for breadcrumbs etc.)
+ * @example
+ * deslugify("vikram-vedha") // "Vikram Vedha"
+ */
+export function deslugify(slug: string): string {
+    return slug
+        .split('-')
+        .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+        .join(' ');
+}
+

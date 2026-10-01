@@ -7,7 +7,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { Music, Disc3 } from 'lucide-react';
 import { cacheGetOrSet, CacheKeys, CacheTTL } from '@/lib/cache';
-import { generateMovieMetadata, generateMovieSchema, generateMusicAlbumSchema, generateBreadcrumbSchema, combineSchemas } from '@/lib/seo';
+import { generateMovieMetadata, generateMovieSchema, generateMusicAlbumSchema, generateBreadcrumbSchema, generateItemListSchema, combineSchemas } from '@/lib/seo';
 import StructuredData from '@/components/StructuredData';
 import MovieRingtonesList from '@/components/movie/MovieRingtonesList';
 import { ShareAlbumButton } from '@/components/movie/MovieHeroActions';
@@ -167,7 +167,17 @@ export default async function MoviePage({
     { name: movieName, url: `/movie/${encodeURIComponent(movieName)}` },
   ]);
 
-  const combinedSchema = combineSchemas(movieSchema, albumSchema, breadcrumbSchema);
+  // ItemList schema — enables Google Carousel rich results for movie ringtone collection
+  const itemListSchema = generateItemListSchema({
+    name: `${movieName} Ringtones`,
+    description: `Download all ${movieName} Tamil movie ringtones. Free BGM and song ringtones for Android and iPhone.`,
+    items: movieTracks.map(t => ({
+      title: t.title,
+      slug: t.slug,
+    })),
+  });
+
+  const combinedSchema = combineSchemas(movieSchema, albumSchema, itemListSchema, breadcrumbSchema);
 
   return (
     <div className="max-w-md md:max-w-4xl lg:max-w-6xl mx-auto pb-24 px-3 sm:px-6 pt-2 sm:pt-4">

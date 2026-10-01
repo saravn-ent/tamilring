@@ -7,7 +7,7 @@ import SortControl from '@/components/SortControl';
 import ViewToggle from '@/components/ViewToggle';
 import { getArtistBio } from '@/lib/constants';
 import { Metadata } from 'next';
-import { generateArtistMetadata, generatePersonSchema, generateBreadcrumbSchema, combineSchemas } from '@/lib/seo';
+import { generateArtistMetadata, generatePersonSchema, generateBreadcrumbSchema, generateItemListSchema, combineSchemas } from '@/lib/seo';
 import ArtistRingtonesList from '@/components/artist/ArtistRingtonesList';
 import { Suspense } from 'react';
 import { RingtoneGridSkeleton } from '@/components/skeletons';
@@ -115,6 +115,15 @@ export default async function ArtistPage({
   if (!artistName) notFound();
 
   // Lightweight SEO schemas — no external calls required
+  // Fetch top ringtones for ItemList schema (Carousel rich results)
+  const { data: topRingtones } = await supabase
+    .from('ringtones')
+    .select('title, slug')
+    .eq('status', 'approved')
+    .or(`singers.ilike.%${artistName}%,music_director.ilike.%${artistName}%,movie_director.ilike.%${artistName}%`)
+    .order('downloads', { ascending: false })
+    .limit(10);
+
   const personSchema = generatePersonSchema({
     name: artistName,
     image_url: undefined,
@@ -128,7 +137,16 @@ export default async function ArtistPage({
     { name: artistName, url: `/artist/${encodeURIComponent(artistName)}` },
   ]);
 
-  const combinedSchema = combineSchemas(personSchema, breadcrumbSchema);
+  // ItemList schema — enables Google Carousel rich results for artist ringtone collection
+  const itemListSchema = topRingtones?.length ? generateItemListSchema({
+    name: `${artistName} Ringtones`,
+    description: `Download the best Tamil ringtones featuring ${artistName}. Free download for Android and iPhone.`,
+    items: topRingtones.map(r => ({ title: r.title, slug: r.slug })),
+  }) : null;
+
+  const combinedSchema = itemListSchema
+    ? combineSchemas(personSchema, itemListSchema, breadcrumbSchema)
+    : combineSchemas(personSchema, breadcrumbSchema);
 
   return (
     <div className="max-w-md md:max-w-4xl lg:max-w-6xl mx-auto pb-24">

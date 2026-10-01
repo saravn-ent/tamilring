@@ -3,7 +3,7 @@ export const revalidate = 3600;
 import CompactProfileHeader from '@/components/CompactProfileHeader';
 import SortControl from '@/components/SortControl';
 import { Metadata } from 'next';
-import { generateDeityMetadata, generateBreadcrumbSchema } from '@/lib/seo';
+import { generateDeityMetadata, generateBreadcrumbSchema, generateItemListSchema, generateCollectionPageSchema, combineSchemas } from '@/lib/seo';
 import StructuredData from '@/components/StructuredData';
 import DeityRingtonesList from '@/components/devotional/DeityRingtonesList';
 import { Suspense } from 'react';
@@ -84,15 +84,43 @@ export default async function DeityPage({
 
     const ringCount = count || 0;
 
+    // Fetch top ringtones for ItemList schema (Carousel rich results)
+    const { data: topRingtones } = await supabase
+        .from('ringtones')
+        .select('title, slug')
+        .eq('status', 'approved')
+        .contains('tags', ['Devotional'])
+        .eq('movie_name', deityName)
+        .order('downloads', { ascending: false })
+        .limit(10);
+
     const breadcrumbSchema = generateBreadcrumbSchema([
         { name: 'Home', url: '/' },
         { name: 'Devotional', url: '/categories' },
         { name: deityName, url: `/devotional/${encodeURIComponent(deityName)}` },
     ]);
 
+    const collectionPageSchema = generateCollectionPageSchema({
+        name: `${deityName} Devotional Ringtones`,
+        description: `Download Tamil devotional ringtones dedicated to ${deityName}. Divine songs and slogams for Android and iPhone.`,
+        url: `/devotional/${encodeURIComponent(deityName)}`,
+        numberOfItems: ringCount,
+    });
+
+    // ItemList schema — enables Google Carousel rich results for devotional collection
+    const itemListSchema = topRingtones?.length ? generateItemListSchema({
+        name: `${deityName} Ringtones`,
+        description: `Download Tamil devotional ringtones dedicated to ${deityName}.`,
+        items: topRingtones.map(r => ({ title: r.title, slug: r.slug })),
+    }) : null;
+
+    const combinedSchema = itemListSchema
+        ? combineSchemas(collectionPageSchema, itemListSchema, breadcrumbSchema)
+        : combineSchemas(collectionPageSchema, breadcrumbSchema);
+
     return (
         <div className="max-w-md mx-auto pb-24">
-            <StructuredData data={breadcrumbSchema} />
+            <StructuredData data={combinedSchema} />
             {/* Sticky Compact Profile Header - Loads Instantly */}
             <CompactProfileHeader
                 name={deityName}

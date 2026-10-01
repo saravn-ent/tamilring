@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next';
 import { createClient } from '@supabase/supabase-js';
+import { ALL_COLLECTION_SLUGS } from '@/lib/collections';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 3600; // Revalidate every hour
@@ -36,17 +37,49 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             priority: 0.9,
         },
         {
-            url: `${SITE_URL}/trending`,
+            url: `${SITE_URL}/recent`,
             lastModified: new Date(),
             changeFrequency: 'hourly',
             priority: 0.9,
         },
         {
-            url: `${SITE_URL}/upload`,
+            url: `${SITE_URL}/directory`,
+            lastModified: new Date(),
+            changeFrequency: 'daily',
+            priority: 0.9,
+        },
+        // Tools & Studio
+        {
+            url: `${SITE_URL}/tools`,
+            lastModified: new Date(),
+            changeFrequency: 'monthly',
+            priority: 0.8,
+        },
+        {
+            url: `${SITE_URL}/tools/cutter`,
+            lastModified: new Date(),
+            changeFrequency: 'monthly',
+            priority: 0.8,
+        },
+        {
+            url: `${SITE_URL}/tools/vocal-remover`,
             lastModified: new Date(),
             changeFrequency: 'monthly',
             priority: 0.7,
         },
+        {
+            url: `${SITE_URL}/tools/karaoke`,
+            lastModified: new Date(),
+            changeFrequency: 'monthly',
+            priority: 0.7,
+        },
+        {
+            url: `${SITE_URL}/tools/name-ringtone`,
+            lastModified: new Date(),
+            changeFrequency: 'monthly',
+            priority: 0.7,
+        },
+        // Legal / Info
         {
             url: `${SITE_URL}/privacy`,
             lastModified: new Date(),
@@ -66,11 +99,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             priority: 0.3,
         },
         {
-            url: `${SITE_URL}/directory`,
+            url: `${SITE_URL}/contact`,
             lastModified: new Date(),
-            changeFrequency: 'daily',
+            changeFrequency: 'yearly',
+            priority: 0.4,
+        },
+        // High-value SEO landing pages
+        {
+            url: `${SITE_URL}/iphone-ringtone-guide`,
+            lastModified: new Date(),
+            changeFrequency: 'monthly',
             priority: 0.9,
-        }
+        },
+        // Programmatic SEO collection pages (/ringtones/[slug])
+        ...ALL_COLLECTION_SLUGS.map(slug => ({
+            url: `${SITE_URL}/ringtones/${slug}`,
+            lastModified: new Date(),
+            changeFrequency: 'weekly' as const,
+            priority: 0.85,
+        })),
     );
 
     try {
@@ -176,6 +223,96 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
                 });
             });
             console.log(`[Sitemap] Added ${uniqueArtists.size} artists`);
+        }
+
+        // 5. Fetch Devotional Deities (NEW)
+        console.log('[Sitemap] Fetching deities...');
+        const { data: deityData } = await supabase
+            .from('ringtones')
+            .select('movie_name, created_at')
+            .eq('status', 'approved')
+            .contains('tags', ['Devotional'])
+            .not('movie_name', 'is', null)
+            .order('created_at', { ascending: false });
+
+        if (deityData) {
+            const uniqueDeities = new Map<string, string>();
+            deityData.forEach(d => {
+                if (d.movie_name && !uniqueDeities.has(d.movie_name)) {
+                    uniqueDeities.set(d.movie_name, d.created_at);
+                }
+            });
+
+            uniqueDeities.forEach((date, name) => {
+                sitemap.push({
+                    url: `${SITE_URL}/devotional/${encodeURIComponent(name)}`,
+                    lastModified: new Date(date),
+                    changeFrequency: 'weekly',
+                    priority: 0.8,
+                });
+            });
+            console.log(`[Sitemap] Added ${uniqueDeities.size} deities`);
+        }
+
+        // 6. Fetch Moods (NEW)
+        console.log('[Sitemap] Fetching moods...');
+        const { data: moodData } = await supabase
+            .from('ringtones')
+            .select('mood, created_at')
+            .eq('status', 'approved')
+            .not('mood', 'is', null)
+            .order('created_at', { ascending: false });
+
+        if (moodData) {
+            const uniqueMoods = new Map<string, string>();
+            moodData.forEach(m => {
+                if (m.mood && !uniqueMoods.has(m.mood)) {
+                    uniqueMoods.set(m.mood, m.created_at);
+                }
+            });
+
+            uniqueMoods.forEach((date, mood) => {
+                sitemap.push({
+                    url: `${SITE_URL}/mood/${encodeURIComponent(mood)}`,
+                    lastModified: new Date(date),
+                    changeFrequency: 'weekly',
+                    priority: 0.7,
+                });
+            });
+            console.log(`[Sitemap] Added ${uniqueMoods.size} moods`);
+        }
+
+        // 7. Fetch Actors (NEW) — via cast_members column
+        console.log('[Sitemap] Fetching actors...');
+        const { data: actorData } = await supabase
+            .from('ringtones')
+            .select('cast_members, created_at')
+            .eq('status', 'approved')
+            .not('cast_members', 'is', null)
+            .limit(2000);
+
+        if (actorData) {
+            const uniqueActors = new Map<string, string>();
+            actorData.forEach(row => {
+                if (row.cast_members) {
+                    row.cast_members.split(',').forEach((actor: string) => {
+                        const name = actor.trim();
+                        if (name && !uniqueActors.has(name)) {
+                            uniqueActors.set(name, row.created_at);
+                        }
+                    });
+                }
+            });
+
+            uniqueActors.forEach((date, name) => {
+                sitemap.push({
+                    url: `${SITE_URL}/actor/${encodeURIComponent(name)}`,
+                    lastModified: new Date(date),
+                    changeFrequency: 'monthly',
+                    priority: 0.5,
+                });
+            });
+            console.log(`[Sitemap] Added ${uniqueActors.size} actors`);
         }
 
         console.log(`[Sitemap] Generated ${sitemap.length} total URLs`);

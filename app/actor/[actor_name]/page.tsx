@@ -6,10 +6,12 @@ import SortControl from '@/components/SortControl';
 import ViewToggle from '@/components/ViewToggle';
 import { getArtistBio } from '@/lib/constants';
 import Link from 'next/link';
-import Image from 'next/image';
 import TMDBImage from '@/components/TMDBImage';
 import { Ringtone } from '@/types';
 import { unstable_cache } from 'next/cache';
+import { Metadata } from 'next';
+import { generateArtistMetadata, generatePersonSchema, generateBreadcrumbSchema, combineSchemas } from '@/lib/seo';
+import StructuredData from '@/components/StructuredData';
 
 const getActorRingtones = unstable_cache(
   async (_actorName: string, _sort: string = 'recent') => {
@@ -48,6 +50,12 @@ const getActorRingtones = unstable_cache(
   { revalidate: 60 }
 );
 
+export async function generateMetadata({ params }: { params: Promise<{ actor_name: string }> }): Promise<Metadata> {
+  const { actor_name } = await params;
+  const actorName = decodeURIComponent(actor_name);
+  return generateArtistMetadata({ name: actorName, role: 'actor' });
+}
+
 export default async function ActorPage({
   params,
   searchParams
@@ -71,6 +79,19 @@ export default async function ActorPage({
   // Get actor bio
   const actorBio = getArtistBio(actorName);
 
+  // --- Structured Data ---
+  const personSchema = generatePersonSchema({
+    name: actorName,
+    image_url: actorImage || undefined,
+    role: 'actor',
+  });
+  const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: 'Artists', url: '/categories' },
+    { name: actorName, url: `/actor/${encodeURIComponent(actorName)}` },
+  ]);
+  const combinedSchema = combineSchemas(personSchema, breadcrumbSchema);
+
   // Group by Movies for "Movies" view
   const moviesMap = new Map<string, Ringtone>();
   if (ringtones) {
@@ -84,6 +105,7 @@ export default async function ActorPage({
 
   return (
     <div className="max-w-md mx-auto pb-24">
+      <StructuredData data={combinedSchema} />
       {/* Sticky Compact Profile Header */}
       <CompactProfileHeader
         name={actorName}

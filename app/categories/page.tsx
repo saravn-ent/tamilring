@@ -1,7 +1,7 @@
 import { supabase } from '@/lib/supabaseClient';
 import { unstable_cache } from 'next/cache';
 import DiscoveryContainer from '@/components/DiscoveryContainer';
-import { generateCategoryMetadata, generateBreadcrumbSchema } from '@/lib/seo';
+import { generateCategoryMetadata, generateBreadcrumbSchema, generateCollectionPageSchema, combineSchemas } from '@/lib/seo';
 import StructuredData from '@/components/StructuredData';
 
 export const metadata = generateCategoryMetadata();
@@ -62,9 +62,18 @@ export default async function DiscoveryHub() {
     { name: 'Categories', url: '/categories' },
   ]);
 
+  const collectionPageSchema = generateCollectionPageSchema({
+    name: 'Tamil Ringtones by Category — Artists, Movies, Moods & Deities',
+    description: 'Explore Tamil ringtones by music director, singer, movie, era, mood, and devotional deity. Browse Maestros like Anirudh, AR Rahman, Yuvan, Harris Jayaraj, Ilaiyaraaja and more.',
+    url: '/categories',
+    numberOfItems: featuredArtists.length,
+  });
+
+  const combinedSchema = combineSchemas(collectionPageSchema, breadcrumbSchema);
+
   return (
     <>
-      <StructuredData data={breadcrumbSchema} />
+      <StructuredData data={combinedSchema} />
       <DiscoveryContainer featuredArtists={featuredArtists} />
     </>
   );

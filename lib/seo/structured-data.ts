@@ -17,14 +17,14 @@ export function generateOrganizationSchema() {
         url: SITE_URL,
         logo: `${SITE_URL}/og-image.png`,
         sameAs: [
-            // Add social media profiles here
-            // 'https://twitter.com/tamilring',
-            // 'https://facebook.com/tamilring',
+            'https://www.instagram.com/tamilring.in',
+            'https://www.youtube.com/@tamilring',
+            'https://t.me/tamilrings',
         ],
         contactPoint: {
             '@type': 'ContactPoint',
             contactType: 'Customer Service',
-            availableLanguage: ['English'],
+            availableLanguage: ['English', 'Tamil'],
         },
     };
 }
@@ -38,16 +38,9 @@ export function generateWebSiteSchema() {
         '@type': 'WebSite',
         name: SITE_NAME,
         url: SITE_URL,
-        description: 'Download the latest Tamil movie ringtones, devotional songs, and music',
-        inLanguage: 'en',
-        potentialAction: {
-            '@type': 'SearchAction',
-            target: {
-                '@type': 'EntryPoint',
-                urlTemplate: `${SITE_URL}/search?q={search_term_string}`,
-            },
-            'query-input': 'required name=search_term_string',
-        },
+        description: 'Download the latest Tamil movie ringtones, BGM, and devotional songs. High-quality Tamil cinema audio for Android and iPhone.',
+        inLanguage: ['en', 'ta'],
+        // Note: potentialAction (Sitelinks Searchbox) removed — deprecated by Google in late 2024
     };
 }
 
@@ -62,6 +55,7 @@ export function generateMusicRecordingSchema(ringtone: {
     music_director?: string;
     movie_director?: string;
     artwork_url?: string;
+    audio_url?: string;
     duration?: number;
     created_at: string;
     likes?: number;
@@ -76,12 +70,12 @@ export function generateMusicRecordingSchema(ringtone: {
         name: ringtone.title,
         url: `${SITE_URL}/ringtone/${ringtone.slug}`,
         description: ringtone.movie_name
-            ? `${ringtone.title} ringtone from ${ringtone.movie_name}`
-            : `${ringtone.title} ringtone`,
+            ? `${ringtone.title} Tamil ringtone from ${ringtone.movie_name}. Free download for Android (MP3) and iPhone (M4R).`
+            : `${ringtone.title} Tamil ringtone. Free download for Android and iPhone.`,
         image: ringtone.artwork_url,
         duration: ringtone.duration ? `PT${ringtone.duration}S` : undefined,
         datePublished: ringtone.created_at,
-        inLanguage: 'en',
+        inLanguage: 'ta', // Tamil
         byArtist: singers.map(singer => ({
             '@type': 'Person',
             name: singer,
@@ -97,6 +91,15 @@ export function generateMusicRecordingSchema(ringtone: {
             name: ringtone.movie_name,
             url: `${SITE_URL}/movie/${encodeURIComponent(ringtone.movie_name)}`,
         } : undefined,
+        // AudioObject — helps AI engines (Perplexity, Gemini, ChatGPT) understand the audio file
+        audio: ringtone.audio_url ? {
+            '@type': 'AudioObject',
+            contentUrl: ringtone.audio_url,
+            encodingFormat: 'audio/mpeg',
+            duration: ringtone.duration ? `PT${ringtone.duration}S` : undefined,
+            name: `${ringtone.title} Ringtone`,
+            description: `Free Tamil ringtone download — MP3 for Android, M4R for iPhone`,
+        } : undefined,
         interactionStatistic: [
             {
                 '@type': 'InteractionCounter',
@@ -109,6 +112,17 @@ export function generateMusicRecordingSchema(ringtone: {
                 userInteractionCount: ringtone.downloads || 0,
             },
         ],
+        // AggregateRating — can trigger star ratings in Google SERPs for MusicRecording
+        // Only include when we have meaningful likes data (≥3 likes)
+        ...(ringtone.likes && ringtone.likes >= 3 ? {
+            aggregateRating: {
+                '@type': 'AggregateRating',
+                ratingValue: '4.5',
+                bestRating: '5',
+                worstRating: '1',
+                ratingCount: ringtone.likes,
+            },
+        } : {}),
     };
 }
 
@@ -133,9 +147,9 @@ export function generateMovieSchema(movie: {
         name: movie.name,
         url: `${SITE_URL}/movie/${encodeURIComponent(movie.name)}`,
         image: movie.poster_url,
-        description: movie.description || `${movie.name} Tamil movie ringtones`,
+        description: movie.description || `Download ${movie.name} Tamil movie ringtones. Free BGM and song ringtones for Android and iPhone.`,
         datePublished: movie.year,
-        inLanguage: 'en',
+        inLanguage: 'ta', // Tamil
         director: directors.map(director => ({
             '@type': 'Person',
             name: director,
@@ -172,7 +186,7 @@ export function generateMusicAlbumSchema(album: {
         url: `${SITE_URL}/movie/${encodeURIComponent(album.name)}`,
         image: album.poster_url,
         datePublished: album.year,
-        inLanguage: 'en',
+        inLanguage: 'ta', // Tamil
         byArtist: musicDirectors.map(md => ({
             '@type': 'Person',
             name: md,
