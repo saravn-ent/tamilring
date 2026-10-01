@@ -321,7 +321,7 @@ export async function bulkDeleteRingtones(ids: string[]) {
     // 1. Fetch all to get file paths
     const { data: ringtones } = await supabase
         .from('ringtones')
-        .select('audio_url, audio_url_iphone, user_id')
+        .select('audio_url, audio_url_iphone, user_id, poster_url')
         .in('id', ids);
 
     if (ringtones) {
