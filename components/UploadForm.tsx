@@ -116,7 +116,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
   const [movieYear, setMovieYear] = useState('');
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [language, setLanguage] = useState<'tamil' | 'english' | 'telugu' | 'malayalam' | 'hindi' | 'kannada'>('tamil');
+  const [language, setLanguage] = useState<'tamil'>('tamil');
   const [slug, setSlug] = useState('');
 
   // Duplication Check
@@ -471,19 +471,8 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       setLyricist(credits.crew.filter(c => c.job === 'Lyricist' || c.job === 'Writer' || c.department === 'Writing').map(c => c.name).join(', '));
     }
     setMovieYear(movie.release_date?.split('-')[0] || '');
-
-    // Auto-detect language from TMDB
-    const langMap: Record<string, typeof language> = {
-      'ta': 'tamil',
-      'hi': 'hindi',
-      'te': 'telugu',
-      'ml': 'malayalam',
-      'kn': 'kannada',
-      'en': 'english'
-    };
-    if (movie.original_language && langMap[movie.original_language]) {
-      setLanguage(langMap[movie.original_language]);
-    }
+    // In TamilRing, all uploads are strictly Tamil
+    setLanguage('tamil');
 
     setSelectedTags([]);
     setStep(3);
@@ -1022,27 +1011,38 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
   }
 
   return (
-    <div className="w-full bg-white p-6 rounded-3xl border border-brand-border pb-12 transition-all shadow-sm">
+    <div className="w-full bg-m3-surface-container-low p-6 rounded-3xl border border-m3-outline-variant/40 pb-12 transition-all shadow-sm">
 
       {/* Progress */}
-      <div className="flex justify-between mb-8 text-[10px] font-black text-zinc-400 uppercase tracking-widest">
-        <span className={step >= 1 ? 'text-brand-accent' : ''}>1. File Type</span>
-        <span className={step >= 2 ? 'text-brand-accent' : ''}>2. Source</span>
-        <span className={step >= 3 ? 'text-brand-accent' : ''}>3. Details</span>
+      <div className="flex justify-between items-center mb-8 px-1">
+        <div className="flex items-center gap-2">
+          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${step >= 1 ? 'bg-m3-primary text-m3-on-primary' : 'bg-m3-surface-container-highest text-m3-on-surface-variant'}`}>1</span>
+          <span className={`text-xs ${step >= 1 ? 'text-m3-primary font-bold' : 'text-m3-on-surface-variant font-medium'}`}>File</span>
+        </div>
+        <div className={`h-0.5 flex-1 mx-3 transition-colors ${step >= 2 ? 'bg-m3-primary' : 'bg-m3-outline-variant/40'}`} />
+        <div className="flex items-center gap-2">
+          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${step >= 2 ? 'bg-m3-primary text-m3-on-primary' : 'bg-m3-surface-container-highest text-m3-on-surface-variant'}`}>2</span>
+          <span className={`text-xs ${step >= 2 ? 'text-m3-primary font-bold' : 'text-m3-on-surface-variant font-medium'}`}>Source</span>
+        </div>
+        <div className={`h-0.5 flex-1 mx-3 transition-colors ${step >= 3 ? 'bg-m3-primary' : 'bg-m3-outline-variant/40'}`} />
+        <div className="flex items-center gap-2">
+          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${step >= 3 ? 'bg-m3-primary text-m3-on-primary' : 'bg-m3-surface-container-highest text-m3-on-surface-variant'}`}>3</span>
+          <span className={`text-xs ${step >= 3 ? 'text-m3-primary font-bold' : 'text-m3-on-surface-variant font-medium'}`}>Details</span>
+        </div>
       </div>
 
       {/* Step 1: File */}
       {step === 1 && (
-        <div className="border-2 border-dashed border-brand-border/50 bg-brand-wash/30 rounded-3xl p-10 text-center hover:border-brand-accent transition-all group cursor-pointer relative overflow-hidden">
+        <div className="border-2 border-dashed border-m3-outline-variant/60 hover:border-m3-primary bg-m3-surface-container/50 hover:bg-m3-surface-container-high/60 rounded-3xl p-10 text-center transition-all group cursor-pointer relative overflow-hidden">
           <input type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.m4r" onChange={handleFileChange} className="hidden" id="audio-upload" />
-          <label htmlFor="audio-upload" className="cursor-pointer flex flex-col items-center gap-4 relative z-10">
-            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center text-brand-accent shadow-sm border border-brand-border group-hover:scale-110 transition-transform duration-300">
-              <Upload size={32} />
+          <label htmlFor="audio-upload" className="cursor-pointer flex flex-col items-center gap-3 relative z-10">
+            <div className="w-16 h-16 bg-m3-primary-container text-m3-on-primary-container rounded-full flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform duration-300">
+              <Upload size={28} />
             </div>
-            <p className="text-brand-dark font-black tracking-tight text-lg">Drag & Drop or Click to Upload</p>
-            <p className="text-zinc-400 text-xs text-center px-4 font-medium">
+            <p className="text-m3-on-surface font-bold text-base tracking-tight mt-1">Drag & drop or click to upload</p>
+            <p className="text-m3-on-surface-variant text-xs text-center px-4">
               MP3, M4R, WAV accepted.<br />
-              <span className="text-brand-accent font-bold">Max duration: 45 seconds</span>
+              <span className="text-m3-primary font-semibold mt-1 inline-block">Max duration: 45 seconds</span>
             </p>
           </label>
         </div>
@@ -1226,33 +1226,16 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
             </div>
             <button onClick={() => setStep(2)} className="text-xs font-bold text-brand-accent hover:text-brand-dark transition-colors self-center shrink-0 px-3 py-1.5 bg-brand-wash rounded-lg">Change</button>
           </div>
-
-          {/* Language Selection - NEW for Localization */}
+          {/* Language Selection - 100% Tamil Platform Focus */}
           <div className="bg-brand-wash/50 p-4 rounded-2xl border border-brand-border">
-            <label className="block text-[10px] text-zinc-400 uppercase font-black mb-3 tracking-wider">Song Language</label>
-            <div className="flex flex-wrap gap-2">
-              {[
-                { id: 'tamil', label: 'Tamil', flag: '🇮🇳' },
-                { id: 'english', label: 'English', flag: '🇺🇸' },
-                { id: 'telugu', label: 'Telugu', flag: '🇮🇳' },
-                { id: 'hindi', label: 'Hindi', flag: '🇮🇳' },
-                { id: 'malayalam', label: 'Malayalam', flag: '🇮🇳' },
-                { id: 'kannada', label: 'Kannada', flag: '🇮🇳' },
-              ].map((lang) => (
-                <button
-                  key={lang.id}
-                  onClick={() => setLanguage(lang.id as typeof language)}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold border transition-all flex items-center gap-2 ${language === lang.id
-                    ? 'bg-brand-dark border-brand-dark text-white shadow-lg'
-                    : 'bg-white border-brand-border text-zinc-500 hover:border-brand-dark hover:text-brand-dark'
-                    }`}
-                >
-                  <span>{lang.flag}</span>
-                  {lang.label}
-                </button>
-              ))}
+            <label className="block text-[10px] text-zinc-400 uppercase font-black mb-2 tracking-wider">Song Language</label>
+            <div className="flex items-center gap-2">
+              <span className="px-4 py-2 rounded-xl text-xs font-bold border bg-brand-dark border-brand-dark text-white shadow-sm flex items-center gap-2">
+                <span>🇮🇳</span>
+                Tamil (Only)
+              </span>
             </div>
-            <p className="text-[10px] text-zinc-400 mt-2 italic px-1">This helps show your ringtone to the right audience.</p>
+            <p className="text-[10px] text-zinc-400 mt-2 italic px-1">TamilRing focuses 100% exclusively on Tamil cinema, melodies, and devotional music.</p>
           </div>
 
           <div>

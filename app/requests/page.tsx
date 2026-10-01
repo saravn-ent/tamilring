@@ -6,6 +6,8 @@ import { ArrowLeft, Plus, Music, Clock, User, CircleCheckBig, AlertCircle } from
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { formatDistanceToNow } from 'date-fns';
+import { M3Card, M3FAB, M3Badge, M3Button } from '@/components/ui/m3';
+
 
 const RequestForm = dynamic(() => import('@/components/RequestForm'), { ssr: false });
 
@@ -95,104 +97,117 @@ export default function RequestsPage() {
     };
 
     return (
-        <div className="max-w-md mx-auto min-h-screen bg-white pb-20">
-            {/* Header */}
-            <div className="sticky top-0 z-20 bg-white/95 backdrop-blur-md border-b border-brand-border p-4 flex items-center justify-between transition-colors duration-300">
-                <div className="flex items-center gap-4">
-                    <Link href="/" className="p-2.5 hover:bg-brand-wash border border-transparent hover:border-brand-border rounded-full text-zinc-500 hover:text-brand-dark transition-colors">
-                        <ArrowLeft size={20} strokeWidth={2.5} />
+        <div className="max-w-md mx-auto min-h-screen bg-background text-foreground pb-24">
+            {/* M3 Top App Bar */}
+            <div className="sticky top-0 z-20 bg-m3-surface/90 backdrop-blur-md border-b border-m3-outline-variant/30 h-16 px-4 flex items-center justify-between transition-colors">
+                <div className="flex items-center gap-2">
+                    <Link
+                        href="/"
+                        className="w-10 h-10 rounded-full flex items-center justify-center text-m3-on-surface hover:bg-m3-on-surface/8 transition-colors active:scale-90"
+                        aria-label="Back"
+                    >
+                        <ArrowLeft size={20} />
                     </Link>
-                    <h1 className="text-xl font-black text-brand-dark tracking-tight">Ringtone Requests</h1>
+                    <h1 className="text-lg font-bold text-m3-on-surface tracking-tight">Ringtone Requests</h1>
                 </div>
-                <button
+
+                {/* M3 Small FAB */}
+                <M3FAB
+                    size="small"
+                    variant="primary"
+                    icon={<Plus size={20} />}
                     onClick={() => setShowForm(true)}
-                    className="bg-brand-dark text-white p-2.5 rounded-full shadow-lg shadow-brand-dark/20 active:scale-95 transition-all hover:bg-neutral-800"
-                >
-                    <Plus size={20} strokeWidth={2.5} />
-                </button>
+                    aria-label="Ask for ringtone"
+                />
             </div>
 
             {/* Content */}
-            <div className="p-4 space-y-6">
+            <div className="p-4 space-y-5">
                 {showForm ? (
-                    <div className="bg-white p-6 rounded-3xl border border-brand-border shadow-xl shadow-brand-dark/5 animate-in slide-in-from-bottom-4 duration-300">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-lg font-bold text-brand-dark">Ask for a Ringtone</h2>
-                            <button onClick={() => setShowForm(false)} className="text-zinc-400 hover:text-brand-dark transition-colors">
+                    <M3Card variant="elevated" className="bg-m3-surface-container-high p-6 rounded-3xl animate-in slide-in-from-bottom-4 duration-300">
+                        <div className="flex items-center justify-between mb-5">
+                            <h2 className="text-lg font-bold text-m3-on-surface">Ask for a Ringtone</h2>
+                            <button
+                                onClick={() => setShowForm(false)}
+                                className="w-8 h-8 rounded-full flex items-center justify-center text-m3-outline hover:text-m3-on-surface hover:bg-m3-on-surface/8 transition-colors cursor-pointer"
+                            >
                                 <Plus size={20} className="rotate-45" />
                             </button>
                         </div>
                         <RequestForm onComplete={() => { setShowForm(false); fetchRequests(); }} />
-                    </div>
+                    </M3Card>
                 ) : (
                     <div className="space-y-4">
-                        <div className="bg-brand-wash border border-brand-border p-5 rounded-2xl">
-                            <p className="text-sm text-zinc-600 font-medium leading-relaxed">
+                        {/* M3 Filled Info Card */}
+                        <M3Card variant="filled" className="p-4 bg-m3-surface-container-high rounded-2xl border-none">
+                            <p className="text-xs sm:text-sm text-m3-on-surface-variant font-normal leading-relaxed">
                                 Can&apos;t find your favorite BGM? Post a request below! Our community creators will help you out.
                             </p>
-                        </div>
+                        </M3Card>
 
                         {error ? (
-                            <div className="bg-red-50 border border-red-100 p-4 rounded-2xl text-red-600 text-sm flex items-center gap-3">
-                                <AlertCircle size={20} />
-                                <p>{error}</p>
-                                <button onClick={() => fetchRequests()} className="underline font-bold ml-auto">Retry</button>
+                            <div className="bg-m3-error-container text-m3-on-error-container border border-m3-error/20 p-4 rounded-2xl text-xs flex items-center gap-3">
+                                <AlertCircle size={18} className="shrink-0" />
+                                <p className="font-medium">{error}</p>
+                                <button onClick={() => fetchRequests()} className="underline font-bold ml-auto cursor-pointer">Retry</button>
                             </div>
                         ) : (
                             <>
                                 <div className="flex items-center justify-between px-1">
-                                    <h2 className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Recent Requests</h2>
-                                    <span className="text-[10px] bg-brand-wash text-brand-dark font-bold px-2 py-1 rounded-full border border-brand-border">{requests.length} Requests</span>
+                                    <h2 className="text-[11px] font-bold text-m3-outline uppercase tracking-wider">Recent Requests</h2>
+                                    <M3Badge variant="surface">{requests.length} Requests</M3Badge>
                                 </div>
 
                                 {loading ? (
-                                    <div className="space-y-4 animate-pulse">
+                                    <div className="space-y-3 animate-pulse">
                                         {[1, 2, 3].map(i => (
-                                            <div key={i} className="h-24 bg-brand-wash rounded-2xl" />
+                                            <div key={i} className="h-24 bg-m3-surface-container-low rounded-2xl border border-m3-outline-variant/30" />
                                         ))}
                                     </div>
                                 ) : requests.length === 0 ? (
-                                    <div className="text-center py-20 text-zinc-400">
-                                        <Music size={40} className="mx-auto mb-4 opacity-20" />
-                                        <p>No requests yet. Be the first!</p>
+                                    <div className="text-center py-20 text-m3-outline">
+                                        <Music size={40} className="mx-auto mb-4 opacity-30 text-m3-outline" />
+                                        <p className="text-sm font-medium">No requests yet. Be the first!</p>
                                     </div>
                                 ) : (
                                     <div className="space-y-3">
                                         {requests.map((req) => (
-                                            <div key={req.id} className="bg-white border border-brand-border rounded-2xl p-4 transition-all hover:shadow-md hover:border-brand-accent/30 group">
-                                                <div className="flex items-start justify-between gap-4">
+                                            <M3Card
+                                                key={req.id}
+                                                variant="outlined"
+                                                className="p-4 bg-m3-surface-container-low hover:bg-m3-surface-container border-m3-outline-variant/40 rounded-2xl transition-all group"
+                                            >
+                                                <div className="flex items-start justify-between gap-3">
                                                     <div className="min-w-0 flex-1">
-                                                        <h3 className="font-bold text-brand-dark truncate group-hover:text-brand-accent transition-colors">
+                                                        <h3 className="font-bold text-sm sm:text-base text-m3-on-surface truncate group-hover:text-m3-primary transition-colors">
                                                             {req.song_name}
                                                         </h3>
-                                                        <p className="text-sm text-zinc-500 truncate mt-0.5">
-                                                            Movie: <span className="text-zinc-700 font-medium">{req.movie_name}</span>
+                                                        <p className="text-xs text-m3-outline truncate mt-0.5 font-normal">
+                                                            Movie: <span className="text-m3-on-surface-variant font-medium">{req.movie_name}</span>
                                                         </p>
                                                     </div>
-                                                    <div className={`shrink-0 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-tight ${req.status === 'fulfilled'
-                                                        ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
-                                                        : 'bg-blue-50 text-blue-600 border border-blue-100'
-                                                        }`}>
+                                                    <M3Badge variant={req.status === 'fulfilled' ? 'tertiary' : 'primary'}>
                                                         {req.status === 'pending' ? 'Open' : req.status}
-                                                    </div>
+                                                    </M3Badge>
                                                 </div>
 
                                                 {isAdmin && req.status === 'pending' && (
-                                                    <button
+                                                    <M3Button
+                                                        variant="tonal"
                                                         onClick={() => handleFulfill(req.id)}
-                                                        className="mt-3 w-full py-2 bg-emerald-50 text-emerald-600 text-xs font-bold rounded-xl border border-emerald-100 hover:bg-emerald-500 hover:text-white transition-all"
+                                                        className="mt-3 w-full h-8 text-xs font-semibold"
                                                     >
-                                                        MARK AS FULFILLED
-                                                    </button>
+                                                        Mark as Fulfilled
+                                                    </M3Button>
                                                 )}
 
                                                 {req.description && (
-                                                    <p className="mt-3 text-xs text-zinc-500 italic line-clamp-2 leading-relaxed bg-brand-wash/50 p-2 rounded-lg border border-transparent">
+                                                    <p className="mt-2.5 text-xs text-m3-on-surface-variant/80 italic line-clamp-2 leading-relaxed bg-m3-surface-container p-2.5 rounded-xl border border-m3-outline-variant/20">
                                                         &quot;{req.description}&quot;
                                                     </p>
                                                 )}
 
-                                                <div className="mt-4 pt-3 border-t border-brand-wash flex items-center justify-between text-[10px] text-zinc-400 font-medium">
+                                                <div className="mt-3 pt-2.5 border-t border-m3-outline-variant/30 flex items-center justify-between text-[10px] text-m3-outline font-medium">
                                                     <div className="flex items-center gap-1.5">
                                                         <User size={12} />
                                                         <span>{getProfileName(req.profiles)}</span>
@@ -202,7 +217,7 @@ export default function RequestsPage() {
                                                         <span>{safeTimeAgo(req.created_at)}</span>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            </M3Card>
                                         ))}
                                     </div>
                                 )}
@@ -213,5 +228,6 @@ export default function RequestsPage() {
             </div>
         </div>
     );
+
 }
 

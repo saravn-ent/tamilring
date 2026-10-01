@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useMounted } from '@/lib/hooks/use-mounted';
 import { useRouter, usePathname } from 'next/navigation';
-import { Sparkles, Loader2 } from 'lucide-react';
+import { Sparkles, Loader2, Sun, Moon } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
 import { hapticFeedback, hapticPatterns } from '@/lib/haptics';
@@ -13,15 +14,20 @@ export default function SiteHeader() {
   const pathname = usePathname();
   const [loading, setLoading] = useState(false);
   const mounted = useMounted();
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const [isVisible, setIsVisible] = useState(true);
+  const [isScrolled, setIsScrolled] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
+
+  const isDark = resolvedTheme === 'dark' || theme === 'dark';
 
   useEffect(() => {
     if (pathname?.startsWith('/admin')) return;
 
-    // Hide header on scroll down (mobile only)
+    // Handle scroll for elevation & mobile hide/show
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
+      setIsScrolled(currentScrollY > 10);
 
       // Always show on top of page
       if (currentScrollY < 50) {
@@ -47,7 +53,6 @@ export default function SiteHeader() {
   if (pathname?.startsWith('/admin')) return null;
 
   const handleSurprise = async () => {
-    // ...
     try {
       setLoading(true);
       hapticFeedback(hapticPatterns.selection);
@@ -77,18 +82,23 @@ export default function SiteHeader() {
     }
   };
 
-  // NUCLEAR FIX: On server, render a stable skeleton that matches the TAG structure of the client
+  const toggleTheme = () => {
+    hapticFeedback(hapticPatterns.selection);
+    setTheme(isDark ? 'light' : 'dark');
+  };
+
+  // Stable skeleton matching tag structure
   if (!mounted) {
     return (
-      <header className="fixed top-0 left-0 right-0 z-40 bg-white border-b border-brand-gray h-14">
-        <div className="max-w-6xl mx-auto px-4 md:px-6 h-14 flex items-center justify-between">
-          <Link href="/" className="text-xl font-bold tracking-tighter text-brand-blue">
-            <span>Tamil</span><span className="text-brand-dark">Ring</span>
+      <header className="fixed top-0 left-0 right-0 z-40 bg-m3-surface border-b border-m3-outline-variant/30 h-12 md:h-14">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 h-12 md:h-14 flex items-center justify-between">
+          <Link href="/" className="text-lg md:text-xl font-bold tracking-tight text-m3-primary">
+            <span>Tamil</span><span className="text-m3-on-surface">Ring</span>
           </Link>
           <nav className="hidden md:flex items-center gap-6 flex-1 justify-center">
             <div className="w-10 h-4" />
           </nav>
-          <div className="w-10 h-10" />
+          <div className="w-8 h-8" />
         </div>
       </header>
     );
@@ -96,48 +106,69 @@ export default function SiteHeader() {
 
   return (
     <header 
-      className={`fixed top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-md border-b border-brand-gray h-auto transition-transform duration-300 ${isVisible ? 'translate-y-0' : '-translate-y-full md:translate-y-0'}`}
+      className={`fixed top-0 left-0 right-0 z-40 border-b border-m3-outline-variant/30 h-auto transition-all duration-300 ${
+        isScrolled 
+          ? 'bg-m3-surface-container/95 backdrop-blur-md m3-elevation-2' 
+          : 'bg-m3-surface/90 backdrop-blur-md'
+      } ${isVisible ? 'translate-y-0' : '-translate-y-full md:translate-y-0'}`}
       style={{ paddingTop: 'env(safe-area-inset-top)' }}
     >
-      <div className="max-w-6xl mx-auto px-4 md:px-6 h-14 flex items-center justify-between">
-        <Link href="/" className="text-xl font-display font-bold tracking-tighter text-brand-blue" onClick={() => hapticFeedback(hapticPatterns.selection)}>
-          <span>Tamil</span><span className="text-brand-dark">Ring</span>
+      <div className="max-w-6xl mx-auto px-4 md:px-6 h-12 md:h-14 flex items-center justify-between">
+        <Link 
+          href="/" 
+          className="text-lg md:text-xl font-display font-bold tracking-tight text-m3-primary flex items-center gap-0.5" 
+          onClick={() => hapticFeedback(hapticPatterns.selection)}
+        >
+          <span>Tamil</span><span className="text-m3-on-surface">Ring</span>
         </Link>
 
         {/* Desktop Navigation - Hidden on mobile */}
-        <nav className="hidden md:flex items-center gap-6 flex-1 justify-center">
-          <Link href="/" className="text-sm font-medium text-zinc-600 hover:text-brand-blue transition-colors">
+        <nav className="hidden md:flex items-center gap-1 flex-1 justify-center">
+          <Link href="/" className="px-3.5 py-1.5 rounded-full text-xs font-semibold text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-on-surface/8 transition-all">
             Home
           </Link>
-          <Link href="/tools" className="text-sm font-medium text-zinc-600 hover:text-brand-blue transition-colors">
+          <Link href="/tools" className="px-3.5 py-1.5 rounded-full text-xs font-semibold text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-on-surface/8 transition-all">
             Tools
           </Link>
-          <Link href="/requests" className="text-sm font-medium text-zinc-600 hover:text-brand-blue transition-colors">
+          <Link href="/requests" className="px-3.5 py-1.5 rounded-full text-xs font-semibold text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-on-surface/8 transition-all">
             Requests
           </Link>
-          <Link href="/upload" className="px-4 py-1.5 bg-brand-blue text-white text-sm font-bold rounded-full hover:bg-brand-dark transition-all">
+          <Link href="/upload" className="m3-btn-filled h-8 px-4 text-xs font-bold ml-1.5">
             Upload
           </Link>
-          <Link href="/profile" className="text-sm font-medium text-zinc-600 hover:text-brand-blue transition-colors">
+          <Link href="/profile" className="px-3.5 py-1.5 rounded-full text-xs font-semibold text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-on-surface/8 transition-all">
             Profile
           </Link>
         </nav>
 
-        <div className="flex items-center gap-1 min-w-[40px] justify-end">
+        <div className="flex items-center gap-1 min-w-[72px] justify-end">
+          {/* M3 Theme Toggle Button */}
+          <button
+            onClick={toggleTheme}
+            className="inline-flex items-center justify-center w-8.5 h-8.5 rounded-full text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-on-surface/8 active:scale-90 transition-all cursor-pointer"
+            aria-label={isDark ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
+            title={isDark ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
+          >
+            {isDark ? (
+              <Sun size={18} className="text-m3-tertiary transition-transform hover:rotate-45 duration-300" />
+            ) : (
+              <Moon size={18} className="text-m3-secondary transition-transform hover:-rotate-12 duration-300" />
+            )}
+          </button>
 
-
+          {/* M3 Standard Icon Button */}
           <button
             onClick={handleSurprise}
             disabled={loading}
-            className="p-2 text-zinc-400 hover:text-brand-accent transition-colors relative group"
+            className="inline-flex items-center justify-center w-8.5 h-8.5 rounded-full text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-on-surface/8 active:scale-90 transition-all cursor-pointer relative group"
             aria-label="Surprise Me"
           >
             {loading ? (
-              <Loader2 size={20} className="animate-spin text-brand-accent" />
+              <Loader2 size={18} className="animate-spin text-m3-primary" />
             ) : (
               <>
-                <Sparkles size={20} className="group-hover:scale-110 transition-transform" />
-                <span className="absolute -bottom-8 right-0 bg-brand-dark text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                <Sparkles size={18} className="group-hover:scale-110 transition-transform text-m3-primary" />
+                <span className="absolute -bottom-9 right-0 bg-m3-inverse-surface text-m3-inverse-on-surface text-[11px] font-medium px-2.5 py-1 rounded-md shadow-md opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-50">
                   Surprise Me!
                 </span>
               </>
@@ -148,3 +179,4 @@ export default function SiteHeader() {
     </header>
   );
 }
+

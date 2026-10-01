@@ -89,9 +89,14 @@ export default async function HomeNostalgia({ lang }: Props) {
     if (!nostalgia || nostalgia.length === 0) return null;
 
     return (
-        <div className="mb-10">
-            <div className="px-4 mb-6">
-                <SectionHeader title="Rewind Memories" translationKey="memories" />
+        <div className="mb-8">
+            <div className="px-3 sm:px-4">
+                <SectionHeader
+                    title="80s & 90s Golden Era"
+                    subtitle="Retro Gold"
+                    translationKey="memories"
+                    href="/search?q=90s"
+                />
             </div>
             <NostalgiaList nostalgia={nostalgia} />
         </div>

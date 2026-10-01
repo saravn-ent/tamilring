@@ -16,10 +16,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     }
 
     return (
-        <main 
-            className="min-h-screen relative z-0 pb-4 md:pb-8"
-            style={{ paddingTop: 'calc(3.5rem + env(safe-area-inset-top))' }}
-        >
+        <main className="min-h-screen relative z-0 pb-4 md:pb-8 main-content-layout">
             <PullToRefresh>
                 {children}
             </PullToRefresh>

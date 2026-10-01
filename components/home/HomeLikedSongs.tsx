@@ -61,7 +61,7 @@ export default function HomeLikedSongs() {
       <div className="px-4">
         <SectionHeader translationKey="likedSongs" title="Songs Liked by You" />
       </div>
-      <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide snap-x md:grid md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-10 md:overflow-visible">
+      <div className="flex gap-3.5 sm:gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide snap-x md:grid md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-10 md:overflow-visible">
         {likedRingtones.map((ringtone) => {
           const isCurrent = currentRingtone?.id === ringtone.id;
           const isActive = isCurrent && isPlaying;
@@ -72,7 +72,7 @@ export default function HomeLikedSongs() {
               onClick={() => handleCardClick(ringtone.slug)}
               className="snap-start shrink-0 w-32 sm:w-36 md:w-full group cursor-pointer"
             >
-              <div className="relative w-32 sm:w-36 md:w-full h-44 sm:h-48 md:h-auto md:aspect-2/3 rounded-xl overflow-hidden mb-2 bg-brand-wash shadow-lg group-hover:shadow-brand-accent/20 transition-all border border-brand-border/50 active:scale-95">
+              <div className="relative w-32 sm:w-36 md:w-full h-44 sm:h-48 md:h-auto md:aspect-2/3 rounded-2xl overflow-hidden mb-2 bg-m3-surface-container-low shadow-xs group-hover:shadow-md transition-all border border-m3-outline-variant/30 active:scale-95">
                 <TMDBImage
                   path={ringtone.poster_url}
                   alt=""
@@ -80,36 +80,40 @@ export default function HomeLikedSongs() {
                   fill
                   sizes="(max-width: 768px) 33vw, (max-width: 1200px) 20vw, 16vw"
                   quality={75}
-                  className="object-cover group-hover:scale-110 transition-transform duration-700"
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
 
                 {/* Overlay Gradient */}
-                <div className={`absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-transparent transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-80 group-hover:opacity-90'}`} />
+                <div className={`absolute inset-0 bg-linear-to-t from-black/90 via-black/25 to-transparent transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-75 group-hover:opacity-85'}`} />
 
                 {/* Playing Indicator (Top Right) */}
                 {isActive && (
                   <div className="absolute top-2 right-2 flex gap-0.5 items-end h-3 z-20">
-                    <div className="w-1 bg-brand-accent rounded-full animate-music-bar-1" />
-                    <div className="w-1 bg-brand-accent rounded-full animate-music-bar-2" />
-                    <div className="w-1 bg-brand-accent rounded-full animate-music-bar-3" />
+                    <div className="w-1 bg-m3-primary rounded-full animate-music-bar-1" />
+                    <div className="w-1 bg-m3-primary rounded-full animate-music-bar-2" />
+                    <div className="w-1 bg-m3-primary rounded-full animate-music-bar-3" />
                   </div>
                 )}
 
                 {/* Play Button - Bottom Right Corner */}
-                <div className="absolute bottom-3 right-3 z-30">
+                <div className="absolute bottom-2.5 right-2.5 z-30">
                   <button
                     type="button"
                     onClick={(e) => handlePlay(e, ringtone)}
-                    className={`w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-md border border-white/30 shadow-2xl transition-all duration-300 hover:scale-110 active:scale-90 pointer-events-auto ${isActive ? 'bg-brand-accent text-white scale-110' : 'bg-white/20 text-white hover:bg-white/40'}`}
+                    className={`w-11 h-11 rounded-full flex items-center justify-center backdrop-blur-md shadow-md transition-all duration-200 hover:scale-110 active:scale-90 pointer-events-auto cursor-pointer ${
+                      isActive
+                        ? 'bg-m3-primary text-m3-on-primary scale-105 shadow-m3-primary/30'
+                        : 'bg-black/40 text-white border border-white/20 hover:bg-m3-primary hover:text-m3-on-primary hover:border-transparent'
+                    }`}
                     aria-label={isActive ? `Pause ${ringtone.title}` : `Play ${ringtone.title}`}
                   >
-                    {isActive ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="ml-0.5" />}
+                    {isActive ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" className="ml-0.5" />}
                   </button>
                 </div>
 
               </div>
-              <p className="text-xs font-bold text-black truncate group-hover:text-brand-accent transition-colors">{ringtone.title}</p>
-              <p className="text-[10px] text-brand-dark truncate">{ringtone.movie_name}</p>
+              <p className="text-xs font-bold text-m3-on-surface truncate group-hover:text-m3-primary transition-colors">{ringtone.title}</p>
+              <p className="text-[11px] text-m3-on-surface-variant font-medium truncate">{ringtone.movie_name}</p>
             </div>
           );
         })}

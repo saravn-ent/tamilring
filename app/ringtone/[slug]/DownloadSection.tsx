@@ -1,18 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { Download, Heart } from 'lucide-react';
+import { Share2 } from 'lucide-react';
 import Link from 'next/link';
 import { Ringtone } from '@/types';
+import { hapticFeedback, hapticPatterns } from '@/lib/haptics';
 import PlayButton from './PlayButton';
 import DownloadButton from './DownloadButton';
 import LikeButton from './LikeButton';
 
 interface DownloadSectionProps {
     ringtone: Ringtone;
+    className?: string;
 }
 
-export default function DownloadSection({ ringtone }: DownloadSectionProps) {
+export default function DownloadSection({ ringtone, className = '' }: DownloadSectionProps) {
     const [downloadCount, setDownloadCount] = useState(ringtone.downloads || 0);
     const [likeCount, setLikeCount] = useState(ringtone.likes || 0);
     const [hasIncremented, setHasIncremented] = useState(false);
@@ -24,60 +26,70 @@ export default function DownloadSection({ ringtone }: DownloadSectionProps) {
         }
     };
 
+    const handleShare = async () => {
+        hapticFeedback(hapticPatterns.selection);
+        const shareUrl = `${window.location.origin}/ringtone/${ringtone.slug}`;
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: `${ringtone.title} Ringtone`,
+                    text: `Listen to ${ringtone.title} on TamilRing`,
+                    url: shareUrl,
+                });
+            } catch {
+                // Ignore share cancellation
+            }
+        } else {
+            await navigator.clipboard.writeText(shareUrl);
+        }
+    };
+
     return (
-        <>
-            {/* Play, Download & Like Buttons */}
-            <div className="flex flex-col items-center gap-3 w-full max-w-sm">
-                <div className="grid grid-cols-2 gap-3 w-full">
+        <section aria-label="Audio Controls & Download" className={`flex flex-col items-center gap-3 w-full max-w-sm ${className}`}>
+            {/* Ergonomic M3 Action Grid (Play & Download, Like & Share) */}
+            <div className="flex flex-col gap-2.5 w-full">
+                {/* Row 1: Primary Actions */}
+                <div className="grid grid-cols-2 gap-2.5 w-full">
                     <PlayButton ringtone={ringtone} />
+                    <DownloadButton 
+                        ringtone={ringtone} 
+                        onDownload={handleDownload}
+                        downloadCount={downloadCount}
+                    />
+                </div>
+
+                {/* Row 2: Secondary Social Actions */}
+                <div className="grid grid-cols-2 gap-2.5 w-full">
                     <LikeButton 
                         ringtone={ringtone} 
                         onLike={(count: number) => setLikeCount(count)}
+                        showCount={true}
                     />
-                    <div className="col-span-2">
-                        <DownloadButton 
-                            ringtone={ringtone} 
-                            onDownload={handleDownload}
-                        />
-                    </div>
+
+                    <button
+                        type="button"
+                        onClick={handleShare}
+                        className="flex-1 w-full h-10 px-3.5 rounded-full bg-m3-surface-container-low hover:bg-m3-surface-container border border-m3-outline-variant/50 text-m3-on-surface text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition-all active:scale-95 cursor-pointer shadow-xs"
+                    >
+                        <Share2 size={16} className="text-m3-on-surface-variant" />
+                        <span>Share</span>
+                    </button>
                 </div>
             </div>
 
-            {/* Social Proof Badge */}
-            <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[11px] font-semibold text-zinc-500 mt-2">
-                <div className="flex items-center gap-1.5">
-                    <Download size={14} className="text-brand-accent/80" />
-                    <span>
-                        <span className="text-brand-dark">
-                            {downloadCount.toLocaleString()}
-                        </span> downloads
-                    </span>
+            {/* Uploader Attribution (if present) */}
+            {ringtone.profile?.full_name && (
+                <div className="text-xs text-m3-outline text-center mt-1">
+                    Uploaded by{' '}
+                    <Link
+                        href={`/user/${ringtone.profile.id}`}
+                        className="text-m3-primary font-semibold hover:underline"
+                    >
+                        {ringtone.profile.full_name}
+                    </Link>
                 </div>
-                <span className="text-zinc-300">|</span>
-                <div className="flex items-center gap-1.5">
-                    <Heart size={14} className="text-rose-500/80 fill-rose-500/20" />
-                    <span>
-                        <span className="text-brand-dark">
-                            {likeCount.toLocaleString()}
-                        </span> likes
-                    </span>
-                </div>
-
-                {ringtone.profile?.full_name && (
-                    <>
-                        <span className="text-zinc-300">|</span>
-                        <span className="flex items-center gap-1">
-                            By
-                            <Link
-                                href={`/user/${ringtone.profile.id}`}
-                                className="text-brand-accent hover:underline decoration-brand-accent/30 underline-offset-2 transition-all"
-                            >
-                                {ringtone.profile.full_name}
-                            </Link>
-                        </span>
-                    </>
-                )}
-            </div>
-        </>
+            )}
+        </section>
     );
 }
+

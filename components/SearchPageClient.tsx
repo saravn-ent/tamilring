@@ -5,7 +5,7 @@ import { Search, Loader2, ChevronDown, Check } from 'lucide-react';
 import { supabase } from '@/lib/supabaseClient';
 import RingtoneCard from '@/components/RingtoneCard';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { splitArtists, fuzzySearchPattern } from '@/lib/utils';
 import { sanitizeSearchQuery } from '@/lib/sanitize';
 import TMDBImage from './TMDBImage';
@@ -15,6 +15,7 @@ import { hapticFeedback } from '@/lib/haptics';
 import { logSearch } from '@/app/actions/ringtones';
 import BackButton from '@/components/BackButton';
 import { Ringtone } from '@/types';
+import { M3SearchBar, M3Chip, M3Card } from '@/components/ui/m3';
 
 interface SearchMovie {
     movie_name: string;
@@ -31,9 +32,11 @@ interface SearchArtist {
 
 
 function SearchContent() {
+    const router = useRouter();
     const searchParams = useSearchParams();
     const [query, setQuery] = useState(searchParams.get('q') || '');
     const [loading, setLoading] = useState(false);
+
 
     // Sorting State
     const [sortBy, setSortBy] = useState<'recent' | 'downloads' | 'likes' | 'year_desc' | 'year_asc'>('downloads');
@@ -287,131 +290,135 @@ function SearchContent() {
     });
 
     return (
-        <div className="max-w-md md:max-w-4xl lg:max-w-6xl mx-auto min-h-screen bg-white pb-24">
+        <div className="max-w-md md:max-w-4xl lg:max-w-6xl mx-auto min-h-screen bg-background text-foreground pb-24">
             {isSpecialSearch && (
-                <div className="p-6 pt-8 bg-linear-to-b from-brand-wash to-white">
-                    <h1 className="text-3xl font-bold text-brand-dark capitalize tracking-tight">
+                <div className="p-6 pt-8 bg-linear-to-b from-m3-surface-container-high/40 to-transparent">
+                    <h1 className="text-3xl font-bold text-m3-on-surface capitalize tracking-tight">
                         {matchedEra ? matchedEra.label : matchedInstrument?.label}
                     </h1>
-                    <p className="text-zinc-600 text-sm mt-1 font-medium">
+                    <p className="text-m3-on-surface-variant text-sm mt-1 font-medium">
                         Best {matchedEra ? matchedEra.label : matchedInstrument?.label} Ringtones
                     </p>
                 </div>
             )}
 
-            <div className="px-4 pt-4 flex items-center gap-3 mb-6">
-                <BackButton fallbackHref="/" className="px-3! py-2.5!" />
-
-
-                {/* Search Input */
-                    !searchParams.get('hideSearch') && (
-                        <div className="relative flex-1">
-                            <input
-                                type="text"
-                                value={query}
-                                onChange={(e) => {
-                                    setQuery(e.target.value);
-                                    setLoading(true);
-                                }}
-                                placeholder="Search rings, movies, artists..."
-                                className="w-full bg-white border border-brand-gray rounded-xl px-10 py-3 text-sm text-brand-dark focus:outline-none focus:border-brand-blue transition-colors shadow-sm placeholder:text-zinc-500"
-                                autoFocus
-                            />
-                            <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
-                            {loading && <Loader2 size={18} className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-blue animate-spin" />}
-                        </div>
-                    )}
+            <div className="px-4 pt-3 pb-1 mb-4 flex items-center gap-3">
+                {searchParams.get('hideSearch') ? (
+                    <BackButton fallbackHref="/" className="shrink-0" />
+                ) : (
+                    <div className="w-full">
+                        <M3SearchBar
+                            value={query}
+                            onChange={(e) => {
+                                setQuery(e.target.value);
+                                setLoading(true);
+                            }}
+                            onClear={() => {
+                                setQuery('');
+                            }}
+                            showBackButton={true}
+                            onBack={() => {
+                                if (typeof window !== 'undefined' && window.history.length > 1) {
+                                    router.back();
+                                } else {
+                                    router.push('/');
+                                }
+                            }}
+                            placeholder="Search songs, artists, BGM, movies..."
+                            loading={loading}
+                            autoFocus
+                        />
+                    </div>
+                )}
             </div>
 
-                {/* Tabs (Always Visible) */
-                    !searchParams.get('hideSearch') && (
-                        <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
-                            {tabs.map((tab) => (
+            {/* M3 Filter Chips Tabs (Always Visible) */}
+            {!searchParams.get('hideSearch') && (
+                <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide px-4">
+                    {tabs.map((tab) => (
+                        <M3Chip
+                            key={tab}
+                            variant="filter"
+                            label={tab.charAt(0).toUpperCase() + tab.slice(1)}
+                            selected={activeTab === tab}
+                            onClick={() => {
+                                hapticFeedback(10);
+                                setActiveTab(tab as 'all' | 'ringtones' | 'movies' | 'artists');
+                            }}
+                        />
+                    ))}
+                </div>
+            )}
+
+            {query.length > 0 ? (
+                /* ... SEARCH RESULTS ... */
+                <div className="space-y-8 px-4 sm:px-0">
+                    {/* Sort Options (Visible mostly when browsing categories) */}
+                    {(activeTab === 'all' || activeTab === 'ringtones') && (
+                        <div className="flex justify-end mb-4 relative z-20">
+                            <div className="relative" ref={sortDropdownRef}>
                                 <button
-                                    key={tab}
-                                    onClick={() => {
-                                        hapticFeedback(10);
-                                        setActiveTab(tab as 'all' | 'ringtones' | 'movies' | 'artists');
-                                    }}
-                                    className={`px-3 py-1.5 rounded-full text-xs font-semibold capitalize whitespace-nowrap transition-colors border ${activeTab === tab
-                                        ? 'bg-brand-blue text-white border-brand-blue'
-                                        : 'bg-white text-zinc-600 border-brand-gray hover:border-zinc-400'
-                                        }`}
+                                    onClick={() => setIsSortOpen(!isSortOpen)}
+                                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-m3-surface-container border border-m3-outline-variant/40 text-xs font-semibold text-m3-on-surface hover:bg-m3-surface-container-high transition-all shadow-xs cursor-pointer"
                                 >
-                                    {tab}
+                                    <span>Sort:</span>
+                                    <span className="text-m3-primary font-bold">
+                                        {sortBy === 'recent' ? 'Recently Added' :
+                                            sortBy === 'likes' ? 'Most Liked' :
+                                                sortBy === 'year_desc' ? 'Year: Newest' :
+                                                    sortBy === 'year_asc' ? 'Year: Oldest' :
+                                                        'Most Downloaded'}
+                                    </span>
+                                    <ChevronDown
+                                        size={14}
+                                        className={`transition-transform duration-200 ${isSortOpen ? 'rotate-180' : ''}`}
+                                    />
                                 </button>
-                            ))}
+
+                                {isSortOpen && (
+                                    <div className="absolute right-0 mt-2 w-56 bg-m3-surface-container-high border border-m3-outline-variant/50 rounded-2xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50">
+                                        <div className="py-1">
+                                            {[
+                                                { id: 'recent', label: 'Recently Added' },
+                                                { id: 'downloads', label: 'Most Downloaded' },
+                                                { id: 'likes', label: 'Most Liked' },
+                                                { id: 'year_desc', label: 'Year: Newest' },
+                                                { id: 'year_asc', label: 'Year: Oldest' }
+                                            ].map((opt) => (
+                                                <button
+                                                    key={opt.id}
+                                                    onClick={() => {
+                                                        hapticFeedback(10);
+                                                        setSortBy(opt.id as 'recent' | 'downloads' | 'likes' | 'year_desc' | 'year_asc');
+                                                        setIsSortOpen(false);
+                                                    }}
+                                                    className={`w-full flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors cursor-pointer ${sortBy === opt.id
+                                                        ? 'bg-m3-secondary-container text-m3-on-secondary-container font-semibold'
+                                                        : 'text-m3-on-surface hover:bg-m3-surface-container-highest'
+                                                        } border-b border-m3-outline-variant/20 last:border-0`}
+                                                >
+                                                    <span>{opt.label}</span>
+                                                    {sortBy === opt.id && (
+                                                        <Check size={16} className="text-m3-primary" />
+                                                    )}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     )}
-
-                {query.length > 0 ? (
-                    /* ... SEARCH RESULTS ... */
-                    <div className="space-y-8">
-                        {/* Sort Options (Visible mostly when browsing categories) */
-                            (activeTab === 'all' || activeTab === 'ringtones') && (
-                                <div className="flex justify-end mb-4 relative z-20">
-                                    <div className="relative" ref={sortDropdownRef}>
-                                        <button
-                                            onClick={() => setIsSortOpen(!isSortOpen)}
-                                            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white border border-brand-border text-xs font-bold text-zinc-600 hover:bg-zinc-50 hover:text-brand-dark transition-all shadow-sm hover:shadow-md"
-                                        >
-                                            Sort: <span className="text-brand-accent">
-                                                {sortBy === 'recent' ? 'Recently Added' :
-                                                    sortBy === 'likes' ? 'Most Liked' :
-                                                        sortBy === 'year_desc' ? 'Year: Newest' :
-                                                            sortBy === 'year_asc' ? 'Year: Oldest' :
-                                                                'Most Downloaded'}
-                                            </span>
-                                            <ChevronDown
-                                                size={14}
-                                                className={`transition-transform duration-200 ${isSortOpen ? 'rotate-180' : ''}`}
-                                            />
-                                        </button>
-
-                                        {isSortOpen && (
-                                            <div className="absolute right-0 mt-2 w-56 bg-white border border-brand-border rounded-xl shadow-xl shadow-brand-dark/10 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50">
-                                                <div className="py-1">
-                                                    {[
-                                                        { id: 'recent', label: 'Recently Added' },
-                                                        { id: 'downloads', label: 'Most Downloaded' },
-                                                        { id: 'likes', label: 'Most Liked' },
-                                                        { id: 'year_desc', label: 'Year: Newest' },
-                                                        { id: 'year_asc', label: 'Year: Oldest' }
-                                                    ].map((opt) => (
-                                                        <button
-                                                            key={opt.id}
-                                                            onClick={() => {
-                                                                hapticFeedback(10);
-                                                                setSortBy(opt.id as 'recent' | 'downloads' | 'likes' | 'year_desc' | 'year_asc');
-                                                                setIsSortOpen(false);
-                                                            }}
-                                                            className={`w-full flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors ${sortBy === opt.id
-                                                                ? 'bg-brand-wash text-brand-accent'
-                                                                : 'text-zinc-600 hover:bg-zinc-50 hover:text-brand-dark'
-                                                                } border-b border-zinc-50 last:border-0`}
-                                                        >
-                                                            <span>{opt.label}</span>
-                                                            {sortBy === opt.id && (
-                                                                <Check size={16} className="text-brand-accent" />
-                                                            )}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
                         {loading ? (
                             /* SKELETONS */
                             <div className="animate-pulse space-y-8">
                                 {/* Movie Skeleton */}
                                 {(activeTab === 'all' || activeTab === 'movies') && (
                                     <div className="space-y-3">
-                                        <div className="h-4 w-20 bg-zinc-200 rounded ml-1" />
+                                        <div className="h-4 w-20 bg-m3-surface-container-highest rounded-md ml-1" />
                                         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                                             {[1, 2, 3, 4].map(i => (
-                                                <div key={i} className="aspect-2/3 bg-zinc-100 rounded-xl border border-brand-gray" />
+                                                <div key={i} className="aspect-2/3 bg-m3-surface-container rounded-2xl border border-m3-outline-variant/30" />
                                             ))}
                                         </div>
                                     </div>
@@ -419,9 +426,9 @@ function SearchContent() {
                                 {/* Ringtone Skeleton */}
                                 {(activeTab === 'all' || activeTab === 'ringtones') && (
                                     <div className="space-y-3">
-                                        <div className="h-4 w-24 bg-zinc-200 rounded ml-1" />
+                                        <div className="h-4 w-24 bg-m3-surface-container-highest rounded-md ml-1" />
                                         {[1, 2, 3].map(i => (
-                                            <div key={i} className="h-20 bg-white rounded-xl border border-brand-gray" />
+                                            <div key={i} className="h-20 bg-m3-surface-container-low rounded-2xl border border-m3-outline-variant/30" />
                                         ))}
                                     </div>
                                 )}
@@ -431,13 +438,13 @@ function SearchContent() {
                                 {/* Movies Section */}
                                 {(activeTab === 'all' || activeTab === 'movies') && results.movies.length > 0 && (
                                     <section className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                                        <h3 className="font-bold text-zinc-600 text-xs uppercase tracking-wider mb-3 px-1">
+                                        <h3 className="font-bold text-m3-outline text-xs uppercase tracking-wider mb-3 px-1">
                                             {ERAS.find(e => e.label.toLowerCase() === query.toLowerCase()) ? `${query} Movies` : (activeTab === 'all' ? 'Movies' : 'Matching Movies')}
                                         </h3>
                                         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                                             {results.movies.map((item, idx) => (
-                                                <Link href={`/movie/${encodeURIComponent(item.movie_name)}`} key={idx} className="flex flex-col gap-2 p-2 bg-white rounded-xl border border-brand-gray hover:shadow-lg transition-all group">
-                                                    <div className="relative w-full aspect-2/3 bg-zinc-100 rounded-lg overflow-hidden shrink-0">
+                                                <Link href={`/movie/${encodeURIComponent(item.movie_name)}`} key={idx} className="flex flex-col gap-2 p-2 bg-m3-surface-container-low rounded-2xl border border-m3-outline-variant/40 hover:bg-m3-surface-container hover:shadow-md transition-all group">
+                                                    <div className="relative w-full aspect-2/3 bg-m3-surface-container rounded-xl overflow-hidden shrink-0">
                                                         <TMDBImage
                                                             path={item.poster_url}
                                                             alt={item.movie_name}
@@ -446,8 +453,8 @@ function SearchContent() {
                                                         />
                                                     </div>
                                                     <div>
-                                                        <p className="font-bold text-brand-dark text-sm truncate">{item.movie_name}</p>
-                                                        <p className="text-[10px] text-zinc-600">{item.movie_year}</p>
+                                                        <p className="font-bold text-m3-on-surface text-sm truncate group-hover:text-m3-primary transition-colors">{item.movie_name}</p>
+                                                        <p className="text-[10px] text-m3-outline">{item.movie_year}</p>
                                                     </div>
                                                 </Link>
                                             ))}
@@ -458,14 +465,14 @@ function SearchContent() {
                                 {/* Artists Section */}
                                 {(activeTab === 'all' || activeTab === 'artists') && results.artists.length > 0 && (
                                     <section className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-100">
-                                        <h3 className="font-bold text-zinc-600 text-xs uppercase tracking-wider mb-3 px-1">Artists</h3>
+                                        <h3 className="font-bold text-m3-outline text-xs uppercase tracking-wider mb-3 px-1">Artists</h3>
                                         <div className="flex flex-wrap gap-3">
                                             {results.artists.map((item, idx) => (
-                                                <Link href={`/artist/${encodeURIComponent(item.name)}`} key={idx} className="flex items-center gap-3 pr-4 pl-2 py-2 bg-white rounded-full border border-brand-gray hover:border-brand-blue transition-colors">
-                                                    <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-brand-blue font-bold border border-zinc-200">
+                                                <Link href={`/artist/${encodeURIComponent(item.name)}`} key={idx} className="flex items-center gap-3 pr-4 pl-2 py-2 bg-m3-surface-container-low rounded-full border border-m3-outline-variant/40 hover:border-m3-primary hover:bg-m3-surface-container transition-all">
+                                                    <div className="w-8 h-8 rounded-full bg-m3-primary-container flex items-center justify-center text-m3-on-primary-container font-bold text-xs">
                                                         {item.name.charAt(0)}
                                                     </div>
-                                                    <p className="font-medium text-brand-dark text-sm">{item.name}</p>
+                                                    <p className="font-medium text-m3-on-surface text-sm">{item.name}</p>
                                                 </Link>
                                             ))}
                                         </div>
@@ -476,7 +483,7 @@ function SearchContent() {
                                 {(activeTab === 'all' || activeTab === 'ringtones') && results.ringtones.length > 0 && (
                                     <section className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-200">
                                         {!isSpecialSearch && (
-                                            <h3 className="font-bold text-zinc-600 text-xs uppercase tracking-wider mb-3 px-1">Ringtones</h3>
+                                            <h3 className="font-bold text-m3-outline text-xs uppercase tracking-wider mb-3 px-1">Ringtones</h3>
                                         )}
                                         <div className="space-y-3 md:grid md:grid-cols-2 md:space-y-0 md:gap-4">
                                             {results.ringtones.map((item) => (
@@ -492,56 +499,65 @@ function SearchContent() {
                     </div>
                 ) : (
                     /* BROWSE MODE (Empty Query) */
-                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 px-4 sm:px-0">
                         {activeTab === 'all' && (
                             <>
                                 {/* Browse by Mood */}
                                 <section>
-                                    <h2 className="text-sm font-bold text-zinc-500 uppercase tracking-wider mb-3 px-1">Browse by Mood</h2>
-                                    <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                                    <h2 className="text-[11px] font-bold text-m3-outline uppercase tracking-wider mb-3 px-1">Browse by Mood</h2>
+                                    <div className="flex flex-wrap gap-2 px-1">
                                         {MOODS.map((mood) => (
-                                            <Link
+                                            <M3Chip
                                                 key={mood}
+                                                variant="assist"
                                                 href={`/mood/${mood.toLowerCase()}`}
+                                                label={mood}
                                                 onClick={() => hapticFeedback(10)}
-                                                className="p-3 bg-white border border-[#E5EBF1] rounded-lg hover:shadow-md transition-all group flex items-center justify-center text-center"
-                                            >
-                                                <span className="font-semibold text-xs text-zinc-700 group-hover:text-brand-accent">{mood}</span>
-                                            </Link>
+                                                className="h-9 px-4 text-xs font-semibold"
+                                            />
                                         ))}
                                     </div>
                                 </section>
 
                                 {/* Browse by Era */}
                                 <section>
-                                    <h2 className="text-sm font-bold text-zinc-500 uppercase tracking-wider mb-3 px-1">Browse by Era</h2>
-                                    <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                                    <h2 className="text-[11px] font-bold text-m3-outline uppercase tracking-wider mb-3 px-1">Browse by Era</h2>
+                                    <div className="grid grid-cols-3 md:grid-cols-6 gap-2 sm:gap-3">
                                         {ERAS.map((era) => (
                                             <Link
                                                 key={era.label}
-                                                href={`/search?q=${era.label}&hideSearch=true`}
+                                                href={`/search?q=${encodeURIComponent(era.label)}&hideSearch=true`}
                                                 onClick={() => hapticFeedback(15)}
-                                                className={`h-16 rounded-lg bg-linear-to-br ${era.color} relative overflow-hidden group shadow-sm hover:shadow-lg transition-shadow flex items-center justify-center`}
+                                                className="block"
                                             >
-                                                <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
-                                                <span className="relative z-10 text-lg font-black text-white italic tracking-tighter opacity-90 group-hover:opacity-100 group-hover:scale-110 transition-all block text-center shadow-sm">
-                                                    {era.label}
-                                                </span>
+                                                <M3Card
+                                                    variant="outlined"
+                                                    interactive
+                                                    className="h-16 sm:h-18 flex flex-col items-center justify-center bg-m3-surface-container-low hover:bg-m3-surface-container border-m3-outline-variant/40 hover:border-m3-primary/50 text-center group"
+                                                >
+                                                    <span className="text-base sm:text-lg font-bold text-m3-on-surface group-hover:text-m3-primary tracking-tight transition-colors">
+                                                        {era.label}
+                                                    </span>
+                                                    <span className="text-[10px] font-medium text-m3-outline group-hover:text-m3-on-surface-variant transition-colors">
+                                                        Hits
+                                                    </span>
+                                                </M3Card>
                                             </Link>
                                         ))}
                                     </div>
                                 </section>
+
                             </>
                         )}
 
                         {/* Default Populated Content for Specific Tabs */}
                         {activeTab === 'movies' && (
                             <section>
-                                <h3 className="font-bold text-zinc-600 text-xs uppercase tracking-wider mb-3 px-1">Popular Movies</h3>
+                                <h3 className="font-bold text-m3-outline text-xs uppercase tracking-wider mb-3 px-1">Popular Movies</h3>
                                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                                     {defaults.movies.map((item, idx) => (
-                                        <Link href={`/movie/${encodeURIComponent(item.movie_name)}`} key={idx} className="flex flex-col gap-2 p-2 bg-white rounded-xl border border-[#E5EBF1] hover:shadow-lg transition-all group">
-                                            <div className="relative w-full aspect-2/3 bg-zinc-100 rounded-lg overflow-hidden shrink-0">
+                                        <Link href={`/movie/${encodeURIComponent(item.movie_name)}`} key={idx} className="flex flex-col gap-2 p-2 bg-m3-surface-container-low rounded-2xl border border-m3-outline-variant/40 hover:bg-m3-surface-container hover:shadow-md transition-all group">
+                                            <div className="relative w-full aspect-2/3 bg-m3-surface-container rounded-xl overflow-hidden shrink-0">
                                                 <TMDBImage
                                                     path={item.poster_url}
                                                     alt={item.movie_name}
@@ -550,8 +566,8 @@ function SearchContent() {
                                                 />
                                             </div>
                                             <div>
-                                                <p className="font-bold text-[#15171A] text-sm truncate">{item.movie_name}</p>
-                                                <p className="text-[10px] text-zinc-500">{item.movie_year}</p>
+                                                <p className="font-bold text-m3-on-surface text-sm truncate group-hover:text-m3-primary transition-colors">{item.movie_name}</p>
+                                                <p className="text-[10px] text-m3-outline">{item.movie_year}</p>
                                             </div>
                                         </Link>
                                     ))}
@@ -561,14 +577,14 @@ function SearchContent() {
 
                         {activeTab === 'artists' && (
                             <section>
-                                <h3 className="font-bold text-zinc-600 text-xs uppercase tracking-wider mb-3 px-1">Top Artists</h3>
+                                <h3 className="font-bold text-m3-outline text-xs uppercase tracking-wider mb-3 px-1">Top Artists</h3>
                                 <div className="flex flex-wrap gap-3">
                                     {defaults.artists.map((item, idx) => (
-                                        <Link href={`/artist/${encodeURIComponent(item.name)}`} key={idx} className="flex items-center gap-3 pr-4 pl-2 py-2 bg-white rounded-full border border-[#E5EBF1] hover:border-brand-accent transition-colors">
-                                            <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-brand-blue font-bold border border-zinc-200">
+                                        <Link href={`/artist/${encodeURIComponent(item.name)}`} key={idx} className="flex items-center gap-3 pr-4 pl-2 py-2 bg-m3-surface-container-low rounded-full border border-m3-outline-variant/40 hover:border-m3-primary hover:bg-m3-surface-container transition-all">
+                                            <div className="w-8 h-8 rounded-full bg-m3-primary-container flex items-center justify-center text-m3-on-primary-container font-bold text-xs">
                                                 {item.name.charAt(0)}
                                             </div>
-                                            <p className="font-medium text-[#15171A] text-sm">{item.name}</p>
+                                            <p className="font-medium text-m3-on-surface text-sm">{item.name}</p>
                                         </Link>
                                     ))}
                                 </div>
@@ -578,6 +594,7 @@ function SearchContent() {
                 )}
         </div>
     );
+
 }
 
 

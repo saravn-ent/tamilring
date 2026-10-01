@@ -1,95 +1,46 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
-import { Play, Pause } from 'lucide-react';
-import '../../app/animations.css';
-import TMDBImage from '@/components/TMDBImage';
 import { Ringtone } from '@/types';
-import { usePlayer } from '@/context/PlayerContext';
-import { useLanguage } from '@/context/LanguageContext';
-import { hapticFeedback } from '@/lib/haptics';
+import TrendingRankCard from './TrendingRankCard';
 
 interface TrendingListProps {
     trending: Ringtone[];
 }
 
 export default function TrendingList({ trending }: TrendingListProps) {
-    const { currentRingtone, isPlaying, playRingtone, togglePlay } = usePlayer();
-    const { t } = useLanguage();
+    if (!trending || trending.length === 0) return null;
 
-    const handlePlay = (e: React.MouseEvent, ringtone: Ringtone) => {
-        e.preventDefault();
-        e.stopPropagation();
-        hapticFeedback(25); // Increased intensity
-
-        // Use standard sync toggle if already current, but yield for play
-        if (currentRingtone?.id === ringtone.id) {
-            togglePlay();
-        } else {
-            setTimeout(() => {
-                playRingtone(ringtone);
-            }, 0);
-        }
-    };
+    // Group into columns of 3 tracks each
+    const chunkSize = 3;
+    const columns: Ringtone[][] = [];
+    for (let i = 0; i < trending.length; i += chunkSize) {
+        columns.push(trending.slice(i, i + chunkSize));
+    }
 
     return (
-        <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide snap-x md:grid md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-10 md:overflow-visible">
-            {trending.map((ringtone: Ringtone, idx: number) => {
-                const isCurrent = currentRingtone?.id === ringtone.id;
-                const isActive = isCurrent && isPlaying;
-
-                return (
-                    <Link
-                        key={ringtone.id}
-                        href={`/ringtone/${ringtone.slug}`}
-                        className="snap-start shrink-0 w-32 sm:w-36 md:w-full group cursor-pointer block"
+        <div className="relative">
+            {/* Multi-Row Paginated Leaderboard Rail */}
+            <div className="flex gap-3 sm:gap-4 overflow-x-auto px-3 sm:px-4 pb-3 scrollbar-hide snap-x md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 md:overflow-visible">
+                {columns.map((column, colIdx) => (
+                    <div
+                        key={colIdx}
+                        className="snap-start shrink-0 w-[86vw] sm:w-[350px] md:w-auto flex flex-col gap-2"
                     >
-                        <div className="relative w-32 sm:w-36 md:w-full h-44 sm:h-48 md:h-auto md:aspect-2/3 rounded-xl overflow-hidden mb-2 bg-brand-wash shadow-lg group-hover:shadow-brand-accent/20 transition-all border border-brand-border/50 active:scale-95">
-                            <TMDBImage
-                                path={ringtone.poster_url}
-                                alt=""
-                                fallbackAlt={ringtone.title}
-                                fill
-                                priority={idx < 2}
-                                sizes="(max-width: 768px) 33vw, (max-width: 1200px) 20vw, 16vw"
-                                quality={75}
-                                className="object-cover group-hover:scale-110 transition-transform duration-700"
-                            />
-
-                            {/* Overlay Gradient */}
-                            <div className={`absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-transparent transition-opacity duration-300 ${isActive ? 'opacity-100' : 'opacity-80 group-hover:opacity-90'}`} />
-
-                            {/* Playing Indicator (Top Right) */}
-                            {isActive && (
-                                <div className="absolute top-2 right-2 flex gap-0.5 items-end h-3 z-20">
-                                    <div className="w-1 bg-brand-accent rounded-full animate-music-bar-1" />
-                                    <div className="w-1 bg-brand-accent rounded-full animate-music-bar-2" />
-                                    <div className="w-1 bg-brand-accent rounded-full animate-music-bar-3" />
-                                </div>
-                            )}
-
-                            {/* Play Button - Bottom Right Corner */}
-                            <div className="absolute bottom-3 right-3 z-30">
-                                <button
-                                    type="button"
-                                    onClick={(e) => handlePlay(e, ringtone)}
-                                    className={`w-12 h-12 rounded-full flex items-center justify-center backdrop-blur-md border border-white/30 shadow-2xl transition-all duration-300 hover:scale-110 active:scale-90 pointer-events-auto ${isActive ? 'bg-brand-accent text-white scale-110' : 'bg-white/20 text-white hover:bg-white/40'}`}
-                                    aria-label={isActive ? `Pause ${ringtone.title}` : `Play ${ringtone.title}`}
-                                >
-                                    {isActive ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="ml-0.5" />}
-                                </button>
-                            </div>
-
-                        </div>
-                        <p className="text-xs font-bold text-black truncate group-hover:text-brand-accent transition-colors">{ringtone.title}</p>
-                        <p className="text-[10px] text-brand-dark truncate">{ringtone.movie_name}</p>
-                        {ringtone.profile?.full_name && (
-                            <p className="text-[9px] text-zinc-500 truncate mt-0.5">{t('by')} {ringtone.profile.full_name}</p>
-                        )}
-                    </Link>
-                );
-            })}
+                        {column.map((ringtone, itemIdx) => {
+                            const rank = colIdx * chunkSize + itemIdx + 1;
+                            return (
+                                <TrendingRankCard
+                                    key={ringtone.id}
+                                    ringtone={ringtone}
+                                    rank={rank}
+                                    priority={rank <= 3}
+                                />
+                            );
+                        })}
+                    </div>
+                ))}
+            </div>
         </div>
     );
 }

@@ -80,7 +80,7 @@ export default async function HomeRecent({ lang }: { lang: string }) {
     return (
         <div className="px-4 mb-10">
             <SectionHeader title="Just Added" translationKey="justAdded" />
-            <div className="space-y-3 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 mb-6">
+            <div className="space-y-2 sm:space-y-2.5 md:space-y-0 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-3 mb-6">
                 {recent?.map((ringtone: Ringtone, idx: number) => (
                     <RingtoneCard key={ringtone.id} ringtone={ringtone} priority={idx < 2} />
                 ))}

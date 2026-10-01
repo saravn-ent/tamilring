@@ -12,6 +12,7 @@
     "backup:csv": "node scripts/export-ringtones-csv.js"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1136.0",
     "@distube/ytdl-core": "^4.16.12",
     "@ducanh2912/next-pwa": "^10.2.9",
     "@google/generative-ai": "^0.24.1",

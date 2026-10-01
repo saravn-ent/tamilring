@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
 import { splitArtists, fuzzySearchPattern } from '@/lib/utils';
 import TMDBImage from './TMDBImage';
+import { M3SearchBar } from '@/components/ui/m3';
 
 interface Movie {
   movie_name: string;
@@ -153,41 +154,35 @@ export default function DiscoverySearch({ className = "mb-8" }: { className?: st
 
   return (
     <form ref={wrapperRef} onSubmit={handleSearch} className={`relative group z-50 ${className}`}>
-      <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-        <Search className="h-5 w-5 text-zinc-500 group-focus-within:text-brand-blue transition-colors" />
-      </div>
-      <input
-        type="text"
+      {/* 56dp Authentic M3 Search Bar Component */}
+      <M3SearchBar
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         onFocus={() => { if (searchQuery.length > 1) setShowDropdown(true); }}
-        placeholder="Find rings, artists, or bgm..."
-        className="w-full bg-white border border-brand-gray text-zinc-900 text-sm rounded-2xl py-4 pl-12 pr-12 focus:outline-none focus:ring-2 focus:ring-brand-blue/30 focus:border-brand-blue transition-all shadow-sm placeholder:text-zinc-500"
+        onClear={() => { setSearchQuery(''); setShowDropdown(false); }}
+        loading={loading}
+        placeholder="Search songs, artists, BGM, movies..."
       />
-      {loading && (
-        <div className="absolute inset-y-0 right-4 flex items-center">
-          <Loader2 className="h-5 w-5 text-brand-blue animate-spin" />
-        </div>
-      )}
 
-      {/* Autocomplete Dropdown */}
+
+      {/* M3 Autocomplete Dropdown (Search View Surface) */}
       {showDropdown && hasSuggestions && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-brand-gray rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 divide-y divide-brand-gray max-h-[60vh] overflow-y-auto custom-scrollbar">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-m3-surface-container-high border border-m3-outline-variant/40 rounded-2xl m3-elevation-3 overflow-hidden animate-in fade-in zoom-in-95 duration-200 divide-y divide-m3-outline-variant/30 max-h-[60vh] overflow-y-auto scrollbar-thin">
 
           {/* Movies Section */}
           {suggestions.movies.length > 0 && (
             <div className="p-2">
-              <h3 className="text-[10px] font-bold text-zinc-600 uppercase tracking-wider px-2 py-1 mb-1 flex items-center gap-1">
+              <h3 className="text-[10px] font-bold text-m3-outline uppercase tracking-wider px-2 py-1 mb-1 flex items-center gap-1">
                 <Film size={10} /> Movies
               </h3>
               {suggestions.movies.map((movie, idx) => (
                 <Link
                   key={idx}
                   href={`/movie/${encodeURIComponent(movie.movie_name)}`}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-brand-wash transition-colors group"
+                  className="flex items-center gap-3 p-2 rounded-xl hover:bg-m3-surface-container transition-colors group"
                   onClick={() => setShowDropdown(false)}
                 >
-                  <div className="relative w-8 h-12 bg-white rounded overflow-hidden shrink-0 border border-brand-gray/50">
+                  <div className="relative w-8 h-12 bg-m3-surface-container rounded-md overflow-hidden shrink-0 border border-m3-outline-variant/40">
                     <TMDBImage
                       path={movie.poster_url}
                       alt={movie.movie_name}
@@ -197,18 +192,18 @@ export default function DiscoverySearch({ className = "mb-8" }: { className?: st
                     />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-zinc-900 group-hover:text-brand-blue truncate">{movie.movie_name}</p>
-                    <p className="text-[10px] text-zinc-600">{movie.movie_year}</p>
+                    <p className="text-sm font-semibold text-m3-on-surface group-hover:text-m3-primary truncate">{movie.movie_name}</p>
+                    <p className="text-[10px] text-m3-outline">{movie.movie_year}</p>
                   </div>
                 </Link>
               ))}
             </div>
           )}
 
-          {/* Artists Section (Combined: Singers, Music Directors, Movie Directors) */}
+          {/* Artists Section */}
           {suggestions.artists.length > 0 && (
-            <div className="p-2 bg-brand-wash/30">
-              <h3 className="text-[10px] font-bold text-zinc-600 uppercase tracking-wider px-2 py-1 mb-1 flex items-center gap-1">
+            <div className="p-2 bg-m3-surface-container/30">
+              <h3 className="text-[10px] font-bold text-m3-outline uppercase tracking-wider px-2 py-1 mb-1 flex items-center gap-1">
                 <Mic size={10} /> Artists
               </h3>
               <div className="grid grid-cols-2 gap-1">
@@ -216,13 +211,13 @@ export default function DiscoverySearch({ className = "mb-8" }: { className?: st
                   <Link
                     key={idx}
                     href={`/artist/${encodeURIComponent(artist.name)}`}
-                    className="flex items-center gap-2 p-2 rounded-lg hover:bg-brand-wash transition-colors"
+                    className="flex items-center gap-2 p-2 rounded-xl hover:bg-m3-surface-container transition-colors"
                     onClick={() => setShowDropdown(false)}
                   >
-                    <div className="w-6 h-6 rounded-full bg-white flex items-center justify-center text-[10px] text-brand-blue font-bold shrink-0 border border-brand-gray">
+                    <div className="w-6 h-6 rounded-full bg-m3-surface-container flex items-center justify-center text-[10px] text-m3-primary font-bold shrink-0 border border-m3-outline-variant/40">
                       {artist.name[0]}
                     </div>
-                    <span className="text-xs font-semibold text-zinc-800 truncate">{artist.name}</span>
+                    <span className="text-xs font-semibold text-m3-on-surface truncate">{artist.name}</span>
                   </Link>
                 ))}
               </div>
@@ -232,23 +227,23 @@ export default function DiscoverySearch({ className = "mb-8" }: { className?: st
           {/* Ringtones Section */}
           {suggestions.ringtones.length > 0 && (
             <div className="p-2">
-              <h3 className="text-[10px] font-bold text-zinc-600 uppercase tracking-wider px-2 py-1 mb-1 flex items-center gap-1">
+              <h3 className="text-[10px] font-bold text-m3-outline uppercase tracking-wider px-2 py-1 mb-1 flex items-center gap-1">
                 <Music size={10} /> Ringtones
               </h3>
               {suggestions.ringtones.map((ringtone) => (
                 <Link
                   key={ringtone.id}
                   href={`/ringtone/${ringtone.slug}`}
-                  className="flex items-center justify-between p-2 rounded-lg hover:bg-brand-wash transition-colors group"
+                  className="flex items-center justify-between p-2 rounded-xl hover:bg-m3-surface-container transition-colors group"
                   onClick={() => setShowDropdown(false)}
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-8 h-8 rounded-full bg-brand-wash flex items-center justify-center shrink-0 text-zinc-400 group-hover:text-brand-blue transition-colors">
+                    <div className="w-8 h-8 rounded-full bg-m3-surface-container flex items-center justify-center shrink-0 text-m3-on-surface-variant group-hover:text-m3-primary transition-colors">
                       <Music size={14} />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-zinc-900 group-hover:text-brand-blue truncate">{ringtone.title}</p>
-                      <p className="text-[10px] text-zinc-700 truncate">{ringtone.movie_name}</p>
+                      <p className="text-sm font-semibold text-m3-on-surface group-hover:text-m3-primary truncate">{ringtone.title}</p>
+                      <p className="text-[10px] text-m3-outline truncate">{ringtone.movie_name}</p>
                     </div>
                   </div>
                 </Link>
@@ -258,7 +253,7 @@ export default function DiscoverySearch({ className = "mb-8" }: { className?: st
 
           <Link
             href={`/search?q=${encodeURIComponent(searchQuery)}`}
-            className="block p-3 text-center text-xs font-bold text-brand-blue hover:bg-brand-wash transition-colors"
+            className="block p-3 text-center text-xs font-bold text-m3-primary hover:bg-m3-surface-container transition-colors"
             onClick={() => setShowDropdown(false)}
           >
             See all results for &ldquo;{searchQuery}&rdquo;
@@ -268,3 +263,4 @@ export default function DiscoverySearch({ className = "mb-8" }: { className?: st
     </form>
   );
 }
+

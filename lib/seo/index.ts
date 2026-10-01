@@ -27,6 +27,7 @@ export {
     generateWebSiteSchema,
     generateMusicRecordingSchema,
     generateMovieSchema,
+    generateMusicAlbumSchema,
     generatePersonSchema,
     generateBreadcrumbSchema,
     generateItemListSchema,

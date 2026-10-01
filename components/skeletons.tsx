@@ -23,24 +23,21 @@ export function HeroCardSkeleton() {
 
 export function RingtoneCardSkeleton() {
     return (
-        <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-xl p-3 sm:p-4 h-[100px] flex items-center gap-3">
+        <div className="bg-m3-surface-container-low border border-m3-outline-variant/35 rounded-xl sm:rounded-2xl px-2.5 py-2 sm:px-3 sm:py-2.5 h-[68px] flex items-center gap-2.5 sm:gap-3">
             {/* Left Image Section */}
-            <div className="flex flex-col items-center gap-1.5 shrink-0">
-                <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl shimmer" />
-                <div className="h-2 w-8 rounded shimmer opacity-50" />
-            </div>
+            <div className="w-12 h-12 sm:w-13 sm:h-13 rounded-xl shimmer shrink-0" />
 
             {/* Middle Content Section */}
-            <div className="flex-1 min-w-0 space-y-2">
-                <div className="h-4 w-3/4 rounded shimmer" />
-                <div className="h-3 w-1/2 rounded shimmer opacity-70" />
-                <div className="h-3 w-1/3 rounded shimmer opacity-40" />
+            <div className="flex-1 min-w-0 space-y-1.5">
+                <div className="h-3.5 w-3/4 rounded shimmer" />
+                <div className="h-2.5 w-1/2 rounded shimmer opacity-60" />
             </div>
 
             {/* Right Actions Section */}
-            <div className="flex flex-col gap-1 shrink-0">
+            <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
                 <div className="w-8 h-8 rounded-full shimmer" />
                 <div className="w-8 h-8 rounded-full shimmer" />
+                <div className="w-8.5 h-8.5 rounded-full shimmer" />
             </div>
         </div>
     );
@@ -68,12 +65,21 @@ export function HorizontalListSkeleton() {
 
 export function TrendingSkeleton() {
     return (
-        <div className="flex gap-4 overflow-x-auto px-4 pb-4 scrollbar-hide snap-x">
-            {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="snap-start shrink-0 w-32 sm:w-36 md:w-40 space-y-2">
-                    <div className="w-32 sm:w-36 md:w-40 h-44 sm:h-48 md:h-56 rounded-xl shimmer" />
-                    <div className="h-3 w-3/4 rounded shimmer opacity-70" />
-                    <div className="h-2 w-1/2 rounded shimmer opacity-40" />
+        <div className="flex gap-3 sm:gap-4 overflow-x-auto px-3 sm:px-4 pb-3 scrollbar-hide snap-x md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 md:overflow-visible">
+            {Array.from({ length: 3 }).map((_, colIdx) => (
+                <div key={colIdx} className="snap-start shrink-0 w-[86vw] sm:w-[350px] md:w-auto flex flex-col gap-2">
+                    {Array.from({ length: 3 }).map((_, rowIdx) => (
+                        <div key={rowIdx} className="flex items-center gap-2.5 sm:gap-3 p-2 rounded-2xl bg-m3-surface-container/40 border border-m3-outline-variant/20">
+                            <div className="w-6 sm:w-7 h-4 rounded shimmer opacity-50 shrink-0" />
+                            <div className="w-[48px] h-[48px] sm:w-[52px] sm:h-[52px] rounded-xl shimmer shrink-0" />
+                            <div className="flex-1 min-w-0 space-y-1.5">
+                                <div className="h-3.5 w-3/4 rounded shimmer opacity-80" />
+                                <div className="h-2.5 w-1/2 rounded shimmer opacity-50" />
+                                <div className="h-2 w-1/4 rounded shimmer opacity-30" />
+                            </div>
+                            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full shimmer shrink-0 opacity-60" />
+                        </div>
+                    ))}
                 </div>
             ))}
         </div>

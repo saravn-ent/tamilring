@@ -24,7 +24,7 @@ export function generateOrganizationSchema() {
         contactPoint: {
             '@type': 'ContactPoint',
             contactType: 'Customer Service',
-            availableLanguage: ['Tamil', 'English'],
+            availableLanguage: ['English'],
         },
     };
 }
@@ -39,7 +39,7 @@ export function generateWebSiteSchema() {
         name: SITE_NAME,
         url: SITE_URL,
         description: 'Download the latest Tamil movie ringtones, devotional songs, and music',
-        inLanguage: 'ta',
+        inLanguage: 'en',
         potentialAction: {
             '@type': 'SearchAction',
             target: {
@@ -81,7 +81,7 @@ export function generateMusicRecordingSchema(ringtone: {
         image: ringtone.artwork_url,
         duration: ringtone.duration ? `PT${ringtone.duration}S` : undefined,
         datePublished: ringtone.created_at,
-        inLanguage: 'ta',
+        inLanguage: 'en',
         byArtist: singers.map(singer => ({
             '@type': 'Person',
             name: singer,
@@ -135,7 +135,7 @@ export function generateMovieSchema(movie: {
         image: movie.poster_url,
         description: movie.description || `${movie.name} Tamil movie ringtones`,
         datePublished: movie.year,
-        inLanguage: 'ta',
+        inLanguage: 'en',
         director: directors.map(director => ({
             '@type': 'Person',
             name: director,
@@ -150,6 +150,39 @@ export function generateMovieSchema(movie: {
             '@type': 'MusicRecording',
             name: ringtone.title,
             url: `${SITE_URL}/ringtone/${ringtone.slug}`,
+        })),
+    };
+}
+
+/**
+ * MusicAlbum schema for movie album pages
+ */
+export function generateMusicAlbumSchema(album: {
+    name: string;
+    poster_url?: string;
+    year?: string;
+    music_director?: string;
+    ringtones?: Array<{ title: string; slug: string; duration?: number }>;
+}) {
+    const musicDirectors = album.music_director?.split(',').map(md => md.trim()) || [];
+    return {
+        '@context': 'https://schema.org',
+        '@type': 'MusicAlbum',
+        name: album.name,
+        url: `${SITE_URL}/movie/${encodeURIComponent(album.name)}`,
+        image: album.poster_url,
+        datePublished: album.year,
+        inLanguage: 'en',
+        byArtist: musicDirectors.map(md => ({
+            '@type': 'Person',
+            name: md,
+            url: `${SITE_URL}/artist/${encodeURIComponent(md)}`,
+        })),
+        track: album.ringtones?.map(r => ({
+            '@type': 'MusicRecording',
+            name: r.title,
+            url: `${SITE_URL}/ringtone/${r.slug}`,
+            duration: r.duration ? `PT${r.duration}S` : undefined,
         })),
     };
 }

@@ -29,18 +29,19 @@ export default function BottomNav() {
 
   if (!mounted) {
     return (
-      <div className="fixed bottom-0 left-0 right-0 z-100 bg-white border-t border-brand-gray h-16 md:hidden">
-        <div className="flex justify-between items-center h-16 max-w-md mx-auto px-4" />
+      <div className="fixed bottom-0 left-0 right-0 z-100 bg-m3-surface-container border-t border-m3-outline-variant/30 h-14 md:hidden">
+        <div className="flex justify-between items-center h-14 max-w-md mx-auto px-4" />
       </div>
     );
   }
 
   return (
-    <div 
-      className="bottom-nav-fixed fixed bottom-0 left-0 right-0 z-100 bg-white/95 backdrop-blur-xl border-t border-brand-gray transition-all duration-300 md:hidden shadow-[0_-4px_20px_-5px_rgba(0,0,0,0.1)]"
+    <nav 
+      aria-label="Mobile Bottom Navigation"
+      className="bottom-nav-fixed fixed bottom-0 left-0 right-0 z-100 bg-m3-surface-container/95 backdrop-blur-xl border-t border-m3-outline-variant/30 transition-all duration-300 md:hidden m3-elevation-2"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
-      <div className="flex justify-around items-center h-16 max-w-md mx-auto px-2">
+      <div className="flex justify-around items-center h-14 max-w-md mx-auto px-1">
         {navItems.map((item) => {
           const active = isActive(item.href);
           const Icon = item.icon;
@@ -50,30 +51,38 @@ export default function BottomNav() {
               key={item.href}
               href={item.href}
               onClick={() => hapticFeedback(hapticPatterns.selection)}
-              className={`relative flex flex-col items-center justify-center gap-1 transition-all duration-300 flex-1 h-full ${active ? 'text-brand-blue' : 'text-zinc-600 hover:text-brand-dark'
-                }`}
+              className="group relative flex flex-col items-center justify-center gap-0.5 transition-all duration-200 flex-1 h-full py-1 touch-manipulation"
             >
-              <div className={`p-1.5 rounded-xl transition-all duration-300 ${active ? 'bg-brand-blue/10 scale-110' : 'bg-transparent'
-                }`}>
+              {/* M3 Active Pill Indicator */}
+              <div 
+                className={`w-12 h-7 rounded-full flex items-center justify-center transition-all duration-200 ${
+                  active 
+                    ? 'bg-m3-secondary-container text-m3-on-secondary-container shadow-2xs' 
+                    : 'bg-transparent text-m3-on-surface-variant group-hover:bg-m3-on-surface/5 group-hover:text-m3-on-surface'
+                }`}
+              >
                 <Icon
-                  size={22}
+                  size={18}
                   strokeWidth={active ? 2.5 : 2}
-                  className={active ? 'animate-in zoom-in-75 duration-300' : ''}
+                  className={active ? 'scale-105 transition-transform duration-200' : ''}
                 />
               </div>
-              <span className={`text-[10px] font-bold transition-all duration-300 ${active ? 'text-rose-600 opacity-100 transform translate-y-0' : 'text-zinc-600 opacity-100'
-                }`}>
+
+              {/* M3 Label */}
+              <span 
+                className={`text-[10px] tracking-tight leading-none transition-colors duration-200 ${
+                  active 
+                    ? 'font-bold text-m3-on-surface' 
+                    : 'font-medium text-m3-on-surface-variant group-hover:text-m3-on-surface'
+                }`}
+              >
                 {item.label}
               </span>
-
-              {/* Active Indicator Bar */}
-              {active && (
-                <div className="absolute -top-px left-1/2 -translate-x-1/2 w-10 h-[3px] bg-brand-blue rounded-full shadow-[0_0_10px_rgba(var(--color-brand-blue),0.5)]" />
-              )}
             </Link>
           );
         })}
       </div>
-    </div>
+    </nav>
   );
 }
+

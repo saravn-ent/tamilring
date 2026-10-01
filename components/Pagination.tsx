@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { hapticFeedback, hapticPatterns } from '@/lib/haptics';
 
 interface PaginationProps {
     currentPage: number;
@@ -46,29 +47,34 @@ export default function Pagination({ currentPage, totalPages, baseUrl, searchPar
     };
 
     return (
-        <div className="flex items-center justify-center gap-2 mt-8 mb-4">
+        <nav aria-label="Pagination Navigation" className="flex items-center justify-center gap-2 mt-8 mb-4">
             {currentPage > 1 ? (
                 <Link
                     href={createUrl(currentPage - 1)}
-                    className="p-2 rounded-xl bg-white border border-zinc-200 text-zinc-600 hover:border-brand-accent hover:text-brand-accent transition-all"
+                    onClick={() => hapticFeedback(hapticPatterns.selection)}
+                    className="w-10 h-10 rounded-full flex items-center justify-center bg-m3-surface-container-low border border-m3-outline-variant/60 text-m3-on-surface hover:bg-m3-surface-container hover:text-m3-primary transition-all active:scale-90"
+                    aria-label="Previous Page"
                 >
-                    <ChevronLeft size={20} />
+                    <ChevronLeft size={18} />
                 </Link>
             ) : (
-                <div className="p-2 rounded-xl bg-zinc-50 border border-zinc-100 text-zinc-300 cursor-not-allowed">
-                    <ChevronLeft size={20} />
+                <div className="w-10 h-10 rounded-full flex items-center justify-center bg-m3-surface-container-low/50 border border-m3-outline-variant/20 text-m3-outline/40 cursor-not-allowed">
+                    <ChevronLeft size={18} />
                 </div>
             )}
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
                 {getPageNumbers().map((page) => (
                     <Link
                         key={page}
                         href={createUrl(page)}
-                        className={`min-w-[40px] h-[40px] flex items-center justify-center rounded-xl font-bold text-sm transition-all border ${currentPage === page
-                            ? 'bg-brand-accent border-brand-accent text-white shadow-lg shadow-brand-accent/20'
-                            : 'bg-white border-zinc-200 text-zinc-600 hover:border-brand-accent hover:text-brand-accent'
-                            }`}
+                        onClick={() => hapticFeedback(hapticPatterns.selection)}
+                        className={`w-10 h-10 flex items-center justify-center rounded-full font-bold text-xs transition-all active:scale-90 ${
+                            currentPage === page
+                                ? 'bg-m3-primary text-m3-on-primary shadow-xs'
+                                : 'bg-m3-surface-container-low border border-m3-outline-variant/60 text-m3-on-surface hover:bg-m3-surface-container hover:text-m3-primary'
+                        }`}
+                        aria-current={currentPage === page ? 'page' : undefined}
                     >
                         {page}
                     </Link>
@@ -78,15 +84,18 @@ export default function Pagination({ currentPage, totalPages, baseUrl, searchPar
             {currentPage < totalPages ? (
                 <Link
                     href={createUrl(currentPage + 1)}
-                    className="p-2 rounded-xl bg-white border border-zinc-200 text-zinc-600 hover:border-brand-accent hover:text-brand-accent transition-all"
+                    onClick={() => hapticFeedback(hapticPatterns.selection)}
+                    className="w-10 h-10 rounded-full flex items-center justify-center bg-m3-surface-container-low border border-m3-outline-variant/60 text-m3-on-surface hover:bg-m3-surface-container hover:text-m3-primary transition-all active:scale-90"
+                    aria-label="Next Page"
                 >
-                    <ChevronRight size={20} />
+                    <ChevronRight size={18} />
                 </Link>
             ) : (
-                <div className="p-2 rounded-xl bg-zinc-50 border border-zinc-100 text-zinc-300 cursor-not-allowed">
-                    <ChevronRight size={20} />
+                <div className="w-10 h-10 rounded-full flex items-center justify-center bg-m3-surface-container-low/50 border border-m3-outline-variant/20 text-m3-outline/40 cursor-not-allowed">
+                    <ChevronRight size={18} />
                 </div>
             )}
-        </div>
+        </nav>
     );
 }
+

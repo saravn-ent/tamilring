@@ -6,7 +6,7 @@ import { unstable_cache } from 'next/cache';
 import { searchPerson, getImageUrl } from '@/lib/tmdb';
 import { TOP_ACTORS_BY_LANGUAGE, TOP_SINGERS_BY_LANGUAGE, TOP_MUSIC_DIRECTORS_BY_LANGUAGE, MOODS, INSTRUMENTS } from '@/lib/constants';
 
-const getTopArtists = unstable_cache(
+export const getTopArtists = unstable_cache(
     async (lang: string = 'tamil') => {
         const regionalActors = TOP_ACTORS_BY_LANGUAGE[lang] || [];
         const regionalSingers = TOP_SINGERS_BY_LANGUAGE[lang] || [];

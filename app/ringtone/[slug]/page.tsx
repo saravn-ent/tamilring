@@ -102,19 +102,19 @@ export default async function RingtonePage({ params }: Props) {
         <div className="absolute inset-0 bg-linear-to-b from-transparent to-background" />
       </div>
 
-      <div className="relative z-10 p-4 pt-4 flex-1 pb-24">
-        {/* Top Right Buttons: Back & Video/Pinterest */}
+      <div className="relative z-10 p-4 pt-4 flex-1 pb-12 sm:pb-16">
+        {/* Top Navigation: Back & How to Set */}
         <div className="flex items-center justify-between mb-6">
-          <BackButton fallbackHref="/" className="shadow-sm" />
+          <BackButton variant="hero" fallbackHref="/" />
 
-          {/* Social & Video Actions */}
           <div className="flex items-center gap-3">
             <RingtoneSetGuideTrigger variant="header" />
           </div>
         </div>
 
         <div className="flex flex-col items-center text-center space-y-4 mt-2">
-          <div className="relative w-32 h-48 rounded-xl overflow-hidden shadow-2xl shadow-brand-dark/20 bg-brand-wash flex items-center justify-center">
+          {/* M3 Elevated Poster */}
+          <div className="relative w-36 h-52 rounded-2xl overflow-hidden m3-elevation-2 bg-m3-surface-container border border-m3-outline-variant/40 flex items-center justify-center">
             <TMDBImage
               path={ringtone.poster_url}
               alt=""
@@ -122,12 +122,12 @@ export default async function RingtonePage({ params }: Props) {
               fill
               priority
               quality={85}
-              sizes="(max-width: 640px) 50vw, 128px"
+              sizes="(max-width: 640px) 50vw, 144px"
               className="object-cover"
             />
           </div>
 
-          <div className="space-y-1">
+          <div className="space-y-1.5 w-full max-w-md">
             {(() => {
               // ROBUST TITLE GENERATION: [Segment Name] - [Song Name]
               let segment = ringtone.title;
@@ -138,7 +138,6 @@ export default async function RingtonePage({ params }: Props) {
               const cleanText = (text: string, toRemove: string) => {
                 if (!toRemove) return text;
                 const escaped = toRemove.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-                // Remove the text anywhere in the string (case insensitive)
                 return text.replace(new RegExp(escaped, 'gi'), '').trim();
               };
 
@@ -156,8 +155,8 @@ export default async function RingtonePage({ params }: Props) {
               // 4. Clean extra separators/brackets
               segment = segment
                 .replace(/\(From.*?\)/gi, '')
-                .replace(/^[-–—:|]+|[-–—:|]+$/g, '') // remove leading/trailing separators
-                .replace(/\s+[-–—:|]+\s+/g, ' - ') // normalize middle separators
+                .replace(/^[-–—:|]+|[-–—:|]+$/g, '')
+                .replace(/\s+[-–—:|]+\s+/g, ' - ')
                 .trim();
 
               // 5. Construct Final Title
@@ -169,26 +168,30 @@ export default async function RingtonePage({ params }: Props) {
               } else if (song) {
                 displayTitle = song;
               } else {
-                displayTitle = ringtone.title; // Fallback
+                displayTitle = ringtone.title;
               }
 
               return (
-                <h1 className="text-2xl font-black text-brand-dark tracking-tight leading-tight px-4">
+                <h1 className="text-xl sm:text-2xl font-bold text-m3-on-surface tracking-tight leading-snug px-4">
                   {displayTitle}
                 </h1>
               );
             })()}
-            <Link href={`/movie/${encodeURIComponent(ringtone.movie_name)}`} className="inline-flex items-center gap-1 text-brand-accent font-medium text-base hover:underline transition-colors">
-              {ringtone.movie_name} <span className="text-zinc-400 font-normal">({ringtone.movie_year})</span>
-              <ChevronRight size={16} className="text-brand-accent/70" />
+
+            <Link href={`/movie/${encodeURIComponent(ringtone.movie_name)}`} className="inline-flex items-center gap-1 text-m3-primary font-bold text-base hover:underline transition-colors">
+              <span>{ringtone.movie_name}</span>
+              {ringtone.movie_year && ringtone.movie_year.trim() !== '' ? (
+                <span className="text-m3-outline font-normal">({ringtone.movie_year})</span>
+              ) : null}
+              <ChevronRight size={16} className="text-m3-primary/70" />
             </Link>
 
-            <div className="flex flex-wrap justify-center gap-1 text-brand-dark font-medium text-sm">
+            <div className="flex flex-wrap justify-center gap-1 text-m3-on-surface-variant font-medium text-sm">
               {splitArtists(ringtone.singers).map((singer: string, idx: number, arr: string[]) => (
                 <span key={idx} className="flex items-center">
                   <Link
                     href={`/artist/${encodeURIComponent(singer)}`}
-                    className="hover:underline"
+                    className="hover:underline hover:text-m3-primary transition-colors"
                   >
                     {singer}
                   </Link>
@@ -198,34 +201,58 @@ export default async function RingtonePage({ params }: Props) {
             </div>
 
             {ringtone.music_director && (
-              <div className="text-zinc-500 text-xs mt-1">
-                Music: <Link href={`/artist/${encodeURIComponent(ringtone.music_director)}`} className="text-zinc-700 hover:text-brand-accent transition-colors">{ringtone.music_director}</Link>
+              <div className="text-m3-outline text-xs mt-1 flex flex-wrap justify-center gap-1">
+                <span>Music:</span>
+                {splitArtists(ringtone.music_director).map((md: string, idx: number, arr: string[]) => (
+                  <span key={idx} className="flex items-center">
+                    <Link href={`/artist/${encodeURIComponent(md)}`} className="text-m3-on-surface-variant font-medium hover:text-m3-primary hover:underline transition-colors">{md}</Link>
+                    {idx < arr.length - 1 && <span className="mr-1">,</span>}
+                  </span>
+                ))}
               </div>
             )}
             {ringtone.movie_director && (
-              <div className="text-zinc-500 text-xs mt-1">
-                Directed by: <Link href={`/artist/${encodeURIComponent(ringtone.movie_director)}`} className="text-zinc-700 hover:text-brand-accent transition-colors">{ringtone.movie_director}</Link>
+              <div className="text-m3-outline text-xs mt-0.5 flex flex-wrap justify-center gap-1">
+                <span>Directed by:</span>
+                {splitArtists(ringtone.movie_director).map((dir: string, idx: number, arr: string[]) => (
+                  <span key={idx} className="flex items-center">
+                    <Link href={`/artist/${encodeURIComponent(dir)}`} className="text-m3-on-surface-variant font-medium hover:text-m3-primary hover:underline transition-colors">{dir}</Link>
+                    {idx < arr.length - 1 && <span className="mr-1">,</span>}
+                  </span>
+                ))}
               </div>
             )}
             {ringtone.lyricist && (
-              <div className="text-zinc-500 text-xs mt-1">
-                Lyrics: <Link href={`/artist/${encodeURIComponent(ringtone.lyricist)}`} className="text-zinc-700 hover:text-brand-accent transition-colors">{ringtone.lyricist}</Link>
+              <div className="text-m3-outline text-xs mt-0.5 flex flex-wrap justify-center gap-1">
+                <span>Lyrics:</span>
+                {splitArtists(ringtone.lyricist).map((lyr: string, idx: number, arr: string[]) => (
+                  <span key={idx} className="flex items-center">
+                    <Link href={`/artist/${encodeURIComponent(lyr)}`} className="text-m3-on-surface-variant font-medium hover:text-m3-primary hover:underline transition-colors">{lyr}</Link>
+                    {idx < arr.length - 1 && <span className="mr-1">,</span>}
+                  </span>
+                ))}
               </div>
             )}
+
             <div className="flex flex-wrap justify-center gap-2 mt-3">
               {ringtone.mood && (
-                <Link href={`/mood/${ringtone.mood}`} className="px-3 py-1 rounded-full bg-brand-accent/10 text-brand-accent text-[10px] font-bold uppercase tracking-wider">
+                <Link href={`/mood/${ringtone.mood}`} className="px-3 py-1 rounded-full bg-m3-primary-container text-m3-on-primary-container text-[11px] font-bold tracking-wide">
                   {ringtone.mood}
                 </Link>
               )}
               {ringtone.tags?.slice(0, 3).map((tag: string) => (
-                <span key={tag} className="px-3 py-1 rounded-full bg-zinc-100 text-zinc-500 text-[10px] font-bold uppercase tracking-wider">
-                  {tag}
-                </span>
+                <Link
+                  key={tag}
+                  href={`/search?q=${encodeURIComponent(tag)}`}
+                  className="px-3 py-1 rounded-full bg-m3-surface-container text-m3-outline border border-m3-outline-variant/40 text-[10px] font-medium hover:text-m3-primary hover:border-m3-primary transition-colors"
+                >
+                  #{tag}
+                </Link>
               ))}
             </div>
+
             {ringtone.cast_members && (
-              <div className="text-zinc-400 text-[10px] mt-3 max-w-xs mx-auto">
+              <div className="text-m3-outline text-[11px] mt-2 max-w-xs mx-auto">
                 Cast: {ringtone.cast_members}
               </div>
             )}
@@ -234,11 +261,10 @@ export default async function RingtonePage({ params }: Props) {
           {/* Action Section (Play, Download, Stats) */}
           <DownloadSection ringtone={ringtone} />
 
-          <div className="h-4" />
+          <div className="h-2" />
 
-
-          {/* Streaming Section - The "Safe Zone" */}
-          <div className="w-full max-w-sm mt-4 pt-6 border-t border-zinc-100 flex flex-col items-center">
+          {/* Streaming Section */}
+          <div className="w-full max-w-sm mt-3 pt-5 border-t border-m3-outline-variant/40 flex flex-col items-center">
             <StreamButtons
               songTitle={ringtone.song_name || cleanTitle}
               artistName={[ringtone.music_director, ringtone.singers].filter(Boolean).join(', ')}
@@ -247,8 +273,6 @@ export default async function RingtonePage({ params }: Props) {
               spotifyLink={ringtone.spotify_link}
             />
           </div>
-
-
         </div>
 
         {/* Similar Ringtones Section - Suspended */}
@@ -258,6 +282,7 @@ export default async function RingtonePage({ params }: Props) {
       </div>
 
       <StructuredData data={combinedSchema} />
-    </div >
+    </div>
   );
 }
+

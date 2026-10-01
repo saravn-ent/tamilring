@@ -2,10 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { ArrowUp } from 'lucide-react';
-import { hapticFeedback } from '@/lib/haptics';
+import { hapticFeedback, hapticPatterns } from '@/lib/haptics';
+import { usePlayer } from '@/context/PlayerContext';
+import { usePathname } from 'next/navigation';
 
 export default function BackToTop() {
     const [show, setShow] = useState(false);
+    const { currentRingtone, source } = usePlayer();
+    const pathname = usePathname();
 
     useEffect(() => {
         const handleScroll = () => {
@@ -16,19 +20,28 @@ export default function BackToTop() {
     }, []);
 
     const scrollToTop = () => {
-        hapticFeedback(20);
+        hapticFeedback(hapticPatterns.selection);
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
     if (!show) return null;
 
+    const isPlayerVisible = Boolean(
+        currentRingtone && 
+        source !== 'spotlight' && 
+        !pathname?.startsWith('/ringtone/')
+    );
+
     return (
         <button
             onClick={scrollToTop}
-            className="fixed bottom-24 right-4 z-50 p-3 bg-white border border-brand-gray text-brand-blue rounded-full shadow-lg shadow-brand-dark/10 animate-in fade-in zoom-in duration-300 md:hidden active:scale-95 transition-transform"
+            className={`fixed right-4 z-50 w-10 h-10 bg-m3-primary-container text-m3-on-primary-container rounded-2xl m3-elevation-2 hover:m3-elevation-3 shadow-md md:hidden active:scale-95 transition-all duration-300 flex items-center justify-center cursor-pointer ${
+                isPlayerVisible ? 'bottom-32' : 'bottom-18'
+            }`}
             aria-label="Back to top"
         >
-            <ArrowUp size={24} strokeWidth={2.5} />
+            <ArrowUp size={20} />
         </button>
     );
 }
+

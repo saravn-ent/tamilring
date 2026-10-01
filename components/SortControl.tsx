@@ -49,35 +49,36 @@ export default function SortControl() {
   return (
     <div className="flex justify-end px-4 py-1 transition-all">
       <div className="relative" ref={dropdownRef}>
-        {/* Trigger Button */}
+        {/* M3 Assist Chip Trigger Button */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="h-8 flex items-center gap-2 px-4 rounded-full bg-white border border-brand-border text-xs font-bold text-zinc-600 hover:bg-brand-wash hover:text-brand-dark transition-all shadow-sm hover:shadow-md hover:border-brand-accent/30"
+          className="h-8 flex items-center gap-1.5 px-3.5 rounded-full bg-m3-surface-container-low border border-m3-outline-variant/60 text-xs font-semibold text-m3-on-surface hover:bg-m3-surface-container transition-all cursor-pointer shadow-2xs"
         >
-          Sort: <span className="text-brand-accent">{currentLabel}</span>
+          <span>Sort:</span> <span className="text-m3-primary font-bold">{currentLabel}</span>
           <ChevronDown
             size={14}
-            className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+            className={`transition-transform duration-200 text-m3-outline ${isOpen ? 'rotate-180' : ''}`}
           />
         </button>
 
-        {/* Compact Dropdown */}
+        {/* M3 Menu Container */}
         {isOpen && (
-          <div className="absolute right-0 mt-2 w-56 bg-white border border-brand-border rounded-xl shadow-xl shadow-brand-dark/10 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50">
+          <div className="absolute right-0 mt-2 w-56 bg-m3-surface-container-high border border-m3-outline-variant/40 rounded-2xl m3-elevation-2 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50 p-1">
             {/* Scrollable Container */}
-            <div className="max-h-[200px] overflow-y-auto scrollbar-thin">
-              {SORT_OPTIONS.map((option, idx) => (
+            <div className="max-h-[220px] overflow-y-auto scrollbar-thin divide-y divide-m3-outline-variant/20">
+              {SORT_OPTIONS.map((option) => (
                 <button
                   key={option.value}
                   onClick={() => handleSort(option.value)}
-                  className={`w-full flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors ${currentSort === option.value
-                    ? 'bg-brand-wash text-brand-accent'
-                    : 'text-zinc-600 hover:bg-zinc-50 hover:text-brand-dark'
-                    } ${idx !== SORT_OPTIONS.length - 1 ? 'border-b border-brand-wash' : ''}`}
+                  className={`w-full flex items-center justify-between px-3.5 py-2.5 text-xs font-medium rounded-xl transition-colors cursor-pointer ${
+                    currentSort === option.value
+                      ? 'bg-m3-secondary-container text-m3-on-secondary-container font-bold'
+                      : 'text-m3-on-surface hover:bg-m3-surface-container'
+                  }`}
                 >
                   <span>{option.label}</span>
                   {currentSort === option.value && (
-                    <Check size={16} className="text-brand-accent" />
+                    <Check size={15} className="text-m3-primary" />
                   )}
                 </button>
               ))}
@@ -88,3 +89,4 @@ export default function SortControl() {
     </div>
   );
 }
+

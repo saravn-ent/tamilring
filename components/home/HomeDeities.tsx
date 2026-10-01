@@ -123,7 +123,7 @@ const getTopDeities = unstable_cache(
             .sort((a, b) => b.total_likes - a.total_likes)
             .slice(0, 10);
     },
-    ['top-deities-home-v9'], // Bump cache version
+    ['top-deities-home-v10'], // Bump cache version after DB resume
     { revalidate: 3600, tags: ['homepage-deities'] }
 );
 
@@ -134,37 +134,42 @@ export default async function HomeDeities({ lang }: { lang: string }) {
     if (!topDeities || topDeities.length === 0) return null;
 
     return (
-        <div className="mb-10">
-            <div className="px-4 text-center mb-6">
-                <SectionHeader title="Gods/Deity" translationKey="deities" />
+        <div className="mb-8">
+            <div className="px-3 sm:px-4">
+                <SectionHeader
+                    title="Bhakthi & Devotional"
+                    subtitle="Spiritual & Divine"
+                    translationKey="deities"
+                    href="/mood/Devotional"
+                />
             </div>
-            <div className="flex gap-4 overflow-x-auto px-4 pb-8 scrollbar-hide snap-x pt-2 pl-4 md:grid md:grid-cols-6 lg:grid-cols-8 md:overflow-visible md:justify-items-center">
+            <div className="flex gap-3 overflow-x-auto px-3 sm:px-4 pb-3 scrollbar-hide snap-x pt-1 md:grid md:grid-cols-6 lg:grid-cols-8 md:overflow-visible md:justify-items-center">
                 {topDeities.map((deity, idx) => (
                     <Link
                         key={idx}
                         href={`/devotional/${encodeURIComponent(deity.name)}`}
-                        className="snap-start shrink-0 flex flex-col items-center gap-2 w-24 group md:w-full"
+                        className="snap-start shrink-0 flex flex-col items-center gap-1.5 w-[72px] sm:w-20 group md:w-full"
                     >
-                        <div className="relative w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden shadow-md group-hover:shadow-lg transition-all group-hover:scale-105 duration-300 border-2 border-white ring-2 ring-indigo-50">
+                        <div className="relative w-16 h-16 sm:w-18 sm:h-18 rounded-full overflow-hidden shadow-2xs group-hover:shadow-md transition-all group-hover:scale-105 duration-300 border-2 border-m3-surface ring-2 ring-m3-outline-variant/40 group-hover:ring-m3-primary bg-m3-surface-container">
                             {deity.poster_url ? (
                                 <Image
                                     src={deity.poster_url}
                                     alt={deity.name}
                                     fill
                                     className="object-cover"
-                                    sizes="(max-width: 768px) 80px, 96px"
+                                    sizes="72px"
                                 />
                             ) : (
-                                <div className="w-full h-full bg-linear-to-br from-indigo-100 to-purple-100 flex items-center justify-center">
-                                    <span className="text-2xl">🕉️</span>
+                                <div className="w-full h-full bg-m3-primary-container text-m3-on-primary-container flex items-center justify-center">
+                                    <span className="text-xl">🕉️</span>
                                 </div>
                             )}
                         </div>
-                        <div className="text-center w-full mt-1">
-                            <p className="text-xs font-bold text-slate-900 truncate w-full px-1 group-hover:text-indigo-700 transition-colors">
+                        <div className="text-center w-full">
+                            <p className="text-[11px] font-bold text-m3-on-surface truncate w-full px-0.5 group-hover:text-m3-primary transition-colors">
                                 {deity.name}
                             </p>
-                            <span className="text-[10px] text-slate-500 font-medium block mt-0.5">
+                            <span className="text-[9px] text-m3-outline font-medium block mt-0.2">
                                 {deity.count} Songs
                             </span>
                         </div>

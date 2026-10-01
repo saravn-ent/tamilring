@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
-import { Play, Pause, Heart, Share2, Download } from 'lucide-react';
+import { Play, Pause, Heart, Download } from 'lucide-react';
 import { Ringtone } from '@/types';
 import { usePlayer } from '@/context/PlayerContext';
 import { incrementLikes } from '@/app/actions/ringtones';
@@ -27,19 +27,20 @@ export default function RingtoneCard({ ringtone, assignTo, priority }: RingtoneC
   const { t } = useLanguage();
   const isLiked = isFavorite(ringtone.id);
   const [localLikes, setLocalLikes] = useState(ringtone.likes || 0);
+  const [localDownloads, setLocalDownloads] = useState(ringtone.downloads || 0);
   const [showHeartPop, setShowHeartPop] = useState(false);
   // We rely on either DB duration or the player's duration for performance
   const [loadedDuration] = useState<number | null>(ringtone.duration || null);
 
-  const formatDuration = (seconds: number | null) => {
-    if (!seconds || isNaN(seconds)) return '';
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  const formatCount = (count: number) => {
+    if (!count || count <= 0) return '0';
+    if (count >= 1000000) return `${(count / 1000000).toFixed(1).replace(/\.0$/, '')}M`;
+    if (count >= 1000) return `${(count / 1000).toFixed(1).replace(/\.0$/, '')}k`;
+    return count.toString();
   };
 
   const router = useRouter();
-  const cardRef = useRef<HTMLAnchorElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const isCurrent = currentRingtone?.id === ringtone.id;
   const isActive = isCurrent && isPlaying;
@@ -63,7 +64,7 @@ export default function RingtoneCard({ ringtone, assignTo, priority }: RingtoneC
       }
 
       return () => observer.disconnect();
-    }, 100); // Defer by 100ms
+    }, 100);
 
     return () => clearTimeout(timeoutId);
   }, [isActive, togglePlay]);
@@ -72,7 +73,6 @@ export default function RingtoneCard({ ringtone, assignTo, priority }: RingtoneC
     e.preventDefault();
     e.stopPropagation();
     hapticFeedback(hapticPatterns.impact);
-    // Antigravity Fix: Yield to main thread to prioritize UI response (INP)
     setTimeout(() => {
       if (isActive) {
         togglePlay();
@@ -128,33 +128,12 @@ export default function RingtoneCard({ ringtone, assignTo, priority }: RingtoneC
     }
   };
 
-  const handleShare = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    hapticFeedback(hapticPatterns.selection);
-
-    const shareUrl = `${window.location.origin}/ringtone/${ringtone.slug}`;
-    const shareData = {
-      title: `${ringtone.title} Ringtone`,
-      text: `Listen to ${ringtone.title} on TamilRing`,
-      url: shareUrl,
-    };
-
-    try {
-      if (navigator.share) {
-        await navigator.share(shareData);
-      } else {
-        await navigator.clipboard.writeText(shareUrl);
-      }
-    } catch (err) {
-      console.error('Error sharing:', err);
-    }
-  };
 
   const handleDownload = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    hapticFeedback(hapticPatterns.success);
+    hapticFeedback(hapticPatterns.download);
+    setLocalDownloads(prev => prev + 1);
 
     // OS Detection for Format
     const userAgent = window.navigator.userAgent;
@@ -175,198 +154,164 @@ export default function RingtoneCard({ ringtone, assignTo, priority }: RingtoneC
     window.location.href = apiUrl;
   };
 
-  const [lastTap, setLastTap] = useState(0);
-
-  const handleCardClick = (e: React.MouseEvent) => {
-    // Double Tap Logic
-    const now = Date.now();
-    const DOUBLE_TAP_DELAY = 300;
-    
-    if (now - lastTap < DOUBLE_TAP_DELAY) {
-      // It's a double tap!
-      if (!isLiked) {
-        handleLike(e, true);
-      } else {
-        setShowHeartPop(true);
-        setTimeout(() => setShowHeartPop(false), 800);
-      }
-      setLastTap(0);
-      return;
-    }
-    
-    setLastTap(now);
-    
-    // Single Tap Logic (Navigate after a small delay to allow double tap to win if it comes)
-    // Actually, for better UX in web, we usually navigate immediately on single tap
-    // unless there's a specific reason to wait. 
-    // But if we navigate immediately, double tap won't work easily.
-    // However, on mobile, users expect double tap on the image.
-    
-    // router.push(`/ringtone/${ringtone.slug}`); // Removed manual push
-  };
-
   const handleMouseEnter = () => {
     router.prefetch(`/ringtone/${ringtone.slug}`);
   };
 
-  // Use Web Worker for background title parsing (zero main thread blocking)
+  // Background title parsing
   const displayName = useTitleParser(ringtone.title, ringtone.song_name, ringtone.movie_name);
 
+  // Determine secondary contextual metadata
+  const secondaryContext = ringtone.movie_name && !displayName.toLowerCase().includes(ringtone.movie_name.toLowerCase())
+    ? ringtone.movie_name
+    : ringtone.song_name && !displayName.toLowerCase().includes(ringtone.song_name.toLowerCase())
+      ? ringtone.song_name
+      : null;
+
+  const topTag = ringtone.tags && ringtone.tags.length > 0 ? ringtone.tags[0] : (ringtone.mood || null);
+
   return (
-    <>
-    <Link
-      href={`/ringtone/${ringtone.slug}`}
+    <div
       ref={cardRef}
-      onClick={handleCardClick}
       onMouseEnter={handleMouseEnter}
-      className="group relative bg-white border border-zinc-200 rounded-xl p-3 sm:p-4 transition-all duration-200 hover:border-zinc-300 hover:shadow-md cursor-pointer active:scale-[0.98] active:bg-zinc-50 block"
+      className="group relative bg-m3-surface-container-low hover:bg-m3-surface-container border border-m3-outline-variant/35 rounded-xl px-2.5 py-2 sm:px-3 sm:py-2.5 transition-all duration-200 shadow-2xs hover:shadow-xs"
     >
-        <div className="flex items-center gap-3 sm:gap-4">
+      <div className="flex items-center gap-2.5 sm:gap-3">
+        {/* 1. Left: Compact Album Art + Play Button + Duration Overlay */}
+        <div className="relative shrink-0">
+          <button
+            onClick={handlePlay}
+            type="button"
+            aria-label={isActive ? `Pause ${displayName}` : `Play ${displayName}`}
+            className={`relative w-10 h-10 sm:w-11 sm:h-11 rounded-lg sm:rounded-xl overflow-hidden bg-m3-surface-container-high flex items-center justify-center border group/play cursor-pointer shadow-2xs active:scale-95 transition-all p-0 ${
+              isActive ? 'ring-2 ring-m3-primary border-m3-primary' : 'border-m3-outline-variant/40'
+            }`}
+          >
+            <TMDBImage
+              path={ringtone.poster_url}
+              alt=""
+              fallbackAlt={ringtone.title}
+              fill
+              sizes="(max-width: 640px) 40px, 44px"
+              priority={priority}
+              className="object-cover transition-transform duration-500 group-hover/play:scale-105"
+            />
 
-          {/* 1. Left Section: Album Art + Play Button + Duration */}
-          <div className="flex flex-col items-center gap-1.5 shrink-0">
-            <button
-              onClick={handlePlay}
-              type="button"
-              aria-label={isActive ? `Pause ${ringtone.title}` : `Play ${ringtone.title}`}
-              className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-brand-wash flex items-center justify-center border border-brand-border group/play cursor-pointer shadow-sm active:scale-95 transition-transform p-0"
-            >
-              <TMDBImage
-                path={ringtone.poster_url}
-                alt=""
-                fallbackAlt={ringtone.title}
-                fill
-                sizes="(max-width: 640px) 56px, 64px"
-                priority={priority}
-                className="object-cover transition-transform duration-500 group-hover/play:scale-110"
-              />
-
-              {/* Heart Pop Animation Overlay */}
-              {showHeartPop && (
-                <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none">
-                  <Heart
-                    size={40}
-                    className="text-rose-500 fill-rose-500 animate-[ping_0.6s_ease-out_infinite] scale-150 opacity-0 animate-heart-pop"
-                  />
-                </div>
-              )}
-
-              {/* Play Button Overlay */}
-              <div className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ${isActive ? 'bg-brand-accent/40' : 'bg-black/10 group-hover/play:bg-black/30'}`}>
-                <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center shadow-lg backdrop-blur-md transition-all duration-200 ${isActive ? 'bg-white text-brand-accent scale-110' : 'bg-white/90 text-zinc-900 group-hover/play:scale-110'}`}>
-                  {isActive ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" className="ml-0.5" />}
-                </div>
+            {/* Heart Pop Animation Overlay */}
+            {showHeartPop && (
+              <div className="absolute inset-0 z-50 flex items-center justify-center pointer-events-none">
+                <Heart
+                  size={28}
+                  className="text-m3-primary fill-m3-primary scale-150 opacity-0 animate-heart-pop"
+                />
               </div>
-            </button>
-
-
-
-            {/* Duration Badge below Art (Only when NOT playing) */}
-            {!isActive && loadedDuration && (
-              <span className="text-[10px] font-black text-zinc-600 bg-zinc-100/50 border border-zinc-200/50 px-1.5 py-0.5 rounded-md leading-none shadow-sm">
-                {formatDuration(loadedDuration)}
-              </span>
             )}
-          </div>
 
-          {/* 2. Content Info */}
-          <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
-            <div className="block">
-              {/* Line 1: Ringtone Name (Segment Name) */}
-              <h3 className="text-sm sm:text-[15px] font-semibold text-zinc-900 line-clamp-2 whitespace-normal leading-tight">
-                {displayName}
-              </h3>
+            {/* Pure Play/Pause Glyph without opaque background plate */}
+            {isActive ? (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/35 backdrop-blur-[0.5px] transition-all duration-200">
+                <Pause
+                  size={15}
+                  fill="white"
+                  className="text-white fill-white drop-shadow-[0_1px_3px_rgba(0,0,0,0.9)] scale-105"
+                />
+              </div>
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center transition-transform duration-200 group-hover/play:scale-110 pointer-events-none">
+                <Play
+                  size={15}
+                  fill="white"
+                  className="text-white/95 fill-white/95 ml-0.5 drop-shadow-[0_1px_3px_rgba(0,0,0,0.85)]"
+                />
+              </div>
+            )}
+          </button>
+        </div>
 
-              {/* Line 2: Song Name (Only if not already in title) */}
-              {ringtone.song_name && !displayName.toLowerCase().includes(ringtone.song_name.toLowerCase()) && (
-                <p className="text-[13px] sm:text-sm text-zinc-700 truncate font-medium mt-0.5">
-                  {ringtone.song_name}
-                </p>
+        {/* 2. Middle: Title + 1-Line Compact Metadata Rail */}
+        <div className="flex-1 min-w-0 flex flex-col justify-center gap-0.5">
+          {/* Line 1: Title (Clickable) */}
+          <Link
+            href={`/ringtone/${ringtone.slug}`}
+            className="text-xs sm:text-sm font-bold text-m3-on-surface truncate leading-tight hover:text-m3-primary transition-colors block"
+            title={displayName}
+          >
+            {displayName}
+          </Link>
+
+          {/* Line 2: Contextual Metadata (Movie/Song • Tag • Metric) */}
+          {!isActive && (
+            <div className="flex items-center gap-1 text-[11px] text-m3-outline truncate">
+              {secondaryContext && (
+                <span className="truncate text-m3-on-surface-variant font-medium max-w-[120px] sm:max-w-[160px]">
+                  {secondaryContext}
+                </span>
               )}
-
-              {/* Line 3: Movie Name (Only if not already in title) */}
-              {ringtone.movie_name && !displayName.toLowerCase().includes(ringtone.movie_name.toLowerCase()) && (
-                <p className="text-xs sm:text-[13px] text-zinc-600 truncate font-normal mt-0.5">
-                  {ringtone.movie_name}
-                </p>
+              {secondaryContext && topTag && (
+                <span className="text-m3-outline-variant shrink-0">•</span>
+              )}
+              {topTag && (
+                <span className="shrink-0 text-m3-outline font-medium text-[10px] sm:text-[11px]">
+                  #{topTag}
+                </span>
               )}
             </div>
+          )}
 
-            {/* Active Player Bar - Now Compact and Integrated */}
-            {isActive && (
+          {/* Active Playback Waveform */}
+          {isActive && (
+            <div className="mt-1">
               <MiniPlayerBar loadedDuration={loadedDuration} />
-            )}
-
-            {/* Tags - Visible on all screens, but compact */}
-            {ringtone.tags && ringtone.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mt-1.5">
-                {ringtone.tags.slice(0, 3).map(tag => (
-                  <span key={tag} className="text-[10px] px-2 py-0.5 rounded-md bg-brand-wash text-zinc-600 border border-brand-border/50 font-medium">
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* Stats (Only when NOT playing) */}
-            {!isActive && (
-              <div className="flex items-center gap-2 mt-1.5 text-xs sm:text-[13px] font-medium text-zinc-500">
-                <span>
-                  {ringtone.downloads > 0 ? (ringtone.downloads > 1000 ? `${(ringtone.downloads / 1000).toFixed(1)}k` : ringtone.downloads) : 0} {t('downloads')}
-                </span>
-                <span className="text-zinc-400">•</span>
-                <span>
-                  {localLikes > 0 ? (localLikes > 1000 ? `${(localLikes / 1000).toFixed(1)}k` : localLikes) : 0} {t('likes')}
-                </span>
-
-              </div>
-            )}
-          </div>
-
-          {/* 3. Actions (Right Side) - Vertical Layout */}
-          <div className="flex flex-col items-center gap-0.5 sm:gap-1">
-
-            {/* Like */}
-            <button
-              onClick={handleLike}
-              className={`flex items-center justify-center w-10 h-10 rounded-full transition-all touch-manipulation active:scale-90 ${isLiked ? 'text-rose-500 bg-rose-50' : 'text-zinc-400 hover:text-rose-400 hover:bg-rose-50/50'
-                }`}
-              aria-label={isLiked ? t('unlike') : t('like')}
-            >
-              <Heart size={20} className={isLiked ? 'fill-current' : ''} />
-            </button>
-
-            {/* Share */}
-            <button
-              onClick={handleShare}
-              className="flex items-center justify-center w-10 h-10 text-zinc-500 hover:text-brand-accent hover:bg-brand-wash rounded-full transition-all touch-manipulation active:scale-90"
-              aria-label={t('share')}
-            >
-              <Share2 size={18} />
-            </button>
-
-            {/* Download */}
-            <button
-              onClick={handleDownload}
-              className="flex items-center justify-center w-10 h-10 text-zinc-500 hover:text-brand-accent hover:bg-brand-wash rounded-full transition-all touch-manipulation active:scale-90"
-              aria-label={t('download')}
-            >
-              <Download size={18} />
-            </button>
-
-            {/* Assign Button - Only when assigning */}
-            {assignTo && (
-              <button
-                onClick={handleAssign}
-                className="mt-1 h-7 px-3 bg-brand-accent text-white text-[10px] font-bold rounded-lg hover:bg-brand-accent/90 active:scale-95 transition-transform touch-manipulation"
-              >
-                {t('assign')}
-              </button>
-            )}
-
-          </div>
+            </div>
+          )}
         </div>
-      </Link>
-    </>
+
+        {/* 3. Right: Ergonomic Horizontal Action Cluster */}
+        <div className="flex items-center gap-1 shrink-0">
+          {/* Like */}
+          <button
+            onClick={handleLike}
+            className={`flex items-center gap-1 h-8 px-2 rounded-full transition-all active:scale-90 cursor-pointer ${
+              isLiked 
+                ? 'text-m3-primary bg-m3-primary-container/80 shadow-2xs' 
+                : 'text-m3-outline hover:text-m3-primary hover:bg-m3-surface-container'
+            }`}
+            title={`${formatCount(localLikes)} ${t('likes')}`}
+            aria-label={isLiked ? `${t('unlike')} (${formatCount(localLikes)})` : `${t('like')} (${formatCount(localLikes)})`}
+          >
+            <Heart size={14} className={isLiked ? 'fill-current' : ''} />
+            <span className="text-[11px] font-semibold tabular-nums leading-none">
+              {formatCount(localLikes)}
+            </span>
+          </button>
+
+          {/* Download (Primary CTA) */}
+          {assignTo ? (
+            <button
+              onClick={handleAssign}
+              className="h-8 px-2.5 bg-m3-primary text-m3-on-primary text-[10px] font-bold rounded-full hover:shadow-xs active:scale-95 transition-all"
+            >
+              {t('assign')}
+            </button>
+          ) : (
+            <Link
+              href={`/ringtone/${ringtone.slug}`}
+              onClick={handleDownload}
+              className="flex items-center gap-1 h-8 px-2 text-m3-outline hover:text-m3-primary hover:bg-m3-surface-container rounded-full transition-all active:scale-90 cursor-pointer"
+              title={`${formatCount(localDownloads)} ${t('downloads')}`}
+              aria-label={`Download (${formatCount(localDownloads)})`}
+            >
+              <Download size={14} />
+              <span className="text-[11px] font-semibold tabular-nums leading-none">
+                {formatCount(localDownloads)}
+              </span>
+            </Link>
+          )}
+
+        </div>
+      </div>
+    </div>
   );
 }
+
+

@@ -7,28 +7,40 @@ interface MiniPlayerBarProps {
 }
 
 export default function MiniPlayerBar({ loadedDuration }: MiniPlayerBarProps) {
-    const { progress } = usePlayerProgress();
+    const { progress, duration } = usePlayerProgress();
 
-    const formatDuration = (seconds: number | null) => {
-        if (!seconds || isNaN(seconds)) return '';
-        const mins = Math.floor(seconds / 60);
-        const secs = Math.floor(seconds % 60);
-        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    const effectiveDuration = duration > 0 ? duration : (loadedDuration || 30);
+    const currentTime = Math.min(effectiveDuration, Math.floor((progress / 100) * effectiveDuration));
+
+    const formatTime = (secs: number) => {
+        const m = Math.floor(secs / 60);
+        const s = Math.floor(secs % 60);
+        return `${m}:${s.toString().padStart(2, '0')}`;
     };
 
     return (
-        <div className="mt-2.5 mb-1.5 flex flex-col w-full animate-in fade-in slide-in-from-top-1">
-            <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden">
+        <div className="flex items-center gap-2 w-full animate-in fade-in duration-200 py-0.5">
+            {/* Animated 4-Bar Micro Equalizer */}
+            <div className="flex items-end gap-0.5 h-3 px-1 py-0.5 rounded bg-m3-primary/10 shrink-0">
+                <span className="w-0.5 bg-m3-primary rounded-full animate-music-bar-1" />
+                <span className="w-0.5 bg-m3-primary rounded-full animate-music-bar-2" />
+                <span className="w-0.5 bg-m3-primary rounded-full animate-music-bar-3" />
+                <span className="w-0.5 bg-m3-primary rounded-full animate-music-bar-1" />
+            </div>
+
+            {/* Hairline 2px Progress Track */}
+            <div className="flex-1 max-w-[120px] sm:max-w-[160px] h-1 rounded-full bg-m3-outline-variant/30 overflow-hidden">
                 <div
-                    className="h-full bg-brand-accent transition-all duration-100 ease-linear rounded-full"
-                    style={{ width: `${progress}%` }}
+                    className="h-full bg-m3-primary rounded-full transition-all duration-150 ease-linear"
+                    style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
                 />
             </div>
-            <div className="w-full flex items-center justify-end text-[10px] font-black text-brand-accent mt-1.5 px-0.5">
-                <span className="bg-brand-wash px-1 rounded">
-                    {formatDuration((progress / 100) * (loadedDuration || 0))} / {formatDuration(loadedDuration)}
-                </span>
-            </div>
+
+            {/* Timestamp */}
+            <span className="text-[10px] font-semibold text-m3-primary tracking-tight shrink-0 font-mono">
+                {formatTime(currentTime)} / {formatTime(effectiveDuration)}
+            </span>
         </div>
     );
 }
+

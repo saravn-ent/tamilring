@@ -41,10 +41,10 @@ const backgroundTracks = [
 
 const templates = {
     ta: [
-        { category: 'பொதுவான', text: "தயவுசெய்து உங்கள் போனை எடுக்கவும்" },
-        { category: 'அவசரம்', text: "அவசரம்! உடனே போனை எடுக்கவும்" },
-        { category: 'மாஸ்', text: "மாஸ் என்ட்ரி! போன் அடிக்கிறது பாருங்க" },
-        { category: 'இனிமையான', text: "உங்களுக்காக ஒரு இனிமையான அழைப்பு" }
+        { category: 'General', text: "Please pick up your phone" },
+        { category: 'Urgent', text: "Emergency! Answer the phone now" },
+        { category: 'Hero', text: "Boss! Your phone is ringing" },
+        { category: 'Sweet', text: "A sweet call is waiting for you" }
     ],
     en: [
         { category: 'General', text: "Please pick up your phone" },
@@ -121,7 +121,7 @@ const templates = {
 };
 
 const languages = [
-    { id: 'ta', name: 'Tamil', native: 'தமிழ்', glish: 'Tanglish' },
+    { id: 'ta', name: 'Tamil', native: 'Tamil', glish: 'Tanglish' },
     { id: 'en', name: 'English', native: 'English' },
     { id: 'hi', name: 'Hindi', native: 'हिन्दी', glish: 'Hinglish' },
     { id: 'ml', name: 'Malayalam', native: 'മലയാളം', glish: 'Manglish' },
@@ -238,7 +238,7 @@ export default function NameRingtone() {
     const handlePreview = async () => {
         const fullMessage = customMessage.trim();
         if (!fullMessage) {
-            alert(lang === 'ta' ? 'தயவுசெய்து செய்தியை உள்ளிடவும்!' : 'Please enter a message first!');
+            alert('Please enter a message first!');
             return;
         }
         hapticFeedback(10);

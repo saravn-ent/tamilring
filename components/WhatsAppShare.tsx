@@ -14,11 +14,8 @@ export default function WhatsAppShare({ title, movie, slug }: WhatsAppShareProps
 
     const shareToWhatsApp = () => {
         const url = `${window.location.origin}/ringtone/${slug}`;
-        const tamilText = `🎵 ${title} (${movie}) ரிங்டோனை TamilRing-இல் பதிவிறக்கவும்!\n\nபதிவிறக்க லிங்க்: ${url}`;
         const englishText = `🎵 Download ${title} (${movie}) ringtone from TamilRing!\n\nDownload Link: ${url}`;
-
-        const finalText = language === 'ta' ? tamilText : englishText;
-        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(finalText)}`;
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(englishText)}`;
 
         window.open(whatsappUrl, '_blank');
     };

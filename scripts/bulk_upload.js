@@ -27,6 +27,20 @@ async function getAdminId() {
     return profile?.id || DEFAULT_USER_ID;
 }
 
+const { S3Client, PutObjectCommand } = require('@aws-sdk/client-s3');
+
+let r2Client = null;
+if (process.env.R2_ACCOUNT_ID && process.env.R2_ACCESS_KEY_ID && process.env.R2_SECRET_ACCESS_KEY) {
+    r2Client = new S3Client({
+        region: 'auto',
+        endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+        credentials: {
+            accessKeyId: process.env.R2_ACCESS_KEY_ID,
+            secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+        }
+    });
+}
+
 function generateSlug(title, movieName) {
     const text = `${title} ${movieName}`.toLowerCase();
     return text.replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
@@ -34,6 +48,18 @@ function generateSlug(title, movieName) {
 
 async function uploadFile(bucket, filePath, fileName, contentType) {
     const fileBuffer = fs.readFileSync(filePath);
+    if (r2Client) {
+        const key = `${bucket}/${fileName}`;
+        await r2Client.send(new PutObjectCommand({
+            Bucket: process.env.R2_BUCKET_NAME || 'tamilring-media',
+            Key: key,
+            Body: fileBuffer,
+            ContentType: contentType,
+        }));
+        const base = (process.env.NEXT_PUBLIC_R2_PUBLIC_URL || 'https://pub-7adb3d7983ad4219ac5d433a25c74aac.r2.dev').replace(/\/$/, '');
+        return `${base}/${key}`;
+    }
+
     const { data, error } = await supabase.storage
         .from(bucket)
         .upload(fileName, fileBuffer, {

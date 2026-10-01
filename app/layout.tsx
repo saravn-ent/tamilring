@@ -48,8 +48,9 @@ import Background from "@/components/Background";
 import AuthCodeRedirect from "@/components/AuthCodeRedirect";
 import ReloadOnUpdate from "@/components/ReloadOnUpdate";
 import { Suspense } from "react";
-import ThemeFix from "@/components/ThemeFix";
 import MainLayout from "@/components/MainLayout";
+
+import FloatingAudioDock from "@/components/FloatingAudioDock";
 
 // Force Rebuild - Fix Hydration V2
 export default async function RootLayout({
@@ -118,12 +119,11 @@ export default async function RootLayout({
 
         <ThemeProvider
           attribute="class"
-          defaultTheme="light"
-          forcedTheme="light"
-          enableSystem={false}
+          defaultTheme="system"
+          enableSystem
           disableTransitionOnChange
         >
-          <ThemeFix />
+
 
           <Suspense fallback={null}>
             <AuthCodeRedirect />
@@ -141,10 +141,9 @@ export default async function RootLayout({
                 <MainLayout>
                   {children}
                 </MainLayout>
-                <div className="pb-20">
-                  <LegalFooter />
-                </div>
+                <LegalFooter />
                 <BackToTop />
+                <FloatingAudioDock />
                 <BottomNav />
               </LanguageProvider>
             </FavoritesProvider>

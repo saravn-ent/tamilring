@@ -21,6 +21,7 @@ import { getLevelTitle } from '@/lib/gamification';
 import { Ringtone, Profile, Withdrawal, RingtoneRequest } from '@/types';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { handleWithdrawal, syncProfileStats } from '@/app/actions/user';
+import { M3Tabs, M3Button, M3Badge, M3Card } from '@/components/ui/m3';
 
 interface SyncProfileStatsResponse {
   success: boolean;
@@ -315,20 +316,21 @@ export default function ProfilePage() {
             size="sm"
           />
           <div className="flex-1 min-w-0 pt-0.5">
-            <h1 className="text-lg font-bold text-brand-dark leading-tight">
+            <h1 className="text-xl font-bold text-m3-on-surface tracking-tight leading-tight">
               {profile?.instagram_handle || profile?.twitter_handle || user.user_metadata?.full_name || user.email?.split('@')[0] || 'Ringtone User'}
             </h1>
-            <p className="text-[11px] text-zinc-400 font-medium truncate opacity-90 mt-1">{user.email}</p>
-            <div className="flex items-center gap-4 mt-3">
+            <p className="text-xs text-m3-on-surface-variant font-normal truncate opacity-90 mt-0.5">{user.email}</p>
+            <div className="flex items-center gap-2 mt-2.5">
               <button
                 onClick={() => setIsEditing(true)}
-                className="text-[10px] font-black uppercase tracking-widest text-brand-accent hover:opacity-80 transition-opacity"
+                className="text-xs font-semibold text-m3-primary hover:underline transition-opacity px-1 py-0.5"
               >
                 Edit Profile
               </button>
+              <span className="text-m3-outline-variant text-xs">•</span>
               <button
                 onClick={handleSignOut}
-                className="text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-red-500 transition-colors"
+                className="text-xs font-medium text-m3-on-surface-variant hover:text-m3-error transition-colors px-1 py-0.5"
               >
                 Sign Out
               </button>
@@ -336,100 +338,99 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Optimized Stats Grid */}
-        <div className="grid grid-cols-3 gap-0 border-t border-b border-brand-wash py-5 mb-6">
-          <div className="flex flex-col items-center">
-            <span className="text-lg font-black text-brand-dark">
+        {/* M3 Tonal Stats Cards */}
+        <div className="grid grid-cols-3 gap-2.5 mb-6">
+          <div className="bg-m3-surface-container-low border border-m3-outline-variant/40 rounded-2xl p-3 text-center flex flex-col items-center justify-center">
+            <span className="text-xl font-bold text-m3-on-surface">
               {uploads?.filter(u => u.status === 'approved').length || 0}
             </span>
-            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mt-1">Ringtones</span>
+            <span className="text-[11px] font-medium text-m3-on-surface-variant mt-0.5">Ringtones</span>
           </div>
-          <div className="flex flex-col items-center border-x border-brand-wash">
-            <span className="text-lg font-black text-amber-800">
+          <div className="bg-m3-surface-container-low border border-m3-outline-variant/40 rounded-2xl p-3 text-center flex flex-col items-center justify-center">
+            <span className="text-sm font-bold text-amber-700 dark:text-amber-400 truncate max-w-full">
               {getLevelTitle(profile?.level || 1)}
             </span>
-            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mt-1">Explorer Rank</span>
+            <span className="text-[11px] font-medium text-m3-on-surface-variant mt-0.5">Rank</span>
           </div>
-          <div className="flex flex-col items-center">
-            <span className="text-lg font-black text-brand-accent">
+          <div className="bg-m3-surface-container-low border border-m3-outline-variant/40 rounded-2xl p-3 text-center flex flex-col items-center justify-center">
+            <span className="text-xl font-bold text-m3-primary">
               {profile?.points || 0}
             </span>
-            <span className="text-[9px] font-black text-zinc-400 uppercase tracking-widest mt-1">Rep Points</span>
+            <span className="text-[11px] font-medium text-m3-on-surface-variant mt-0.5">Rep Points</span>
           </div>
         </div>
 
-        {/* Pro Financial Action Row */}
+        {/* M3 Financial Action Row */}
         <div className="flex items-center justify-between px-1">
-          <div className="flex flex-col gap-1.5">
+          <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
-              <span className="text-2xl font-black text-brand-dark leading-none tracking-tight">
+              <span className="text-2xl font-bold text-m3-on-surface leading-none tracking-tight">
                 ₹{profile?.points || 0}
               </span>
-              <span className="text-[8px] font-black bg-brand-accent/10 text-brand-accent px-2 py-0.5 rounded-full uppercase tracking-tighter">
+              <M3Badge variant="secondary" size="small">
                 Available
-              </span>
+              </M3Badge>
             </div>
             <button
-              className="text-[10px] font-bold text-zinc-400 flex items-center gap-1 hover:text-brand-dark transition-colors group"
+              className="text-[11px] font-medium text-m3-on-surface-variant flex items-center gap-1 hover:text-m3-on-surface transition-colors group"
               title="View payout history"
             >
-              <span className="opacity-60 uppercase text-[8px] font-black tracking-widest">History:</span>
-              <span className="text-zinc-600 font-bold">₹{profile?.total_withdrawn || 0} Claimed</span>
-              <ArrowRight size={10} className="group-hover:translate-x-0.5 transition-transform opacity-40" />
+              <span className="opacity-70 text-[10px] font-semibold">History:</span>
+              <span className="text-m3-on-surface font-semibold">₹{profile?.total_withdrawn || 0} Claimed</span>
+              <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform opacity-50" />
             </button>
           </div>
 
-          <button
+          <M3Button
+            variant="filled"
             onClick={() => setIsWithdrawModalOpen(true)}
             disabled={!profile || profile.points < 100}
-            className={`px-6 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-[0.98] shadow-xl
-              ${profile && profile.points >= 100
-                ? 'bg-brand-dark text-white shadow-brand-dark/20 hover:bg-black'
-                : 'bg-zinc-100 text-zinc-300 cursor-not-allowed'}`}
           >
             {profile && profile.points >= 100 ? 'Withdraw Funds' : `Need ₹${100 - (profile?.points || 0)}`}
-          </button>
+          </M3Button>
         </div>
       </header>
 
       {/* Edit Profile Modal */}
       {isEditing && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="w-full max-w-md bg-white border border-brand-border rounded-3xl p-6 shadow-2xl relative overflow-hidden">
-            <button onClick={() => setIsEditing(false)} className="absolute top-4 right-4 text-zinc-400 hover:text-brand-dark transition-colors">
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="w-full max-w-md bg-m3-surface-container-high border border-m3-outline-variant/40 rounded-[28px] p-6 shadow-2xl relative overflow-hidden">
+            <button onClick={() => setIsEditing(false)} className="absolute top-5 right-5 text-m3-on-surface-variant hover:text-m3-on-surface transition-colors p-1 rounded-full hover:bg-m3-on-surface/8">
               <X size={20} />
             </button>
 
-            <h2 className="text-xl font-black text-brand-dark mb-1 uppercase tracking-tight">Edit Profile</h2>
-            <p className="text-[10px] font-bold text-brand-accent mb-6 bg-brand-wash p-2 rounded-lg border border-brand-border flex items-center gap-2">
-              <Star size={12} fill="currentColor" /> EARN ₹10 PER APPROVED UPLOAD!
+            <h2 className="text-xl font-bold text-m3-on-surface mb-1">Edit Profile</h2>
+            <p className="text-xs font-semibold text-m3-primary mb-5 bg-m3-primary-container/30 p-2.5 rounded-xl border border-m3-outline-variant/30 flex items-center gap-2">
+              <Star size={14} fill="currentColor" /> Earn ₹10 per approved upload!
             </p>
 
-            <form onSubmit={handleUpdateProfile} className="space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+            <form onSubmit={handleUpdateProfile} className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 block ml-1">Instagram</label>
-                    <input type="text" value={instagram} onChange={e => setInstagram(e.target.value)} className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-sm focus:border-brand-accent outline-none transition-all font-mono text-[11px] text-brand-dark" placeholder="@handle" />
+                    <label className="text-xs font-medium text-m3-on-surface-variant mb-1.5 block">Instagram</label>
+                    <input type="text" value={instagram} onChange={e => setInstagram(e.target.value)} className="w-full bg-m3-surface-container-highest/60 border border-m3-outline-variant/50 rounded-xl px-3.5 py-2.5 text-sm focus:border-m3-primary outline-none transition-all text-m3-on-surface" placeholder="@handle" />
                   </div>
                   <div>
-                    <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 block ml-1">X / Twitter</label>
-                    <input type="text" value={twitter} onChange={e => setTwitter(e.target.value)} className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-sm focus:border-brand-accent outline-none transition-all font-mono text-[11px] text-brand-dark" placeholder="@handle" />
+                    <label className="text-xs font-medium text-m3-on-surface-variant mb-1.5 block">X / Twitter</label>
+                    <input type="text" value={twitter} onChange={e => setTwitter(e.target.value)} className="w-full bg-m3-surface-container-highest/60 border border-m3-outline-variant/50 rounded-xl px-3.5 py-2.5 text-sm focus:border-m3-primary outline-none transition-all text-m3-on-surface" placeholder="@handle" />
                   </div>
                 </div>
               </div>
 
-              <div className="pt-4 border-t border-brand-border space-y-4">
-                <p className="text-[9px] font-black text-zinc-400 uppercase tracking-widest ml-1">Withdrawal Info</p>
+              <div className="pt-3 border-t border-m3-outline-variant/30 space-y-3">
+                <p className="text-xs font-medium text-m3-on-surface-variant">Withdrawal Info</p>
                 <div>
-                  <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 block ml-1">UPI ID (For Payouts)</label>
-                  <input type="text" value={upiId} onChange={e => setUpiId(e.target.value)} className="w-full bg-brand-wash/50 border border-brand-border/50 rounded-xl px-4 py-3 text-sm focus:border-brand-accent outline-none transition-all font-mono text-[11px] text-brand-dark placeholder:text-zinc-400" placeholder="yourname@upi" />
+                  <label className="text-xs font-medium text-m3-on-surface-variant mb-1.5 block">UPI ID (For Payouts)</label>
+                  <input type="text" value={upiId} onChange={e => setUpiId(e.target.value)} className="w-full bg-m3-surface-container-highest/60 border border-m3-outline-variant/50 rounded-xl px-3.5 py-2.5 text-sm focus:border-m3-primary outline-none transition-all text-m3-on-surface placeholder:text-m3-on-surface-variant/50" placeholder="yourname@upi" />
                 </div>
               </div>
 
-              <button type="submit" disabled={saving} className="w-full py-4 bg-brand-dark text-white font-black rounded-2xl hover:bg-neutral-800 transition-all disabled:opacity-50 shadow-xl shadow-brand-dark/20 uppercase tracking-widest text-[11px] mt-4">
-                {saving ? 'Syncing...' : 'Update Explorer Profile'}
-              </button>
+              <div className="pt-2">
+                <M3Button type="submit" disabled={saving} variant="filled" fullWidth size="large">
+                  {saving ? 'Syncing...' : 'Update Profile'}
+                </M3Button>
+              </div>
             </form>
           </div>
         </div>
@@ -437,101 +438,98 @@ export default function ProfilePage() {
 
       {/* Withdrawal Modal */}
       {isWithdrawModalOpen && (
-        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="w-full max-w-sm bg-white border border-brand-border rounded-3xl p-6 shadow-2xl relative">
-            <button onClick={() => setIsWithdrawModalOpen(false)} className="absolute top-4 right-4 text-zinc-400 hover:text-brand-dark transition-colors">
+        <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="w-full max-w-sm bg-m3-surface-container-high border border-m3-outline-variant/40 rounded-[28px] p-6 shadow-2xl relative">
+            <button onClick={() => setIsWithdrawModalOpen(false)} className="absolute top-5 right-5 text-m3-on-surface-variant hover:text-m3-on-surface transition-colors p-1 rounded-full hover:bg-m3-on-surface/8">
               <X size={20} />
             </button>
 
-            <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-brand-dark rounded-full flex items-center justify-center text-white mx-auto mb-3 shadow-xl">
-                <Wallet size={32} />
+            <div className="text-center mb-5">
+              <div className="w-14 h-14 bg-m3-primary-container text-m3-on-primary-container rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm">
+                <Wallet size={28} />
               </div>
-              <h2 className="text-xl font-black text-brand-dark uppercase tracking-tight">Redeem Rewards</h2>
-              <p className="text-[10px] text-zinc-500 font-black uppercase tracking-[0.2em] mt-1 italic">1 Rep Point = ₹1 Cash</p>
+              <h2 className="text-xl font-bold text-m3-on-surface">Redeem Rewards</h2>
+              <p className="text-xs text-m3-on-surface-variant mt-0.5">1 Rep Point = ₹1 Cash</p>
             </div>
 
             {withdrawSuccess ? (
               <div className="py-8 text-center space-y-3 animate-in zoom-in-95 duration-300">
-                <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto">
+                <div className="w-12 h-12 bg-emerald-500/10 text-emerald-600 rounded-full flex items-center justify-center mx-auto">
                   <CircleCheckBig size={24} />
                 </div>
-                <p className="text-sm font-bold text-emerald-600">Withdrawal Request sent!</p>
-                <p className="text-[10px] text-zinc-500 uppercase tracking-widest font-black italic">Wait for admin approval</p>
+                <p className="text-sm font-semibold text-emerald-600">Withdrawal Request sent!</p>
+                <p className="text-xs text-m3-on-surface-variant">Wait for admin approval</p>
               </div>
             ) : (
               <form onSubmit={onWithdraw} className="space-y-4">
-                <div className="bg-brand-wash p-4 rounded-2xl border border-brand-border flex items-center justify-between">
+                <div className="bg-m3-surface-container-low p-3.5 rounded-2xl border border-m3-outline-variant/40 flex items-center justify-between">
                   <div>
-                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-0.5">Available Balance</p>
-                    <p className="text-lg font-black text-brand-dark">₹{profile?.points || 0}</p>
+                    <p className="text-[11px] font-medium text-m3-on-surface-variant mb-0.5">Available Balance</p>
+                    <p className="text-lg font-bold text-m3-on-surface">₹{profile?.points || 0}</p>
                   </div>
                   <div className="text-right">
-                    <p className="text-[10px] font-black text-zinc-400 uppercase tracking-widest mb-0.5">Min Withdrawal</p>
-                    <p className="text-lg font-black text-brand-accent">₹100</p>
+                    <p className="text-[11px] font-medium text-m3-on-surface-variant mb-0.5">Min Withdrawal</p>
+                    <p className="text-lg font-bold text-m3-primary">₹100</p>
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 block ml-1">Withdrawal Amount (₹)</label>
+                  <label className="text-xs font-medium text-m3-on-surface-variant mb-1.5 block">Withdrawal Amount (₹)</label>
                   <input
                     type="number"
                     value={withdrawAmount}
                     onChange={e => setWithdrawAmount(e.target.value)}
                     placeholder="e.g. 100"
-                    className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-sm focus:border-brand-accent outline-none transition-all font-mono"
+                    className="w-full bg-m3-surface-container-highest/60 border border-m3-outline-variant/50 rounded-xl px-3.5 py-2.5 text-sm focus:border-m3-primary outline-none transition-all text-m3-on-surface"
                   />
                 </div>
 
                 <div>
-                  <label className="text-[9px] font-black text-zinc-500 uppercase tracking-widest mb-1.5 block ml-1">UPI ID (For Instant Payout)</label>
+                  <label className="text-xs font-medium text-m3-on-surface-variant mb-1.5 block">UPI ID (For Instant Payout)</label>
                   <input
                     type="text"
                     value={upiId}
                     onChange={e => setUpiId(e.target.value)}
                     placeholder="yourname@upi"
-                    className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-sm focus:border-brand-accent outline-none transition-all font-mono text-brand-dark"
+                    className="w-full bg-m3-surface-container-highest/60 border border-m3-outline-variant/50 rounded-xl px-3.5 py-2.5 text-sm focus:border-m3-primary outline-none transition-all text-m3-on-surface placeholder:text-m3-on-surface-variant/50"
                   />
                   {profile && !profile.upi_id && upiId && (
-                    <p className="text-[9px] font-bold text-brand-accent mt-1 animate-pulse">✨ We&apos;ll save this to your explorer profile</p>
+                    <p className="text-xs font-medium text-m3-primary mt-1">✨ Saved to your explorer profile</p>
                   )}
                 </div>
 
                 {withdrawError && (
-                  <p className="text-[10px] font-bold text-red-500 text-center bg-red-50 p-2 rounded-lg border border-red-100">{withdrawError}</p>
+                  <p className="text-xs font-medium text-m3-error text-center bg-m3-error-container/20 p-2 rounded-xl border border-m3-error/20">{withdrawError}</p>
                 )}
 
-                <button
+                <M3Button
                   type="submit"
                   disabled={isWithdrawing || !upiId}
-                  className="w-full py-4 bg-brand-accent text-white font-black rounded-2xl hover:bg-brand-accent/90 transition-all disabled:opacity-50 shadow-xl shadow-brand-accent/20 uppercase tracking-widest text-xs active:scale-[0.98]"
+                  variant="filled"
+                  fullWidth
+                  size="large"
                 >
-                  {isWithdrawing ? 'Syncing Ledger...' : 'Request Payout Now'}
-                </button>
-                <p className="text-[9px] text-zinc-400 text-center font-medium px-4">Withdrawals are processed manually by admins within 24-48 hours.</p>
+                  {isWithdrawing ? 'Syncing...' : 'Request Payout Now'}
+                </M3Button>
+                <p className="text-[11px] text-m3-on-surface-variant text-center font-normal px-2">Withdrawals are processed manually by admins within 24-48 hours.</p>
               </form>
             )}
           </div>
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="sticky top-14 z-20 bg-white/95 backdrop-blur-md border-b border-brand-border mb-6">
-        <div className="flex w-full px-2">
-          {['upload', 'uploads', 'liked', 'ledger'].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab as 'upload' | 'uploads' | 'liked' | 'ledger')}
-              className={`flex-1 py-4 text-[10px] font-black uppercase tracking-widest border-b-2 transition-all flex items-center justify-center gap-2 ${activeTab === tab ? 'border-brand-accent text-brand-accent bg-brand-accent/5' : 'border-transparent text-zinc-400 hover:text-brand-dark'}`}
-            >
-              {tab === 'liked' && <Heart size={14} />}
-              {tab === 'uploads' && <Music size={14} />}
-              {tab === 'upload' && <CloudUpload size={14} />}
-              {tab === 'ledger' && <Coins size={14} />}
-              <span>{tab === 'uploads' ? 'My Rings' : tab === 'liked' ? 'Liked' : tab === 'ledger' ? 'Finances' : tab}</span>
-            </button>
-          ))}
-        </div>
+      {/* M3 Primary Tabs */}
+      <div className="sticky top-14 z-20 bg-m3-surface/95 backdrop-blur-md border-b border-m3-outline-variant/40 mb-6">
+        <M3Tabs
+          tabs={[
+            { id: 'upload', label: 'Upload', icon: <CloudUpload size={16} /> },
+            { id: 'uploads', label: 'My Rings', icon: <Music size={16} /> },
+            { id: 'liked', label: 'Liked', icon: <Heart size={16} /> },
+            { id: 'ledger', label: 'Finances', icon: <Coins size={16} /> },
+          ]}
+          activeTab={activeTab}
+          onChange={(tab) => setActiveTab(tab as 'upload' | 'uploads' | 'liked' | 'ledger')}
+        />
       </div>
 
       <main className="flex-1 px-4">
@@ -540,48 +538,48 @@ export default function ProfilePage() {
         {activeTab === 'uploads' && (
           <div className="animate-in slide-in-from-right-4 fade-in duration-300 space-y-4 pb-20">
             <div className="flex items-center justify-between px-1">
-              <h2 className="text-lg font-black text-brand-dark uppercase tracking-tighter">My Contributions</h2>
-              <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">{uploads.length} items</span>
+              <h2 className="text-base font-bold text-m3-on-surface">My Contributions</h2>
+              <span className="text-xs font-medium text-m3-on-surface-variant">{uploads.length} items</span>
             </div>
 
             {uploads.length === 0 ? (
-              <div className="text-center py-16 bg-brand-wash rounded-3xl border border-dashed border-brand-border">
-                <Music size={40} className="mx-auto text-zinc-400 mb-4" />
-                <p className="text-zinc-500 font-bold text-sm">Nothing posted yet</p>
-                <button onClick={() => setActiveTab('upload')} className="text-brand-accent text-[10px] font-black uppercase mt-2 tracking-widest hover:underline">Start Contributing</button>
+              <div className="text-center py-14 px-4 bg-m3-surface-container-low rounded-3xl border border-dashed border-m3-outline-variant/40">
+                <Music size={36} className="mx-auto text-m3-on-surface-variant/50 mb-3" />
+                <p className="text-m3-on-surface font-semibold text-sm">Nothing posted yet</p>
+                <button onClick={() => setActiveTab('upload')} className="text-m3-primary text-xs font-semibold mt-2 hover:underline">Start Contributing</button>
               </div>
             ) : (
               // Uploads List
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 {uploads.map(ringtone => (
-                  <div key={ringtone.id} className="flex items-center gap-4 bg-white border border-brand-border p-3 rounded-2xl hover:border-brand-accent/30 transition-all group shadow-sm">
-                    <div className="w-14 h-14 rounded-xl bg-brand-wash relative overflow-hidden shrink-0 shadow-inner">
+                  <div key={ringtone.id} className="flex items-center gap-3.5 bg-m3-surface-container-lowest border border-m3-outline-variant/40 p-3 rounded-2xl hover:bg-m3-surface-container-low transition-all group">
+                    <div className="w-12 h-12 rounded-xl bg-m3-surface-container-high relative overflow-hidden shrink-0">
                       {ringtone.poster_url ? (
-                        <Image src={ringtone.poster_url} alt={ringtone.title} fill className="object-cover" sizes="56px" />
+                        <Image src={ringtone.poster_url} alt={ringtone.title} fill className="object-cover" sizes="48px" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-zinc-400"><Music size={18} /></div>
+                        <div className="w-full h-full flex items-center justify-center text-m3-on-surface-variant/60"><Music size={18} /></div>
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-brand-dark truncate">{ringtone.title}</p>
-                      <div className="flex flex-col gap-1.5 mt-1.5">
+                      <p className="text-sm font-semibold text-m3-on-surface truncate">{ringtone.title}</p>
+                      <div className="flex flex-col gap-1 mt-1">
                         <div className="flex items-center gap-2">
-                          <span className={`text-[9px] px-2 py-0.5 rounded-full font-black uppercase tracking-tighter border ${ringtone.status === 'approved' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                            ringtone.status === 'rejected' ? 'bg-red-50 text-red-500 border-red-100' :
-                              'bg-amber-50 text-amber-800 border-amber-100'
-                            }`}>
+                          <M3Badge
+                            variant={ringtone.status === 'approved' ? 'tertiary' : ringtone.status === 'rejected' ? 'error' : 'secondary'}
+                            size="small"
+                          >
                             {ringtone.status}
-                          </span>
+                          </M3Badge>
                         </div>
                         {ringtone.rejection_reason && (
-                          <p className="text-[10px] text-red-500 font-medium leading-tight px-1">
+                          <p className="text-[11px] text-m3-error font-medium leading-tight">
                             Reason: {ringtone.rejection_reason}
                           </p>
                         )}
                       </div>
                     </div>
-                    <button onClick={(e) => handleDelete(ringtone.id, e)} className="p-2 text-zinc-400 hover:text-red-500 transition-colors">
-                      <Trash2 size={18} />
+                    <button onClick={(e) => handleDelete(ringtone.id, e)} className="p-2 text-m3-on-surface-variant hover:text-m3-error transition-colors rounded-full hover:bg-m3-error/10">
+                      <Trash2 size={16} />
                     </button>
                   </div>
                 ))}
@@ -592,32 +590,33 @@ export default function ProfilePage() {
 
         {activeTab === 'ledger' && (
           <div className="animate-in slide-in-from-bottom-4 fade-in duration-500 space-y-6 pb-20">
-            <div className="bg-brand-dark rounded-3xl p-6 text-white shadow-xl shadow-brand-dark/10 relative overflow-hidden">
+            {/* M3 Earnings Banner */}
+            <div className="bg-m3-primary text-m3-on-primary rounded-3xl p-6 shadow-md relative overflow-hidden">
               <div className="relative z-10">
-                <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-1">Total Earnings</p>
+                <p className="text-xs font-medium uppercase tracking-wider opacity-80 mb-1">Total Earnings</p>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-black">₹{profile?.lifetime_points || 0}</span>
-                  <span className="text-xs font-bold opacity-60">lifetime</span>
+                  <span className="text-4xl font-bold tracking-tight">₹{profile?.lifetime_points || 0}</span>
+                  <span className="text-xs font-medium opacity-80">lifetime</span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 mt-6 pt-6 border-t border-white/10">
+                <div className="grid grid-cols-2 gap-4 mt-6 pt-5 border-t border-m3-on-primary/20">
                   <div>
-                    <p className="text-[9px] font-black uppercase tracking-widest opacity-50 mb-1">Available</p>
+                    <p className="text-[11px] font-medium uppercase tracking-wider opacity-75 mb-0.5">Available</p>
                     <p className="text-xl font-bold">₹{profile?.points || 0}</p>
                   </div>
                   <div>
-                    <p className="text-[9px] font-black uppercase tracking-widest opacity-50 mb-1">Withdrawn</p>
-                    <p className="text-xl font-bold opacity-60">₹{profile?.total_withdrawn || 0}</p>
+                    <p className="text-[11px] font-medium uppercase tracking-wider opacity-75 mb-0.5">Withdrawn</p>
+                    <p className="text-xl font-bold opacity-80">₹{profile?.total_withdrawn || 0}</p>
                   </div>
                 </div>
               </div>
-              <div className="absolute -right-4 -bottom-4 opacity-10 rotate-12">
+              <div className="absolute -right-4 -bottom-4 opacity-15 rotate-12 pointer-events-none">
                 <Coins size={120} />
               </div>
             </div>
 
-            <div className="space-y-4">
-              <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-widest ml-1">Transaction History</h3>
+            <div className="space-y-3">
+              <h3 className="text-xs font-semibold text-m3-on-surface-variant uppercase tracking-wider ml-1">Transaction History</h3>
 
               {[
                 ...uploads.filter(u => u.status === 'approved').map(u => ({
@@ -653,35 +652,35 @@ export default function ProfilePage() {
               ]
                 .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                 .map((item, idx) => (
-                  <div key={idx} className="bg-white border border-brand-border rounded-2xl p-4 flex items-center justify-between hover:border-brand-accent/20 transition-all group shadow-sm">
-                    <div className="flex items-center gap-4">
+                  <div key={idx} className="bg-m3-surface-container-lowest border border-m3-outline-variant/40 rounded-2xl p-3.5 flex items-center justify-between hover:bg-m3-surface-container-low transition-all">
+                    <div className="flex items-center gap-3">
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0
-                        ${item.type === 'upload' ? 'bg-emerald-50 text-emerald-500' :
-                          item.type === 'withdrawal' ? 'bg-amber-50 text-amber-800' :
-                            'bg-blue-50 text-blue-500'}`}>
+                        ${item.type === 'upload' ? 'bg-emerald-500/10 text-emerald-600' :
+                          item.type === 'withdrawal' ? 'bg-amber-500/10 text-amber-700 dark:text-amber-400' :
+                            'bg-blue-500/10 text-blue-600'}`}>
                         {item.type === 'upload' ? <CloudUpload size={18} /> :
                           item.type === 'withdrawal' ? <Wallet size={18} /> :
                             <Star size={18} />}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-bold text-brand-dark truncate">{item.title}</p>
-                        <p className="text-[10px] text-zinc-400 font-medium truncate">{item.detail}</p>
+                        <p className="text-sm font-semibold text-m3-on-surface truncate">{item.title}</p>
+                        <p className="text-xs text-m3-on-surface-variant truncate">{item.detail}</p>
                         {item.utr && (
-                          <p className="text-[9px] font-black text-brand-accent bg-brand-accent/5 px-2 py-0.5 rounded-md mt-1 inline-block uppercase tracking-tight">
+                          <p className="text-[10px] font-semibold text-m3-primary bg-m3-primary/10 px-2 py-0.5 rounded-md mt-1 inline-block">
                             UTR: {item.utr}
                           </p>
                         )}
-                        <p className="text-[9px] text-zinc-300 font-mono mt-1">{new Date(item.date).toLocaleDateString()} {new Date(item.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                        <p className="text-[10px] text-m3-on-surface-variant/60 font-mono mt-0.5">{new Date(item.date).toLocaleDateString()} {new Date(item.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className={`text-sm font-black ${item.amount > 0 ? 'text-emerald-500' : 'text-brand-dark'}`}>
+                      <p className={`text-sm font-bold ${item.amount > 0 ? 'text-emerald-600' : 'text-m3-on-surface'}`}>
                         {item.amount > 0 ? '+' : ''}{item.amount}
                       </p>
-                      <span className={`text-[8px] font-black uppercase tracking-tighter
-                        ${item.status === 'completed' || item.status === 'fulfilled' ? 'text-emerald-500' :
-                          item.status === 'rejected' ? 'text-red-500' :
-                            'text-amber-800 animate-pulse'}`}>
+                      <span className={`text-[10px] font-semibold
+                        ${item.status === 'completed' || item.status === 'fulfilled' ? 'text-emerald-600' :
+                          item.status === 'rejected' ? 'text-m3-error' :
+                            'text-amber-700 dark:text-amber-400 animate-pulse'}`}>
                         {item.status}
                       </span>
                     </div>
@@ -689,9 +688,9 @@ export default function ProfilePage() {
                 ))}
 
               {uploads.length === 0 && withdrawals.length === 0 && ringtoneRequests.length === 0 && (
-                <div className="text-center py-12 bg-zinc-50 rounded-3xl border border-dashed border-zinc-200">
-                  <Coins size={32} className="mx-auto text-zinc-300 mb-2" />
-                  <p className="text-zinc-400 text-xs font-bold uppercase tracking-widest">No transactions yet</p>
+                <div className="text-center py-12 bg-m3-surface-container-low rounded-3xl border border-dashed border-m3-outline-variant/40">
+                  <Coins size={32} className="mx-auto text-m3-on-surface-variant/40 mb-2" />
+                  <p className="text-m3-on-surface-variant text-xs font-medium uppercase tracking-wider">No transactions yet</p>
                 </div>
               )}
             </div>

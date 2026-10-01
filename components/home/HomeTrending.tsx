@@ -8,15 +8,20 @@ interface Props {
 }
 
 export default async function HomeTrending({ lang }: Props) {
-    // getTrendingRingtones should ideally return the profile data too
-    const trending = await getTrendingRingtones(10, lang);
+    // Fetch top 12 trending ringtones to populate 4 columns of 3 tracks each
+    const trending = await getTrendingRingtones(12, lang);
 
     if (!trending || trending.length === 0) return null;
 
     return (
-        <div className="mb-10">
-            <div className="px-4">
-                <SectionHeader title="Trending Ringtones" translationKey="trending" />
+        <div className="mb-8">
+            <div className="px-3 sm:px-4">
+                <SectionHeader
+                    title="Trending Ringtones"
+                    subtitle="Top Chart • Viral BGM & Cuts"
+                    translationKey="trending"
+                    href="/recent"
+                />
             </div>
             <TrendingList trending={trending} />
         </div>

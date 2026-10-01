@@ -4,6 +4,7 @@ import { revalidatePath, revalidateTag } from 'next/cache'
 import { ensureAdmin, getSupabaseAdmin } from '@/lib/auth-server'
 import { Ringtone } from '@/types'
 import { awardPoints, checkUploadBadges, POINTS_PER_UPLOAD } from '@/lib/gamification'
+import { deleteManyFromR2, extractR2Key } from '@/lib/r2'
 
 export async function approveRingtone(id: string, userId?: string) {
     try {
@@ -237,36 +238,31 @@ export async function deleteRingtone(id: string) {
             .single();
 
         if (ringtone) {
-            const filesToDelete = [];
+            const supabaseFilesToDelete: string[] = [];
+            const r2KeysToDelete: string[] = [];
 
-            const extractPath = (url: string) => {
-                try {
-                    if (!url) return null;
+            const processUrl = (url: string | null) => {
+                if (!url) return;
+                const r2Key = extractR2Key(url);
+                if (r2Key) {
+                    r2KeysToDelete.push(r2Key);
+                } else if (url.includes('/ringtone-files/')) {
                     const parts = url.split('/ringtone-files/');
-                    return parts.length > 1 ? parts[1] : null;
-                } catch { return null; }
+                    if (parts.length > 1) supabaseFilesToDelete.push(parts[1]);
+                }
             };
 
-            if (ringtone.audio_url) {
-                const path = extractPath(ringtone.audio_url);
-                if (path) filesToDelete.push(path);
-            }
-            if (ringtone.audio_url_iphone) {
-                const path = extractPath(ringtone.audio_url_iphone);
-                if (path) filesToDelete.push(path);
+            processUrl(ringtone.audio_url);
+            processUrl(ringtone.audio_url_iphone);
+            if (ringtone.poster_url && (ringtone.poster_url.includes('/ringtone-files/') || extractR2Key(ringtone.poster_url))) {
+                processUrl(ringtone.poster_url);
             }
 
-            // Note: Poster might be external or shared, implement specific logic if needed. 
-            // For now, only deleting audio files to be safe, or if it's stored in 'ringtone-files'
-            if (ringtone.poster_url && ringtone.poster_url.includes('/ringtone-files/')) {
-                const path = extractPath(ringtone.poster_url);
-                if (path) filesToDelete.push(path);
+            if (r2KeysToDelete.length > 0) {
+                await deleteManyFromR2(r2KeysToDelete).catch(() => {});
             }
-
-            if (filesToDelete.length > 0) {
-                await supabase.storage
-                    .from('ringtone-files')
-                    .remove(filesToDelete);
+            if (supabaseFilesToDelete.length > 0) {
+                await supabase.storage.from('ringtone-files').remove(supabaseFilesToDelete).catch(() => {});
             }
         }
 
@@ -329,19 +325,31 @@ export async function bulkDeleteRingtones(ids: string[]) {
         .in('id', ids);
 
     if (ringtones) {
-        const filesToDelete: string[] = [];
-        const extractPath = (url: string) => {
-            const parts = url.split('/ringtone-files/');
-            return parts.length > 1 ? parts[1] : null;
+        const supabaseFilesToDelete: string[] = [];
+        const r2KeysToDelete: string[] = [];
+
+        const processUrl = (url: string | null) => {
+            if (!url) return;
+            const r2Key = extractR2Key(url);
+            if (r2Key) {
+                r2KeysToDelete.push(r2Key);
+            } else if (url.includes('/ringtone-files/')) {
+                const parts = url.split('/ringtone-files/');
+                if (parts.length > 1) supabaseFilesToDelete.push(parts[1]);
+            }
         };
 
         ringtones.forEach(r => {
-            if (r.audio_url) { const p = extractPath(r.audio_url); if (p) filesToDelete.push(p); }
-            if (r.audio_url_iphone) { const p = extractPath(r.audio_url_iphone); if (p) filesToDelete.push(p); }
-        })
+            processUrl(r.audio_url);
+            processUrl(r.audio_url_iphone);
+            if (r.poster_url) processUrl(r.poster_url);
+        });
 
-        if (filesToDelete.length > 0) {
-            await supabase.storage.from('ringtone-files').remove(filesToDelete).catch(() => { });
+        if (r2KeysToDelete.length > 0) {
+            await deleteManyFromR2(r2KeysToDelete).catch(() => {});
+        }
+        if (supabaseFilesToDelete.length > 0) {
+            await supabase.storage.from('ringtone-files').remove(supabaseFilesToDelete).catch(() => {});
         }
     }
 

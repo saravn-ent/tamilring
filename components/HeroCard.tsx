@@ -9,7 +9,7 @@ interface HeroCardProps {
   subtitle?: string;
   index?: number;
   priority?: boolean;
-  className?: string; // Add className prop
+  className?: string;
 }
 
 export default function HeroCard({ name, image, href, subtitle, index = 0, priority = false, className }: HeroCardProps) {
@@ -17,7 +17,7 @@ export default function HeroCard({ name, image, href, subtitle, index = 0, prior
     <Link
       href={href}
       className={cn(
-        "relative shrink-0 w-32 h-48 rounded-xl overflow-hidden group transition-transform duration-300 hover:z-10 hover:scale-105 hover:-translate-y-2 shadow-lg shadow-black/40 border border-white/5",
+        "relative shrink-0 w-[112px] h-[140px] sm:w-[126px] sm:h-[155px] md:w-full md:h-auto md:aspect-2/3 rounded-2xl overflow-hidden group transition-all duration-300 hover:scale-105 shadow-2xs hover:shadow-md border border-zinc-200/60 dark:border-zinc-800",
         className
       )}
       style={{
@@ -25,7 +25,7 @@ export default function HeroCard({ name, image, href, subtitle, index = 0, prior
       }}
     >
       {/* Full Bleed Image */}
-      <div className="absolute inset-0 bg-brand-wash">
+      <div className="absolute inset-0 bg-zinc-100 dark:bg-zinc-800">
         <ImageWithFallback
           src={image}
           alt=""
@@ -37,23 +37,21 @@ export default function HeroCard({ name, image, href, subtitle, index = 0, prior
       </div>
 
       {/* Gradient Overlay */}
-      <div className="absolute inset-0 bg-linear-to-t from-black via-black/40 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
+      <div className="absolute inset-0 bg-linear-to-t from-black/90 via-black/35 to-transparent opacity-85 group-hover:opacity-95 transition-opacity" />
 
       {/* Content */}
-      <div className="absolute bottom-0 left-0 right-0 p-3 flex flex-col justify-end h-full">
-        <div className="h-9 flex items-center mb-0.5">
-          <h3 className="text-white font-bold text-sm leading-tight drop-shadow-md group-hover:text-brand-accent transition-colors line-clamp-2">
-            {name}
-          </h3>
-        </div>
+      <div className="absolute bottom-0 left-0 right-0 p-2.5 flex flex-col justify-end">
+        <h3 className="text-white font-bold text-xs leading-tight drop-shadow-xs group-hover:text-rose-400 transition-colors line-clamp-2">
+          {name}
+        </h3>
         {subtitle && (
-          <p className="text-[10px] text-zinc-300 font-medium tracking-wider mt-0.5 opacity-90">
+          <p className="text-[10px] text-zinc-300 font-medium tracking-wide mt-0.5 opacity-90 truncate">
             {subtitle}
           </p>
         )}
       </div>
 
-      {/* Shine Effect on Hover */}
+      {/* Subtle hover shine */}
       <div className="absolute inset-0 bg-linear-to-tr from-white/0 via-white/10 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
     </Link>
   );

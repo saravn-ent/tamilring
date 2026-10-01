@@ -56,14 +56,14 @@ export default function ShareButton({ title, text, url, className = '', variant 
             <button
                 onClick={handleShare}
                 className={cn(
-                    "relative flex items-center justify-center p-3 bg-white text-brand-dark rounded-xl hover:bg-brand-wash active:scale-95 transition-all shadow-sm border border-brand-border",
+                    "relative w-10 h-10 flex items-center justify-center bg-m3-surface-container text-m3-on-surface rounded-full hover:bg-m3-surface-container-high active:scale-90 transition-all border border-m3-outline-variant/40 cursor-pointer shadow-2xs",
                     className
                 )}
                 aria-label="Share"
             >
-                {copied ? <Check size={20} className="text-emerald-500" /> : <Share2 size={20} />}
+                {copied ? <Check size={18} className="text-m3-primary" /> : <Share2 size={18} />}
                 {copied && (
-                    <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-black/80 text-white text-[10px] px-2 py-1 rounded shadow-lg animate-in fade-in zoom-in duration-200 whitespace-nowrap pointer-events-none z-50">
+                    <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 bg-m3-inverse-surface text-m3-inverse-on-surface text-[10px] font-bold px-2 py-1 rounded-md shadow-lg animate-in fade-in zoom-in duration-200 whitespace-nowrap pointer-events-none z-50">
                         Copied!
                     </span>
                 )}
@@ -75,20 +75,21 @@ export default function ShareButton({ title, text, url, className = '', variant 
         <button
             onClick={handleShare}
             className={cn(
-                "relative flex items-center justify-center gap-2 px-4 py-2.5 bg-neutral-800 text-zinc-100 rounded-xl font-medium hover:bg-neutral-700 active:scale-95 transition-all text-sm",
+                "relative flex items-center justify-center gap-2 h-11 px-5 bg-m3-secondary-container text-m3-on-secondary-container rounded-full font-bold hover:bg-m3-secondary-container/80 active:scale-95 transition-all text-sm cursor-pointer",
                 className
             )}
             aria-label="Share"
         >
-            {copied ? <Check size={18} className="text-emerald-500" /> : <Share2 size={18} />}
+            {copied ? <Check size={18} className="text-m3-primary" /> : <Share2 size={18} />}
             <span>{copied ? 'Copied' : 'Share'}</span>
 
             {/* Toast Feedback */}
             {copied && (
-                <span className="absolute -top-10 left-1/2 -translate-x-1/2 bg-black/80 text-white text-xs px-2 py-1 rounded shadow-lg animate-in fade-in zoom-in duration-200 whitespace-nowrap">
+                <span className="absolute -top-10 left-1/2 -translate-x-1/2 bg-m3-inverse-surface text-m3-inverse-on-surface text-xs font-bold px-2.5 py-1 rounded-md shadow-lg animate-in fade-in zoom-in duration-200 whitespace-nowrap">
                     URL Copied!
                 </span>
             )}
         </button>
     );
 }
+

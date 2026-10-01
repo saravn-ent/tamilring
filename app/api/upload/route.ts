@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { uploadToR2 } from '@/lib/r2';
 
 // Maximum file size: 10MB
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -167,27 +168,23 @@ export async function POST(request: NextRequest) {
         const timestamp = Date.now();
         const finalFilename = `${user.id}/${timestamp}-${safeFilename}`;
 
-        // 6. Upload to Supabase Storage
-        const { data, error: uploadError } = await supabase.storage
-            .from('ringtone-files')
-            .upload(finalFilename, file, {
-                cacheControl: '3600',
-                upsert: false,
-                contentType: file.type
+        // 6. Upload to Cloudflare R2
+        let publicUrl: string;
+        try {
+            const fileBuffer = Buffer.from(await file.arrayBuffer());
+            const key = `ringtone-files/${finalFilename}`;
+            publicUrl = await uploadToR2({
+                key,
+                body: fileBuffer,
+                contentType: file.type || 'audio/mpeg',
             });
-
-        if (uploadError) {
-            console.error('Upload error:', uploadError);
+        } catch (uploadError) {
+            console.error('R2 Upload error:', uploadError);
             return NextResponse.json(
                 { error: 'Upload failed. Please try again.' },
                 { status: 500 }
             );
         }
-
-        // 7. Get public URL
-        const { data: { publicUrl } } = supabase.storage
-            .from('ringtone-files')
-            .getPublicUrl(finalFilename);
 
         return NextResponse.json({
             success: true,

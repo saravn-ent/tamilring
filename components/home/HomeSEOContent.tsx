@@ -31,16 +31,8 @@ export default function HomeSEOContent() {
     const faqSchema = generateFAQPageSchema(faqs);
 
     return (
-        <section className="w-full max-w-4xl mx-auto px-4 py-2 mt-0 border-t border-zinc-100 dark:border-zinc-800">
+        <section aria-label="SEO Knowledge Base">
             <StructuredData data={faqSchema} />
-
-            {/* Visual Minimal Footer Info */}
-            <div className="text-center">
-                <p className="text-[11px] text-zinc-400 dark:text-zinc-500 font-medium max-w-md mx-auto leading-relaxed">
-                    TamilRing: Premium Tamil ringtones & BGM.
-                    Browse, preview, and download instantly for Android & iPhone.
-                </p>
-            </div>
 
             {/* SEO/AEO/GEO Hidden Content - Visible to crawlers, hidden from users */}
             <div className="sr-only">

@@ -4,9 +4,11 @@ import withBundleAnalyzer from '@next/bundle-analyzer';
 
 const config: NextConfig = {
   compress: true,
+  devIndicators: false,
   turbopack: {},
 
   serverExternalPackages: ['@xenova/transformers', 'onnxruntime-web', 'postgres', 'drizzle-orm'],
+
 
   images: {
     remotePatterns: [
@@ -20,8 +22,9 @@ const config: NextConfig = {
       { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
       { protocol: 'https', hostname: 'i.ytimg.com' },
       { protocol: 'https', hostname: '**.tmdb.org' },
-      { protocol: 'https', hostname: '**.themoviedb.org' },
       { protocol: 'https', hostname: 'images.unsplash.com' },
+      { protocol: 'https', hostname: '*.r2.dev' },
+      { protocol: 'https', hostname: 'pub-7adb3d7983ad4219ac5d433a25c74aac.r2.dev' },
     ],
     deviceSizes: [640, 750, 828, 1080, 1200],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],

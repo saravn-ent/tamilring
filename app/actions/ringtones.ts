@@ -15,21 +15,8 @@ const getPublicSupabase = () => {
 };
 
 export async function getUserLanguage() {
-    const cookieStore = await cookies();
-    const lang = cookieStore.get('user-language')?.value || 'ta'; // Default to tamil ('ta')
-
-    // Map to db languages (must match DB values exactly)
-    const langMap: Record<string, string> = {
-        'ta': 'tamil',
-        'en': 'english',
-        'hi': 'hindi',
-        'kn': 'kannada',
-        'ml': 'malayalam',
-        'te': 'telugu'
-    };
-
-    // Default fallback
-    return langMap[lang] || 'tamil';
+    // TamilRing focuses exclusively on Tamil
+    return 'tamil';
 };
 
 export async function incrementLikes(ringtoneId: string) {
@@ -208,7 +195,7 @@ const getTrendingRingtonesInternal = unstable_cache(
 
         return result;
     },
-    ['trending-ringtones-v16'], // Bump version
+    ['trending-ringtones-v17'], // Bump version after DB resume
     { revalidate: 3600, tags: ['trending'] }
 );
 

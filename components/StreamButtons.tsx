@@ -80,71 +80,70 @@ export default function StreamButtons({
     <div className="w-full max-w-sm flex flex-col gap-3">
       {/* Copyright Compliance Header */}
       <div className="flex items-center justify-between px-1">
-        <div className="flex items-center gap-1.5 bg-green-50 text-green-700 px-2 py-0.5 rounded-full border border-green-100 shadow-sm">
-          <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-          <span className="text-[10px] font-bold uppercase tracking-tight">Verified Official Source</span>
+        <div className="flex items-center gap-1.5 bg-emerald-500/15 text-emerald-800 dark:text-emerald-200 px-2.5 py-0.5 rounded-full border border-emerald-600/30 shadow-2xs">
+          <div className="w-1.5 h-1.5 bg-emerald-600 dark:bg-emerald-400 rounded-full animate-pulse" />
+          <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-200">Verified Official Source</span>
         </div>
-        <span className="text-[10px] text-zinc-400 font-medium">Support the Creators</span>
+        <span className="text-[11px] text-m3-outline font-medium">Support the Creators</span>
       </div>
 
       <div className="flex flex-col gap-2">
-        {/* Apple Music - Primary */}
+        {/* Apple Music - M3 Card */}
         <a
           href={getAppleLink()}
           target="_blank"
           rel="noopener noreferrer"
-          className={`
-          flex items-center justify-between px-4 py-3.5 rounded-2xl font-bold transition-all group
-          ${isIOS
-              ? 'bg-linear-to-r from-rose-500 to-pink-600 text-white shadow-xl shadow-rose-500/20 scale-[1.02]'
-              : 'bg-[#000000] text-white hover:bg-zinc-900 border border-zinc-800'
-            }
-        `}
+          aria-label="Listen to official track on Apple Music"
+          className="flex items-center justify-between p-3 sm:p-3.5 rounded-2xl bg-m3-surface-container-low hover:bg-m3-surface-container border border-m3-outline-variant/40 hover:border-rose-500/40 m3-elevation-1 hover:m3-elevation-2 transition-all duration-200 active:scale-[0.99] group cursor-pointer"
         >
           <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg ${isIOS ? 'bg-white/20' : 'bg-zinc-800'}`}>
-              <Music size={18} className={isIOS ? 'text-white' : 'text-rose-500'} />
+            <div className="w-10 h-10 rounded-xl bg-rose-500/10 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0 border border-rose-500/20 transition-transform duration-200 group-hover:scale-105">
+              <Music size={19} className="text-rose-600 dark:text-rose-400" />
             </div>
             <div className="flex flex-col items-start leading-tight">
-              <span className="text-sm font-black">Listen in Lossless</span>
-              <span className="text-[10px] opacity-70 font-semibold tracking-wide uppercase">Apple Music</span>
+              <span className="text-xs sm:text-sm font-bold text-m3-on-surface group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">
+                Listen in Lossless
+              </span>
+              <span className="text-[10px] text-m3-outline font-semibold tracking-wider uppercase mt-0.5">
+                Apple Music
+              </span>
             </div>
           </div>
-          <div className="flex items-center gap-1 opacity-40 group-hover:opacity-100 transition-opacity">
-            <span className="text-[10px] font-bold">OPEN</span>
+          <div className="flex items-center gap-1 text-m3-outline group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors pr-1">
+            <span className="text-[10px] font-bold tracking-wider uppercase">Open</span>
             <ExternalLink size={14} />
           </div>
         </a>
 
-        {/* Spotify - Secondary */}
+        {/* Spotify - M3 Card */}
         <a
           href={getSpotifyLink()}
           target="_blank"
           rel="noopener noreferrer"
-          className="
-          flex items-center justify-between px-4 py-3.5 rounded-2xl font-bold transition-all group
-          bg-white text-brand-dark border-2 border-zinc-100 hover:border-[#1DB954]/30 hover:shadow-lg hover:shadow-green-500/5
-        "
+          aria-label="Stream official track on Spotify"
+          className="flex items-center justify-between p-3 sm:p-3.5 rounded-2xl bg-m3-surface-container-low hover:bg-m3-surface-container border border-m3-outline-variant/40 hover:border-[#1DB954]/50 m3-elevation-1 hover:m3-elevation-2 transition-all duration-200 active:scale-[0.99] group cursor-pointer"
         >
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-green-50">
-              <div className="text-[#1DB954]">
-                <SpotifyIcon />
-              </div>
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/20 text-[#1DB954] flex items-center justify-center shrink-0 border border-emerald-500/20 transition-transform duration-200 group-hover:scale-105">
+              <SpotifyIcon />
             </div>
             <div className="flex flex-col items-start leading-tight">
-              <span className="text-sm font-black text-zinc-900">Stream on Spotify</span>
-              <span className="text-[10px] text-zinc-500 font-semibold tracking-wide uppercase">Free & Premium</span>
+              <span className="text-xs sm:text-sm font-bold text-m3-on-surface group-hover:text-[#1DB954] transition-colors">
+                Stream on Spotify
+              </span>
+              <span className="text-[10px] text-m3-outline font-semibold tracking-wider uppercase mt-0.5">
+                Free & Premium
+              </span>
             </div>
           </div>
-          <div className="flex items-center gap-1 opacity-40 group-hover:opacity-100 transition-opacity text-zinc-500">
-            <span className="text-[10px] font-bold">PLAY</span>
+          <div className="flex items-center gap-1 text-m3-outline group-hover:text-[#1DB954] transition-colors pr-1">
+            <span className="text-[10px] font-bold tracking-wider uppercase">Play</span>
             <ExternalLink size={14} />
           </div>
         </a>
       </div>
 
-      <p className="text-[9px] text-zinc-400 text-center px-4 leading-relaxed font-medium mt-1">
+      <p className="text-[11px] text-m3-outline text-center px-4 leading-relaxed font-normal mt-1">
         By streaming the full song on official platforms, you directly support the music directors, singers, and creators of this work.
       </p>
     </div>

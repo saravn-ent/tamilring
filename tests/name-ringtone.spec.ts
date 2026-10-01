@@ -8,10 +8,11 @@ test('verify name ringtone generation flow', async ({ page }) => {
     await expect(page.getByRole('heading', { name: /AI Name Ringtone/i })).toBeVisible();
 
     // 3. Enter name
-    await page.getByPlaceholder(/Enter your name|பெயரை உள்ளிடவும்/i).fill('Antigravity');
+    await page.getByPlaceholder(/Enter your name/i).fill('Antigravity');
+    await page.waitForTimeout(500);
 
     // 4. Select a message (Step 3)
-    await page.getByText(/Someone is calling you|உங்களுக்கு ஒரு அழைப்பு/i).first().click();
+    await page.getByText(/Someone is calling you|Boss! Your phone is ringing/i).first().click();
 
     // 5. Click Generate
     await page.getByRole('button', { name: /Generate Ringtone/i }).click();

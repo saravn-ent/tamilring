@@ -1,26 +1,28 @@
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
-import HeroSearchServer from '@/components/HeroSearchServer';
+import HeroSpotlightServer from '@/components/home/HeroSpotlightServer';
+import HomeTrending from '@/components/home/HomeTrending';
 import CategoryGrid from '@/components/CategoryGrid';
-import EraAndInstruments from '@/components/EraAndInstruments';
+import EraTimeline from '@/components/home/EraTimeline';
+import AudioTrustBadge from '@/components/home/AudioTrustBadge';
 import StructuredData from '@/components/StructuredData';
 import { combineSchemas, generateHomeMetadata, generateOrganizationSchema, generateWebSiteSchema } from '@/lib/seo';
-
-// Homepage Row Components
-// Homepage Row Components - Optimized Dynamic Imports
-const HomeSingers = dynamic<{ lang: string }>(() => import('@/components/home/HomeTopArtists').then(m => m.HomeSingers), { ssr: true, loading: () => <SectionSkeleton type="horizontal" /> });
-const HomeActors = dynamic<{ lang: string }>(() => import('@/components/home/HomeTopArtists').then(m => m.HomeActors), { ssr: true, loading: () => <SectionSkeleton type="horizontal" /> });
-const HomeMusicDirectors = dynamic<{ lang: string }>(() => import('@/components/home/HomeTopArtists').then(m => m.HomeMusicDirectors), { ssr: true, loading: () => <SectionSkeleton type="horizontal" /> });
-const HomeMovieDirectors = dynamic<{ lang: string }>(() => import('@/components/home/HomeTopArtists').then(m => m.HomeMovieDirectors), { ssr: true, loading: () => <SectionSkeleton type="horizontal" /> });
-const HomeDeities = dynamic<{ lang: string }>(() => import('@/components/home/HomeDeities'), { ssr: true, loading: () => <SectionSkeleton type="horizontal" /> });
-const HomeLikedSongs = dynamic(() => import('@/components/home/HomeLikedSongs'), { ssr: true });
-import HomeTrending from '@/components/home/HomeTrending';
-const HomeNewReleases = dynamic<{ lang: string }>(() => import('@/components/home/HomeNewReleases'), { ssr: true, loading: () => <SectionSkeleton type="horizontal" /> });
-const HomeNostalgia = dynamic<{ lang: string }>(() => import('@/components/home/HomeNostalgia'), { ssr: true });
-const HomeSEOContent = dynamic(() => import('@/components/home/HomeSEOContent'), { ssr: true });
-
 import { SectionSkeleton } from '@/components/skeletons';
 
+// Dynamic Universal Homepage Components
+const HomeMaestros = dynamic<{ lang: string }>(() => import('@/components/home/HomeMaestros'), {
+  ssr: true,
+  loading: () => <SectionSkeleton type="horizontal" />
+});
+const HomeNewReleases = dynamic<{ lang: string }>(() => import('@/components/home/HomeNewReleases'), {
+  ssr: true,
+  loading: () => <SectionSkeleton type="horizontal" />
+});
+const HomeDeities = dynamic<{ lang: string }>(() => import('@/components/home/HomeDeities'), {
+  ssr: true,
+  loading: () => <SectionSkeleton type="horizontal" />
+});
+const HomeSEOContent = dynamic(() => import('@/components/home/HomeSEOContent'), { ssr: true });
 
 export const revalidate = 3600; // Revalidate every hour
 
@@ -28,87 +30,61 @@ export const revalidate = 3600; // Revalidate every hour
 export const metadata = generateHomeMetadata();
 
 export default async function Home() {
-  console.log('--- Homepage Render Start (Instant Shell) ---');
-
-  // 1. Content Language (We show Tamil content by default on TamilRing, even if UI is English)
   const lang = 'tamil';
 
-  // 2. Prepare structured data
+  // Structured data
   const organizationSchema = generateOrganizationSchema();
   const websiteSchema = generateWebSiteSchema();
   const combinedSchema = combineSchemas(organizationSchema, websiteSchema);
 
   return (
-    <div className="w-full max-w-md md:max-w-4xl lg:max-w-7xl mx-auto">
+    <div className="w-full max-w-7xl mx-auto px-2 sm:px-4">
       <StructuredData data={combinedSchema} />
 
-      {/* Visual Hidden H1 for SEO */}
+      {/* Visually Hidden H1 for SEO */}
       <h1 className="sr-only">
         TamilRing - Download Best Tamil Ringtones & BGM
       </h1>
 
-      {/* Hero Section with Search */}
-      <HeroSearchServer />
+      {/* 1. CINEMA AUDIO SPOTLIGHT (Daily Featured Cinema Cut) */}
+      <HeroSpotlightServer lang={lang} />
 
-      {/* Liked Songs - User's Personal Collection - HIGHER PRIORITY */}
-      <div className="lazy-section">
-        <HomeLikedSongs />
-      </div>
-
-      {/* Collections Grid - Visual Categories */}
-      <CategoryGrid />
-
-      {/* By Era & Instruments */}
-      <EraAndInstruments />
-
-      <div className="lazy-section">
-        <HomeTrending lang={lang} />
-      </div>
-
-      <div className="lazy-section">
-        <Suspense fallback={<SectionSkeleton type="trending" />}>
-          <HomeNostalgia lang={lang} />
-        </Suspense>
-      </div>
-
-      <div className="lazy-section">
-        <Suspense fallback={<SectionSkeleton type="horizontal" />}>
-          <HomeSingers lang={lang} />
-        </Suspense>
-      </div>
-
-      <div className="lazy-section">
-        <Suspense fallback={<SectionSkeleton type="horizontal" />}>
-          <HomeActors lang={lang} />
-        </Suspense>
-      </div>
-
-      <div className="lazy-section">
-        <Suspense fallback={<SectionSkeleton type="horizontal" />}>
-          <HomeMusicDirectors lang={lang} />
-        </Suspense>
-      </div>
-
-      <div className="lazy-section">
-        <Suspense fallback={<SectionSkeleton type="horizontal" />}>
-          <HomeMovieDirectors lang={lang} />
-        </Suspense>
-      </div>
-
+      {/* 2. NOW IN THEATERS & NEW DROPS (The Theatrical Wave) */}
       <div className="lazy-section">
         <Suspense fallback={<SectionSkeleton type="horizontal" />}>
           <HomeNewReleases lang={lang} />
         </Suspense>
       </div>
 
+      {/* 3. TRENDING RINGTONES (Viral BGM & Interval Hits - Full 2:3 Movie Posters) */}
+      <div className="lazy-section">
+        <HomeTrending lang={lang} />
+      </div>
 
+      {/* 4. HALL OF MAESTROS (Composers: Anirudh, ARR, Raja - Circular Avatars) */}
+      <div className="lazy-section">
+        <Suspense fallback={<SectionSkeleton type="horizontal" />}>
+          <HomeMaestros lang={lang} />
+        </Suspense>
+      </div>
 
+      {/* 5. CURATED MOOD STATIONS (Tactile Colorful Gradient Capsules) */}
+      <CategoryGrid />
+
+      {/* 6. DECADES OF KOLLEGEWOOD (Backward Timeline: 2020s → 70s) */}
+      <EraTimeline />
+
+      {/* 7. BHAKTHI & SPIRITUAL (Divine Deity Collections) */}
       <div className="lazy-section">
         <Suspense fallback={<SectionSkeleton type="horizontal" />}>
           <HomeDeities lang={lang} />
         </Suspense>
       </div>
 
+      {/* 8. SUBTLE DUAL-OS TRUST & QUALITY PLEDGE */}
+      <AudioTrustBadge />
+
+      {/* 9. SEO & FAQ FOOTPRINT */}
       <div className="lazy-section">
         <HomeSEOContent />
       </div>

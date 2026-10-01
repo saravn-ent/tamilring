@@ -3,21 +3,21 @@ import SectionHeader from '@/components/SectionHeader';
 import NewReleasesList from './NewReleasesList';
 import { supabase } from '@/lib/supabaseClient';
 import { unstable_cache } from 'next/cache';
-import Link from 'next/link';
 
-interface NewRelease {
+export interface NewRelease {
     movie_name: string;
     poster_url: string;
     movie_year: string;
     ringtone_count: number;
+    music_director?: string | null;
 }
 
 const getNewReleases = unstable_cache(
     async (lang: string = 'tamil'): Promise<NewRelease[]> => {
-        // Fetch recently added ringtones with posters
+        // Fetch current and recent theatrical releases (2024+) with approved posters
         let query = supabase
             .from('ringtones')
-            .select('movie_name, poster_url, movie_year, created_at')
+            .select('movie_name, poster_url, movie_year, music_director, created_at, likes, downloads')
             .eq('status', 'approved')
             .not('poster_url', 'is', null)
             .neq('poster_url', '');
@@ -28,35 +28,92 @@ const getNewReleases = unstable_cache(
             query = query.eq('language', lang);
         }
 
+        // 1. Prioritize current/recent theatrical wave (2024+)
         const { data: ringtones } = await query
+            .gte('movie_year', '2024')
+            .order('movie_year', { ascending: false })
             .order('created_at', { ascending: false })
-            .limit(100);
+            .limit(200);
 
-        if (!ringtones || ringtones.length === 0) return [];
+        let dataToProcess = ringtones || [];
 
-        // Group by movie_name → pick the most recent poster + count
-        const movieMap = new Map<string, NewRelease>();
+        // Fallback to recent movies if fewer than 6 titles are found
+        if (dataToProcess.length < 6) {
+            let fallbackQuery = supabase
+                .from('ringtones')
+                .select('movie_name, poster_url, movie_year, music_director, created_at, likes, downloads')
+                .eq('status', 'approved')
+                .not('poster_url', 'is', null)
+                .neq('poster_url', '');
 
-        for (const r of ringtones) {
+            if (lang === 'tamil') {
+                fallbackQuery = fallbackQuery.or(`language.eq.${lang},language.is.null`);
+            } else {
+                fallbackQuery = fallbackQuery.eq('language', lang);
+            }
+
+            const { data: fallbackData } = await fallbackQuery
+                .order('created_at', { ascending: false })
+                .limit(100);
+
+            dataToProcess = fallbackData || [];
+        }
+
+        if (dataToProcess.length === 0) return [];
+
+        // Group by movie_name → pick the highest quality poster, composer, and aggregate engagement
+        const movieMap = new Map<string, NewRelease & { score: number }>();
+
+        for (const r of dataToProcess) {
             if (!r.movie_name) continue;
+            const likes = r.likes || 0;
+            const downloads = r.downloads || 0;
+
             if (movieMap.has(r.movie_name)) {
-                // Increment count only
-                movieMap.get(r.movie_name)!.ringtone_count++;
+                const item = movieMap.get(r.movie_name)!;
+                item.ringtone_count++;
+                item.score += 15 + likes * 5 + downloads;
+
+                if (!item.music_director && r.music_director) {
+                    item.music_director = r.music_director;
+                }
+                // Prefer high-res tmdb poster if available
+                if (!item.poster_url.includes('tmdb.org') && r.poster_url.includes('tmdb.org')) {
+                    item.poster_url = r.poster_url;
+                }
             } else {
                 movieMap.set(r.movie_name, {
                     movie_name: r.movie_name,
                     poster_url: r.poster_url,
                     movie_year: r.movie_year || '',
+                    music_director: r.music_director || null,
                     ringtone_count: 1,
+                    score: 20 + likes * 5 + downloads,
                 });
             }
         }
 
-        // Return top 10 unique movies (ordered by most-recent first, which is the iteration order from the sorted query)
-        return Array.from(movieMap.values()).slice(0, 10);
+        // Sort movies: Year descending (2026, 2025, 2024), and within the same year by popularity/score
+        const sorted = Array.from(movieMap.values()).sort((a, b) => {
+            const yearA = parseInt(a.movie_year, 10) || 0;
+            const yearB = parseInt(b.movie_year, 10) || 0;
+            if (yearB !== yearA) {
+                return yearB - yearA;
+            }
+            return b.score - a.score;
+        });
+
+        // Return top 10 unique theatrical movies
+        return sorted.slice(0, 10).map(({ movie_name, poster_url, movie_year, ringtone_count, music_director }) => ({
+            movie_name,
+            poster_url,
+            movie_year,
+            ringtone_count,
+            music_director,
+        }));
     },
-    ['new-releases-v1'],
-    { revalidate: 3600, tags: ['new-releases', 'recent'] }
+    ['new-theatrical-releases-v3'],
+    { revalidate: 3600, tags: ['new-releases', 'theaters', 'recent'] }
 );
 
 export default async function HomeNewReleases({ lang }: { lang: string }) {
@@ -65,17 +122,17 @@ export default async function HomeNewReleases({ lang }: { lang: string }) {
     if (!releases || releases.length === 0) return null;
 
     return (
-        <div className="mb-10">
-            <div className="px-4 mb-4 flex items-center justify-between">
-                <SectionHeader title="New Releases" translationKey="newReleases" />
-                <Link
+        <div className="mb-6">
+            <div className="px-3 sm:px-4">
+                <SectionHeader
+                    title="Now in Theaters"
+                    subtitle="Fresh Kollywood Releases"
                     href="/recent"
-                    className="text-xs font-semibold text-brand-accent hover:underline shrink-0"
-                >
-                    See all
-                </Link>
+                />
             </div>
             <NewReleasesList releases={releases} />
         </div>
     );
 }
+
+

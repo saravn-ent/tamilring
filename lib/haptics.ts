@@ -1,30 +1,63 @@
 /**
  * Native Haptic Feedback Utility
- * Provides tactile response for various user interactions
+ * Delivers premium tactile micro-interactions adhering to mobile-first ergonomics.
  */
 
+// Safety check for browser environment and vibration API support
+export const isHapticsSupported = (): boolean => {
+    return typeof window !== 'undefined' && 
+           typeof window.navigator !== 'undefined' && 
+           typeof window.navigator.vibrate === 'function';
+};
+
 export const hapticFeedback = (pattern: number | number[] = 10) => {
-    if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
-        window.navigator.vibrate(pattern);
+    if (isHapticsSupported()) {
+        try {
+            window.navigator.vibrate(pattern);
+        } catch {
+            // Silently fallback if vibration blocked by browser permission policy
+        }
+    }
+};
+
+// Throttled haptic feedback for continuous scrubbing (prevents vibration queue flooding)
+let lastScrubTime = 0;
+export const throttledScrubHaptic = (minIntervalMs: number = 60) => {
+    const now = Date.now();
+    if (now - lastScrubTime >= minIntervalMs) {
+        lastScrubTime = now;
+        hapticFeedback(hapticPatterns.scrub);
     }
 };
 
 export const hapticPatterns = {
-    // Light tap for navigation or subtle interactions (like iOS 'selectionChanged')
-    selection: 10,
+    // Ultra-light 8ms micro-tap for subtle touches
+    tap: 8,
+
+    // Light tap for navigation pills or chips (12ms)
+    selection: 12,
     
-    // Slightly firmer tap for primary actions (play/pause)
-    impact: 15,
+    // Firm tactile impact for primary controls like Play/Pause (18ms)
+    impact: 18,
     
-    // "Success" pattern: two short pulses (like iOS 'success')
-    success: [10, 30, 10],
+    // Rapid 6ms micro-tick for continuous waveform scrubbing
+    scrub: 6,
+
+    // Rich dual-pulse pattern when initiating a ringtone download
+    download: [15, 35, 20],
     
-    // "Warning" pattern: two medium pulses
+    // Multi-pulse rewarding finish pattern on download completion
+    success: [12, 30, 12, 30, 24],
+    
+    // Smooth single pulse when opening bottom sheets / modals (e.g. Set Ringtone)
+    openModal: 14,
+
+    // "Heart" double-pulse for favoriting / likes
+    heartbeat: [10, 60, 16],
+
+    // Warning alert pattern
     warning: [20, 40, 20],
     
-    // "Error" pattern: three rapid pulses
-    error: [15, 30, 15, 30, 15],
-    
-    // "Heart" pattern for favorites: a soft double heart-beat
-    heartbeat: [10, 60, 15]
+    // Error feedback pattern
+    error: [15, 30, 15, 30, 15]
 };

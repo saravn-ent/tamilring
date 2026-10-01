@@ -2,20 +2,20 @@
 
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
-import { hapticFeedback } from '@/lib/haptics';
+import { hapticFeedback, hapticPatterns } from '@/lib/haptics';
+import { cn } from '@/lib/utils';
 
 interface BackButtonProps {
     fallbackHref?: string;
     className?: string;
-    variant?: 'default' | 'minimal';
+    variant?: 'default' | 'minimal' | 'hero';
 }
 
 export default function BackButton({ fallbackHref = '/', className = '', variant = 'default' }: BackButtonProps) {
     const router = useRouter();
 
     const handleBack = () => {
-        hapticFeedback(10);
-        // Simple history back
+        hapticFeedback(hapticPatterns.selection);
         if (typeof window !== 'undefined' && window.history.length > 1) {
             router.back();
         } else {
@@ -23,14 +23,34 @@ export default function BackButton({ fallbackHref = '/', className = '', variant
         }
     };
 
+    if (variant === 'hero') {
+        return (
+            <button
+                type="button"
+                onClick={handleBack}
+                className={cn(
+                    "inline-flex items-center gap-1.5 h-8 px-3.5 rounded-full bg-black/60 hover:bg-black/80 text-white border border-white/20 backdrop-blur-md shadow-xs transition-all active:scale-95 cursor-pointer text-xs font-semibold",
+                    className
+                )}
+                aria-label="Go back"
+            >
+                <ArrowLeft size={14} className="shrink-0 text-white" />
+                <span className="text-white">Back</span>
+            </button>
+        );
+    }
+
     if (variant === 'minimal') {
         return (
             <button
                 onClick={handleBack}
-                className={`p-2 text-zinc-400 hover:text-brand-dark transition-colors ${className}`}
+                className={cn(
+                    "w-10 h-10 rounded-full flex items-center justify-center text-m3-on-surface-variant hover:text-m3-primary hover:bg-m3-on-surface/5 transition-colors cursor-pointer active:scale-90",
+                    className
+                )}
                 aria-label="Go back"
             >
-                <ArrowLeft size={20} strokeWidth={2.5} />
+                <ArrowLeft size={20} />
             </button>
         );
     }
@@ -38,10 +58,14 @@ export default function BackButton({ fallbackHref = '/', className = '', variant
     return (
         <button
             onClick={handleBack}
-            className={`inline-flex items-center gap-2 text-brand-dark hover:text-brand-accent bg-white/80 backdrop-blur-md border border-brand-gray px-4 py-2 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-95 ${className}`}
+            className={cn(
+                "inline-flex items-center gap-1.5 text-m3-on-surface hover:text-m3-primary bg-m3-surface-container-low border border-m3-outline-variant/50 px-4 py-2 rounded-full shadow-2xs hover:shadow-xs hover:bg-m3-surface-container transition-all active:scale-95 cursor-pointer text-sm font-semibold",
+                className
+            )}
         >
-            <ArrowLeft size={20} strokeWidth={2.5} />
-            <span className="text-sm font-semibold">Back</span>
+            <ArrowLeft size={16} className="shrink-0 text-current" />
+            <span className="text-current">Back</span>
         </button>
     );
 }
+

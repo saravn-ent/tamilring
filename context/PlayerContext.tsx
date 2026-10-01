@@ -6,8 +6,10 @@ import { Ringtone } from '@/types';
 interface PlayerContextType {
   currentRingtone: Ringtone | null;
   isPlaying: boolean;
-  playRingtone: (ringtone: Ringtone) => void;
+  source: string | null;
+  playRingtone: (ringtone: Ringtone, source?: string) => void;
   togglePlay: () => void;
+  stopPlayer: () => void;
 }
 
 // Split contexts to prevent re-renders on progress updates
@@ -17,8 +19,10 @@ const PlayerProgressContext = createContext<PlayerProgressContextType | undefine
 interface PlayerStateContextType {
   currentRingtone: Ringtone | null;
   isPlaying: boolean;
-  playRingtone: (ringtone: Ringtone) => void;
+  source: string | null;
+  playRingtone: (ringtone: Ringtone, source?: string) => void;
   togglePlay: () => void;
+  stopPlayer: () => void;
 }
 
 interface PlayerProgressContextType {
@@ -31,6 +35,7 @@ interface PlayerProgressContextType {
 export function PlayerProvider({ children }: { children: ReactNode }) {
   const [currentRingtone, setCurrentRingtone] = useState<Ringtone | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [source, setSource] = useState<string | null>(null);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -75,11 +80,27 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const handleEnded = () => {
     setIsPlaying(false);
     setProgress(0);
+    setCurrentRingtone(null);
+    setSource(null);
   };
 
-  const playRingtone = (ringtone: Ringtone) => {
+  const stopPlayer = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+    setIsPlaying(false);
+    setCurrentRingtone(null);
+    setSource(null);
+    setProgress(0);
+  };
+
+  const playRingtone = (ringtone: Ringtone, playSource: string = 'general') => {
+    setSource(playSource);
     if (currentRingtone?.id === ringtone.id) {
-      togglePlay();
+      if (!isPlaying) {
+        setIsPlaying(true);
+      }
     } else {
       setCurrentRingtone(ringtone);
       setIsPlaying(true);
@@ -99,7 +120,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <PlayerStateContext.Provider value={{ currentRingtone, isPlaying, playRingtone, togglePlay }}>
+    <PlayerStateContext.Provider value={{ currentRingtone, isPlaying, source, playRingtone, togglePlay, stopPlayer }}>
       <PlayerProgressContext.Provider value={{ progress, duration, setProgress, seek }}>
         {children}
         <audio

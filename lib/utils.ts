@@ -20,12 +20,25 @@ export function splitArtists(artistString: string): string[] {
     if (!artistString) return [];
 
     // Split by comma, ampersand, or the word "and" (case insensitive)
-    // Using regex to handle multiple separators
-    return artistString
+    const raw = artistString
         .split(/[,&]|\band\b/i)
         .map(artist => artist.trim())
         .filter(artist => artist.length > 0);
+
+    // Deduplicate case-insensitively while preserving original casing
+    const seen = new Set<string>();
+    const result: string[] = [];
+    for (const name of raw) {
+        const lower = name.toLowerCase();
+        if (!seen.has(lower)) {
+            seen.add(lower);
+            result.push(name);
+        }
+    }
+    return result;
 }
+
+export const splitAndDedupeArtists = splitArtists;
 
 /**
  * Formats a count number to a human-readable string (e.g., 1200 -> "1.2k")

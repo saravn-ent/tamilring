@@ -7,21 +7,38 @@ import { TranslationKeys } from '@/lib/i18n';
 
 interface SectionHeaderProps {
   title: string;
+  subtitle?: string;
   href?: string;
   translationKey?: TranslationKeys;
 }
 
-export default function SectionHeader({ title, href, translationKey }: SectionHeaderProps) {
+export default function SectionHeader({ title, subtitle, href, translationKey }: SectionHeaderProps) {
   const { t } = useLanguage();
 
   const displayTitle = translationKey ? t(translationKey) : title;
 
   return (
-    <div className="flex items-center justify-between mb-3 mt-6">
-      <h2 suppressHydrationWarning className="text-lg font-display font-bold text-black">{displayTitle}</h2>
+    <div className="flex items-center justify-between mb-2.5 mt-3.5">
+      <div className="flex items-center gap-1.5">
+        <span className="w-1 h-3.5 rounded-full bg-m3-primary shrink-0" />
+        <div className="flex items-baseline gap-1.5">
+          <h2 suppressHydrationWarning className="text-sm sm:text-base font-bold tracking-tight text-m3-on-surface">
+            {displayTitle}
+          </h2>
+          {subtitle && (
+            <span className="text-[11px] sm:text-xs font-medium text-m3-outline hidden sm:inline">
+              {subtitle}
+            </span>
+          )}
+        </div>
+      </div>
       {href && (
-        <Link suppressHydrationWarning href={href} className="text-xs text-brand-dark hover:text-brand-accent flex items-center hover:underline transition-colors font-medium">
-          {t('viewAll')} <ChevronRight size={14} />
+        <Link
+          suppressHydrationWarning
+          href={href}
+          className="text-[11px] sm:text-xs font-semibold text-m3-primary hover:underline flex items-center gap-0.5 transition-colors shrink-0"
+        >
+          {t('viewAll')} <ChevronRight size={13} />
         </Link>
       )}
     </div>

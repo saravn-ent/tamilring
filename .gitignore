@@ -33,12 +33,42 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 
-# Temporary
+# Temporary & Archive
 tmp_*
 temp_*
 *.tmp
+*.bin
 *-player-script.js
+archive/
+
+# Scratch & Dev Data
+scratch/
+test-upload/
+
+# TypeScript Build Cache
+tsconfig.tsbuildinfo
+
+# Diagnostic, Audit & Lint Logs
+*.log
+build_*.txt
+dev_output*
+dev_stderr*
+dev_stdout*
+diag_output*
+eslint-out*.txt
+eslint-report*.json
+eslint_context.txt
+lint-*.txt
+lint_*.txt
+lint-report*.json
+lint_check.json
+lighthouse-report-*.json
+posters_output.txt
+poster_sync_results.txt
+withdrawal_check_output.txt
+*.sql
 
 # Secrets & Credentials
 service_account.json
 scripts/indexing-progress.json
+

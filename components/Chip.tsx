@@ -11,13 +11,14 @@ export default function Chip({ label, href, active }: ChipProps) {
     <Link 
       href={href}
       className={`
-        inline-block px-4 py-2 rounded-full text-xs font-medium whitespace-nowrap transition-all
+        inline-flex items-center justify-center h-8 px-3.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all duration-200 active:scale-95
         ${active 
-          ? 'bg-emerald-500 text-neutral-900' 
-          : 'bg-neutral-800 text-zinc-300 border border-neutral-700 hover:border-emerald-500/50'}
+          ? 'bg-m3-secondary-container text-m3-on-secondary-container border border-transparent shadow-2xs' 
+          : 'bg-m3-surface-container-low text-m3-on-surface-variant border border-m3-outline-variant/60 hover:bg-m3-surface-container hover:text-m3-on-surface'}
       `}
     >
       {label}
     </Link>
   );
 }
+

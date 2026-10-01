@@ -1,22 +1,34 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Download, CheckCircle2 } from 'lucide-react';
+import { Download, CheckCircle2, Sparkles } from 'lucide-react';
 import { Ringtone } from '@/types';
 import { generateRingtoneFilename } from '@/lib/utils';
+import { hapticFeedback, hapticPatterns } from '@/lib/haptics';
 
 interface DownloadButtonProps {
     ringtone: Ringtone;
     onDownload?: () => void;
+    className?: string;
+    variant?: 'default' | 'thumb';
+    downloadCount?: number;
 }
 
-export default function DownloadButton({ ringtone, onDownload }: DownloadButtonProps) {
+export default function DownloadButton({ ringtone, onDownload, className = '', variant = 'default', downloadCount }: DownloadButtonProps) {
     const [isDownloading, setIsDownloading] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
+    const [isIOS, setIsIOS] = useState(false);
     // 0–100 real progress, null = indeterminate (server processing before bytes arrive)
     const [progress, setProgress] = useState<number | null>(null);
     const [elapsed, setElapsed] = useState(0);
     const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const userAgent = window.navigator.userAgent;
+            setIsIOS(/iPad|iPhone|iPod/.test(userAgent) && !('MSStream' in window));
+        }
+    }, []);
 
     // Elapsed-seconds ticker while downloading
     useEffect(() => {
@@ -31,6 +43,7 @@ export default function DownloadButton({ ringtone, onDownload }: DownloadButtonP
 
     const handleSmartDownload = async () => {
         if (isDownloading || showSuccess) return;
+        hapticFeedback(hapticPatterns.download);
         setIsDownloading(true);
         setProgress(null); // indeterminate until server responds
 
@@ -38,12 +51,12 @@ export default function DownloadButton({ ringtone, onDownload }: DownloadButtonP
 
         try {
             const userAgent = window.navigator.userAgent;
-            const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !('MSStream' in window);
+            const iOSDevice = /iPad|iPhone|iPod/.test(userAgent) && !('MSStream' in window);
 
             let targetUrl = ringtone.audio_url;
             let targetExt = 'mp3';
 
-            if (isIOS && ringtone.audio_url_iphone) {
+            if (iOSDevice && ringtone.audio_url_iphone) {
                 targetUrl = ringtone.audio_url_iphone;
                 targetExt = 'm4r';
             }
@@ -100,12 +113,13 @@ export default function DownloadButton({ ringtone, onDownload }: DownloadButtonP
 
             } else {
                 // Fallback: no content-length (e.g. chunked encoding) — read whole blob
-                setProgress(null); // keep indeterminate spinner
+                setProgress(null);
                 const blob = await response.blob();
                 setProgress(100);
                 triggerBlobDownload(blob, finalFilename);
             }
 
+            hapticFeedback(hapticPatterns.success);
             setShowSuccess(true);
             setTimeout(() => setShowSuccess(false), 5000);
 
@@ -128,54 +142,75 @@ export default function DownloadButton({ ringtone, onDownload }: DownloadButtonP
         setTimeout(() => window.URL.revokeObjectURL(blobUrl), 5000);
     }
 
+    const isThumb = variant === 'thumb';
+    const displayDownloads = downloadCount !== undefined ? downloadCount : (ringtone.downloads || 0);
+
+    const formatCount = (count: number) => {
+        if (!count || count <= 0) return '0';
+        if (count >= 1000000) return `${(count / 1000000).toFixed(1).replace(/\.0$/, '')}M`;
+        if (count >= 1000) return `${(count / 1000).toFixed(1).replace(/\.0$/, '')}k`;
+        return count.toString();
+    };
+
     return (
-        <div className="flex-1 w-full">
+        <div className={`w-full ${className}`}>
             <button
+                type="button"
                 onClick={handleSmartDownload}
                 disabled={isDownloading}
-                className={`relative w-full overflow-hidden font-normal py-2.5 px-4 rounded-lg transition-all flex items-center justify-center gap-2 active:scale-95 border ${
+                className={`group relative w-full overflow-hidden rounded-full font-bold transition-all duration-200 flex items-center justify-center gap-2 active:scale-98 cursor-pointer shadow-xs ${
+                    isThumb
+                        ? 'h-10 sm:h-11 px-3 sm:px-4 text-xs sm:text-sm'
+                        : 'h-10 px-4 sm:px-5 text-xs sm:text-sm'
+                } ${
                     showSuccess
-                        ? 'bg-green-50 text-green-700 border-green-200'
+                        ? 'bg-m3-primary text-m3-on-primary border border-m3-primary'
                         : isDownloading
-                            ? 'bg-white text-zinc-600 border-zinc-200 cursor-not-allowed'
-                            : 'bg-brand-wash text-zinc-900 border-zinc-200 hover:bg-white transition-colors'
+                            ? 'bg-m3-surface-container-high text-m3-on-surface-variant border border-m3-outline-variant/40 cursor-not-allowed'
+                            : 'bg-m3-surface-container-low hover:bg-m3-surface-container text-m3-primary border border-m3-primary'
                 }`}
+                aria-label={showSuccess ? 'Downloaded ringtone' : `Download Ringtone (${formatCount(displayDownloads)})`}
             >
-                {/* Progress bar fill — slides in from left */}
+                {/* Progress bar fill — smooth transition */}
                 {isDownloading && (
                     <span
-                        className="absolute inset-y-0 left-0 bg-brand-accent/10 transition-all duration-300 ease-out"
+                        className="absolute inset-y-0 left-0 bg-m3-primary/15 transition-all duration-300 ease-out"
                         style={{ width: progress !== null ? `${progress}%` : '0%' }}
                     />
                 )}
 
                 {/* Indeterminate shimmer when progress is null */}
                 {isDownloading && progress === null && (
-                    <span className="absolute inset-0 bg-linear-to-r from-transparent via-brand-accent/10 to-transparent animate-[shimmer_1.2s_ease-in-out_infinite]" />
+                    <span className="absolute inset-0 bg-linear-to-r from-transparent via-m3-primary/15 to-transparent animate-[shimmer_1.2s_ease-in-out_infinite]" />
                 )}
 
                 {/* Button content */}
-                <span className="relative z-10 flex items-center gap-2">
+                <span className="relative z-10 flex items-center justify-center gap-1.5 sm:gap-2">
                     {showSuccess ? (
                         <>
-                            <CheckCircle2 size={18} strokeWidth={1.5} />
-                            <span className="text-sm">Downloaded!</span>
+                            <CheckCircle2 size={16} className="text-m3-on-primary animate-in zoom-in" />
+                            <span>Saved!</span>
                         </>
                     ) : isDownloading ? (
                         <>
-                            <div className="w-4 h-4 border-2 border-brand-accent/30 border-t-brand-accent rounded-full animate-spin shrink-0" />
-                            <span className="text-sm tabular-nums">
+                            <div className="w-4 h-4 border-2 border-m3-primary/30 border-t-m3-primary rounded-full animate-spin shrink-0" />
+                            <span className="tabular-nums text-xs sm:text-sm text-m3-primary font-semibold">
                                 {progress !== null
-                                    ? `Downloading… ${progress}%`
+                                    ? `${progress}%`
                                     : elapsed > 1
-                                        ? `Preparing… ${elapsed}s`
-                                        : 'Preparing…'}
+                                        ? `${elapsed}s`
+                                        : 'Connecting…'}
                             </span>
                         </>
                     ) : (
                         <>
-                            <Download size={18} strokeWidth={1.5} />
-                            <span className="text-sm">Download</span>
+                            <Download size={16} className="transition-transform group-hover:-translate-y-0.5 text-m3-primary" />
+                            <span className="tracking-tight text-m3-primary font-semibold">Download</span>
+                            {displayDownloads > 0 && (
+                                <span className="text-[11px] font-semibold tabular-nums px-2 py-0.5 rounded-full bg-m3-primary/10 text-m3-primary leading-none">
+                                    {formatCount(displayDownloads)}
+                                </span>
+                            )}
                         </>
                     )}
                 </span>
@@ -183,3 +218,5 @@ export default function DownloadButton({ ringtone, onDownload }: DownloadButtonP
         </div>
     );
 }
+
+
