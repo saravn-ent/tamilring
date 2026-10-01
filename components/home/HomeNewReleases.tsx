@@ -3,6 +3,8 @@ import SectionHeader from '@/components/SectionHeader';
 import NewReleasesList from './NewReleasesList';
 import { supabase } from '@/lib/supabaseClient';
 import { unstable_cache } from 'next/cache';
+import StructuredData from '@/components/StructuredData';
+import { generateMovieItemListSchema } from '@/lib/seo';
 
 export interface NewRelease {
     movie_name: string;
@@ -121,8 +123,19 @@ export default async function HomeNewReleases({ lang }: { lang: string }) {
 
     if (!releases || releases.length === 0) return null;
 
+    const movieItemListSchema = generateMovieItemListSchema({
+        name: 'Now in Theaters — Fresh Tamil Releases',
+        description: 'Latest theatrical Tamil movie releases and official ringtone cuts.',
+        items: releases.map(r => ({
+            name: r.movie_name,
+            year: r.movie_year,
+            poster_url: r.poster_url,
+        })),
+    });
+
     return (
         <div className="mb-6">
+            <StructuredData data={movieItemListSchema} />
             <div className="px-3 sm:px-4">
                 <SectionHeader
                     title="Now in Theaters"

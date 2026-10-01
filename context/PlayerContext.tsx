@@ -63,6 +63,69 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     }
   }, [currentRingtone, isPlaying]);
 
+  // Web MediaSession API Integration (Lock Screen, Bluetooth, Notification controls)
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('mediaSession' in navigator)) return;
+
+    if (currentRingtone) {
+      const artist = currentRingtone.music_director || currentRingtone.singers || 'TamilRing';
+      const album = currentRingtone.movie_name || 'Tamil Ringtones';
+
+      try {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: currentRingtone.title,
+          artist,
+          album,
+          artwork: currentRingtone.poster_url
+            ? [
+                { src: currentRingtone.poster_url, sizes: '96x96', type: 'image/jpeg' },
+                { src: currentRingtone.poster_url, sizes: '192x192', type: 'image/jpeg' },
+                { src: currentRingtone.poster_url, sizes: '512x512', type: 'image/jpeg' },
+              ]
+            : [{ src: '/icon.png', sizes: '512x512', type: 'image/png' }],
+        });
+
+        navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+
+        navigator.mediaSession.setActionHandler('play', () => {
+          setIsPlaying(true);
+        });
+
+        navigator.mediaSession.setActionHandler('pause', () => {
+          setIsPlaying(false);
+        });
+
+        navigator.mediaSession.setActionHandler('stop', () => {
+          stopPlayer();
+        });
+
+        navigator.mediaSession.setActionHandler('seekto', (details) => {
+          if (details.seekTime !== undefined && audioRef.current) {
+            audioRef.current.currentTime = details.seekTime;
+          }
+        });
+      } catch (err) {
+        console.warn('MediaSession configuration error', err);
+      }
+    } else {
+      navigator.mediaSession.playbackState = 'none';
+    }
+  }, [currentRingtone, isPlaying]);
+
+  // Dynamic Browser Tab Title when playing
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+
+    if (currentRingtone && isPlaying) {
+      const originalTitle = document.title.replace(/^▶\s+/, '');
+      document.title = `▶ ${currentRingtone.title} • TamilRing`;
+
+      return () => {
+        document.title = originalTitle;
+      };
+    }
+  }, [currentRingtone, isPlaying]);
+
   const handleTimeUpdate = () => {
     if (audioRef.current) {
       // Throttle updates using requestAnimationFrame to avoid blocking

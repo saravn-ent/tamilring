@@ -201,8 +201,8 @@ export default function AudioCutter({ file, initialTab, onReset, onFileChange }:
                 activeWs = WaveSurferLib.create({
                     container: containerRef.current!,
                     height: 100,
-                    waveColor: '#E5E7EB',
-                    progressColor: '#381C75',
+                    waveColor: 'rgba(150, 140, 160, 0.35)',
+                    progressColor: '#D7193C',
                     cursorColor: '#16A34A',
                     cursorWidth: 3,
                     barWidth: 2,
@@ -355,7 +355,7 @@ export default function AudioCutter({ file, initialTab, onReset, onFileChange }:
     };
 
     return (
-        <div className="w-full max-w-lg mx-auto flex flex-col gap-2 pb-8 bg-white flex-1 animate-in fade-in duration-700">
+        <div className="w-full max-w-lg mx-auto flex flex-col gap-2 pb-8 bg-m3-surface text-m3-on-surface flex-1 animate-in fade-in duration-700">
             <style jsx global>{`
                 div[part="cursor"] { height: 100% !important; border-left: 3px solid #16A34A !important; z-index: 100 !important; }
                 div[part="cursor"]::after { content: ''; position: absolute; top: 0; left: -6px; width: 12px; height: 12px; background: #16A34A; border-radius: 50%; border: 3px solid white; z-index: 101; }
@@ -363,15 +363,15 @@ export default function AudioCutter({ file, initialTab, onReset, onFileChange }:
                 div[part="region-trim-region"] { background-color: rgba(245, 158, 11, 0.12) !important; border-left: 3px solid #F59E0B !important; border-right: 3px solid #F59E0B !important; }
             `}</style>
 
-            <header className="flex items-center justify-between px-3 py-2 border-b border-slate-100 bg-white/80 backdrop-blur sticky top-0 z-50">
+            <header className="flex items-center justify-between px-3 py-2 border-b border-m3-outline-variant/30 bg-m3-surface/80 backdrop-blur sticky top-0 z-50">
                 <div className="flex flex-col">
-                    <p className="text-[10px] font-bold text-slate-900 uppercase tracking-widest truncate max-w-[150px]">{file.name}</p>
+                    <p className="text-[10px] font-bold text-m3-on-surface uppercase tracking-widest truncate max-w-[150px]">{file.name}</p>
                     <div className="flex items-center gap-1.5 mt-0.5">
-                        <span className={`px-1.5 py-0.5 rounded text-[7px] font-black uppercase tracking-tighter ${isProcessed ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}>
+                        <span className={`px-1.5 py-0.5 rounded text-[7px] font-black uppercase tracking-tighter ${isProcessed ? 'bg-emerald-500/20 text-emerald-500' : 'bg-m3-surface-container-high text-m3-on-surface-variant'}`}>
                             {isProcessed ? 'PROCESSED' : 'ORIGINAL'}
                         </span>
                         {initialTab !== 'fx' && (
-                            <span className="text-[8px] font-black uppercase text-slate-300">/ {initialTab}</span>
+                            <span className="text-[8px] font-black uppercase text-m3-outline">/ {initialTab}</span>
                         )}
                     </div>
                 </div>
@@ -383,7 +383,7 @@ export default function AudioCutter({ file, initialTab, onReset, onFileChange }:
                         </button>
                     )}
                     {onFileChange && (
-                        <button onClick={() => fileInputRef.current?.click()} className="h-9 px-3 bg-slate-50 text-slate-400 border border-slate-200 rounded-xl text-[9px] font-bold uppercase tracking-widest hover:bg-slate-100 transition-colors">
+                        <button onClick={() => fileInputRef.current?.click()} className="h-9 px-3 bg-m3-surface-container text-m3-on-surface-variant border border-m3-outline-variant/30 rounded-xl text-[9px] font-bold uppercase tracking-widest hover:bg-m3-surface-container-high transition-colors">
                             Change
                         </button>
                     )}
@@ -396,14 +396,14 @@ export default function AudioCutter({ file, initialTab, onReset, onFileChange }:
                 <div className="space-y-1">
                     <div className="flex items-center justify-between px-1">
                         <div className="flex items-center gap-1.5">
-                            <span className="text-[9px] font-bold text-slate-400">01.</span>
-                            <span className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">Waveform Preview</span>
+                            <span className="text-[9px] font-bold text-m3-on-surface-variant">01.</span>
+                            <span className="text-[8px] font-black uppercase tracking-[0.2em] text-m3-on-surface-variant">Waveform Preview</span>
                         </div>
                     </div>
 
-                    <div className="relative bg-white rounded-[2rem] p-2 border border-slate-100 shadow-xl shadow-slate-200/50 overflow-hidden">
+                    <div className="relative bg-m3-surface-container-low rounded-[2rem] p-2 border border-m3-outline-variant/30 shadow-xl overflow-hidden">
                         {(!isReady || processing) && (
-                            <div className="absolute inset-0 bg-white/80 backdrop-blur-[2px] z-50 flex flex-col items-center justify-center gap-2">
+                            <div className="absolute inset-0 bg-m3-surface/80 backdrop-blur-[2px] z-50 flex flex-col items-center justify-center gap-2">
                                 <Loader2 size={32} className="text-indigo-600 animate-spin" />
                                 <p className="text-[10px] font-black uppercase tracking-widest text-indigo-600">{loadingMessage || 'Loading Engine...'}</p>
                             </div>
@@ -416,7 +416,7 @@ export default function AudioCutter({ file, initialTab, onReset, onFileChange }:
                             )}
                             <div ref={containerRef} className="w-full h-full" />
                         </div>
-                        <div ref={timelineRef} className="w-full pt-1 pb-2 border-t border-slate-50" />
+                        <div ref={timelineRef} className="w-full pt-1 pb-2 border-t border-m3-outline-variant/20" />
                     </div>
                 </div>
 
@@ -439,13 +439,13 @@ export default function AudioCutter({ file, initialTab, onReset, onFileChange }:
 
                 {/* EXTRACTION BUTTON (IF NOT PROCESSED) */}
                 {!isProcessed && initialTab !== 'fx' && !processing && (
-                    <div className="p-5 bg-indigo-50 rounded-[2rem] border border-indigo-100 border-dashed flex flex-col items-center text-center gap-3">
-                        <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-md text-indigo-600">
+                    <div className="p-5 bg-indigo-500/10 rounded-[2rem] border border-indigo-500/20 border-dashed flex flex-col items-center text-center gap-3">
+                        <div className="w-12 h-12 bg-m3-surface-container rounded-2xl flex items-center justify-center shadow-md text-indigo-500">
                             <Sparkles size={24} />
                         </div>
                         <div className="space-y-1">
-                            <h3 className="text-xs font-black uppercase text-indigo-900">Vocal Isolation Ready</h3>
-                            <p className="text-[10px] text-indigo-700/70 font-bold leading-tight max-w-[200px]">
+                            <h3 className="text-xs font-black uppercase text-m3-on-surface">Vocal Isolation Ready</h3>
+                            <p className="text-[10px] text-m3-on-surface-variant font-bold leading-tight max-w-[200px]">
                                 Click below to strip music from your song using the IVOL-4 Neural Engine.
                             </p>
                         </div>
@@ -487,25 +487,25 @@ export default function AudioCutter({ file, initialTab, onReset, onFileChange }:
                 {/* TRIM CONTROLS */}
                 <div className="space-y-1.5">
                     <div className="flex items-center gap-1.5 px-1">
-                        <span className="text-[9px] font-bold text-slate-400">02.</span>
-                        <span className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">Trim & Play</span>
+                        <span className="text-[9px] font-bold text-m3-on-surface-variant">02.</span>
+                        <span className="text-[8px] font-black uppercase tracking-[0.2em] text-m3-on-surface-variant">Trim & Play</span>
                     </div>
-                    <div className="bg-slate-50 rounded-[2rem] p-4 border border-slate-100 shadow-sm space-y-4">
+                    <div className="bg-m3-surface-container-low rounded-[2rem] p-4 border border-m3-outline-variant/30 shadow-sm space-y-4">
                         <div className="grid grid-cols-2 gap-3">
                             <div className="space-y-1">
-                                <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">Start Time</span>
-                                <div className="flex bg-white rounded-xl border border-slate-200 overflow-hidden h-12">
-                                    <button onMouseDown={() => startAdjusting('start', -0.1)} onMouseUp={stopAdjusting} className="w-10 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-slate-50"><Minus size={16} /></button>
-                                    <div className="flex-1 flex items-center justify-center font-mono font-bold text-slate-900 border-x border-slate-100">{formatTimeCode(startTime)}</div>
-                                    <button onMouseDown={() => startAdjusting('start', 0.1)} onMouseUp={stopAdjusting} className="w-10 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-slate-50"><Plus size={16} /></button>
+                                <span className="text-[8px] font-black text-m3-on-surface-variant uppercase tracking-[0.2em]">Start Time</span>
+                                <div className="flex bg-m3-surface-container rounded-xl border border-m3-outline-variant/30 overflow-hidden h-12">
+                                    <button onMouseDown={() => startAdjusting('start', -0.1)} onMouseUp={stopAdjusting} className="w-10 flex items-center justify-center text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-surface-container-high"><Minus size={16} /></button>
+                                    <div className="flex-1 flex items-center justify-center font-mono font-bold text-m3-on-surface border-x border-m3-outline-variant/30">{formatTimeCode(startTime)}</div>
+                                    <button onMouseDown={() => startAdjusting('start', 0.1)} onMouseUp={stopAdjusting} className="w-10 flex items-center justify-center text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-surface-container-high"><Plus size={16} /></button>
                                 </div>
                             </div>
                             <div className="space-y-1">
-                                <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">End Time</span>
-                                <div className="flex bg-white rounded-xl border border-slate-200 overflow-hidden h-12">
-                                    <button onMouseDown={() => startAdjusting('end', -0.1)} onMouseUp={stopAdjusting} className="w-10 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-slate-50"><Minus size={16} /></button>
-                                    <div className="flex-1 flex items-center justify-center font-mono font-bold text-slate-900 border-x border-slate-100">{formatTimeCode(endTime)}</div>
-                                    <button onMouseDown={() => startAdjusting('end', 0.1)} onMouseUp={stopAdjusting} className="w-10 flex items-center justify-center text-slate-400 hover:text-slate-900 hover:bg-slate-50"><Plus size={16} /></button>
+                                <span className="text-[8px] font-black text-m3-on-surface-variant uppercase tracking-[0.2em]">End Time</span>
+                                <div className="flex bg-m3-surface-container rounded-xl border border-m3-outline-variant/30 overflow-hidden h-12">
+                                    <button onMouseDown={() => startAdjusting('end', -0.1)} onMouseUp={stopAdjusting} className="w-10 flex items-center justify-center text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-surface-container-high"><Minus size={16} /></button>
+                                    <div className="flex-1 flex items-center justify-center font-mono font-bold text-m3-on-surface border-x border-m3-outline-variant/30">{formatTimeCode(endTime)}</div>
+                                    <button onMouseDown={() => startAdjusting('end', 0.1)} onMouseUp={stopAdjusting} className="w-10 flex items-center justify-center text-m3-on-surface-variant hover:text-m3-on-surface hover:bg-m3-surface-container-high"><Plus size={16} /></button>
                                 </div>
                             </div>
                         </div>
@@ -514,7 +514,7 @@ export default function AudioCutter({ file, initialTab, onReset, onFileChange }:
                                 {playMode === 'selection' && isPlaying ? <Pause size={18} fill="white" /> : <Play size={18} fill="white" stroke="white" />}
                                 Preview Cut
                             </button>
-                            <button onClick={togglePlay} className="flex-1 h-12 bg-white border border-slate-200 text-slate-600 rounded-2xl font-black text-[9px] uppercase tracking-widest">
+                            <button onClick={togglePlay} className="flex-1 h-12 bg-m3-surface-container border border-m3-outline-variant/30 text-m3-on-surface rounded-2xl font-black text-[9px] uppercase tracking-widest hover:bg-m3-surface-container-high transition-colors">
                                 {playMode === 'full' && isPlaying ? <Pause size={14} /> : <Play size={14} />} Full
                             </button>
                         </div>
@@ -524,18 +524,18 @@ export default function AudioCutter({ file, initialTab, onReset, onFileChange }:
                 {/* EFFECTS */}
                 <div className="space-y-1.5">
                     <div className="flex items-center gap-1.5 px-1">
-                        <span className="text-[9px] font-bold text-slate-400">03.</span>
-                        <span className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">Adjust Output</span>
+                        <span className="text-[9px] font-bold text-m3-on-surface-variant">03.</span>
+                        <span className="text-[8px] font-black uppercase tracking-[0.2em] text-m3-on-surface-variant">Adjust Output</span>
                     </div>
-                    <div className="bg-slate-50 rounded-[1.5rem] p-3 border border-slate-100 grid grid-cols-2 gap-2">
-                        <button onClick={() => setFadeIn(!fadeIn)} className={`h-9 rounded-xl border font-bold text-[9px] uppercase transition-all ${fadeIn ? 'bg-indigo-600 text-white border-indigo-500' : 'bg-white text-slate-400 border-slate-100'}`}>Fade In</button>
-                        <button onClick={() => setFadeOut(!fadeOut)} className={`h-9 rounded-xl border font-bold text-[9px] uppercase transition-all ${fadeOut ? 'bg-indigo-600 text-white border-indigo-500' : 'bg-white text-slate-400 border-slate-100'}`}>Fade Out</button>
+                    <div className="bg-m3-surface-container-low rounded-[1.5rem] p-3 border border-m3-outline-variant/30 grid grid-cols-2 gap-2">
+                        <button onClick={() => setFadeIn(!fadeIn)} className={`h-9 rounded-xl border font-bold text-[9px] uppercase transition-all ${fadeIn ? 'bg-indigo-600 text-white border-indigo-500' : 'bg-m3-surface-container text-m3-on-surface-variant border-m3-outline-variant/30 hover:bg-m3-surface-container-high'}`}>Fade In</button>
+                        <button onClick={() => setFadeOut(!fadeOut)} className={`h-9 rounded-xl border font-bold text-[9px] uppercase transition-all ${fadeOut ? 'bg-indigo-600 text-white border-indigo-500' : 'bg-m3-surface-container text-m3-on-surface-variant border-m3-outline-variant/30 hover:bg-m3-surface-container-high'}`}>Fade Out</button>
                         <div className="col-span-2 px-1 pt-1">
-                            <div className="flex justify-between text-[8px] font-black text-slate-500 uppercase mb-1">
+                            <div className="flex justify-between text-[8px] font-black text-m3-on-surface-variant uppercase mb-1">
                                 <span>Volume</span>
                                 <span>{volume}%</span>
                             </div>
-                            <input type="range" min="0" max="250" value={volume} onChange={(e) => setVolume(Number(e.target.value))} className="w-full h-1 bg-slate-200 rounded-full appearance-none accent-indigo-600 cursor-pointer" />
+                            <input type="range" min="0" max="250" value={volume} onChange={(e) => setVolume(Number(e.target.value))} className="w-full h-1 bg-m3-surface-container-highest rounded-full appearance-none accent-indigo-600 cursor-pointer" />
                         </div>
                     </div>
                 </div>
@@ -543,17 +543,17 @@ export default function AudioCutter({ file, initialTab, onReset, onFileChange }:
                 {/* DOWNLOAD */}
                 <div className="space-y-1.5">
                     <div className="flex items-center gap-1.5 px-1">
-                        <span className="text-[9px] font-bold text-slate-400">04.</span>
-                        <span className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400">Export Final</span>
+                        <span className="text-[9px] font-bold text-m3-on-surface-variant">04.</span>
+                        <span className="text-[8px] font-black uppercase tracking-[0.2em] text-m3-on-surface-variant">Export Final</span>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <button onClick={() => handleDownload('mp3')} className="group h-14 bg-[#F92445] text-white rounded-2xl flex items-center justify-center gap-3 active:scale-95 shadow-lg shadow-rose-500/20">
                             <Download size={20} />
                             <div className="text-left font-black uppercase leading-tight"><p className="text-[9px]">Android</p><p className="text-[7px] text-white/60">MP3 FILE</p></div>
                         </button>
-                        <button onClick={() => handleDownload('m4r')} className="h-14 bg-white border-2 border-slate-900 text-slate-900 rounded-2xl flex items-center justify-center gap-3 active:scale-95 shadow-md">
+                        <button onClick={() => handleDownload('m4r')} className="h-14 bg-m3-surface-container border-2 border-m3-outline-variant text-m3-on-surface hover:border-m3-primary hover:bg-m3-surface-container-high rounded-2xl flex items-center justify-center gap-3 active:scale-95 shadow-md transition-colors">
                             <Download size={20} />
-                            <div className="text-left font-black uppercase leading-tight"><p className="text-[9px]">iPhone</p><p className="text-[7px] text-slate-400">M4R FILE</p></div>
+                            <div className="text-left font-black uppercase leading-tight"><p className="text-[9px]">iPhone</p><p className="text-[7px] text-m3-on-surface-variant">M4R FILE</p></div>
                         </button>
                     </div>
                 </div>

@@ -25,15 +25,15 @@ function AuthCodeErrorContent() {
     }, []);
 
     return (
-        <div className="min-h-screen flex flex-col items-center justify-center p-4 text-center bg-white">
-            <h1 className="text-2xl font-black text-red-600 mb-2 tracking-tight">Authentication Error</h1>
-            <p className="text-zinc-600 mb-4 max-w-sm font-medium">
+        <div className="min-h-screen flex flex-col items-center justify-center p-4 text-center bg-m3-surface text-m3-on-surface">
+            <h1 className="text-2xl font-black text-red-500 mb-2 tracking-tight">Authentication Error</h1>
+            <p className="text-m3-on-surface-variant mb-4 max-w-sm font-medium">
                 {error || 'There was an issue signing you in. The verification code may have expired or is invalid.'}
             </p>
-            <p className="text-zinc-400 text-xs mb-8 uppercase tracking-wider font-bold">
+            <p className="text-m3-outline text-xs mb-8 uppercase tracking-wider font-bold">
                 Redirecting to home in {seconds} seconds...
             </p>
-            <Link href="/" className="bg-brand-dark text-white font-bold px-8 py-3 rounded-xl hover:bg-neutral-800 transition-all shadow-lg shadow-brand-dark/20 active:scale-95">
+            <Link href="/" className="bg-m3-primary text-m3-on-primary font-bold px-8 py-3 rounded-xl hover:bg-m3-primary/90 transition-all shadow-lg shadow-m3-primary/20 active:scale-95">
                 Go Home Now
             </Link>
         </div>
@@ -42,7 +42,7 @@ function AuthCodeErrorContent() {
 
 export default function AuthCodeErrorPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-zinc-500">Loading...</div>}>
+        <Suspense fallback={<div className="min-h-screen flex items-center justify-center text-m3-on-surface-variant bg-m3-surface">Loading...</div>}>
             <AuthCodeErrorContent />
         </Suspense>
     );

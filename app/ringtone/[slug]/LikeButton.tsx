@@ -7,6 +7,7 @@ import { incrementLikes } from '@/app/actions/ringtones';
 import { hapticFeedback, hapticPatterns } from '@/lib/haptics';
 import { useState } from 'react';
 import { useLanguage } from '@/context/LanguageContext';
+import { useToast } from '@/context/ToastContext';
 
 interface LikeButtonProps {
     ringtone: Ringtone;
@@ -18,6 +19,7 @@ interface LikeButtonProps {
 export default function LikeButton({ ringtone, onLike, className = '', showCount = true }: LikeButtonProps) {
     const { isFavorite, addFavorite, removeFavorite } = useFavorites();
     const { t } = useLanguage();
+    const { showToast } = useToast();
     const isLiked = isFavorite(ringtone.id);
     const [localLikes, setLocalLikes] = useState(ringtone.likes || 0);
 
@@ -45,6 +47,7 @@ export default function LikeButton({ ringtone, onLike, className = '', showCount
             const newCount = localLikes + 1;
             setLocalLikes(newCount);
             if (onLike) onLike(newCount);
+            showToast('Added to Favorites ❤️', 'success');
             await incrementLikes(ringtone.id);
         } else {
             hapticFeedback(hapticPatterns.selection);
@@ -52,6 +55,7 @@ export default function LikeButton({ ringtone, onLike, className = '', showCount
             const newCount = Math.max(0, localLikes - 1);
             setLocalLikes(newCount);
             if (onLike) onLike(newCount);
+            showToast('Removed from Favorites', 'info');
         }
     };
 
@@ -59,20 +63,20 @@ export default function LikeButton({ ringtone, onLike, className = '', showCount
         <button
             type="button"
             onClick={handleLike}
-            className={`flex-1 w-full h-10 px-3.5 rounded-full transition-all duration-200 flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer font-semibold text-xs sm:text-sm border shadow-xs ${
+            className={`flex-1 w-full h-10 px-3.5 rounded-full transition-all duration-200 flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer font-bold text-xs sm:text-sm border shadow-xs ${
                 isLiked
-                    ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-400 dark:border-rose-700'
-                    : 'bg-m3-surface-container-low border-m3-outline-variant/50 text-m3-on-surface hover:bg-m3-surface-container'
+                    ? 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border-rose-400 dark:border-rose-700'
+                    : 'bg-m3-surface-container-low border-m3-outline-variant/70 text-m3-on-surface hover:bg-m3-surface-container'
             } ${className}`}
             aria-label={isLiked ? `${t('unlike')} (${formatCount(localLikes)})` : `${t('like')} (${formatCount(localLikes)})`}
         >
-            <Heart size={16} className={`transition-transform duration-200 ${isLiked ? 'fill-rose-500 text-rose-500 scale-110' : 'text-m3-on-surface-variant'}`} />
-            <span className={isLiked ? 'font-bold' : 'font-semibold'}>{isLiked ? 'Liked' : 'Like'}</span>
+            <Heart size={16} className={`transition-transform duration-200 ${isLiked ? 'fill-rose-500 text-rose-500 scale-110' : 'text-m3-on-surface'}`} />
+            <span className="font-bold text-m3-on-surface">{isLiked ? 'Liked' : 'Like'}</span>
             {showCount && localLikes > 0 && (
                 <span className={`text-[11px] font-bold tabular-nums px-2 py-0.5 rounded-full leading-none transition-colors ${
                     isLiked 
                         ? 'bg-rose-500 text-white shadow-2xs' 
-                        : 'bg-m3-surface-container-high text-m3-on-surface-variant'
+                        : 'bg-m3-surface-container-high text-m3-on-surface'
                 }`}>
                     {formatCount(localLikes)}
                 </span>

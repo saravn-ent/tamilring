@@ -20,7 +20,7 @@ export default function SimilarRingtones({ ringtones }: SimilarRingtonesProps) {
                     </div>
                     <div>
                         <h2 className="text-lg font-bold text-m3-on-surface tracking-tight leading-tight">Similar Ringtones</h2>
-                        <p className="text-xs text-m3-outline">Recommended based on movie & artists</p>
+                        <p className="text-xs text-m3-on-surface-variant font-medium">Recommended based on movie & artists</p>
                     </div>
                 </div>
             </div>

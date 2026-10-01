@@ -1,5 +1,6 @@
 export const revalidate = 3600;
-import { searchPerson, getImageUrl } from '@/lib/tmdb';
+import { supabase } from '@/lib/supabaseClient';
+import { searchPerson, getImageUrl, getPersonMovieCredits } from '@/lib/tmdb';
 import RingtoneCard from '@/components/RingtoneCard';
 import CompactProfileHeader from '@/components/CompactProfileHeader';
 import SortControl from '@/components/SortControl';
@@ -10,44 +11,87 @@ import TMDBImage from '@/components/TMDBImage';
 import { Ringtone } from '@/types';
 import { unstable_cache } from 'next/cache';
 import { Metadata } from 'next';
-import { generateArtistMetadata, generatePersonSchema, generateBreadcrumbSchema, combineSchemas } from '@/lib/seo';
+import {
+  generateArtistMetadata,
+  generatePersonSchema,
+  generateBreadcrumbSchema,
+  generateCollectionPageSchema,
+  generateItemListSchema,
+  combineSchemas
+} from '@/lib/seo';
 import StructuredData from '@/components/StructuredData';
 
 const getActorRingtones = unstable_cache(
-  async (_actorName: string, _sort: string = 'recent') => {
-    // TODO: 'cast' column is missing in the database. Returning empty for now.
-    // Once 'cast' column is added, uncomment the query below.
-    /*
-    let query = supabase
+  async (actorName: string, sort: string = 'recent', additionalMovieNames: string[] = []) => {
+    const searchLow = actorName.toLowerCase().trim();
+
+    // Query 1: Direct matches on cast_members
+    let query1 = supabase
       .from('ringtones')
       .select('*')
-      .ilike('cast', `%${actorName}%`);
+      .eq('status', 'approved')
+      .ilike('cast_members', `%${actorName}%`);
 
-    // Apply Sorting
-    switch (sort) {
-      case 'downloads':
-        query = query.order('downloads', { ascending: false });
-        break;
-      case 'likes':
-        query = query.order('likes', { ascending: false });
-        break;
-      case 'year_desc':
-        query = query.order('movie_year', { ascending: false });
-        break;
-      case 'year_asc':
-        query = query.order('movie_year', { ascending: true });
-        break;
-      default: // recent
-        query = query.order('created_at', { ascending: false });
+    // Query 2: Matches on known movie titles for this actor
+    let query2 = null;
+    if (additionalMovieNames.length > 0) {
+      query2 = supabase
+        .from('ringtones')
+        .select('*')
+        .eq('status', 'approved')
+        .in('movie_name', additionalMovieNames);
     }
 
-    const { data } = await query;
-    return data;
-    */
-    return [] as Ringtone[];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const applySort = (q: any) => {
+      switch (sort) {
+        case 'downloads':
+          return q.order('downloads', { ascending: false });
+        case 'likes':
+          return q.order('likes', { ascending: false });
+        case 'year_desc':
+          return q.order('movie_year', { ascending: false, nullsFirst: false });
+        case 'year_asc':
+          return q.order('movie_year', { ascending: true, nullsFirst: false });
+        default:
+          return q.order('created_at', { ascending: false });
+      }
+    };
+
+    query1 = applySort(query1);
+    if (query2) query2 = applySort(query2);
+
+    const [res1, res2] = await Promise.all([
+      query1.limit(100),
+      query2 ? query2.limit(100) : Promise.resolve({ data: [] })
+    ]);
+
+    const data1 = (res1.data as Ringtone[]) || [];
+    const data2 = (res2.data as Ringtone[]) || [];
+
+    // Merge and deduplicate by ringtone ID
+    const uniqueMap = new Map<string, Ringtone>();
+    [...data1, ...data2].forEach(item => uniqueMap.set(item.id, item));
+    const combined = Array.from(uniqueMap.values());
+
+    // Word boundary & precise match filter for cast_members to avoid substring false positives
+    const filtered = combined.filter(r => {
+      if (additionalMovieNames.includes(r.movie_name)) return true;
+      if (!r.cast_members) return false;
+      const parts = r.cast_members.toLowerCase().split(/[,&]|\band\b/i).map(s => s.trim());
+      return parts.some(p => p === searchLow || p.includes(searchLow));
+    });
+
+    return filtered.sort((a, b) => {
+      if (sort === 'downloads') return (b.downloads || 0) - (a.downloads || 0);
+      if (sort === 'likes') return (b.likes || 0) - (a.likes || 0);
+      if (sort === 'year_desc') return (parseInt(b.movie_year || '0') || 0) - (parseInt(a.movie_year || '0') || 0);
+      if (sort === 'year_asc') return (parseInt(a.movie_year || '0') || 0) - (parseInt(b.movie_year || '0') || 0);
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
   },
-  ['actor-ringtones'],
-  { revalidate: 60 }
+  ['actor-ringtones-v3'],
+  { revalidate: 3600 }
 );
 
 export async function generateMetadata({ params }: { params: Promise<{ actor_name: string }> }): Promise<Metadata> {
@@ -68,10 +112,23 @@ export default async function ActorPage({
   const actorName = decodeURIComponent(actor_name);
   const currentView = view || 'movies'; // Default to movies
 
-  const ringtones = await getActorRingtones(actorName, sort);
-
-  // Fetch actor image from TMDB
+  // Fetch actor from TMDB and get their movie credits
   const person = await searchPerson(actorName);
+  let movieTitles: string[] = [];
+  if (person?.id) {
+    const credits = await getPersonMovieCredits(person.id);
+    if (credits?.cast) {
+      movieTitles = credits.cast
+        .filter(m => m.title)
+        .sort((a, b) => new Date(b.release_date || 0).getTime() - new Date(a.release_date || 0).getTime())
+        .slice(0, 50)
+        .map(m => m.title);
+    }
+  }
+
+  const ringtones = await getActorRingtones(actorName, sort, movieTitles);
+
+  // Fetch actor image from TMDB or fallback to first ringtone poster
   const actorImage = person?.profile_path
     ? getImageUrl(person.profile_path, 'w185')
     : ringtones?.find(r => r.poster_url)?.poster_url;
@@ -84,13 +141,36 @@ export default async function ActorPage({
     name: actorName,
     image_url: actorImage || undefined,
     role: 'actor',
+    description: `Tamil Cinema Actor known for ${ringtones?.slice(0, 3).map(r => r.movie_name).filter(Boolean).join(', ') || 'Tamil Movies'}.`,
   });
+
   const breadcrumbSchema = generateBreadcrumbSchema([
     { name: 'Home', url: '/' },
-    { name: 'Artists', url: '/categories' },
+    { name: 'Actors', url: '/categories' },
     { name: actorName, url: `/actor/${encodeURIComponent(actorName)}` },
   ]);
-  const combinedSchema = combineSchemas(personSchema, breadcrumbSchema);
+
+  const collectionPageSchema = generateCollectionPageSchema({
+    name: `${actorName} Tamil Ringtones & Movies`,
+    description: `Download Tamil ringtones from ${actorName} movies. High quality BGM, mass themes, songs, and dialogue cuts for Android and iPhone.`,
+    url: `/actor/${encodeURIComponent(actorName)}`,
+    numberOfItems: ringtones?.length || 0,
+  });
+
+  // ItemList schema with artwork_url for Google Carousel eligibility
+  const itemListSchema = ringtones && ringtones.length > 0 ? generateItemListSchema({
+    name: `Top ${actorName} Ringtones`,
+    description: `Popular Tamil movie ringtones featuring ${actorName}. Free download in MP3 and M4R formats.`,
+    items: ringtones.slice(0, 10).map(r => ({
+      title: r.title,
+      slug: r.slug,
+      artwork_url: r.poster_url || actorImage || undefined,
+    })),
+  }) : null;
+
+  const combinedSchema = itemListSchema
+    ? combineSchemas(personSchema, collectionPageSchema, itemListSchema, breadcrumbSchema)
+    : combineSchemas(personSchema, collectionPageSchema, breadcrumbSchema);
 
   // Group by Movies for "Movies" view
   const moviesMap = new Map<string, Ringtone>();
@@ -112,10 +192,15 @@ export default async function ActorPage({
         type="Actor"
         imageUrl={actorImage}
         bio={actorBio}
+        ringCount={ringtones?.length || 0}
+        shareMetadata={{
+          title: `${actorName} Ringtones`,
+          text: `Check out the best ringtones from ${actorName} movies on TamilRing!`,
+        }}
       />
 
       {/* Sticky Controls Bar */}
-      <div className="sticky top-[120px] z-30 bg-white/95 backdrop-blur-md border-b border-brand-border px-4 py-3 space-y-3 shadow-sm">
+      <div className="sticky top-[120px] z-30 bg-m3-surface/90 backdrop-blur-md border-b border-m3-outline-variant/30 px-4 py-2.5 space-y-3 shadow-xs">
         <ViewToggle />
         <div className="flex justify-end">
           <SortControl />

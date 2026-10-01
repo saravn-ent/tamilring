@@ -1,7 +1,13 @@
 import { supabase } from '@/lib/supabaseClient';
 import { unstable_cache } from 'next/cache';
 import DiscoveryContainer from '@/components/DiscoveryContainer';
-import { generateCategoryMetadata, generateBreadcrumbSchema, generateCollectionPageSchema, combineSchemas } from '@/lib/seo';
+import {
+  generateCategoryMetadata,
+  generateBreadcrumbSchema,
+  generateCollectionPageSchema,
+  generateArtistItemListSchema,
+  combineSchemas
+} from '@/lib/seo';
 import StructuredData from '@/components/StructuredData';
 
 export const metadata = generateCategoryMetadata();
@@ -69,7 +75,19 @@ export default async function DiscoveryHub() {
     numberOfItems: featuredArtists.length,
   });
 
-  const combinedSchema = combineSchemas(collectionPageSchema, breadcrumbSchema);
+  const artistItemListSchema = featuredArtists.length ? generateArtistItemListSchema({
+    name: 'Featured Tamil Artists & Composers',
+    description: 'Explore Tamil ringtones by music director, singer, and artist.',
+    items: featuredArtists.slice(0, 10).map(a => ({
+      name: a.name,
+      image: a.image || undefined,
+      role: a.type === 'Director' ? 'Music Director' : 'Playback Singer',
+    })),
+  }) : null;
+
+  const combinedSchema = artistItemListSchema
+    ? combineSchemas(collectionPageSchema, artistItemListSchema, breadcrumbSchema)
+    : combineSchemas(collectionPageSchema, breadcrumbSchema);
 
   return (
     <>

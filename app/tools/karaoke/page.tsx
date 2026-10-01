@@ -49,37 +49,37 @@ export default function KaraokePage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 py-3 px-2">
+        <div className="min-h-screen py-3 px-2">
             <div className="max-w-4xl mx-auto">
                 <div className="mb-2">
-                    <Link href="/tools" className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-900 font-bold text-xs uppercase tracking-wider mb-4">
+                    <Link href="/tools" className="inline-flex items-center gap-2 text-m3-outline hover:text-m3-on-surface font-bold text-xs uppercase tracking-wider mb-4">
                         <ArrowLeft size={16} /> Back to Tools
                     </Link>
                 </div>
 
                 {!activeFile ? (
-                    <div className="flex flex-col items-center justify-center min-h-[40vh] bg-white rounded-4xl border border-slate-100 shadow-sm p-6 text-center animate-in fade-in slide-in-from-bottom-4 duration-700 relative overflow-hidden">
+                    <div className="flex flex-col items-center justify-center min-h-[40vh] bg-m3-surface-container rounded-4xl border border-m3-outline-variant/30 shadow-sm p-6 text-center animate-in fade-in slide-in-from-bottom-4 duration-700 relative overflow-hidden">
                         {/* Decorative background elements */}
-                        <div className="absolute top-0 left-0 w-64 h-64 bg-teal-100/30 rounded-full blur-[100px] -translate-x-1/2 -translate-y-1/2" />
-                        <div className="absolute bottom-0 right-0 w-64 h-64 bg-emerald-100/30 rounded-full blur-[100px] translate-x-1/2 translate-y-1/2" />
+                        <div className="absolute top-0 left-0 w-64 h-64 bg-teal-500/10 rounded-full blur-[100px] -translate-x-1/2 -translate-y-1/2" />
+                        <div className="absolute bottom-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-[100px] translate-x-1/2 translate-y-1/2" />
 
                         <div className="relative z-10 w-full max-w-sm flex flex-col items-center">
-                            <div className="w-16 h-16 bg-teal-600 text-white rounded-3xl flex items-center justify-center mb-6 shadow-2xl shadow-teal-500/40 rotate-1 hover:rotate-6 transition-transform duration-500 relative">
+                            <div className="w-16 h-16 bg-teal-600 text-white rounded-3xl flex items-center justify-center mb-6 shadow-xl shadow-teal-500/30 rotate-1 hover:rotate-6 transition-transform duration-500 relative">
                                 <Music2 size={32} />
                             </div>
 
                             <div className="flex items-center gap-2 mb-4">
-                                <span className="px-2 py-1 bg-slate-900 text-white text-[8px] font-black rounded-md tracking-widest uppercase">Studio Quality</span>
+                                <span className="px-2.5 py-1 bg-m3-surface-container-highest text-m3-on-surface text-[8px] font-black rounded-md tracking-widest uppercase border border-m3-outline-variant/30">Studio Quality</span>
                             </div>
 
-                            <h1 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">Karaoke <span className="text-teal-600 tracking-tighter">MAKER</span></h1>
-                            <p className="text-slate-500 max-w-[280px] mx-auto mb-10 text-[10px] font-bold leading-relaxed">
+                            <h1 className="text-3xl font-display font-black text-m3-on-surface mb-2 tracking-tight">Karaoke <span className="text-teal-500 tracking-tighter">MAKER</span></h1>
+                            <p className="text-m3-on-surface-variant max-w-[280px] mx-auto mb-10 text-[10px] font-bold leading-relaxed">
                                 Professional instrumental creation with smart phase isolation.
                             </p>
 
                             <label className="group relative cursor-pointer w-full">
                                 <div className="absolute -inset-1 bg-linear-to-r from-teal-600 to-emerald-600 rounded-2xl blur opacity-25 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
-                                <div className="relative h-14 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all active:scale-95 shadow-2xl">
+                                <div className="relative h-14 bg-m3-primary text-m3-on-primary rounded-2xl font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-3 transition-all active:scale-95 shadow-md">
                                     <Upload className="w-4 h-4" />
                                     Upload Song
                                     <input type="file" accept="audio/*,.mp3,.wav,.m4a,.aac,.m4r,.ogg" className="hidden" onChange={(e) => e.target.files?.[0] && setFile(e.target.files[0])} />
@@ -89,25 +89,25 @@ export default function KaraokePage() {
                     </div>
                 ) : (
                     <div className="space-y-6">
-                        <div className="bg-white rounded-[2.5rem] p-6 border border-slate-100 shadow-sm animate-in slide-in-from-bottom duration-700">
+                        <div className="bg-m3-surface-container rounded-[2.5rem] p-6 border border-m3-outline-variant/30 shadow-sm animate-in slide-in-from-bottom duration-700">
                             <div className="flex items-center gap-3 mb-4">
-                                <div className="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
+                                <div className="w-8 h-8 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-center border border-emerald-500/20">
                                     <CheckCircle2 size={18} />
                                 </div>
-                                <h3 className="text-xs font-black text-slate-900 uppercase tracking-widest">Master Verified</h3>
+                                <h3 className="text-xs font-black text-m3-on-surface uppercase tracking-widest">Master Verified</h3>
                             </div>
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                                <div className="flex flex-col py-2 border-b border-slate-50">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Name</span>
-                                    <span className="text-[10px] font-black text-slate-700 truncate">{activeFile.name}</span>
+                                <div className="flex flex-col py-2 border-b border-m3-outline-variant/20">
+                                    <span className="text-[10px] font-bold text-m3-outline uppercase tracking-tight">Name</span>
+                                    <span className="text-[10px] font-black text-m3-on-surface truncate">{activeFile.name}</span>
                                 </div>
-                                <div className="flex flex-col py-2 border-b border-slate-50">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Format</span>
-                                    <span className="text-[10px] font-black text-slate-700 uppercase">{activeFile.type.split('/')[1] || 'Audio'}</span>
+                                <div className="flex flex-col py-2 border-b border-m3-outline-variant/20">
+                                    <span className="text-[10px] font-bold text-m3-outline uppercase tracking-tight">Format</span>
+                                    <span className="text-[10px] font-black text-m3-on-surface uppercase">{activeFile.type.split('/')[1] || 'Audio'}</span>
                                 </div>
-                                <div className="flex flex-col py-2 border-b border-slate-50">
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Size</span>
-                                    <span className="text-[10px] font-black text-slate-700">{(activeFile.size / (1024 * 1024)).toFixed(2)} MB</span>
+                                <div className="flex flex-col py-2 border-b border-m3-outline-variant/20">
+                                    <span className="text-[10px] font-bold text-m3-outline uppercase tracking-tight">Size</span>
+                                    <span className="text-[10px] font-black text-m3-on-surface">{(activeFile.size / (1024 * 1024)).toFixed(2)} MB</span>
                                 </div>
                             </div>
                         </div>

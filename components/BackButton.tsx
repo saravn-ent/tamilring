@@ -29,13 +29,13 @@ export default function BackButton({ fallbackHref = '/', className = '', variant
                 type="button"
                 onClick={handleBack}
                 className={cn(
-                    "inline-flex items-center gap-1.5 h-8 px-3.5 rounded-full bg-black/60 hover:bg-black/80 text-white border border-white/20 backdrop-blur-md shadow-xs transition-all active:scale-95 cursor-pointer text-xs font-semibold",
+                    "inline-flex items-center gap-1.5 h-8 px-3.5 rounded-full bg-m3-surface-container/90 hover:bg-m3-surface-container text-m3-on-surface border border-m3-outline-variant/60 backdrop-blur-md shadow-xs transition-all active:scale-95 cursor-pointer text-xs font-semibold",
                     className
                 )}
                 aria-label="Go back"
             >
-                <ArrowLeft size={14} className="shrink-0 text-white" />
-                <span className="text-white">Back</span>
+                <ArrowLeft size={14} className="shrink-0 text-m3-on-surface" />
+                <span className="text-m3-on-surface">Back</span>
             </button>
         );
     }

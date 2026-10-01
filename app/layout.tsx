@@ -12,6 +12,7 @@ import BackToTop from "@/components/BackToTop";
 import LegalFooter from "@/components/LegalFooter";
 import SiteHeader from "@/components/SiteHeader";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { ToastProvider } from "@/context/ToastContext";
 import { generateBaseMetadata } from "@/lib/seo";
 
 import { Plus_Jakarta_Sans } from "next/font/google";
@@ -49,8 +50,6 @@ import AuthCodeRedirect from "@/components/AuthCodeRedirect";
 import ReloadOnUpdate from "@/components/ReloadOnUpdate";
 import { Suspense } from "react";
 import MainLayout from "@/components/MainLayout";
-
-import FloatingAudioDock from "@/components/FloatingAudioDock";
 
 // Force Rebuild - Fix Hydration V2
 export default async function RootLayout({
@@ -137,14 +136,15 @@ export default async function RootLayout({
           <PlayerProvider>
             <FavoritesProvider>
               <LanguageProvider>
-                <SiteHeader />
-                <MainLayout>
-                  {children}
-                </MainLayout>
-                <LegalFooter />
-                <BackToTop />
-                <FloatingAudioDock />
-                <BottomNav />
+                <ToastProvider>
+                  <SiteHeader />
+                  <MainLayout>
+                    {children}
+                  </MainLayout>
+                  <LegalFooter />
+                  <BackToTop />
+                  <BottomNav />
+                </ToastProvider>
               </LanguageProvider>
             </FavoritesProvider>
           </PlayerProvider>

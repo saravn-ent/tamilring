@@ -82,7 +82,46 @@ const howToSchema = {
     ],
 };
 
-const combinedSchema = combineSchemas(articleSchema, howToSchema, breadcrumbSchema);
+const faqSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+        {
+            '@type': 'Question',
+            name: 'Can I set an MP3 file as a ringtone on iPhone directly?',
+            acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'No. iOS does not allow setting an MP3 file as a ringtone directly without conversion. Apple requires ringtones to be in .m4r format. TamilRing provides 1-tap .m4r downloads for all Tamil ringtones.',
+            },
+        },
+        {
+            '@type': 'Question',
+            name: 'How do I set a ringtone on iPhone without a computer?',
+            acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'Download the .m4r file from TamilRing, open it in the free Apple GarageBand app on your iPhone, import into Audio Recorder, and use Share > Ringtone to export it directly.',
+            },
+        },
+        {
+            '@type': 'Question',
+            name: 'What is the maximum duration for an iPhone ringtone?',
+            acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'Apple limits custom ringtones to a maximum of 40 seconds. All ringtones on TamilRing are pre-cut under 40 seconds for instant compatibility.',
+            },
+        },
+        {
+            '@type': 'Question',
+            name: 'Why does my downloaded ringtone show up as .m4a instead of .m4r?',
+            acceptedAnswer: {
+                '@type': 'Answer',
+                text: 'M4R is essentially an AAC (.m4a) file renamed for iOS ringtones. If your browser saves it as .m4a, simply rename the file extension back to .m4r.',
+            },
+        },
+    ],
+};
+
+const combinedSchema = combineSchemas(articleSchema, howToSchema, faqSchema, breadcrumbSchema);
 
 const METHOD_MAC = [
     { step: 1, text: 'Go to any ringtone on TamilRing and tap the iPhone / M4R download button' },
@@ -238,6 +277,37 @@ export default function IphoneRingtoneGuidePage() {
                     converts every ringtone to M4R format so you don't need any extra software.
                     All M4R files from TamilRing are pre-trimmed to under 40 seconds — the maximum allowed by iOS.
                 </p>
+            </section>
+
+            {/* Frequently Asked Questions */}
+            <section className="mb-8">
+                <h2 className="font-bold text-m3-on-surface text-base mb-4">Frequently Asked Questions</h2>
+                <div className="space-y-3">
+                    <div className="p-4 rounded-xl bg-m3-surface-container border border-m3-outline-variant/30">
+                        <h3 className="font-bold text-sm text-m3-on-surface mb-1">Can I set an MP3 file as a ringtone on iPhone directly?</h3>
+                        <p className="text-xs text-m3-on-surface-variant leading-relaxed">
+                            No. iOS does not allow setting an MP3 file as a ringtone directly without conversion. Apple requires ringtones to be in .m4r format. TamilRing provides 1-tap .m4r downloads for all Tamil ringtones.
+                        </p>
+                    </div>
+                    <div className="p-4 rounded-xl bg-m3-surface-container border border-m3-outline-variant/30">
+                        <h3 className="font-bold text-sm text-m3-on-surface mb-1">How do I set a ringtone on iPhone without a computer?</h3>
+                        <p className="text-xs text-m3-on-surface-variant leading-relaxed">
+                            Download the .m4r file from TamilRing, open it in the free Apple GarageBand app on your iPhone, import into Audio Recorder, and use Share &gt; Ringtone to export it directly.
+                        </p>
+                    </div>
+                    <div className="p-4 rounded-xl bg-m3-surface-container border border-m3-outline-variant/30">
+                        <h3 className="font-bold text-sm text-m3-on-surface mb-1">What is the maximum duration for an iPhone ringtone?</h3>
+                        <p className="text-xs text-m3-on-surface-variant leading-relaxed">
+                            Apple limits custom ringtones to a maximum of 40 seconds. All ringtones on TamilRing are pre-cut under 40 seconds for instant compatibility.
+                        </p>
+                    </div>
+                    <div className="p-4 rounded-xl bg-m3-surface-container border border-m3-outline-variant/30">
+                        <h3 className="font-bold text-sm text-m3-on-surface mb-1">Why does my downloaded ringtone show up as .m4a instead of .m4r?</h3>
+                        <p className="text-xs text-m3-on-surface-variant leading-relaxed">
+                            M4R is essentially an AAC (.m4a) file renamed for iOS ringtones. If your browser saves it as .m4a, simply rename the file extension back to .m4r.
+                        </p>
+                    </div>
+                </div>
             </section>
 
             {/* Bottom CTA */}

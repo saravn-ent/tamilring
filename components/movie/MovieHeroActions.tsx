@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Play, Pause, Share2, Check } from 'lucide-react';
 import { Ringtone } from '@/types';
 import { usePlayer } from '@/context/PlayerContext';
+import { useToast } from '@/context/ToastContext';
 import { hapticFeedback, hapticPatterns } from '@/lib/haptics';
 
 interface MovieHeroActionsProps {
@@ -57,6 +58,7 @@ export default function MovieHeroActions({ firstRingtone, movieName }: MovieHero
 
 export function ShareAlbumButton({ movieName }: { movieName: string }) {
     const [copied, setCopied] = useState(false);
+    const { showToast } = useToast();
 
     const handleShare = async () => {
         hapticFeedback(hapticPatterns.selection);
@@ -73,6 +75,7 @@ export function ShareAlbumButton({ movieName }: { movieName: string }) {
             } else if (navigator.clipboard) {
                 await navigator.clipboard.writeText(shareUrl);
                 setCopied(true);
+                showToast('Album link copied to clipboard! 📋', 'success');
                 setTimeout(() => setCopied(false), 2000);
             }
         } catch (err) {

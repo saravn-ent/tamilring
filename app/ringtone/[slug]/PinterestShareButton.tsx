@@ -22,7 +22,7 @@ export default function PinterestShareButton({ ringtone }: PinterestShareButtonP
     return (
         <button
             onClick={shareOnPinterest}
-            className="inline-flex items-center gap-2 text-[#E60023] hover:text-white bg-white hover:bg-[#E60023] border border-[#E60023]/20 px-4 py-3 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-95 group"
+            className="inline-flex items-center gap-2 text-[#E60023] hover:text-white bg-m3-surface-container hover:bg-[#E60023] border border-[#E60023]/20 px-4 py-3 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-95 group"
             title="Save to Pinterest"
         >
             <svg

@@ -150,7 +150,11 @@ export default async function MoviePage({
     year: movieData.movie_year,
     director: movieData.movie_director,
     music_director: movieData.music_director,
-    ringtones: movieTracks,
+    ringtones: movieTracks.map(t => ({
+      title: t.title,
+      slug: t.slug,
+      artwork_url: movieData.poster_url,
+    })),
   });
 
   const albumSchema = generateMusicAlbumSchema({
@@ -158,7 +162,12 @@ export default async function MoviePage({
     poster_url: movieData.poster_url,
     year: movieData.movie_year,
     music_director: movieData.music_director,
-    ringtones: movieTracks,
+    ringtones: movieTracks.map(t => ({
+      title: t.title,
+      slug: t.slug,
+      duration: t.duration,
+      artwork_url: movieData.poster_url,
+    })),
   });
 
   const breadcrumbSchema = generateBreadcrumbSchema([
@@ -169,11 +178,12 @@ export default async function MoviePage({
 
   // ItemList schema — enables Google Carousel rich results for movie ringtone collection
   const itemListSchema = generateItemListSchema({
-    name: `${movieName} Ringtones`,
+    name: `${movieName} Ringtones & BGM Cuts`,
     description: `Download all ${movieName} Tamil movie ringtones. Free BGM and song ringtones for Android and iPhone.`,
     items: movieTracks.map(t => ({
       title: t.title,
       slug: t.slug,
+      artwork_url: movieData.poster_url,
     })),
   });
 
@@ -181,6 +191,9 @@ export default async function MoviePage({
 
   return (
     <div className="max-w-md md:max-w-4xl lg:max-w-6xl mx-auto pb-24 px-3 sm:px-6 pt-2 sm:pt-4">
+      {/* Structured Data — Top of tree for immediate crawler parsing */}
+      <StructuredData data={combinedSchema} />
+
       {/* Cinematic Hero Container - Space-Efficient Compact Layout */}
       <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden mb-4 bg-m3-surface-container-low border border-m3-outline-variant/30 shadow-xs">
         {/* Backdrop Image */}
@@ -321,9 +334,6 @@ export default async function MoviePage({
           musicDirector={movieData?.music_director}
         />
       </Suspense>
-
-      {/* Structured Data */}
-      <StructuredData data={combinedSchema} />
     </div>
   );
 }

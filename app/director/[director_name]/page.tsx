@@ -4,7 +4,14 @@ import RingtoneCard from '@/components/RingtoneCard';
 import { Clapperboard } from 'lucide-react';
 import FavoriteButton from '@/components/FavoriteButton';
 import { Metadata } from 'next';
-import { generateArtistMetadata, generatePersonSchema, generateBreadcrumbSchema, generateItemListSchema, combineSchemas } from '@/lib/seo';
+import {
+  generateArtistMetadata,
+  generatePersonSchema,
+  generateBreadcrumbSchema,
+  generateCollectionPageSchema,
+  generateItemListSchema,
+  combineSchemas
+} from '@/lib/seo';
 import StructuredData from '@/components/StructuredData';
 
 export const revalidate = 3600;
@@ -35,24 +42,36 @@ export default async function DirectorPage({ params }: { params: Promise<{ direc
     name: directorName,
     image_url: directorImage || undefined,
     role: 'movie_director',
-    description: `Tamil Movie Director known for ${ringtones?.slice(0, 3).map(r => r.movie_name).filter(Boolean).join(', ') || 'Tamil Cinema'}`,
+    description: `Tamil Movie Director known for ${ringtones?.slice(0, 3).map(r => r.movie_name).filter(Boolean).join(', ') || 'Tamil Cinema'}.`,
+    url: `/director/${encodeURIComponent(directorName)}`,
   });
 
   const breadcrumbSchema = generateBreadcrumbSchema([
     { name: 'Home', url: '/' },
-    { name: 'Artists', url: '/categories' },
+    { name: 'Directors', url: '/categories' },
     { name: directorName, url: `/director/${encodeURIComponent(directorName)}` },
   ]);
+
+  const collectionPageSchema = generateCollectionPageSchema({
+    name: `${directorName} Tamil Movie Ringtones`,
+    description: `Download Tamil movie ringtones from films directed by ${directorName}. High-quality BGM and songs for Android and iPhone.`,
+    url: `/director/${encodeURIComponent(directorName)}`,
+    numberOfItems: ringtones?.length || 0,
+  });
 
   const itemListSchema = ringtones?.length ? generateItemListSchema({
     name: `${directorName} Movie Ringtones`,
     description: `Download Tamil movie ringtones from films directed by ${directorName}. Free download for Android and iPhone.`,
-    items: ringtones.slice(0, 10).map(r => ({ title: r.title, slug: r.slug })),
+    items: ringtones.slice(0, 10).map(r => ({
+      title: r.title,
+      slug: r.slug,
+      artwork_url: r.poster_url || directorImage || undefined,
+    })),
   }) : null;
 
   const combinedSchema = itemListSchema
-    ? combineSchemas(personSchema, itemListSchema, breadcrumbSchema)
-    : combineSchemas(personSchema, breadcrumbSchema);
+    ? combineSchemas(personSchema, collectionPageSchema, itemListSchema, breadcrumbSchema)
+    : combineSchemas(personSchema, collectionPageSchema, breadcrumbSchema);
 
   return (
     <div className="max-w-md mx-auto">

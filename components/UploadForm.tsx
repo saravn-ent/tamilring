@@ -992,17 +992,17 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
   if (!userId) {
     return (
-      <div className="w-full bg-white p-8 rounded-3xl border border-brand-border text-center space-y-6 shadow-sm">
-        <div className="w-20 h-20 bg-brand-wash rounded-full flex items-center justify-center mx-auto text-brand-accent mb-4">
+      <div className="w-full bg-m3-surface-container-low p-8 rounded-3xl border border-m3-outline-variant/40 text-center space-y-6 shadow-sm">
+        <div className="w-20 h-20 bg-m3-primary/10 rounded-full flex items-center justify-center mx-auto text-m3-primary mb-4">
           <Upload size={32} />
         </div>
         <div>
-          <h2 className="text-2xl font-black text-brand-dark mb-2 tracking-tight">Login Required</h2>
-          <p className="text-zinc-500 text-sm font-medium">You must be logged in to upload ringtones to TamilRing.</p>
+          <h2 className="text-2xl font-black text-m3-on-surface mb-2 tracking-tight">Login Required</h2>
+          <p className="text-m3-on-surface-variant text-sm font-medium">You must be logged in to upload ringtones to TamilRing.</p>
         </div>
         <Link
           href="/profile"
-          className="block w-full bg-brand-dark text-white font-bold py-4 rounded-xl hover:bg-neutral-800 transition-all shadow-lg shadow-brand-dark/20"
+          className="block w-full bg-m3-primary text-m3-on-primary font-bold py-4 rounded-xl hover:bg-m3-primary/90 transition-all shadow-lg shadow-m3-primary/20"
         >
           Go to Login
         </Link>
@@ -1056,11 +1056,11 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       {step === 1.8 && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-xl font-black text-brand-dark mb-2 flex items-center gap-2 tracking-tight">
+            <h2 className="text-xl font-black text-m3-on-surface mb-2 flex items-center gap-2 tracking-tight">
               <Sparkles className="text-brand-accent" size={22} />
               What type of content is this?
             </h2>
-            <p className="text-xs text-zinc-500 font-medium mb-6">This helps us show the right form for your upload</p>
+            <p className="text-xs text-m3-on-surface-variant font-medium mb-6">This helps us show the right form for your upload</p>
           </div>
 
           <div className="space-y-3">
@@ -1068,18 +1068,18 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
             <button
               onClick={() => { setContentType('movie'); setStep(2); setSelectedTags([]); }}
               className={`w-full p-4 rounded-2xl border-2 transition-all text-left ${contentType === 'movie'
-                ? 'border-brand-accent bg-brand-wash shadow-sm'
-                : 'border-brand-border bg-white hover:border-brand-accent/50'
+                ? 'border-brand-accent bg-brand-accent/10 shadow-sm'
+                : 'border-m3-outline-variant/30 bg-m3-surface hover:border-brand-accent/50 hover:bg-m3-surface-container-high'
                 }`}
             >
               <div className="flex items-center gap-4">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${contentType === 'movie' ? 'bg-brand-accent text-white' : 'bg-brand-wash text-zinc-400'
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${contentType === 'movie' ? 'bg-brand-accent text-white' : 'bg-m3-surface-container-high text-m3-on-surface-variant'
                   }`}>
                   <Film size={24} />
                 </div>
                 <div className="flex-1">
-                  <p className="font-black text-brand-dark tracking-tight">Movie Song</p>
-                  <p className="text-xs text-zinc-500 font-medium">From Tamil/Telugu/Malayalam movies</p>
+                  <p className="font-black text-m3-on-surface tracking-tight">Movie Song</p>
+                  <p className="text-xs text-m3-on-surface-variant font-medium">From Tamil/Telugu/Malayalam movies</p>
                 </div>
                 {contentType === 'movie' && <Check className="text-brand-accent" size={20} />}
               </div>
@@ -1089,18 +1089,18 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
             <button
               onClick={() => { setContentType('album'); setStep(3); setSelectedTags([]); }}
               className={`w-full p-4 rounded-2xl border-2 transition-all text-left ${contentType === 'album'
-                ? 'border-brand-accent bg-brand-wash shadow-sm'
-                : 'border-brand-border bg-white hover:border-brand-accent/50'
+                ? 'border-brand-accent bg-brand-accent/10 shadow-sm'
+                : 'border-m3-outline-variant/30 bg-m3-surface hover:border-brand-accent/50 hover:bg-m3-surface-container-high'
                 }`}
             >
               <div className="flex items-center gap-4">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${contentType === 'album' ? 'bg-brand-accent text-white' : 'bg-brand-wash text-zinc-400'
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${contentType === 'album' ? 'bg-brand-accent text-white' : 'bg-m3-surface-container-high text-m3-on-surface-variant'
                   }`}>
                   <Music size={24} />
                 </div>
                 <div className="flex-1">
-                  <p className="font-black text-brand-dark tracking-tight">Album / Independent Artist</p>
-                  <p className="text-xs text-zinc-500 font-medium">Non-movie songs, albums, singles</p>
+                  <p className="font-black text-m3-on-surface tracking-tight">Album / Independent Artist</p>
+                  <p className="text-xs text-m3-on-surface-variant font-medium">Non-movie songs, albums, singles</p>
                 </div>
                 {contentType === 'album' && <Check className="text-brand-accent" size={20} />}
               </div>
@@ -1110,18 +1110,18 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
             <button
               onClick={() => { setContentType('devotional'); setStep(3); setSelectedTags([]); }}
               className={`w-full p-4 rounded-2xl border-2 transition-all text-left ${contentType === 'devotional'
-                ? 'border-brand-accent bg-brand-wash shadow-sm'
-                : 'border-brand-border bg-white hover:border-brand-accent/50'
+                ? 'border-brand-accent bg-brand-accent/10 shadow-sm'
+                : 'border-m3-outline-variant/30 bg-m3-surface hover:border-brand-accent/50 hover:bg-m3-surface-container-high'
                 }`}
             >
               <div className="flex items-center gap-4">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${contentType === 'devotional' ? 'bg-brand-accent text-white' : 'bg-brand-wash text-zinc-400'
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${contentType === 'devotional' ? 'bg-brand-accent text-white' : 'bg-m3-surface-container-high text-m3-on-surface-variant'
                   }`}>
                   <Heart size={24} />
                 </div>
                 <div className="flex-1">
-                  <p className="font-black text-brand-dark tracking-tight">Devotional Song</p>
-                  <p className="text-xs text-zinc-500 font-medium">Hindu, Christian, Muslim devotional songs</p>
+                  <p className="font-black text-m3-on-surface tracking-tight">Devotional Song</p>
+                  <p className="text-xs text-m3-on-surface-variant font-medium">Hindu, Christian, Muslim devotional songs</p>
                 </div>
                 {contentType === 'devotional' && <Check className="text-brand-accent" size={20} />}
               </div>
@@ -1163,34 +1163,34 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
               {/* Movie Results */}
               {movies.length > 0 && (
-                <div className="absolute z-50 w-full mt-2 bg-white border border-brand-border rounded-xl shadow-2xl max-h-80 overflow-y-auto">
-                  <div className="flex justify-between items-center p-3 border-b border-brand-border bg-white sticky top-0 backdrop-blur-md">
-                    <span className="text-xs text-zinc-400 px-2 font-black uppercase tracking-wider">Select the correct movie</span>
-                    <button onClick={() => setMovies([])}><X size={14} className="text-zinc-400 hover:text-brand-dark" /></button>
+                <div className="absolute z-50 w-full mt-2 bg-m3-surface-container border border-m3-outline-variant/30 rounded-xl shadow-2xl max-h-80 overflow-y-auto">
+                  <div className="flex justify-between items-center p-3 border-b border-m3-outline-variant/20 bg-m3-surface-container sticky top-0 backdrop-blur-md">
+                    <span className="text-xs text-m3-on-surface-variant px-2 font-black uppercase tracking-wider">Select the correct movie</span>
+                    <button onClick={() => setMovies([])}><X size={14} className="text-m3-outline hover:text-m3-on-surface" /></button>
                   </div>
                   {movies.map((movie) => (
                     <button
                       key={movie.id}
                       onClick={() => selectMovie(movie)}
-                      className="w-full text-left px-4 py-3 hover:bg-brand-wash border-b border-brand-border/50 last:border-0 transition-colors group flex items-center gap-4"
+                      className="w-full text-left px-4 py-3 hover:bg-m3-surface-container-high border-b border-m3-outline-variant/20 last:border-0 transition-colors group flex items-center gap-4"
                     >
                       {movie.poster_path ? (
-                        <div className="relative w-10 h-14 shrink-0 rounded-lg overflow-hidden shadow-sm border border-brand-border/20">
+                        <div className="relative w-10 h-14 shrink-0 rounded-lg overflow-hidden shadow-sm border border-m3-outline-variant/20">
                           <ImageWithFallback src={getImageUrl(movie.poster_path, 'w92')} alt={movie.title} fill className="object-cover" />
                         </div>
                       ) : (
-                        <div className="w-10 h-14 bg-brand-wash rounded-lg flex items-center justify-center shrink-0 text-zinc-400"><Film size={16} /></div>
+                        <div className="w-10 h-14 bg-m3-surface-container-high rounded-lg flex items-center justify-center shrink-0 text-m3-outline"><Film size={16} /></div>
                       )}
                       <div>
-                        <p className="font-bold text-brand-dark group-hover:text-brand-accent transition-colors">{movie.title}</p>
-                        <p className="text-xs text-zinc-500 font-medium">{movie.release_date?.split('-')[0] || 'Unknown'}</p>
+                        <p className="font-bold text-m3-on-surface group-hover:text-brand-accent transition-colors">{movie.title}</p>
+                        <p className="text-xs text-m3-on-surface-variant font-medium">{movie.release_date?.split('-')[0] || 'Unknown'}</p>
                       </div>
                     </button>
                   ))}
                 </div>
               )}
             </div>
-            <p className="text-[10px] text-zinc-500 mt-2">
+            <p className="text-[10px] text-m3-on-surface-variant mt-2">
               This ensures we get the correct movie details and poster.
             </p>
           </div>
@@ -1198,7 +1198,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
           <div className="pt-4">
             <button
               onClick={() => setStep(1.8)}
-              className="text-zinc-400 hover:text-zinc-100 text-sm"
+              className="text-m3-on-surface-variant hover:text-m3-on-surface text-sm"
             >
               Back
             </button>
@@ -1210,21 +1210,21 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
       {step === 3 && contentType === 'movie' && (
         <div className="space-y-4">
           {/* Selected Movie Header */}
-          <div className="flex bg-white p-4 rounded-2xl gap-4 shadow-sm border border-brand-border items-center">
+          <div className="flex bg-m3-surface-container-low p-4 rounded-2xl gap-4 shadow-sm border border-m3-outline-variant/30 items-center">
             {selectedMovie?.poster_path ? (
-              <div className="relative w-12 h-16 bg-brand-wash rounded-lg overflow-hidden shrink-0 shadow-sm border border-brand-border/20">
+              <div className="relative w-12 h-16 bg-m3-surface-container-high rounded-lg overflow-hidden shrink-0 shadow-sm border border-m3-outline-variant/20">
                 <ImageWithFallback src={getImageUrl(selectedMovie.poster_path)} alt={manualMovieName} fill className="object-cover" />
               </div>
             ) : (
-              <div className="w-12 h-16 bg-brand-wash rounded-lg flex items-center justify-center text-zinc-400"><Film size={20} /></div>
+              <div className="w-12 h-16 bg-m3-surface-container-high rounded-lg flex items-center justify-center text-m3-outline"><Film size={20} /></div>
             )}
 
             <div className="flex-1 min-w-0 flex flex-col justify-center">
               <p className="text-[10px] text-brand-accent uppercase tracking-wider font-black mb-0.5">Verified Movie</p>
-              <p className="text-base font-black text-brand-dark truncate leading-tight">{manualMovieName}</p>
-              <p className="text-xs text-zinc-500 font-medium mt-0.5">{selectedMovie?.release_date?.split('-')[0]} • {musicDirector.split(',')[0]}</p>
+              <p className="text-base font-black text-m3-on-surface truncate leading-tight">{manualMovieName}</p>
+              <p className="text-xs text-m3-on-surface-variant font-medium mt-0.5">{selectedMovie?.release_date?.split('-')[0]} • {musicDirector.split(',')[0]}</p>
             </div>
-            <button onClick={() => setStep(2)} className="text-xs font-bold text-brand-accent hover:text-brand-dark transition-colors self-center shrink-0 px-3 py-1.5 bg-brand-wash rounded-lg">Change</button>
+            <button onClick={() => setStep(2)} className="text-xs font-bold text-brand-accent hover:text-m3-on-surface transition-colors self-center shrink-0 px-3 py-1.5 bg-m3-surface-container rounded-lg">Change</button>
           </div>
           {/* Language Selection - 100% Tamil Platform Focus */}
           <div className="bg-brand-wash/50 p-4 rounded-2xl border border-brand-border">
@@ -1256,8 +1256,8 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
               {/* Song Dropdown */}
               {showSongDropdown && (
-                <div className="absolute z-50 w-full mt-2 bg-white border border-brand-border rounded-xl shadow-2xl max-h-60 overflow-y-auto pb-1">
-                  <div className="px-3 py-2 text-[10px] text-zinc-400 uppercase tracking-wider bg-white sticky top-0 border-b border-brand-border backdrop-blur-sm font-black">
+                <div className="absolute z-50 w-full mt-2 bg-m3-surface-container border border-m3-outline-variant/30 rounded-xl shadow-2xl max-h-60 overflow-y-auto pb-1">
+                  <div className="px-3 py-2 text-[10px] text-m3-on-surface-variant uppercase tracking-wider bg-m3-surface-container sticky top-0 border-b border-m3-outline-variant/20 backdrop-blur-sm font-black">
                     Official Track List
                   </div>
                   {movieSongs.length > 0 ? (
@@ -1266,15 +1266,15 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                         <button
                           key={i}
                           onClick={() => selectSong(ring)}
-                          className="w-full text-left px-4 py-3 hover:bg-brand-wash border-b border-brand-border/50 last:border-0 transition-colors group"
+                          className="w-full text-left px-4 py-3 hover:bg-m3-surface-container-high border-b border-m3-outline-variant/20 last:border-0 transition-colors group"
                         >
-                          <p className="font-bold text-brand-dark group-hover:text-brand-accent text-sm">{cleanName(ring.trackName)}</p>
-                          <p className="text-[10px] text-zinc-500 truncate font-medium">{ring.artistName}</p>
+                          <p className="font-bold text-m3-on-surface group-hover:text-brand-accent text-sm">{cleanName(ring.trackName)}</p>
+                          <p className="text-[10px] text-m3-on-surface-variant truncate font-medium">{ring.artistName}</p>
                         </button>
                       ))}
                     </>
                   ) : (
-                    <div className="px-4 py-6 text-center text-zinc-500 text-xs">
+                    <div className="px-4 py-6 text-center text-m3-on-surface-variant text-xs">
                       {isLoadingSongs ? (
                         <div className="flex items-center justify-center gap-2">
                           <Loader2 size={16} className="animate-spin" />
@@ -1283,13 +1283,13 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                       ) : (
                         <div className="space-y-3">
                           <p>We couldn&apos;t find any official songs for this title.</p>
-                          <div className="p-3 bg-brand-wash rounded-xl border border-brand-border text-left">
-                            <p className="text-[10px] text-zinc-400 uppercase font-black mb-1">Manual Entry (Only if missing)</p>
+                          <div className="p-3 bg-m3-surface-container-low rounded-xl border border-m3-outline-variant/30 text-left">
+                            <p className="text-[10px] text-m3-on-surface-variant uppercase font-black mb-1">Manual Entry (Only if missing)</p>
                             <input
                               type="text"
                               autoFocus
                               placeholder="Type Song Name..."
-                              className="w-full bg-white border border-brand-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-brand-accent"
+                              className="w-full bg-m3-surface border border-m3-outline-variant/30 rounded-lg px-3 py-2 text-sm text-m3-on-surface focus:outline-none focus:border-brand-accent"
                               onKeyDown={(e) => {
                                 if (e.key === 'Enter') {
                                   setSongName((e.target as HTMLInputElement).value);
@@ -1384,15 +1384,15 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
             <div className="space-y-4 bg-brand-wash p-4 rounded-2xl border border-brand-border">
               {/* 1. Moods (Always Visible) */}
               <div>
-                <p className="text-[10px] text-zinc-400 uppercase font-black mb-2 tracking-wider">Moods & Emotions</p>
+                <p className="text-[10px] text-m3-on-surface-variant uppercase font-black mb-2 tracking-wider">Moods & Emotions</p>
                 <div className="flex flex-wrap gap-2">
                   {TAG_CATEGORIES["Moods"].map(tag => (
                     <button
                       key={tag}
                       onClick={() => toggleTag(tag, "Moods")}
                       className={`px-3 py-1.5 rounded-full text-xs font-black border transition-all ${selectedTags.includes(tag)
-                        ? 'bg-brand-dark border-brand-dark text-white shadow-lg shadow-brand-dark/20'
-                        : 'bg-white border-brand-border text-zinc-500 hover:border-brand-dark hover:text-brand-dark'
+                        ? 'bg-m3-primary border-m3-primary text-m3-on-primary shadow-lg shadow-m3-primary/20'
+                        : 'bg-m3-surface border-m3-outline-variant/30 text-m3-on-surface-variant hover:border-m3-primary hover:text-m3-on-surface hover:bg-m3-surface-container-high'
                         }`}
                     >
                       {tag}
@@ -1403,15 +1403,15 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
               {/* 2. Types (Always Visible - Triggers other sections) */}
               <div>
-                <p className="text-[10px] text-zinc-400 uppercase font-black mb-2 tracking-wider">Type (Select to reveal options)</p>
+                <p className="text-[10px] text-m3-on-surface-variant uppercase font-black mb-2 tracking-wider">Type (Select to reveal options)</p>
                 <div className="flex flex-wrap gap-2">
                   {TAG_CATEGORIES["Types"].map(tag => (
                     <button
                       key={tag}
                       onClick={() => toggleTag(tag, "Types")}
                       className={`px-3 py-1.5 rounded-full text-xs font-black border transition-all ${selectedTags.includes(tag)
-                        ? 'bg-brand-dark border-brand-dark text-white shadow-lg'
-                        : 'bg-white border-brand-border text-zinc-500 hover:border-brand-dark hover:text-brand-dark'
+                        ? 'bg-m3-primary border-m3-primary text-m3-on-primary shadow-lg shadow-m3-primary/20'
+                        : 'bg-m3-surface border-m3-outline-variant/30 text-m3-on-surface-variant hover:border-m3-primary hover:text-m3-on-surface hover:bg-m3-surface-container-high'
                         }`}
                     >
                       {tag}
@@ -1423,15 +1423,15 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
               {/* 3. Vocals (Only if Vocal type is selected) */}
               {isVocalSelected && (
                 <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                  <p className="text-[10px] text-zinc-400 uppercase font-black mb-2 tracking-wider">Vocal Type</p>
+                  <p className="text-[10px] text-m3-on-surface-variant uppercase font-black mb-2 tracking-wider">Vocal Type</p>
                   <div className="flex flex-wrap gap-2">
                     {TAG_CATEGORIES["Vocals"].map(tag => (
                       <button
                         key={tag}
                         onClick={() => toggleTag(tag, "Vocals")}
                         className={`px-3 py-1.5 rounded-full text-xs font-black border transition-all ${selectedTags.includes(tag)
-                          ? 'bg-brand-dark border-brand-dark text-white shadow-lg'
-                          : 'bg-white border-brand-border text-zinc-500 hover:border-brand-dark hover:text-brand-dark'
+                          ? 'bg-m3-primary border-m3-primary text-m3-on-primary shadow-lg shadow-m3-primary/20'
+                          : 'bg-m3-surface border-m3-outline-variant/30 text-m3-on-surface-variant hover:border-m3-primary hover:text-m3-on-surface hover:bg-m3-surface-container-high'
                           }`}
                       >
                         {tag}
@@ -1444,15 +1444,15 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
               {/* 4. Instruments (Only if Instrumental type is selected) */}
               {isInstrumentalSelected && (
                 <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                  <p className="text-[10px] text-zinc-400 uppercase font-black mb-2 tracking-wider">Instruments</p>
+                  <p className="text-[10px] text-m3-on-surface-variant uppercase font-black mb-2 tracking-wider">Instruments</p>
                   <div className="flex flex-wrap gap-2">
                     {TAG_CATEGORIES["Instruments"].map(tag => (
                       <button
                         key={tag}
                         onClick={() => toggleTag(tag, "Instruments")}
                         className={`px-3 py-1.5 rounded-full text-xs font-black border transition-all ${selectedTags.includes(tag)
-                          ? 'bg-brand-dark border-brand-dark text-white shadow-lg'
-                          : 'bg-white border-brand-border text-zinc-500 hover:border-brand-dark hover:text-brand-dark'
+                          ? 'bg-m3-primary border-m3-primary text-m3-on-primary shadow-lg shadow-m3-primary/20'
+                          : 'bg-m3-surface border-m3-outline-variant/30 text-m3-on-surface-variant hover:border-m3-primary hover:text-m3-on-surface hover:bg-m3-surface-container-high'
                           }`}
                       >
                         {tag}
@@ -1579,8 +1579,8 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
                   {/* Song Dropdown */}
                   {showAlbumSongDropdown && albumSongs.length > 0 && (
-                    <div className="absolute z-50 w-full mt-2 bg-white border border-brand-border rounded-xl shadow-2xl max-h-60 overflow-y-auto pb-1">
-                      <div className="px-3 py-2 text-[10px] text-zinc-400 uppercase tracking-wider bg-white sticky top-0 border-b border-brand-border backdrop-blur-sm font-black">
+                    <div className="absolute z-50 w-full mt-2 bg-m3-surface-container border border-m3-outline-variant/30 rounded-xl shadow-2xl max-h-60 overflow-y-auto pb-1">
+                      <div className="px-3 py-2 text-[10px] text-m3-on-surface-variant uppercase tracking-wider bg-m3-surface-container sticky top-0 border-b border-m3-outline-variant/20 backdrop-blur-sm font-black">
                         Search Results
                       </div>
                       {albumSongs.map((song, i) => (
@@ -1598,11 +1598,11 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                             setIsAlbumSongSelected(true);
                             setManualEntryMode(false);
                           }}
-                          className="w-full text-left px-4 py-3 hover:bg-brand-wash border-b border-brand-border/50 last:border-0 transition-colors group"
+                          className="w-full text-left px-4 py-3 hover:bg-m3-surface-container-high border-b border-m3-outline-variant/20 last:border-0 transition-colors group"
                         >
-                          <p className="font-bold text-brand-dark group-hover:text-brand-accent text-sm">{song.trackName}</p>
-                          <p className="text-[10px] text-zinc-500 truncate font-medium">{song.artistName}</p>
-                          <p className="text-[9px] text-zinc-400 truncate">{song.collectionName}</p>
+                          <p className="font-bold text-m3-on-surface group-hover:text-brand-accent text-sm">{song.trackName}</p>
+                          <p className="text-[10px] text-m3-on-surface-variant truncate font-medium">{song.artistName}</p>
+                          <p className="text-[9px] text-m3-on-surface-variant/80 truncate">{song.collectionName}</p>
                         </button>
                       ))}
                     </div>
@@ -1626,7 +1626,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
           ) : (
             // Selected Track Info Card (Visible ONLY when NOT in manual mode)
             !manualEntryMode && (
-              <div className="bg-white border border-brand-border rounded-xl p-4 relative group shadow-sm">
+              <div className="bg-m3-surface-container-low border border-m3-outline-variant/30 rounded-xl p-4 relative group shadow-sm">
                 <div className="absolute top-3 right-3 flex gap-2">
                   <button
                     onClick={() => setManualEntryMode(true)}
@@ -1661,9 +1661,9 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                     )}
                   </div>
                   <div>
-                    <h3 className="text-brand-dark font-black text-sm leading-tight mb-1">{songName}</h3>
-                    <p className="text-xs text-zinc-500 font-medium">{singers}</p>
-                    <p className="text-[10px] text-zinc-400 mt-0.5">{manualMovieName}</p>
+                    <h3 className="text-m3-on-surface font-black text-sm leading-tight mb-1">{songName}</h3>
+                    <p className="text-xs text-m3-on-surface-variant font-medium">{singers}</p>
+                    <p className="text-[10px] text-m3-on-surface-variant/80 mt-0.5">{manualMovieName}</p>
                   </div>
                 </div>
               </div>
@@ -1695,7 +1695,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                   value={manualMovieName}
                   onChange={(e) => setManualMovieName(e.target.value.replace(/[()]/g, ''))}
                   placeholder="e.g., Kadhal Kavithai"
-                  className="w-full bg-white border border-brand-border rounded-xl px-4 py-3 text-brand-dark text-sm focus:outline-none focus:border-brand-accent transition-colors font-medium"
+                  className="w-full bg-m3-surface border border-m3-outline-variant/30 rounded-xl px-4 py-3 text-m3-on-surface text-sm focus:outline-none focus:border-brand-accent transition-colors font-medium"
                 />
               </div>
 
@@ -1706,7 +1706,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                   value={songName}
                   onChange={(e) => setSongName(e.target.value.replace(/[()]/g, ''))}
                   placeholder="e.g., Unnai Ninaithu"
-                  className="w-full bg-white border border-brand-border rounded-xl px-4 py-3 text-brand-dark text-sm focus:outline-none focus:border-brand-accent transition-colors font-medium"
+                  className="w-full bg-m3-surface border border-m3-outline-variant/30 rounded-xl px-4 py-3 text-m3-on-surface text-sm focus:outline-none focus:border-brand-accent transition-colors font-medium"
                 />
               </div>
 
@@ -1720,7 +1720,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                   value={singers}
                   onChange={(e) => setSingers(e.target.value.replace(/[()]/g, ''))}
                   placeholder="e.g., Sid Sriram, Shreya Ghoshal"
-                  className="w-full bg-white border border-brand-border rounded-xl px-4 py-3 text-brand-dark text-sm focus:outline-none focus:border-brand-accent transition-colors font-medium"
+                  className="w-full bg-m3-surface border border-m3-outline-variant/30 rounded-xl px-4 py-3 text-m3-on-surface text-sm focus:outline-none focus:border-brand-accent transition-colors font-medium"
                 />
               </div>
 
@@ -1793,15 +1793,15 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
               {/* 1. Moods (Always Visible) */}
               <div>
-                <p className="text-[10px] text-zinc-400 uppercase font-black mb-2 tracking-wider">Moods & Emotions</p>
+                <p className="text-[10px] text-m3-on-surface-variant uppercase font-black mb-2 tracking-wider">Moods & Emotions</p>
                 <div className="flex flex-wrap gap-2">
                   {TAG_CATEGORIES["Moods"].map(tag => (
                     <button
                       key={tag}
                       onClick={() => toggleTag(tag, "Moods")}
                       className={`px-3 py-1.5 rounded-full text-xs font-black border transition-all ${selectedTags.includes(tag)
-                        ? 'bg-brand-dark border-brand-dark text-white shadow-lg shadow-brand-dark/20'
-                        : 'bg-white border-brand-border text-zinc-500 hover:border-brand-dark hover:text-brand-dark'
+                        ? 'bg-m3-primary border-m3-primary text-m3-on-primary shadow-lg shadow-m3-primary/20'
+                        : 'bg-m3-surface border-m3-outline-variant/30 text-m3-on-surface-variant hover:border-m3-primary hover:text-m3-on-surface hover:bg-m3-surface-container-high'
                         }`}
                     >
                       {tag}
@@ -1812,15 +1812,15 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
               {/* 2. Types (Always Visible - Triggers other sections) */}
               <div>
-                <p className="text-[10px] text-zinc-400 uppercase font-black mb-2 tracking-wider">Type (Select to reveal options)</p>
+                <p className="text-[10px] text-m3-on-surface-variant uppercase font-black mb-2 tracking-wider">Type (Select to reveal options)</p>
                 <div className="flex flex-wrap gap-2">
                   {TAG_CATEGORIES["Types"].map(tag => (
                     <button
                       key={tag}
                       onClick={() => toggleTag(tag, "Types")}
                       className={`px-3 py-1.5 rounded-full text-xs font-black border transition-all ${selectedTags.includes(tag)
-                        ? 'bg-brand-dark border-brand-dark text-white shadow-lg'
-                        : 'bg-white border-brand-border text-zinc-500 hover:border-brand-dark hover:text-brand-dark'
+                        ? 'bg-m3-primary border-m3-primary text-m3-on-primary shadow-lg shadow-m3-primary/20'
+                        : 'bg-m3-surface border-m3-outline-variant/30 text-m3-on-surface-variant hover:border-m3-primary hover:text-m3-on-surface hover:bg-m3-surface-container-high'
                         }`}
                     >
                       {tag}
@@ -1832,15 +1832,15 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
               {/* 3. Vocals (Only if Vocal type is selected) */}
               {isVocalSelected && (
                 <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                  <p className="text-[10px] text-zinc-400 uppercase font-black mb-2 tracking-wider">Vocal Type</p>
+                  <p className="text-[10px] text-m3-on-surface-variant uppercase font-black mb-2 tracking-wider">Vocal Type</p>
                   <div className="flex flex-wrap gap-2">
                     {TAG_CATEGORIES["Vocals"].map(tag => (
                       <button
                         key={tag}
                         onClick={() => toggleTag(tag, "Vocals")}
                         className={`px-3 py-1.5 rounded-full text-xs font-black border transition-all ${selectedTags.includes(tag)
-                          ? 'bg-brand-dark border-brand-dark text-white shadow-lg'
-                          : 'bg-white border-brand-border text-zinc-500 hover:border-brand-dark hover:text-brand-dark'
+                          ? 'bg-m3-primary border-m3-primary text-m3-on-primary shadow-lg shadow-m3-primary/20'
+                          : 'bg-m3-surface border-m3-outline-variant/30 text-m3-on-surface-variant hover:border-m3-primary hover:text-m3-on-surface hover:bg-m3-surface-container-high'
                           }`}
                       >
                         {tag}
@@ -1853,15 +1853,15 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
               {/* 4. Instruments (Only if Instrumental type is selected) */}
               {isInstrumentalSelected && (
                 <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                  <p className="text-[10px] text-zinc-400 uppercase font-black mb-2 tracking-wider">Instruments (Select up to 4)</p>
+                  <p className="text-[10px] text-m3-on-surface-variant uppercase font-black mb-2 tracking-wider">Instruments (Select up to 4)</p>
                   <div className="flex flex-wrap gap-2">
                     {TAG_CATEGORIES["Instruments"].map(tag => (
                       <button
                         key={tag}
                         onClick={() => toggleTag(tag, "Instruments")}
                         className={`px-3 py-1.5 rounded-full text-xs font-black border transition-all ${selectedTags.includes(tag)
-                          ? 'bg-brand-dark border-brand-dark text-white shadow-lg'
-                          : 'bg-white border-brand-border text-zinc-500 hover:border-brand-dark hover:text-brand-dark'
+                          ? 'bg-m3-primary border-m3-primary text-m3-on-primary shadow-lg shadow-m3-primary/20'
+                          : 'bg-m3-surface border-m3-outline-variant/30 text-m3-on-surface-variant hover:border-m3-primary hover:text-m3-on-surface hover:bg-m3-surface-container-high'
                           }`}
                       >
                         {tag}
@@ -1974,7 +1974,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
           {/* Preview Card */}
           {(deityCategory || songName) && (
-            <div className="bg-white border border-brand-border rounded-xl p-4 relative group shadow-sm flex items-start gap-4">
+            <div className="bg-m3-surface-container-low border border-m3-outline-variant/30 rounded-xl p-4 relative group shadow-sm flex items-start gap-4">
               <div className="w-12 h-16 bg-brand-wash rounded-lg flex items-center justify-center text-brand-accent shrink-0 border border-brand-border/20 overflow-hidden relative">
                 {selectedArtwork ? (
                   <Image src={selectedArtwork} alt={songName || deityCategory} fill className="object-cover" />
@@ -1984,30 +1984,30 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] text-brand-accent uppercase tracking-wider font-black mb-0.5">Devotional Preview</p>
-                <h3 className="text-brand-dark font-black text-sm leading-tight mb-1 truncate">{songName || 'Select a song...'}</h3>
-                <p className="text-xs text-zinc-500 font-medium truncate">{deityCategory}</p>
-                {singers && <p className="text-[10px] text-zinc-400 mt-0.5 truncate">{singers}</p>}
+                <h3 className="text-m3-on-surface font-black text-sm leading-tight mb-1 truncate">{songName || 'Select a song...'}</h3>
+                <p className="text-xs text-m3-on-surface-variant font-medium truncate">{deityCategory}</p>
+                {singers && <p className="text-[10px] text-m3-on-surface-variant/80 mt-0.5 truncate">{singers}</p>}
               </div>
             </div>
           )}
 
           <div>
-            <label className="block text-xs text-zinc-500 mb-1 ml-1 font-bold uppercase tracking-wider">Song Name <span className="text-zinc-400 font-normal normal-case">(Optional)</span></label>
+            <label className="block text-xs text-m3-on-surface-variant mb-1 ml-1 font-bold uppercase tracking-wider">Song Name <span className="text-m3-outline font-normal normal-case">(Optional)</span></label>
             <div className="relative">
               <div
                 onClick={() => setShowDevotionalSongDropdown(!showDevotionalSongDropdown)}
-                className="flex w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark cursor-pointer hover:border-brand-accent transition-colors items-center justify-between font-medium"
+                className="flex w-full bg-m3-surface-container border border-m3-outline-variant/30 rounded-xl px-4 py-3 text-m3-on-surface cursor-pointer hover:border-brand-accent transition-colors items-center justify-between font-medium"
               >
-                <span className={songName ? "text-brand-dark" : "text-zinc-500"}>
+                <span className={songName ? "text-m3-on-surface" : "text-m3-on-surface-variant"}>
                   {songName || (deityCategory ? `Select ${deityCategory} song...` : "Select deity first...")}
                 </span>
-                {isLoadingDevotionalSongs ? <Loader2 size={16} className="animate-spin text-zinc-400" /> : <ChevronDown size={16} className="text-zinc-400" />}
+                {isLoadingDevotionalSongs ? <Loader2 size={16} className="animate-spin text-m3-on-surface-variant" /> : <ChevronDown size={16} className="text-m3-on-surface-variant" />}
               </div>
 
               {/* Song Dropdown */}
               {showDevotionalSongDropdown && deityCategory && (
-                <div className="absolute z-50 w-full mt-2 bg-white border border-brand-border rounded-xl shadow-2xl max-h-60 overflow-y-auto pb-1">
-                  <div className="px-3 py-2 text-[10px] text-zinc-400 uppercase tracking-wider bg-white sticky top-0 border-b border-brand-border backdrop-blur-sm font-black">
+                <div className="absolute z-50 w-full mt-2 bg-m3-surface-container border border-m3-outline-variant/30 rounded-xl shadow-2xl max-h-60 overflow-y-auto pb-1">
+                  <div className="px-3 py-2 text-[10px] text-m3-on-surface-variant uppercase tracking-wider bg-m3-surface-container sticky top-0 border-b border-m3-outline-variant/20 backdrop-blur-sm font-black">
                     {deityCategory} Songs
                   </div>
                   {devotionalSongs.length > 0 ? (
@@ -2021,7 +2021,7 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
                             setSelectedArtwork(song.artworkUrl100 || null);
                             setShowDevotionalSongDropdown(false);
                           }}
-                          className="w-full text-left px-4 py-3 hover:bg-brand-wash border-b border-brand-border/50 last:border-0 transition-colors group"
+                          className="w-full text-left px-4 py-3 hover:bg-m3-surface-container-high border-b border-m3-outline-variant/20 last:border-0 transition-colors group"
                         >
                           <p className="font-bold text-brand-dark group-hover:text-brand-accent text-sm">{song.trackName}</p>
                           <p className="text-[10px] text-zinc-500 truncate font-medium">{song.artistName}</p>
@@ -2114,15 +2114,15 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
             <div className="space-y-4 bg-brand-wash p-4 rounded-2xl border border-brand-border">
               {/* 1. Moods (Always Visible) */}
               <div>
-                <p className="text-[10px] text-zinc-400 uppercase font-black mb-2 tracking-wider">Moods & Emotions</p>
+                <p className="text-[10px] text-m3-on-surface-variant uppercase font-black mb-2 tracking-wider">Moods & Emotions</p>
                 <div className="flex flex-wrap gap-2">
                   {TAG_CATEGORIES["Moods"].map(tag => (
                     <button
                       key={tag}
                       onClick={() => toggleTag(tag, "Moods")}
                       className={`px-3 py-1.5 rounded-full text-xs font-black border transition-all ${selectedTags.includes(tag)
-                        ? 'bg-brand-dark border-brand-dark text-white shadow-lg shadow-brand-dark/20'
-                        : 'bg-white border-brand-border text-zinc-500 hover:border-brand-dark hover:text-brand-dark'
+                        ? 'bg-m3-primary border-m3-primary text-m3-on-primary shadow-lg shadow-m3-primary/20'
+                        : 'bg-m3-surface border-m3-outline-variant/30 text-m3-on-surface-variant hover:border-m3-primary hover:text-m3-on-surface hover:bg-m3-surface-container-high'
                         }`}
                     >
                       {tag}
@@ -2133,15 +2133,15 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
 
               {/* 2. Types (Always Visible - Triggers other sections) */}
               <div>
-                <p className="text-[10px] text-zinc-400 uppercase font-black mb-2 tracking-wider">Type (Select to reveal options)</p>
+                <p className="text-[10px] text-m3-on-surface-variant uppercase font-black mb-2 tracking-wider">Type (Select to reveal options)</p>
                 <div className="flex flex-wrap gap-2">
                   {TAG_CATEGORIES["Types"].map(tag => (
                     <button
                       key={tag}
                       onClick={() => toggleTag(tag, "Types")}
                       className={`px-3 py-1.5 rounded-full text-xs font-black border transition-all ${selectedTags.includes(tag)
-                        ? 'bg-brand-dark border-brand-dark text-white shadow-lg'
-                        : 'bg-white border-brand-border text-zinc-500 hover:border-brand-dark hover:text-brand-dark'
+                        ? 'bg-m3-primary border-m3-primary text-m3-on-primary shadow-lg shadow-m3-primary/20'
+                        : 'bg-m3-surface border-m3-outline-variant/30 text-m3-on-surface-variant hover:border-m3-primary hover:text-m3-on-surface hover:bg-m3-surface-container-high'
                         }`}
                     >
                       {tag}
@@ -2153,15 +2153,15 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
               {/* 3. Vocals (Only if Vocal type is selected) */}
               {isVocalSelected && (
                 <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                  <p className="text-[10px] text-zinc-400 uppercase font-black mb-2 tracking-wider">Vocal Type</p>
+                  <p className="text-[10px] text-m3-on-surface-variant uppercase font-black mb-2 tracking-wider">Vocal Type</p>
                   <div className="flex flex-wrap gap-2">
                     {TAG_CATEGORIES["Vocals"].map(tag => (
                       <button
                         key={tag}
                         onClick={() => toggleTag(tag, "Vocals")}
                         className={`px-3 py-1.5 rounded-full text-xs font-black border transition-all ${selectedTags.includes(tag)
-                          ? 'bg-brand-dark border-brand-dark text-white shadow-lg'
-                          : 'bg-white border-brand-border text-zinc-500 hover:border-brand-dark hover:text-brand-dark'
+                          ? 'bg-m3-primary border-m3-primary text-m3-on-primary shadow-lg shadow-m3-primary/20'
+                          : 'bg-m3-surface border-m3-outline-variant/30 text-m3-on-surface-variant hover:border-m3-primary hover:text-m3-on-surface hover:bg-m3-surface-container-high'
                           }`}
                       >
                         {tag}
@@ -2174,15 +2174,15 @@ export default function UploadForm({ userId: propUserId, onComplete }: UploadFor
               {/* 4. Instruments (Only if Instrumental type is selected) */}
               {isInstrumentalSelected && (
                 <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                  <p className="text-[10px] text-zinc-400 uppercase font-black mb-2 tracking-wider">Instruments (Select up to 4)</p>
+                  <p className="text-[10px] text-m3-on-surface-variant uppercase font-black mb-2 tracking-wider">Instruments (Select up to 4)</p>
                   <div className="flex flex-wrap gap-2">
                     {TAG_CATEGORIES["Instruments"].map(tag => (
                       <button
                         key={tag}
                         onClick={() => toggleTag(tag, "Instruments")}
                         className={`px-3 py-1.5 rounded-full text-xs font-black border transition-all ${selectedTags.includes(tag)
-                          ? 'bg-brand-dark border-brand-dark text-white shadow-lg'
-                          : 'bg-white border-brand-border text-zinc-500 hover:border-brand-dark hover:text-brand-dark'
+                          ? 'bg-m3-primary border-m3-primary text-m3-on-primary shadow-lg shadow-m3-primary/20'
+                          : 'bg-m3-surface border-m3-outline-variant/30 text-m3-on-surface-variant hover:border-m3-primary hover:text-m3-on-surface hover:bg-m3-surface-container-high'
                           }`}
                       >
                         {tag}

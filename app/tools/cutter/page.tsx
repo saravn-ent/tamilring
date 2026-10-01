@@ -54,21 +54,21 @@ export default function CutterPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 py-3 px-2">
+        <div className="min-h-screen py-3 px-2">
             <div className="max-w-4xl mx-auto">
                 <div className="mb-2">
-                    <Link href="/tools" className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-900 font-bold text-xs uppercase tracking-wider mb-4">
+                    <Link href="/tools" className="inline-flex items-center gap-2 text-m3-outline hover:text-m3-on-surface font-bold text-xs uppercase tracking-wider mb-4">
                         <ArrowLeft size={16} /> Back to Tools
                     </Link>
                 </div>
 
                 {!activeFile ? (
-                    <article className="flex flex-col items-center justify-center min-h-[40vh] bg-white rounded-[2rem] border border-slate-100 shadow-sm p-6 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
-                        <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center mb-4 shadow-indigo-200 shadow-lg rotate-3">
+                    <article className="flex flex-col items-center justify-center min-h-[40vh] bg-m3-surface-container rounded-[2rem] border border-m3-outline-variant/30 shadow-sm p-6 text-center animate-in fade-in slide-in-from-bottom-4 duration-700">
+                        <div className="w-12 h-12 bg-m3-primary-container text-m3-on-primary-container rounded-2xl flex items-center justify-center mb-4 shadow-md rotate-3">
                             <Scissors size={20} />
                         </div>
-                        <h1 className="text-xl font-black text-slate-900 mb-1">Free MP3 Cutter</h1>
-                        <p className="text-slate-500 max-w-[240px] mx-auto mb-4 text-[11px] leading-tight">
+                        <h1 className="text-xl font-display font-black text-m3-on-surface mb-1">Free MP3 Cutter</h1>
+                        <p className="text-m3-on-surface-variant max-w-[240px] mx-auto mb-4 text-[11px] leading-tight">
                             Trim, cut, and create perfect ringtones in seconds.
                         </p>
 

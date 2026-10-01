@@ -4,12 +4,24 @@ import { createClient } from '@supabase/supabase-js';
 import TMDBImage from '@/components/TMDBImage';
 import PetalFall from '@/components/PetalFall';
 
+import { Metadata } from 'next';
+import { generateMetadata as genMeta, generateBreadcrumbSchema, generateMovieItemListSchema, generateCollectionPageSchema, combineSchemas } from '@/lib/seo';
+import StructuredData from '@/components/StructuredData';
+
 const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
 export const revalidate = 3600;
+
+export const metadata: Metadata = genMeta({
+    title: "Valentine's Special - Most Romantic Tamil Movie Ringtones",
+    description: "Curated collection of the most romantic Tamil movie love stories and melodies. From Moondram Pirai and Mouna Ragam to 96 and Alaipayuthey.",
+    keywords: ['tamil love ringtones', 'valentines day tamil ringtones', 'romantic tamil bgm', 'tamil melody ringtones'],
+    url: '/valentines',
+    type: 'website',
+});
 
 const CURATED_MOVIES = [
     { name: "Moondram Pirai", quote: "A tragic, beautiful tale of innocent hearts.", rating: 8.6 },
@@ -49,7 +61,7 @@ function ValentinesMovieCard({
     return (
         <Link
             href={`/movie/${encodeURIComponent(movieName)}`}
-            className="group relative flex flex-col md:flex-row gap-8 items-center bg-white/40 backdrop-blur-3xl rounded-[3rem] p-6 border border-rose-200/50 shadow-[0_20px_60px_-15px_rgba(244,63,94,0.1)] transition-all duration-700 hover:shadow-rose-500/20 hover:-translate-y-2"
+            className="group relative flex flex-col md:flex-row gap-8 items-center bg-white/40 dark:bg-rose-950/20 backdrop-blur-3xl rounded-[3rem] p-6 border border-rose-200/50 dark:border-rose-900/30 shadow-[0_20px_60px_-15px_rgba(244,63,94,0.1)] transition-all duration-700 hover:shadow-rose-500/20 hover:-translate-y-2"
         >
             <div className="relative w-full md:w-56 aspect-2/3 shrink-0 rounded-4xl overflow-hidden shadow-2xl">
                 <TMDBImage
@@ -61,7 +73,7 @@ function ValentinesMovieCard({
                 />
                 <div className="absolute inset-0 bg-linear-to-t from-rose-900/40 to-transparent" />
                 <div className="absolute bottom-4 left-0 right-0 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-                    <div className="px-4 py-2 bg-white/90 backdrop-blur-md rounded-full shadow-lg border border-rose-100">
+                    <div className="px-4 py-2 bg-white/90 dark:bg-rose-950/90 backdrop-blur-md rounded-full shadow-lg border border-rose-100 dark:border-rose-800">
                         <PlayCircle className="w-6 h-6 text-rose-500" />
                     </div>
                 </div>
@@ -69,27 +81,27 @@ function ValentinesMovieCard({
 
             <div className="flex flex-col flex-1 py-4 text-center md:text-left">
                 <div className="flex items-center justify-center md:justify-start gap-3 mb-4">
-                    <span className="w-8 h-px bg-rose-200" />
-                    <span className="text-[10px] font-black tracking-[0.3em] uppercase text-rose-400/60">Story {index + 1}</span>
+                    <span className="w-8 h-px bg-rose-200 dark:bg-rose-800" />
+                    <span className="text-[10px] font-black tracking-[0.3em] uppercase text-rose-400/60 dark:text-rose-400/80">Story {index + 1}</span>
                 </div>
 
-                <h3 className="text-3xl md:text-5xl font-black text-rose-950 mb-4 tracking-tight leading-none group-hover:text-rose-600 transition-colors">
+                <h3 className="text-3xl md:text-5xl font-black text-rose-950 dark:text-rose-100 mb-4 tracking-tight leading-none group-hover:text-rose-600 dark:group-hover:text-rose-400 transition-colors">
                     {movieName}
                 </h3>
 
                 <div className="relative inline-block mb-6 md:mb-8">
-                    <Quote className="absolute -left-4 -top-3 w-6 h-6 text-rose-100 fill-rose-100 -rotate-12" />
-                    <p className="text-lg md:text-xl font-medium text-rose-800/70 italic leading-relaxed px-2">
+                    <Quote className="absolute -left-4 -top-3 w-6 h-6 text-rose-100 dark:text-rose-900/50 fill-rose-100 dark:fill-rose-900/50 -rotate-12" />
+                    <p className="text-lg md:text-xl font-medium text-rose-800/70 dark:text-rose-200/70 italic leading-relaxed px-2">
                         {quote}
                     </p>
                 </div>
 
                 <div className="mt-auto flex items-center justify-center md:justify-start gap-4">
-                    <div className="flex items-center gap-2 px-4 py-2 bg-rose-50 rounded-full text-rose-500 font-bold text-xs border border-rose-100">
+                    <div className="flex items-center gap-2 px-4 py-2 bg-rose-50 dark:bg-rose-950/50 rounded-full text-rose-500 dark:text-rose-300 font-bold text-xs border border-rose-100 dark:border-rose-900">
                         <Music size={12} fill="currentColor" />
                         Explore Theme
                     </div>
-                    <span className="text-rose-200 font-black text-sm">{movieData.movie_year}</span>
+                    <span className="text-rose-200 dark:text-rose-700 font-black text-sm">{movieData.movie_year}</span>
                 </div>
             </div>
         </Link>
@@ -116,23 +128,50 @@ export default async function ValentinesPage() {
 
     const filteredMovies = moviesWithData.filter((m): m is NonNullable<typeof m> => m !== null);
 
+    const breadcrumbSchema = generateBreadcrumbSchema([
+        { name: 'Home', url: '/' },
+        { name: "Valentine's Special", url: '/valentines' },
+    ]);
+
+    const collectionPageSchema = generateCollectionPageSchema({
+        name: "Valentine's Special — Most Romantic Tamil Movie Stories",
+        description: "Curated collection of the most romantic Tamil movie love stories and melodies.",
+        url: '/valentines',
+        numberOfItems: filteredMovies.length,
+    });
+
+    const movieItemListSchema = filteredMovies.length ? generateMovieItemListSchema({
+        name: "Romantic Tamil Movies Collection",
+        description: "Iconic romantic Tamil movies with unforgettable love BGMs and songs.",
+        items: filteredMovies.map(m => ({
+            name: m.name,
+            year: m.movie_year || undefined,
+            poster_url: m.poster_url || undefined,
+        })),
+    }) : null;
+
+    const combinedSchema = movieItemListSchema
+        ? combineSchemas(collectionPageSchema, movieItemListSchema, breadcrumbSchema)
+        : combineSchemas(collectionPageSchema, breadcrumbSchema);
+
     return (
-        <div className="min-h-screen relative bg-[#fffafb] selection:bg-rose-100 text-[#2d0a12]">
+        <div className="min-h-screen relative bg-[#fffafb] dark:bg-[#120508] selection:bg-rose-100 text-[#2d0a12] dark:text-[#ffccd5]">
+            <StructuredData data={combinedSchema} />
             {/* Background Aesthetic */}
             <div className="fixed inset-0 z-0">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,#fff,#fff5f6,#ffe4e9)]" />
-                <div className="absolute top-[10%] right-[10%] w-[50%] h-[50%] bg-pink-100/50 blur-[120px] rounded-full" />
-                <div className="absolute bottom-[20%] left-[5%] w-[30%] h-[30%] bg-rose-50 blur-[100px] rounded-full" />
-                <div className="absolute inset-0 opacity-[0.4] mix-blend-overlay" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/cubes.png")' }} />
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,#fff,#fff5f6,#ffe4e9)] dark:bg-[radial-gradient(circle_at_top_left,#1f0a10,#140508,#0d0205)]" />
+                <div className="absolute top-[10%] right-[10%] w-[50%] h-[50%] bg-pink-100/50 dark:bg-rose-950/30 blur-[120px] rounded-full" />
+                <div className="absolute bottom-[20%] left-[5%] w-[30%] h-[30%] bg-rose-50 dark:bg-pink-950/20 blur-[100px] rounded-full" />
+                <div className="absolute inset-0 opacity-[0.4] dark:opacity-[0.1] mix-blend-overlay" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/cubes.png")' }} />
             </div>
 
             <PetalFall />
 
             {/* Vertical Navigation Bar */}
             <div className="fixed top-24 left-8 hidden lg:flex flex-col items-center gap-12 z-50">
-                <div className="h-24 w-px bg-rose-200" />
-                <span className="rotate-90 origin-center text-[10px] font-black tracking-[0.5em] uppercase text-rose-300">Valentines_2026</span>
-                <div className="h-24 w-px bg-rose-200" />
+                <div className="h-24 w-px bg-rose-200 dark:bg-rose-800" />
+                <span className="rotate-90 origin-center text-[10px] font-black tracking-[0.5em] uppercase text-rose-300 dark:text-rose-500">Valentines_2026</span>
+                <div className="h-24 w-px bg-rose-200 dark:bg-rose-800" />
             </div>
 
             {/* Main Content */}
@@ -141,21 +180,21 @@ export default async function ValentinesPage() {
                 <header className="mb-32 text-center">
                     <Link
                         href="/"
-                        className="inline-flex items-center text-rose-400 hover:text-rose-600 mb-16 text-xs font-bold tracking-[0.3em] uppercase transition-all bg-white px-8 py-3 rounded-full border border-rose-100 shadow-sm hover:translate-x-1"
+                        className="inline-flex items-center text-rose-400 hover:text-rose-600 dark:text-rose-300 dark:hover:text-rose-100 mb-16 text-xs font-bold tracking-[0.3em] uppercase transition-all bg-white dark:bg-rose-950/40 px-8 py-3 rounded-full border border-rose-100 dark:border-rose-900 shadow-sm hover:translate-x-1"
                     >
                         <ArrowLeft size={16} className="mr-3" /> Return to Gallery
                     </Link>
 
                     <div className="space-y-6">
-                        <div className="flex items-center justify-center gap-4 text-rose-200">
+                        <div className="flex items-center justify-center gap-4 text-rose-200 dark:text-rose-800">
                             <Star size={16} fill="currentColor" />
                             <Star size={24} fill="currentColor" />
                             <Star size={16} fill="currentColor" />
                         </div>
-                        <h1 className="text-7xl md:text-9xl font-black tracking-tight text-rose-950 leading-none">
+                        <h1 className="text-7xl md:text-9xl font-black tracking-tight text-rose-950 dark:text-rose-100 leading-none">
                             The Music <br /> <span className="text-transparent bg-clip-text bg-linear-to-r from-rose-500 to-pink-400">of Hearts.</span>
                         </h1>
-                        <p className="text-xl md:text-2xl text-rose-900/40 font-medium max-w-2xl mx-auto italic">
+                        <p className="text-xl md:text-2xl text-rose-900/40 dark:text-rose-200/50 font-medium max-w-2xl mx-auto italic">
                             A hand-picked collection of stories that move us.
                         </p>
                     </div>

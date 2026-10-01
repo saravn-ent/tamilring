@@ -16,7 +16,7 @@ export default function VideoDownloadButton({ ringtone }: VideoDownloadButtonPro
         <>
             <button
                 onClick={() => setIsModalOpen(true)}
-                className="inline-flex items-center gap-2 text-brand-dark hover:text-brand-accent bg-white border border-brand-gray px-4 py-3 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-95"
+                className="inline-flex items-center gap-2 text-m3-on-surface hover:text-m3-primary bg-m3-surface-container border border-m3-outline-variant/30 hover:bg-m3-surface-container-high px-4 py-3 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-95"
                 title="Create Video"
             >
                 <Video size={20} strokeWidth={2.5} />

@@ -1,25 +1,50 @@
-import React from 'react';
-import { Mail, MapPin, Phone } from 'lucide-react';
+import { Metadata } from 'next';
+import { Mail } from 'lucide-react';
+import { generateMetadata as genMeta, generateBreadcrumbSchema, combineSchemas } from '@/lib/seo';
+import StructuredData from '@/components/StructuredData';
+
+export const metadata: Metadata = genMeta({
+    title: 'Contact Us - TamilRing Support & Feedback',
+    description: 'Get in touch with the TamilRing team. Send inquiries, feedback, or copyright questions directly.',
+    url: '/contact',
+    type: 'website',
+});
+
+const contactPageSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'ContactPage',
+    name: 'Contact TamilRing',
+    description: 'Get in touch with the TamilRing team for questions, feedback, or support.',
+    url: 'https://tamilring.in/contact',
+};
+
+const breadcrumbSchema = generateBreadcrumbSchema([
+    { name: 'Home', url: '/' },
+    { name: 'Contact Us', url: '/contact' },
+]);
+
+const combinedSchema = combineSchemas(contactPageSchema, breadcrumbSchema);
 
 export default function ContactPage() {
     return (
         <div className="container mx-auto px-4 py-8 max-w-3xl min-h-screen">
-            <h1 className="text-3xl font-black mb-8 text-brand-dark tracking-tight">Contact Us</h1>
+            <StructuredData data={combinedSchema} />
+            <h1 className="text-3xl font-display font-black mb-8 text-m3-on-surface tracking-tight">Contact Us</h1>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-6">
-                    <p className="text-zinc-600 text-lg leading-relaxed">
+                    <p className="text-m3-on-surface-variant text-base leading-relaxed">
                         Have questions, suggestions, or just want to say hello? We'd love to hear from you.
                     </p>
 
                     <div className="space-y-4">
                         <div className="flex items-start gap-4">
-                            <div className="bg-brand-wash p-3 rounded-2xl border border-brand-border">
-                                <Mail className="text-brand-accent" size={24} />
+                            <div className="bg-m3-primary-container p-3 rounded-2xl border border-m3-outline-variant/30 text-m3-on-primary-container">
+                                <Mail size={24} />
                             </div>
                             <div>
-                                <h3 className="text-brand-dark font-bold">Email Us</h3>
-                                <a href="mailto:tamilring.in@gmail.com" className="text-zinc-500 hover:text-brand-accent transition-colors font-medium">
+                                <h3 className="text-m3-on-surface font-bold">Email Us</h3>
+                                <a href="mailto:tamilring.in@gmail.com" className="text-m3-on-surface-variant hover:text-m3-primary transition-colors font-medium">
                                     tamilring.in@gmail.com
                                 </a>
                             </div>
@@ -27,39 +52,39 @@ export default function ContactPage() {
                     </div>
                 </div>
 
-                <div className="bg-white border border-brand-border rounded-3xl p-6 shadow-xl shadow-brand-dark/5">
-                    <h2 className="text-xl font-bold text-brand-dark mb-4">Send us a message</h2>
+                <div className="bg-m3-surface-container-low border border-m3-outline-variant/30 rounded-3xl p-6 shadow-sm">
+                    <h2 className="text-xl font-bold text-m3-on-surface mb-4">Send us a message</h2>
                     <form className="space-y-4">
                         <div>
-                            <label htmlFor="name" className="block text-xs font-bold text-zinc-500 mb-1 uppercase tracking-wider">Name</label>
+                            <label htmlFor="name" className="block text-xs font-bold text-m3-on-surface-variant mb-1 uppercase tracking-wider">Name</label>
                             <input
                                 type="text"
                                 id="name"
-                                className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-brand-accent transition-colors placeholder:text-zinc-400 text-sm font-medium"
+                                className="w-full bg-m3-surface-container border border-m3-outline-variant/40 rounded-xl px-4 py-3 text-m3-on-surface focus:outline-none focus:border-m3-primary transition-colors placeholder:text-m3-outline text-sm font-medium"
                                 placeholder="Your name"
                             />
                         </div>
                         <div>
-                            <label htmlFor="email" className="block text-xs font-bold text-zinc-500 mb-1 uppercase tracking-wider">Email</label>
+                            <label htmlFor="email" className="block text-xs font-bold text-m3-on-surface-variant mb-1 uppercase tracking-wider">Email</label>
                             <input
                                 type="email"
                                 id="email"
-                                className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-brand-accent transition-colors placeholder:text-zinc-400 text-sm font-medium"
+                                className="w-full bg-m3-surface-container border border-m3-outline-variant/40 rounded-xl px-4 py-3 text-m3-on-surface focus:outline-none focus:border-m3-primary transition-colors placeholder:text-m3-outline text-sm font-medium"
                                 placeholder="your@email.com"
                             />
                         </div>
                         <div>
-                            <label htmlFor="message" className="block text-xs font-bold text-zinc-500 mb-1 uppercase tracking-wider">Message</label>
+                            <label htmlFor="message" className="block text-xs font-bold text-m3-on-surface-variant mb-1 uppercase tracking-wider">Message</label>
                             <textarea
                                 id="message"
                                 rows={4}
-                                className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:outline-none focus:border-brand-accent transition-colors placeholder:text-zinc-400 text-sm font-medium resize-none"
+                                className="w-full bg-m3-surface-container border border-m3-outline-variant/40 rounded-xl px-4 py-3 text-m3-on-surface focus:outline-none focus:border-m3-primary transition-colors placeholder:text-m3-outline text-sm font-medium resize-none"
                                 placeholder="How can we help?"
                             ></textarea>
                         </div>
                         <button
                             type="button"
-                            className="w-full bg-brand-dark hover:bg-neutral-800 text-white font-bold py-3.5 rounded-xl transition-all shadow-lg shadow-brand-dark/20 active:scale-[0.98]"
+                            className="w-full bg-m3-primary hover:bg-m3-primary/90 text-m3-on-primary font-bold py-3.5 rounded-xl transition-all shadow-md active:scale-[0.98] cursor-pointer"
                         >
                             Send Message
                         </button>

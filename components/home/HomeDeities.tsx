@@ -5,6 +5,8 @@ import { unstable_cache } from 'next/cache';
 import Link from 'next/link';
 import Image from 'next/image';
 import { DEITY_CATEGORIES } from '@/lib/constants';
+import StructuredData from '@/components/StructuredData';
+import { generateCollectionItemListSchema } from '@/lib/seo';
 
 // Fetch top deities using client-side aggregation for now to avoid migration dependency
 const getTopDeities = unstable_cache(
@@ -133,8 +135,20 @@ export default async function HomeDeities({ lang }: { lang: string }) {
 
     if (!topDeities || topDeities.length === 0) return null;
 
+    const deityItemListSchema = generateCollectionItemListSchema({
+        name: 'Bhakthi & Spiritual — Tamil Devotional Ringtone Collections',
+        description: 'Sacred Tamil devotional ringtones and chants for Hindu, Christian, and Islamic deities.',
+        items: topDeities.map(d => ({
+            name: `${d.name} Tamil Ringtones`,
+            description: `Download ${d.name} devotional songs, chants, and spiritual ringtones (${d.count} songs).`,
+            url: `/devotional/${encodeURIComponent(d.name)}`,
+            image: d.poster_url || undefined,
+        })),
+    });
+
     return (
         <div className="mb-8">
+            <StructuredData data={deityItemListSchema} />
             <div className="px-3 sm:px-4">
                 <SectionHeader
                     title="Bhakthi & Devotional"

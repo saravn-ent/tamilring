@@ -155,8 +155,8 @@ export const searchPerson = async (query: string): Promise<PersonResult | null> 
   const queryToUse = TMDB_SEARCH_ALIASES[query] ?? query;
 
 
-  // 1. Check Database Uploads first (Highest Priority)
-  // ... (keep existing db code)
+  // 1. Check Database Uploads first (Highest Priority image)
+  let overrideImageUrl: string | null = null;
   try {
     const { data: dbImage } = await supabase
       .from('artist_images')
@@ -165,34 +165,33 @@ export const searchPerson = async (query: string): Promise<PersonResult | null> 
       .single();
 
     if (dbImage && dbImage.image_url) {
-      return {
-        id: 0,
-        name: query,
-        profile_path: dbImage.image_url,
-        known_for_department: 'Manual',
-        gender: 0
-      };
+      overrideImageUrl = dbImage.image_url;
     }
   } catch {
     // Ignore DB errors
   }
 
   // 2. Check Manual Overrides
-  const manualImage = MANUAL_ARTIST_IMAGES[query] ||
-    Object.entries(MANUAL_ARTIST_IMAGES).find(([k]) => k.toLowerCase() === query.toLowerCase())?.[1];
+  if (!overrideImageUrl) {
+    const manualImage = MANUAL_ARTIST_IMAGES[query] ||
+      Object.entries(MANUAL_ARTIST_IMAGES).find(([k]) => k.toLowerCase() === query.toLowerCase())?.[1];
 
-  if (manualImage) {
-    return {
-      id: 0,
-      name: query,
-      profile_path: manualImage,
-      known_for_department: 'Manual',
-      gender: 0
-    };
+    if (manualImage) {
+      overrideImageUrl = manualImage;
+    }
   }
 
   // 3. TMDB - Fail gracefully if no key
   if (!TMDB_API_KEY) {
+    if (overrideImageUrl) {
+      return {
+        id: 0,
+        name: query,
+        profile_path: overrideImageUrl,
+        known_for_department: 'Manual',
+        gender: 0
+      };
+    }
     console.error("❌ TMDB_API_KEY is missing in env!");
     return null;
   }
@@ -214,19 +213,37 @@ export const searchPerson = async (query: string): Promise<PersonResult | null> 
     if (!res.ok) {
       const errText = await res.text();
       console.error(`❌ TMDB Error (${res.status}) for "${query}":`, errText);
-      return null; // Return null instead of throwing
+      if (overrideImageUrl) {
+        return {
+          id: 0,
+          name: query,
+          profile_path: overrideImageUrl,
+          known_for_department: 'Manual',
+          gender: 0
+        };
+      }
+      return null;
     }
 
     const data = await res.json();
     const result = data.results?.[0] || null;
 
     if (!result) {
-      // console.warn(`⚠️ No TMDB result found for: "${query}"`); // Silenced to reduce noise
+      if (overrideImageUrl) {
+        return {
+          id: 0,
+          name: query,
+          profile_path: overrideImageUrl,
+          known_for_department: 'Manual',
+          gender: 0
+        };
+      }
       return null;
     }
 
     return {
       ...result,
+      profile_path: overrideImageUrl || result.profile_path,
       gender: result?.gender || 0 // Default to 0 if missing
     };
   } catch (error: unknown) {

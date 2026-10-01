@@ -4,6 +4,8 @@ import React from 'react';
 import Link from 'next/link';
 import { hapticFeedback, hapticPatterns } from '@/lib/haptics';
 import SectionHeader from '@/components/SectionHeader';
+import StructuredData from '@/components/StructuredData';
+import { generateCollectionItemListSchema } from '@/lib/seo';
 
 interface EraItem {
     id: string;
@@ -74,8 +76,19 @@ const BACKWARD_ERAS: EraItem[] = [
 ];
 
 export default function EraTimeline() {
+    const eraTimelineSchema = generateCollectionItemListSchema({
+        name: 'Decades of Kollywood — Tamil Cinema Era Timeline',
+        description: 'Tamil cinema ringtones spanning 6 decades from the 1970s vintage era to 2020s modern anthems.',
+        items: BACKWARD_ERAS.map(era => ({
+            name: `${era.label} Tamil Hits — ${era.eraTitle}`,
+            description: `${era.period}: ${era.subtitle}`,
+            url: `/search?q=${encodeURIComponent(era.label)}&hideSearch=true`,
+        })),
+    });
+
     return (
         <section aria-label="Kollywood Decades Timeline" className="mb-8">
+            <StructuredData data={eraTimelineSchema} />
             <div className="px-3 sm:px-4">
                 <SectionHeader
                     title="Decades of Kollywood"

@@ -9,6 +9,7 @@ import MiniPlayerBar from './MiniPlayerBar';
 import TMDBImage from './TMDBImage';
 import { useFavorites } from '@/context/FavoritesContext';
 import { useLanguage } from '@/context/LanguageContext';
+import { useToast } from '@/context/ToastContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { hapticFeedback, hapticPatterns } from '@/lib/haptics';
@@ -25,6 +26,7 @@ export default function RingtoneCard({ ringtone, assignTo, priority }: RingtoneC
   const { currentRingtone, isPlaying, playRingtone, togglePlay } = usePlayer();
   const { isFavorite, addFavorite, removeFavorite } = useFavorites();
   const { t } = useLanguage();
+  const { showToast } = useToast();
   const isLiked = isFavorite(ringtone.id);
   const [localLikes, setLocalLikes] = useState(ringtone.likes || 0);
   const [localDownloads, setLocalDownloads] = useState(ringtone.downloads || 0);
@@ -44,30 +46,6 @@ export default function RingtoneCard({ ringtone, assignTo, priority }: RingtoneC
 
   const isCurrent = currentRingtone?.id === ringtone.id;
   const isActive = isCurrent && isPlaying;
-
-  useEffect(() => {
-    if (!isActive) return;
-
-    // Defer observer setup to avoid blocking initial render
-    const timeoutId = setTimeout(() => {
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (!entry.isIntersecting) {
-            togglePlay();
-          }
-        },
-        { threshold: 0 }
-      );
-
-      if (cardRef.current) {
-        observer.observe(cardRef.current);
-      }
-
-      return () => observer.disconnect();
-    }, 100);
-
-    return () => clearTimeout(timeoutId);
-  }, [isActive, togglePlay]);
 
   const handlePlay = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -120,20 +98,22 @@ export default function RingtoneCard({ ringtone, assignTo, priority }: RingtoneC
         ringtoneData: ringtone
       });
       setLocalLikes(prev => prev + 1);
+      showToast('Added to Favorites ❤️', 'success');
       await incrementLikes(ringtone.id);
     } else {
       hapticFeedback(hapticPatterns.selection);
       removeFavorite(ringtone.id);
       setLocalLikes(prev => Math.max(0, prev - 1));
+      showToast('Removed from Favorites', 'info');
     }
   };
-
 
   const handleDownload = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     hapticFeedback(hapticPatterns.download);
     setLocalDownloads(prev => prev + 1);
+    showToast(`Downloading ${displayName}...`, 'info');
 
     // OS Detection for Format
     const userAgent = window.navigator.userAgent;

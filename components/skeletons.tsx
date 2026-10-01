@@ -117,7 +117,7 @@ export function SectionSkeleton({ type = 'horizontal' }: { type?: 'horizontal' |
 
 export function HeroSkeleton() {
     return (
-        <div className="w-full px-4 pt-6 pb-8 md:pt-10 md:pb-12 bg-white rounded-b-[2.5rem] shadow-sm mb-6 border-b border-white/50">
+        <div className="w-full px-4 pt-6 pb-8 md:pt-10 md:pb-12 bg-m3-surface-container rounded-b-[2.5rem] shadow-sm mb-6 border-b border-m3-outline-variant/30">
             <div className="max-w-2xl mx-auto text-center space-y-4">
                 {/* Headline Skeleton */}
                 <div className="h-10 md:h-12 w-3/4 mx-auto rounded-lg shimmer" />

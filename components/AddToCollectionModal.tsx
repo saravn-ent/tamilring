@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { X, Check } from 'lucide-react';
 import { Ringtone } from '@/types';
 import { hapticFeedback, hapticPatterns } from '@/lib/haptics';
+import { useToast } from '@/context/ToastContext';
 
 interface CollectionItem {
     id: string;
@@ -26,6 +27,7 @@ interface AddToCollectionModalProps {
 }
 
 export default function AddToCollectionModal({ isOpen, onClose, ringtone }: AddToCollectionModalProps) {
+    const { showToast } = useToast();
     const [collections, setCollections] = useState<CollectionItem[]>(() => {
         if (typeof window === 'undefined') return DEFAULT_COLLECTIONS;
         const saved = localStorage.getItem('user_collections');
@@ -35,6 +37,7 @@ export default function AddToCollectionModal({ isOpen, onClose, ringtone }: AddT
 
     const handleAssign = (collectionId: string) => {
         hapticFeedback(hapticPatterns.impact);
+        const target = collections.find(c => c.id === collectionId);
         const updated = collections.map(c => {
             if (c.id === collectionId) return { ...c, ringtone };
             return c;
@@ -43,6 +46,7 @@ export default function AddToCollectionModal({ isOpen, onClose, ringtone }: AddT
         localStorage.setItem('user_collections', JSON.stringify(updated));
         setCollections(updated);
         setAssignedTo(collectionId);
+        showToast(`Assigned to ${target?.label || 'collection'}! 🎉`, 'success');
 
         // Close after a brief delay to show success state
         setTimeout(() => {

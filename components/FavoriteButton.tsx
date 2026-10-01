@@ -2,6 +2,7 @@
 
 import { Heart } from 'lucide-react';
 import { useFavorites, FavoriteItem } from '@/context/FavoritesContext';
+import { useToast } from '@/context/ToastContext';
 import RippleWrapper from './Ripple';
 import { hapticFeedback, hapticPatterns } from '@/lib/haptics';
 import { cn } from '@/lib/utils';
@@ -14,6 +15,7 @@ interface FavoriteButtonProps {
 
 export default function FavoriteButton({ item, className = "", iconSize = 18 }: FavoriteButtonProps) {
   const { isFavorite, addFavorite, removeFavorite } = useFavorites();
+  const { showToast } = useToast();
   const isFav = isFavorite(item.id);
 
   const handleToggle = (e: React.MouseEvent) => {
@@ -22,9 +24,11 @@ export default function FavoriteButton({ item, className = "", iconSize = 18 }: 
     if (isFav) {
       removeFavorite(item.id);
       hapticFeedback(hapticPatterns.selection);
+      showToast(`Removed ${item.name} from Favorites`, 'info');
     } else {
       addFavorite(item);
       hapticFeedback(hapticPatterns.heartbeat);
+      showToast(`Added ${item.name} to Favorites ❤️`, 'favorite');
     }
   };
 

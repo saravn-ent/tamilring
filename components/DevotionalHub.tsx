@@ -44,11 +44,11 @@ export default function DevotionalHub() {
     return (
         <section className="mb-14 px-4" id="devotional-section">
             <div className="mb-6">
-                <h2 className="text-xl font-black text-brand-dark uppercase tracking-tight flex items-center gap-2">
-                    <Sparkles size={20} className="text-brand-accent animate-pulse" />
+                <h2 className="text-xl font-display font-extrabold text-m3-on-surface uppercase tracking-tight flex items-center gap-2">
+                    <Sparkles size={20} className="text-m3-primary animate-pulse" />
                     Devotional Hub
                 </h2>
-                <p className="text-xs text-zinc-500 font-medium">Explore Divine Melodies</p>
+                <p className="text-xs text-m3-outline font-medium">Explore Divine Melodies</p>
             </div>
 
             <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide snap-x -mx-1 px-1">
@@ -58,16 +58,16 @@ export default function DevotionalHub() {
                         <button
                             key={rel.id + rel.label}
                             onClick={() => setActiveRelId(isActive ? null : rel.id)}
-                            className={`flex flex-col items-center gap-3 p-4 rounded-2xl border transition-all shrink-0 w-24 snap-start ${isActive
-                                ? 'bg-brand-accent border-brand-accent shadow-lg shadow-brand-accent/20'
-                                : 'bg-white border-zinc-100 shadow-sm hover:border-brand-accent/30'
+                            className={`flex flex-col items-center gap-3 p-4 rounded-2xl border transition-all shrink-0 w-24 snap-start cursor-pointer ${isActive
+                                ? 'bg-m3-primary border-m3-primary shadow-lg shadow-m3-primary/20 scale-102'
+                                : 'bg-m3-surface-container-low hover:bg-m3-surface-container border-m3-outline-variant/30 shadow-2xs hover:border-m3-primary/30'
                                 }`}
                         >
-                            <div className={`w-14 h-14 rounded-full flex items-center justify-center text-3xl transition-transform ${isActive ? 'bg-white/20' : 'bg-brand-wash shadow-inner'
+                            <div className={`w-14 h-14 rounded-full flex items-center justify-center text-3xl transition-transform ${isActive ? 'bg-white/20' : 'bg-m3-surface-container shadow-inner'
                                 }`}>
                                 {rel.emoji || '✨'}
                             </div>
-                            <span className={`text-[11px] font-black uppercase tracking-wide ${isActive ? 'text-white' : 'text-zinc-600'
+                            <span className={`text-[11px] font-bold uppercase tracking-wide ${isActive ? 'text-white' : 'text-m3-on-surface-variant'
                                 }`}>
                                 {rel.label}
                             </span>
@@ -79,22 +79,22 @@ export default function DevotionalHub() {
             {activeRelId && (deities?.length ?? 0) > 0 && (
                 <div className="mt-8 animate-in fade-in slide-in-from-right-4 duration-500">
                     <div className="flex items-center justify-between mb-4 px-1">
-                        <span className="text-[10px] font-black text-brand-accent uppercase tracking-widest">
+                        <span className="text-[10px] font-extrabold text-m3-primary uppercase tracking-widest">
                             {activeRelId} Divine Melodies
                         </span>
-                        <ChevronRight size={14} className="text-zinc-300" />
+                        <ChevronRight size={14} className="text-m3-outline" />
                     </div>
                     <div className="flex gap-3 overflow-x-auto pb-6 scrollbar-hide snap-x -mx-1 px-1">
                         {deities.map((item) => (
                             <Link
                                 key={`deity-${item}`}
                                 href={`/devotional/${encodeURIComponent(item || '')}`}
-                                className="flex flex-col items-center gap-3 p-3 rounded-2xl bg-white border border-zinc-100 shadow-sm hover:shadow-md hover:border-brand-accent/30 transition-all group shrink-0 w-24 snap-start"
+                                className="flex flex-col items-center gap-3 p-3 rounded-2xl bg-m3-surface-container-low hover:bg-m3-surface-container border border-m3-outline-variant/30 shadow-2xs hover:shadow-md hover:border-m3-primary/40 transition-all group shrink-0 w-24 snap-start"
                             >
-                                <div className="w-12 h-12 rounded-full bg-brand-wash flex items-center justify-center text-2xl group-hover:scale-110 transition-transform shadow-inner border border-white">
+                                <div className="w-12 h-12 rounded-full bg-m3-surface-container flex items-center justify-center text-2xl group-hover:scale-110 transition-transform shadow-inner border border-m3-outline-variant/20">
                                     {EMOJI_MAP[item] || '🕉️'}
                                 </div>
-                                <span className="text-[10px] font-bold text-zinc-600 uppercase text-center truncate w-full block">
+                                <span className="text-[10px] font-bold text-m3-on-surface-variant uppercase text-center truncate w-full block group-hover:text-m3-primary transition-colors">
                                     {item}
                                 </span>
                             </Link>

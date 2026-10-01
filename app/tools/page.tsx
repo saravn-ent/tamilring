@@ -111,7 +111,7 @@ const studioFeatures = [
 export default function ToolsPage() {
     return (
         <>
-            <div className="min-h-screen bg-slate-50 py-3 px-2">
+            <div className="min-h-screen py-3 px-2">
                 <ToolsHub />
                 <ToolInfo
                     title="TamilRing Audio Studio"

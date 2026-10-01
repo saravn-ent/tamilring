@@ -4,7 +4,13 @@ import Link from 'next/link';
 import { Suspense } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { COLLECTION_CONFIG_MAP, ALL_COLLECTION_SLUGS, RingtoneCollectionQuery } from '@/lib/collections';
-import { generateMetadata as genMeta, generateBreadcrumbSchema, generateItemListSchema, combineSchemas } from '@/lib/seo';
+import {
+    generateMetadata as genMeta,
+    generateBreadcrumbSchema,
+    generateCollectionPageSchema,
+    generateItemListSchema,
+    combineSchemas
+} from '@/lib/seo';
 import StructuredData from '@/components/StructuredData';
 import RingtoneCard from '@/components/RingtoneCard';
 import { RingtoneGridSkeleton } from '@/components/skeletons';
@@ -134,15 +140,26 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
         { name: config.title, url: `/ringtones/${slug}` },
     ]);
 
+    const collectionPageSchema = generateCollectionPageSchema({
+        name: config.title,
+        description: config.description,
+        url: `/ringtones/${slug}`,
+        numberOfItems: topRingtones.length,
+    });
+
     const itemListSchema = topRingtones.length ? generateItemListSchema({
         name: config.title,
         description: config.description,
-        items: topRingtones.map(r => ({ title: r.title, slug: r.slug })),
+        items: topRingtones.map(r => ({
+            title: r.title,
+            slug: r.slug,
+            artwork_url: r.poster_url || undefined,
+        })),
     }) : null;
 
     const combinedSchema = itemListSchema
-        ? combineSchemas(itemListSchema, breadcrumbSchema)
-        : breadcrumbSchema;
+        ? combineSchemas(collectionPageSchema, itemListSchema, breadcrumbSchema)
+        : combineSchemas(collectionPageSchema, breadcrumbSchema);
 
     return (
         <div className="max-w-md md:max-w-2xl lg:max-w-4xl mx-auto px-4 pb-28 pt-4">

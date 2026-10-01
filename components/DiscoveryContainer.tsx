@@ -136,26 +136,26 @@ export default function DiscoveryContainer({ featuredArtists }: DiscoveryContain
         <div className="max-w-6xl mx-auto p-4 md:px-6 pb-24 md:pb-8 min-h-screen">
             {/* Header */}
             <div className="mb-6 flex items-center gap-4">
-                <BackButton fallbackHref="/" variant="minimal" className="!bg-white rounded-full shadow-sm" />
+                <BackButton fallbackHref="/" variant="minimal" className="!bg-m3-surface-container rounded-full shadow-sm text-m3-on-surface" />
                 <div>
-                    <h1 className="text-3xl font-bold text-[#15171A] mb-1">Discover</h1>
-                    <p className="text-zinc-500 text-sm">Find your perfect ringtone</p>
+                    <h1 className="text-3xl font-display font-bold text-m3-on-surface mb-1">Discover</h1>
+                    <p className="text-m3-on-surface-variant text-sm">Find your perfect ringtone</p>
                 </div>
             </div>
 
             {/* Search Input */}
             {/* Search Input Container */}
-            <div className="mb-6 sticky top-0 z-30 pt-2 bg-[#F4F8FB]/90 pb-2 backdrop-blur-xl -mx-4 px-4 transition-colors duration-300">
+            <div className="mb-6 sticky top-0 z-30 pt-2 bg-m3-surface/90 pb-2 backdrop-blur-xl -mx-4 px-4 transition-colors duration-300">
                 <div className="relative w-full">
                     <input
                         type="text"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         placeholder="Find rings, artists, or bgm..."
-                        className="w-full bg-white border border-[#E5EBF1] rounded-xl px-12 py-4 text-lg text-[#15171A] focus:outline-none focus:border-[#3EB0EF] transition-all shadow-sm focus:shadow-blue-500/10"
+                        className="w-full bg-m3-surface-container border border-m3-outline-variant/40 rounded-2xl px-12 py-3.5 text-base md:text-lg text-m3-on-surface placeholder:text-m3-outline focus:outline-none focus:border-m3-primary transition-all shadow-sm"
                     />
-                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
-                    {loading && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 text-[#3EB0EF] animate-spin" />}
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-m3-outline pointer-events-none" size={20} />
+                    {loading && <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 text-m3-primary animate-spin" size={20} />}
                 </div>
 
                 {/* Tabs - Only visible when searching */}
@@ -166,8 +166,8 @@ export default function DiscoveryContainer({ featuredArtists }: DiscoveryContain
                                 key={tab}
                                 onClick={() => setActiveTab(tab as 'all' | 'ringtones' | 'movies' | 'artists')}
                                 className={`px-4 py-2 rounded-full text-xs font-bold capitalize whitespace-nowrap transition-colors border ${activeTab === tab
-                                    ? 'bg-[#3EB0EF] text-white border-[#3EB0EF]'
-                                    : 'bg-white text-zinc-500 border-[#E5EBF1] hover:border-[#3EB0EF]/50'
+                                    ? 'bg-m3-primary text-m3-on-primary border-m3-primary shadow-xs'
+                                    : 'bg-m3-surface-container text-m3-on-surface-variant border-m3-outline-variant/30 hover:border-m3-primary/50'
                                     }`}
                             >
                                 {tab}
@@ -188,16 +188,16 @@ export default function DiscoveryContainer({ featuredArtists }: DiscoveryContain
                             {/* Movies Section */}
                             {(activeTab === 'all' || activeTab === 'movies') && results.movies.length > 0 && (
                                 <section>
-                                    <h3 className="font-bold text-zinc-500 text-xs uppercase tracking-wider mb-3 px-1">Matching Movies</h3>
+                                    <h3 className="font-bold text-m3-on-surface-variant text-xs uppercase tracking-wider mb-3 px-1">Matching Movies</h3>
                                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                                         {results.movies.map((item, idx) => (
-                                            <Link href={`/movie/${encodeURIComponent(item.movie_name)}`} key={idx} className="flex flex-col gap-2 p-2 bg-white rounded-xl border border-[#E5EBF1] hover:shadow-md transition-colors group">
-                                                <div className="relative w-full aspect-2/3 bg-zinc-100 rounded-lg overflow-hidden shrink-0">
+                                            <Link href={`/movie/${encodeURIComponent(item.movie_name)}`} key={idx} className="flex flex-col gap-2 p-2 bg-m3-surface-container-low rounded-2xl border border-m3-outline-variant/30 hover:border-m3-primary/40 hover:shadow-md transition-colors group">
+                                                <div className="relative w-full aspect-2/3 bg-m3-surface-container rounded-xl overflow-hidden shrink-0">
                                                     {item.poster_url ? <Image src={item.poster_url} alt={item.movie_name} fill className="object-cover group-hover:scale-110 transition-transform duration-500" /> : null}
                                                 </div>
                                                 <div>
-                                                    <p className="font-bold text-[#15171A] text-sm truncate">{item.movie_name}</p>
-                                                    <p className="text-[10px] text-zinc-500">{item.movie_year}</p>
+                                                    <p className="font-bold text-m3-on-surface text-sm truncate">{item.movie_name}</p>
+                                                    <p className="text-[10px] text-m3-on-surface-variant">{item.movie_year}</p>
                                                 </div>
                                             </Link>
                                         ))}
@@ -208,14 +208,14 @@ export default function DiscoveryContainer({ featuredArtists }: DiscoveryContain
                             {/* Artists Section */}
                             {(activeTab === 'all' || activeTab === 'artists') && results.artists.length > 0 && (
                                 <section>
-                                    <h3 className="font-bold text-zinc-500 text-xs uppercase tracking-wider mb-3 px-1">Artists</h3>
+                                    <h3 className="font-bold text-m3-on-surface-variant text-xs uppercase tracking-wider mb-3 px-1">Artists</h3>
                                     <div className="flex flex-wrap gap-3">
                                         {results.artists.map((item, idx) => (
-                                            <Link href={`/artist/${encodeURIComponent(item.name)}`} key={idx} className="flex items-center gap-3 pr-4 pl-2 py-2 bg-white rounded-full border border-[#E5EBF1] hover:border-[#3EB0EF]/50 transition-colors">
-                                                <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-[#3EB0EF] font-bold border border-zinc-200">
+                                            <Link href={`/artist/${encodeURIComponent(item.name)}`} key={idx} className="flex items-center gap-3 pr-4 pl-2 py-2 bg-m3-surface-container-low rounded-full border border-m3-outline-variant/30 hover:border-m3-primary/50 transition-colors">
+                                                <div className="w-8 h-8 rounded-full bg-m3-surface-container-high flex items-center justify-center text-m3-primary font-bold border border-m3-outline-variant/30">
                                                     {item.name.charAt(0)}
                                                 </div>
-                                                <p className="font-medium text-[#15171A] text-sm">{item.name}</p>
+                                                <p className="font-medium text-m3-on-surface text-sm">{item.name}</p>
                                             </Link>
                                         ))}
                                     </div>
@@ -231,18 +231,18 @@ export default function DiscoveryContainer({ featuredArtists }: DiscoveryContain
                     {/* By Mood */}
                     <section>
                         <div className="flex items-center gap-2 mb-4">
-                            <Sparkles size={16} className="text-[#3EB0EF]" />
-                            <h2 className="text-lg font-bold text-[#15171A]">By Mood</h2>
+                            <Sparkles size={16} className="text-m3-primary" />
+                            <h2 className="text-lg font-bold text-m3-on-surface">By Mood</h2>
                         </div>
                         <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4">
                             {RICH_MOODS.map((mood) => (
                                 <Link
                                     key={mood.name}
                                     href={`/mood/${mood.name}`}
-                                    className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-white border border-[#E5EBF1] hover:bg-zinc-50 hover:border-[#3EB0EF]/30 transition-all shrink-0 group"
+                                    className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-m3-surface-container-low border border-m3-outline-variant/30 hover:bg-m3-surface-container hover:border-m3-primary/40 transition-all shrink-0 group"
                                 >
                                     <mood.icon size={16} className={`${mood.color} group-hover:scale-110 transition-transform`} />
-                                    <span className="text-sm font-medium text-zinc-600 group-hover:text-[#15171A]">{mood.name}</span>
+                                    <span className="text-sm font-medium text-m3-on-surface-variant group-hover:text-m3-on-surface">{mood.name}</span>
                                 </Link>
                             ))}
                         </div>
@@ -251,15 +251,15 @@ export default function DiscoveryContainer({ featuredArtists }: DiscoveryContain
                     {/* By Era */}
                     <section>
                         <div className="flex items-center gap-2 mb-4">
-                            <Clock size={16} className="text-[#3EB0EF]" />
-                            <h2 className="text-lg font-bold text-[#15171A]">By Era</h2>
+                            <Clock size={16} className="text-m3-primary" />
+                            <h2 className="text-lg font-bold text-m3-on-surface">By Era</h2>
                         </div>
                         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                             {ERAS.map((era) => (
                                 <button
                                     key={era.label}
                                     onClick={() => setQuery(era.label)}
-                                    className={`relative h-24 rounded-2xl overflow-hidden flex items-center justify-center bg-linear-to-br ${era.color} border border-[#E5EBF1] hover:scale-[1.02] transition-transform group shadow-sm cursor-pointer`}
+                                    className={`relative h-24 rounded-2xl overflow-hidden flex items-center justify-center bg-linear-to-br ${era.color} border border-m3-outline-variant/20 hover:scale-[1.02] transition-transform group shadow-sm cursor-pointer`}
                                 >
                                     <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors" />
                                     <span className="relative text-xl font-black italic text-white tracking-wider drop-shadow-sm opacity-90">{era.label}</span>
@@ -271,20 +271,20 @@ export default function DiscoveryContainer({ featuredArtists }: DiscoveryContain
                     {/* Instruments */}
                     <section>
                         <div className="flex items-center gap-2 mb-4">
-                            <Music size={16} className="text-[#3EB0EF]" />
-                            <h2 className="text-lg font-bold text-[#15171A]">Instruments</h2>
+                            <Music size={16} className="text-m3-primary" />
+                            <h2 className="text-lg font-bold text-m3-on-surface">Instruments</h2>
                         </div>
                         <div className="grid grid-cols-4 md:grid-cols-8 lg:grid-cols-12 gap-3">
                             {INSTRUMENTS.map((inst) => (
                                 <button
                                     key={inst.label}
                                     onClick={() => setQuery(inst.query)}
-                                    className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-white border border-[#E5EBF1] hover:bg-zinc-50 hover:border-[#3EB0EF]/30 transition-all"
+                                    className="flex flex-col items-center gap-2 p-3 rounded-2xl bg-m3-surface-container-low border border-m3-outline-variant/30 hover:bg-m3-surface-container hover:border-m3-primary/30 transition-all cursor-pointer"
                                 >
-                                    <div className="w-10 h-10 rounded-full bg-zinc-100 flex items-center justify-center text-zinc-600">
+                                    <div className="w-10 h-10 rounded-full bg-m3-surface-container-high flex items-center justify-center text-m3-on-surface-variant">
                                         <inst.icon size={18} />
                                     </div>
-                                    <span className="text-[10px] font-medium text-zinc-500 uppercase tracking-wide">{inst.label}</span>
+                                    <span className="text-[10px] font-medium text-m3-on-surface-variant uppercase tracking-wide">{inst.label}</span>
                                 </button>
                             ))}
                         </div>
@@ -293,8 +293,8 @@ export default function DiscoveryContainer({ featuredArtists }: DiscoveryContain
                     {/* Featured Artists */}
                     <section>
                         <div className="flex items-center gap-2 mb-4">
-                            <Flame size={16} className="text-[#3EB0EF]" />
-                            <h2 className="text-lg font-bold text-[#15171A]">Featured Artists</h2>
+                            <Flame size={16} className="text-m3-primary" />
+                            <h2 className="text-lg font-bold text-m3-on-surface">Featured Artists</h2>
                         </div>
                         <div className="flex flex-wrap justify-center gap-6 py-4">
                             {featuredArtists.map((artist, idx) => {
@@ -314,18 +314,18 @@ export default function DiscoveryContainer({ featuredArtists }: DiscoveryContain
                                         className="group relative flex flex-col items-center justify-center w-28 h-28"
                                     >
                                         <div className={`absolute inset-0 rounded-full bg-linear-to-br ${color} opacity-20 blur-xl group-hover:opacity-40 transition-opacity duration-500 animate-pulse`} />
-                                        <div className={`relative w-20 h-20 rounded-full bg-linear-to-br ${color} p-0.5 shadow-lg shadow-zinc-200 group-hover:scale-110 transition-transform duration-300`}>
-                                            <div className="w-full h-full rounded-full bg-white backdrop-blur-sm flex items-center justify-center border border-zinc-100 overflow-hidden relative">
+                                        <div className={`relative w-20 h-20 rounded-full bg-linear-to-br ${color} p-0.5 shadow-md group-hover:scale-110 transition-transform duration-300`}>
+                                            <div className="w-full h-full rounded-full bg-m3-surface-container backdrop-blur-sm flex items-center justify-center border border-m3-outline-variant/30 overflow-hidden relative">
                                                 <ImageWithFallback
                                                     src={artist.image}
                                                     alt={artist.name}
                                                     className="object-cover opacity-90 group-hover:opacity-100 transition-opacity"
-                                                    fallbackClassName="bg-zinc-200 text-zinc-500"
+                                                    fallbackClassName="bg-m3-surface-container-high text-m3-outline"
                                                 />
                                             </div>
                                             <div className="absolute top-2 left-4 w-4 h-2 bg-white/40 rounded-full blur-[1px] -rotate-45 z-10" />
                                         </div>
-                                        <span className="mt-3 text-xs font-bold text-zinc-700 text-center line-clamp-1 w-full px-1 group-hover:text-[#15171A] transition-colors">{artist.name}</span>
+                                        <span className="mt-3 text-xs font-bold text-m3-on-surface-variant text-center line-clamp-1 w-full px-1 group-hover:text-m3-on-surface transition-colors">{artist.name}</span>
                                     </Link>
                                 )
                             })}

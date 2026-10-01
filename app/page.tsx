@@ -6,7 +6,8 @@ import CategoryGrid from '@/components/CategoryGrid';
 import EraTimeline from '@/components/home/EraTimeline';
 import AudioTrustBadge from '@/components/home/AudioTrustBadge';
 import StructuredData from '@/components/StructuredData';
-import { combineSchemas, generateHomeMetadata, generateOrganizationSchema, generateWebSiteSchema } from '@/lib/seo';
+import { generateHomeMetadata, generateItemListSchema } from '@/lib/seo';
+import { getTrendingRingtones } from '@/app/actions/ringtones';
 import { SectionSkeleton } from '@/components/skeletons';
 
 // Dynamic Universal Homepage Components
@@ -32,14 +33,25 @@ export const metadata = generateHomeMetadata();
 export default async function Home() {
   const lang = 'tamil';
 
-  // Structured data
-  const organizationSchema = generateOrganizationSchema();
-  const websiteSchema = generateWebSiteSchema();
-  const combinedSchema = combineSchemas(organizationSchema, websiteSchema);
+  // Fetch top trending ringtones for ItemList structured data (matches HomeTrending)
+  const trending = await getTrendingRingtones(12, lang);
+
+  // Structured data (Organization & WebSite schemas are provided globally in RootLayout)
+  const itemListSchema = trending?.length
+    ? generateItemListSchema({
+        name: 'Trending Tamil Ringtones & BGM',
+        description: 'Top trending Tamil movie ringtones, viral BGM, and interval hits.',
+        items: trending.map(r => ({
+          title: r.title,
+          slug: r.slug,
+          artwork_url: r.artwork_url || r.poster_url,
+        })),
+      })
+    : null;
 
   return (
     <div className="w-full max-w-7xl mx-auto px-2 sm:px-4">
-      <StructuredData data={combinedSchema} />
+      {itemListSchema && <StructuredData data={itemListSchema} />}
 
       {/* Visually Hidden H1 for SEO */}
       <h1 className="sr-only">
@@ -84,7 +96,7 @@ export default async function Home() {
       {/* 8. SUBTLE DUAL-OS TRUST & QUALITY PLEDGE */}
       <AudioTrustBadge />
 
-      {/* 9. SEO & FAQ FOOTPRINT */}
+      {/* 9. POPULAR SEARCHES DIRECTORY */}
       <div className="lazy-section">
         <HomeSEOContent />
       </div>

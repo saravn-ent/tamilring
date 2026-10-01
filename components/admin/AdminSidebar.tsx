@@ -34,20 +34,20 @@ export default function AdminSidebar({ mobileOpen, setMobileOpen, collapsed, set
 
     return (
         <aside
-            className={`fixed top-0 left-0 h-screen bg-white border-r border-slate-200 transition-all duration-300 z-50
+            className={`fixed top-0 left-0 h-screen bg-m3-surface-container-low border-r border-m3-outline-variant/30 text-m3-on-surface transition-all duration-300 z-50
                 ${collapsed ? 'w-20' : 'w-64'}
                 ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-                flex flex-col shadow-xl shadow-slate-200/50
+                flex flex-col shadow-xl
             `}
         >
             {/* Logo Area */}
-            <div className={`h-16 flex items-center ${collapsed ? 'justify-center' : 'justify-between px-6'} border-b border-slate-200`}>
+            <div className={`h-16 flex items-center ${collapsed ? 'justify-center' : 'justify-between px-6'} border-b border-m3-outline-variant/20`}>
                 {!collapsed ? (
                     <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-lg shadow-indigo-600/20">
                             <Radio size={18} strokeWidth={2.5} />
                         </div>
-                        <span className="font-bold text-lg tracking-tight text-slate-900">
+                        <span className="font-bold text-lg tracking-tight text-m3-on-surface">
                             Tamil<span className="text-indigo-600">Ring</span>
                         </span>
                     </div>
@@ -60,7 +60,7 @@ export default function AdminSidebar({ mobileOpen, setMobileOpen, collapsed, set
                 {!collapsed && (
                     <button
                         onClick={() => setCollapsed(!collapsed)}
-                        className="hidden md:flex p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-900 transition-colors"
+                        className="hidden md:flex p-1.5 hover:bg-m3-surface-container-high rounded-lg text-m3-on-surface-variant hover:text-m3-on-surface transition-colors"
                     >
                         <ChevronLeft size={16} />
                     </button>
@@ -68,10 +68,10 @@ export default function AdminSidebar({ mobileOpen, setMobileOpen, collapsed, set
             </div>
 
             {collapsed && (
-                <div className="hidden md:flex justify-center py-4 border-b border-slate-200">
+                <div className="hidden md:flex justify-center py-4 border-b border-m3-outline-variant/20">
                     <button
                         onClick={() => setCollapsed(!collapsed)}
-                        className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-900 transition-colors"
+                        className="p-1.5 hover:bg-m3-surface-container-high rounded-lg text-m3-on-surface-variant hover:text-m3-on-surface transition-colors"
                     >
                         <ChevronLeft size={16} className="rotate-180" />
                     </button>
@@ -92,14 +92,14 @@ export default function AdminSidebar({ mobileOpen, setMobileOpen, collapsed, set
                             onClick={() => setMobileOpen(false)}
                             className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 group
                                 ${isActive
-                                    ? 'bg-indigo-50 text-indigo-600 font-bold'
-                                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900 hover:pl-4'
+                                    ? 'bg-indigo-500/10 text-indigo-500 font-bold'
+                                    : 'text-m3-on-surface-variant hover:bg-m3-surface-container-high hover:text-m3-on-surface hover:pl-4'
                                 }
                                 ${collapsed ? 'justify-center px-0' : ''}
                             `}
                             title={collapsed ? link.name : undefined}
                         >
-                            <Icon size={22} className={`shrink-0 transition-colors ${isActive ? 'text-indigo-600' : 'text-slate-400 group-hover:text-slate-600'}`} />
+                            <Icon size={22} className={`shrink-0 transition-colors ${isActive ? 'text-indigo-500' : 'text-m3-outline group-hover:text-m3-on-surface'}`} />
                             {!collapsed && (
                                 <span className="font-medium text-sm truncate">{link.name}</span>
                             )}
@@ -109,10 +109,10 @@ export default function AdminSidebar({ mobileOpen, setMobileOpen, collapsed, set
             </nav>
 
             {/* Footer / Logout */}
-            <div className="p-3 border-t border-slate-200 bg-slate-50/50">
+            <div className="p-3 border-t border-m3-outline-variant/20 bg-m3-surface-container/50">
                 <button
                     onClick={handleLogout}
-                    className={`flex items-center gap-3 px-3 py-3 rounded-xl w-full transition-all duration-200 text-red-500/80 hover:bg-red-50 hover:text-red-600
+                    className={`flex items-center gap-3 px-3 py-3 rounded-xl w-full transition-all duration-200 text-red-500/80 hover:bg-red-500/10 hover:text-red-500
                         ${collapsed ? 'justify-center' : ''}
                     `}
                     title="Sign Out"

@@ -2,7 +2,7 @@
 import { Metadata } from 'next';
 import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
-import { generateBaseMetadata, generateBreadcrumbSchema } from '@/lib/seo';
+import { generateBaseMetadata, generateBreadcrumbSchema, generateCollectionPageSchema, combineSchemas } from '@/lib/seo';
 import StructuredData from '@/components/StructuredData';
 import { splitArtists } from '@/lib/utils';
 
@@ -41,23 +41,32 @@ export default async function DirectoryPage() {
         { name: 'Directory', url: '/directory' },
     ]);
 
+    const collectionPageSchema = generateCollectionPageSchema({
+        name: 'TamilRing Complete Site Directory',
+        description: 'Complete directory of all Tamil movies and artists featured on TamilRing.',
+        url: '/directory',
+        numberOfItems: sortedMovies.length + sortedArtists.length,
+    });
+
+    const combinedSchema = combineSchemas(collectionPageSchema, breadcrumbSchema);
+
     return (
-        <div className="max-w-4xl mx-auto p-6 pb-24 min-h-screen bg-white">
-            <StructuredData data={breadcrumbSchema} />
-            <h1 className="text-3xl font-bold mb-8 text-brand-dark">Site Directory</h1>
+        <div className="max-w-4xl mx-auto p-6 pb-24 min-h-screen">
+            <StructuredData data={combinedSchema} />
+            <h1 className="text-3xl font-display font-bold mb-8 text-m3-on-surface">Site Directory</h1>
             
             <div className="grid md:grid-cols-2 gap-12">
                 {/* Movies Section */}
                 <section>
-                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-rose-600">
+                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-m3-primary">
                         <span>🎬</span> Movies ({sortedMovies.length})
                     </h2>
-                    <div className="space-y-1 max-h-[600px] overflow-y-auto pr-4 scrollbar-hide border-t pt-4">
+                    <div className="space-y-1 max-h-[600px] overflow-y-auto pr-4 scrollbar-hide border-t border-m3-outline-variant/30 pt-4">
                         {sortedMovies.map(movie => (
                             <Link 
                                 key={movie} 
                                 href={`/movie/${encodeURIComponent(movie)}`}
-                                className="block py-1.5 text-sm text-zinc-600 hover:text-rose-600 transition-colors border-b border-zinc-100 last:border-0"
+                                className="block py-1.5 text-sm text-m3-on-surface-variant hover:text-m3-primary transition-colors border-b border-m3-outline-variant/20 last:border-0"
                             >
                                 {movie}
                             </Link>
@@ -67,15 +76,15 @@ export default async function DirectoryPage() {
 
                 {/* Artists Section */}
                 <section>
-                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-blue-600">
+                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-m3-secondary">
                         <span>🎤</span> Artists ({sortedArtists.length})
                     </h2>
-                    <div className="space-y-1 max-h-[600px] overflow-y-auto pr-4 scrollbar-hide border-t pt-4">
+                    <div className="space-y-1 max-h-[600px] overflow-y-auto pr-4 scrollbar-hide border-t border-m3-outline-variant/30 pt-4">
                         {sortedArtists.map(artist => (
                             <Link 
                                 key={artist} 
                                 href={`/artist/${encodeURIComponent(artist)}`}
-                                className="block py-1.5 text-sm text-zinc-600 hover:text-blue-600 transition-colors border-b border-zinc-100 last:border-0"
+                                className="block py-1.5 text-sm text-m3-on-surface-variant hover:text-m3-secondary transition-colors border-b border-m3-outline-variant/20 last:border-0"
                             >
                                 {artist}
                             </Link>
@@ -84,7 +93,7 @@ export default async function DirectoryPage() {
                 </section>
             </div>
 
-            <div className="mt-12 p-6 bg-zinc-50 rounded-2xl border border-zinc-100 italic text-sm text-zinc-500 text-center">
+            <div className="mt-12 p-6 bg-m3-surface-container-low rounded-2xl border border-m3-outline-variant/30 italic text-sm text-m3-on-surface-variant text-center">
                 This directory is updated daily to include all newly added content.
             </div>
         </div>

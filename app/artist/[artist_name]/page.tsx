@@ -5,7 +5,7 @@ import { searchPerson, getImageUrl, getPersonMovieCredits } from '@/lib/tmdb';
 import CompactProfileHeader from '@/components/CompactProfileHeader';
 import SortControl from '@/components/SortControl';
 import ViewToggle from '@/components/ViewToggle';
-import { getArtistBio } from '@/lib/constants';
+import { getArtistBio, resolveArtistRole, ArtistRole } from '@/lib/constants';
 import { Metadata } from 'next';
 import { generateArtistMetadata, generatePersonSchema, generateBreadcrumbSchema, generateItemListSchema, combineSchemas } from '@/lib/seo';
 import ArtistRingtonesList from '@/components/artist/ArtistRingtonesList';
@@ -13,21 +13,22 @@ import { Suspense } from 'react';
 import { RingtoneGridSkeleton } from '@/components/skeletons';
 import StructuredData from '@/components/StructuredData';
 
-type CompactProfileHeaderType = 'Actor' | 'Singer' | 'Music Director' | 'Movie Director' | 'Lyricist' | 'Deity';
-
-function getArtistType(dept?: string): CompactProfileHeaderType {
-  if (dept === 'Sound' || dept === 'Composing') return 'Music Director';
-  if (dept === 'Directing') return 'Movie Director';
-  if (dept === 'Acting') return 'Actor';
-  if (dept === 'Writing') return 'Lyricist';
-  return 'Singer';
+function getArtistRoleSlug(role: ArtistRole): 'singer' | 'music_director' | 'movie_director' | 'actor' | 'lyricist' {
+  switch (role) {
+    case 'Music Director': return 'music_director';
+    case 'Movie Director': return 'movie_director';
+    case 'Actor': return 'actor';
+    case 'Lyricist': return 'lyricist';
+    default: return 'singer';
+  }
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ artist_name: string }> }): Promise<Metadata> {
   const { artist_name } = await params;
   const artistName = decodeURIComponent(artist_name);
   const person = await searchPerson(artistName);
-  const role = getArtistType(person?.known_for_department).toLowerCase().replace(' ', '_') as 'singer' | 'music_director' | 'movie_director' | 'actor' | 'lyricist';
+  const roleType = resolveArtistRole(artistName, person?.known_for_department);
+  const role = getArtistRoleSlug(roleType);
   return generateArtistMetadata({
     name: artistName,
     role,
@@ -39,7 +40,7 @@ export async function generateMetadata({ params }: { params: Promise<{ artist_na
 // Fetches TMDB data independently; does NOT block the ringtone list from rendering
 async function ArtistHeader({ artistName }: { artistName: string }) {
   const person = await searchPerson(artistName);
-  const artistType = getArtistType(person?.known_for_department);
+  const artistType = resolveArtistRole(artistName, person?.known_for_department);
   const artistImage = person?.profile_path ? getImageUrl(person.profile_path, 'w185') : null;
   const artistBio = getArtistBio(artistName);
 
@@ -114,11 +115,14 @@ export default async function ArtistPage({
 
   if (!artistName) notFound();
 
+  const artistRole = resolveArtistRole(artistName);
+  const artistRoleSlug = getArtistRoleSlug(artistRole);
+
   // Lightweight SEO schemas — no external calls required
   // Fetch top ringtones for ItemList schema (Carousel rich results)
   const { data: topRingtones } = await supabase
     .from('ringtones')
-    .select('title, slug')
+    .select('title, slug, poster_url')
     .eq('status', 'approved')
     .or(`singers.ilike.%${artistName}%,music_director.ilike.%${artistName}%,movie_director.ilike.%${artistName}%`)
     .order('downloads', { ascending: false })
@@ -127,8 +131,8 @@ export default async function ArtistPage({
   const personSchema = generatePersonSchema({
     name: artistName,
     image_url: undefined,
-    role: 'singer',
-    description: undefined
+    role: artistRoleSlug,
+    description: `${artistName} is a celebrated Tamil ${artistRole}. Download the best ${artistName} ringtones, BGM, and hit cuts.`
   });
 
   const breadcrumbSchema = generateBreadcrumbSchema([
@@ -139,9 +143,13 @@ export default async function ArtistPage({
 
   // ItemList schema — enables Google Carousel rich results for artist ringtone collection
   const itemListSchema = topRingtones?.length ? generateItemListSchema({
-    name: `${artistName} Ringtones`,
+    name: `${artistName} Ringtones & BGM`,
     description: `Download the best Tamil ringtones featuring ${artistName}. Free download for Android and iPhone.`,
-    items: topRingtones.map(r => ({ title: r.title, slug: r.slug })),
+    items: topRingtones.map(r => ({
+      title: r.title,
+      slug: r.slug,
+      artwork_url: r.poster_url,
+    })),
   }) : null;
 
   const combinedSchema = itemListSchema
@@ -156,7 +164,7 @@ export default async function ArtistPage({
       <Suspense fallback={
         <CompactProfileHeader
           name={artistName}
-          type="Singer"
+          type={artistRole}
           imageUrl={null}
           ringCount={0}
         />
@@ -165,7 +173,7 @@ export default async function ArtistPage({
       </Suspense>
 
       {/* Sticky Controls Bar — renders immediately, no data deps */}
-      <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-brand-border px-4 py-3 shadow-md flex items-center justify-between gap-2">
+      <div className="sticky top-0 z-30 bg-m3-surface/90 backdrop-blur-md border-b border-m3-outline-variant/30 px-4 py-2.5 shadow-xs flex items-center justify-between gap-2">
         <ViewToggle />
         <div className="flex justify-end">
           <SortControl />

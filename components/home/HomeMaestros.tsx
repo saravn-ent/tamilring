@@ -3,6 +3,8 @@ import SectionHeader from '@/components/SectionHeader';
 import { getTopArtists } from '@/components/home/HomeTopArtists';
 import Link from 'next/link';
 import ImageWithFallback from '@/components/ImageWithFallback';
+import StructuredData from '@/components/StructuredData';
+import { generateArtistItemListSchema } from '@/lib/seo';
 
 interface Props {
     lang: string;
@@ -32,8 +34,19 @@ export default async function HomeMaestros({ lang }: Props) {
 
     if (!topMusicDirectors || topMusicDirectors.length === 0) return null;
 
+    const artistItemListSchema = generateArtistItemListSchema({
+        name: 'Hall of Maestros — Top Tamil Music Directors',
+        description: 'Legendary and trending Tamil cinema composers and music directors.',
+        items: topMusicDirectors.slice(0, 8).map(md => ({
+            name: md.name,
+            image: md.image,
+            role: 'Music Director',
+        })),
+    });
+
     return (
         <div className="mb-8">
+            <StructuredData data={artistItemListSchema} />
             <div className="px-3 sm:px-4">
                 <SectionHeader
                     title="Hall of Maestros"

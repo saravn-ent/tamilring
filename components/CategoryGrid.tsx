@@ -7,6 +7,8 @@ import { useLanguage } from '@/context/LanguageContext';
 import { TranslationKeys } from '@/lib/i18n';
 import { hapticFeedback, hapticPatterns } from '@/lib/haptics';
 import SectionHeader from '@/components/SectionHeader';
+import StructuredData from '@/components/StructuredData';
+import { generateCollectionItemListSchema } from '@/lib/seo';
 
 interface CategoryStation {
     id: string;
@@ -95,8 +97,19 @@ const STATIONS: CategoryStation[] = [
 export default function CategoryGrid() {
     const { t } = useLanguage();
 
+    const moodStationsSchema = generateCollectionItemListSchema({
+        name: 'Curated Mood Stations — Tamil Ringtones',
+        description: 'Tamil ringtone stations curated by mood and energy: Mass, BGM, Love, Melody, Sad, Devotional, and Dialogue.',
+        items: STATIONS.map(s => ({
+            name: `${s.label} Tamil Ringtones`,
+            description: s.subtitle,
+            url: s.href,
+        })),
+    });
+
     return (
         <section aria-label="Curated Sound Stations" className="mb-8">
+            <StructuredData data={moodStationsSchema} />
             <div className="px-3 sm:px-4">
                 <SectionHeader
                     title="Curated Mood Stations"

@@ -113,3 +113,124 @@ export const TOP_FEMALE_SINGERS_BY_LANGUAGE: Record<string, string[]> = {
   ]
 };
 
+export type ArtistRole = 'Music Director' | 'Singer' | 'Actor' | 'Movie Director' | 'Lyricist' | 'Deity';
+
+const KNOWN_MUSIC_DIRECTORS = new Set([
+  'a.r. rahman', 'a. r. rahman', 'ar rahman', 'rahman',
+  'ilaiyaraaja', 'ilayaraja', 'raaja', 'isaignani',
+  'anirudh ravichander', 'anirudh', 'rockstar anirudh',
+  'yuvan shankar raja', 'yuvan', 'u1',
+  'harris jayaraj', 'harris',
+  'santhosh narayanan', 'sana',
+  'g.v. prakash kumar', 'g.v. prakash', 'gv prakash kumar', 'gv prakash',
+  'd. imman', 'imman',
+  'vidyasagar', 'deva', 'thenisai thendral deva',
+  'hiphop tamizha', 'adhi', 'hiphop aadhi',
+  'sam c.s.', 'sam cs',
+  'sean roldan',
+  'vijay antony',
+  'leon james',
+  'justin prabhakaran',
+  'nivas k. prasanna', 'nivas k prasanna',
+  'ghibran', 'mohammad ghibran',
+  's. thaman', 'thaman s', 'thaman',
+  'devi sri prasad', 'dsp',
+  'm.m. keeravani', 'm. m. keeravani', 'keeravani', 'maragathamani',
+  'm.s. viswanathan', 'm. s. viswanathan', 'msv',
+  'k.v. mahadevan', 't. rajendar', 'gangai amaran',
+  'sirpy', 'soundaryan', 'bharadwaj', 'mani sharma',
+  'dharan kumar', 'jassie gift', 'siddharth vipin', 'vishal chandrashekhar',
+  'govind vasantha', 'kabir suman', 'pradeep kumar', 'karthik raja'
+]);
+
+const KNOWN_ACTORS = new Set([
+  'vijay', 'joseph vijay', 'thalapathy vijay', 'thalapathy',
+  'rajinikanth', 'superstar rajinikanth', 'superstar',
+  'ajith kumar', 'ajith', 'thala ajith', 'thala',
+  'suriya', 'suriya sivakumar',
+  'dhanush',
+  'sivakarthikeyan', 'sk',
+  'vikram', 'chiyaan vikram', 'chiyaan',
+  'kamal haasan', 'kamal hassan', 'kamal', 'ulaganayagan',
+  'vijay sethupathi', 'makkal selvan',
+  'karthi', 'karthik sivakumar',
+  'silambarasan tr', 'silambarasan', 'simbu', 'str',
+  'jayam ravi', 'arun vijay', 'arya', 'vishal', 'jiiva',
+  'santhanam', 'vadivelu', 'goundamani', 'senthil', 'vivek',
+  'nayanthara', 'lady superstar', 'trisha', 'trisha krishnan',
+  'samantha', 'keerthy suresh', 'sai pallavi', 'rashmika mandanna',
+  'tamannaah', 'kajal aggarwal', 'priya bhavani shankar', 'aishwarya rajesh',
+  'mamitha baiju', 'fahadh faasil', 'prithviraj'
+]);
+
+const KNOWN_DIRECTORS = new Set([
+  'mani ratnam', 'maniratnam',
+  'shankar', 's. shankar',
+  'lokesh kanagaraj', 'lokesh',
+  'nelson dilipkumar', 'nelson',
+  'vetrimaaran', 'vetri maaran',
+  'atlee', 'atlee kumar',
+  'h. vinoth', 'h vinoth',
+  'pa. ranjith', 'pa ranjith',
+  'gautham vasudev menon', 'gautham menon', 'gvm',
+  'karthik subbaraj',
+  'a.r. murugadoss', 'ar murugadoss',
+  'k.s. ravikumar', 'ks ravikumar',
+  'bala', 'selvaraghavan', 'venkat prabhu',
+  'mysskin', 'mari selvaraj', 'sudha kongara',
+  'pradeep ranganathan', 'madonne ashwin', 'cibi chakravarthi',
+  'ps mithran', 'p.s. mithran', 'mohan g', 'ajay gnanamuthu'
+]);
+
+const KNOWN_LYRICISTS = new Set([
+  'vairamuthu', 'kaviperarasu vairamuthu',
+  'na. muthukumar', 'na muthukumar',
+  'vaali', 'kavignar vaali',
+  'kabilan', 'yugabharathi',
+  'madhan karky', 'karky',
+  'vivek', 'lyricist vivek',
+  'thamarai', 'pa. vijay', 'pa vijay',
+  'snehan', 'kannadasan', 'kavignar kannadasan',
+  'pattukkottai kalyanasundaram', 'pulamaipithan', 'wali'
+]);
+
+/**
+ * Accurately resolve artist primary role (Music Director vs Actor vs Director vs Lyricist vs Singer)
+ */
+export function resolveArtistRole(name: string, tmdbDept?: string): ArtistRole {
+  if (!name) return 'Singer';
+  const n = name.toLowerCase().trim();
+
+  // 1. Direct canonical lookup
+  if (KNOWN_MUSIC_DIRECTORS.has(n)) return 'Music Director';
+  if (KNOWN_DIRECTORS.has(n)) return 'Movie Director';
+  if (KNOWN_ACTORS.has(n)) return 'Actor';
+  if (KNOWN_LYRICISTS.has(n)) return 'Lyricist';
+
+  // 2. Fuzzy substring check against curated maestros
+  for (const md of KNOWN_MUSIC_DIRECTORS) {
+    if (n.includes(md) || md.includes(n)) return 'Music Director';
+  }
+  for (const d of KNOWN_DIRECTORS) {
+    if (n.includes(d) || d.includes(n)) return 'Movie Director';
+  }
+  for (const a of KNOWN_ACTORS) {
+    if (n.includes(a) || a.includes(n)) return 'Actor';
+  }
+  for (const l of KNOWN_LYRICISTS) {
+    if (n.includes(l) || l.includes(n)) return 'Lyricist';
+  }
+
+  // 3. Fallback to TMDB Department if available and not 'Manual'
+  if (tmdbDept && tmdbDept !== 'Manual') {
+    if (tmdbDept === 'Sound' || tmdbDept === 'Composing') return 'Music Director';
+    if (tmdbDept === 'Directing') return 'Movie Director';
+    if (tmdbDept === 'Acting') return 'Actor';
+    if (tmdbDept === 'Writing') return 'Lyricist';
+  }
+
+  // 4. Default to Singer
+  return 'Singer';
+}
+
+

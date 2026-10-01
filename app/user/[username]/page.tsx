@@ -78,21 +78,21 @@ export default async function UserProfilePage({
   const points = calculatedPoints;
 
   return (
-    <div className="max-w-md mx-auto p-4 pb-24 min-h-screen flex flex-col bg-white">
+    <div className="max-w-md mx-auto p-4 pb-24 min-h-screen flex flex-col">
 
       {/* Social Card */}
       {/* Official Artist Style Profile Card */}
-      <div className="bg-white border-b border-zinc-200 -mx-4 px-4 pb-6 mb-6">
+      <div className="bg-m3-surface-container-low border border-m3-outline-variant/30 rounded-3xl -mx-2 sm:mx-0 p-4 pb-6 mb-6 shadow-sm">
         {/* Top Navigation Row (Mimics Artist Header) */}
-        <div className="flex items-center justify-between py-2 border-b border-zinc-50 mb-6">
-          <Link href="/" className="p-2 -ml-2 text-zinc-400 hover:text-brand-dark transition-colors">
+        <div className="flex items-center justify-between py-2 border-b border-m3-outline-variant/20 mb-6">
+          <Link href="/" className="p-2 -ml-2 text-m3-outline hover:text-m3-on-surface transition-colors">
             <ArrowLeft size={18} />
           </Link>
 
           <div className="flex flex-col items-center">
-            <span className="text-[10px] font-black text-brand-accent uppercase tracking-widest leading-none">Contributor</span>
+            <span className="text-[10px] font-black text-m3-primary uppercase tracking-widest leading-none">Contributor</span>
             {uploads && (
-              <span className="text-[9px] font-bold text-zinc-400 bg-zinc-100 px-1.5 py-0.5 rounded-full mt-1">
+              <span className="text-[9px] font-bold text-m3-on-surface-variant bg-m3-surface-container px-2 py-0.5 rounded-full mt-1 border border-m3-outline-variant/30">
                 {uploads.length} {uploads.length === 1 ? 'Ring' : 'Rings'}
               </span>
             )}
@@ -118,13 +118,13 @@ export default async function UserProfilePage({
           {/* Identity & Socials */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <h1 className="text-xl font-black text-black leading-tight truncate tracking-tight">
+              <h1 className="text-xl font-display font-black text-m3-on-surface leading-tight truncate tracking-tight">
                 {profile.full_name || 'Anonymous User'}
               </h1>
               <div className="bg-blue-500 rounded-full p-0.5 shrink-0 shadow-sm">
                 <Music size={10} className="text-white fill-white" />
               </div>
-              <button className="ml-auto p-2 bg-white border border-rose-100 rounded-full text-rose-500 shadow-sm hover:scale-110 transition-transform">
+              <button className="ml-auto p-2 bg-m3-surface-container border border-m3-outline-variant/30 rounded-full text-rose-500 shadow-sm hover:scale-110 transition-transform">
                 <Heart size={16} fill="currentColor" className="opacity-80" />
               </button>
             </div>
@@ -136,7 +136,7 @@ export default async function UserProfilePage({
                   href={`https://instagram.com/${profile.instagram_handle.replace('@', '')}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-[11px] font-bold text-zinc-400 hover:text-pink-500 flex items-center gap-1 transition-colors"
+                  className="text-[11px] font-bold text-m3-outline hover:text-pink-500 flex items-center gap-1 transition-colors"
                 >
                   <Instagram size={12} />
                   <span>@{profile.instagram_handle.replace('@', '')}</span>
@@ -147,7 +147,7 @@ export default async function UserProfilePage({
                   href={`https://twitter.com/${profile.twitter_handle.replace('@', '')}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-[11px] font-bold text-zinc-400 hover:text-blue-500 flex items-center gap-1 transition-colors"
+                  className="text-[11px] font-bold text-m3-outline hover:text-blue-500 flex items-center gap-1 transition-colors"
                 >
                   <Twitter size={12} />
                   <span>@{profile.twitter_handle.replace('@', '')}</span>
@@ -160,7 +160,7 @@ export default async function UserProfilePage({
         {/* Bio Section */}
         {profile.bio && (
           <div className="mt-4 px-2">
-            <p className="text-zinc-500 text-xs leading-relaxed max-w-sm">
+            <p className="text-m3-on-surface-variant text-xs leading-relaxed max-w-sm">
               {profile.bio}
             </p>
           </div>
@@ -179,12 +179,12 @@ export default async function UserProfilePage({
 
                 const getBadgeColor = (name: string) => {
                   switch (name) {
-                    case 'crown': return 'bg-amber-50 text-amber-800 border-amber-100';
-                    case 'zap': return 'bg-yellow-50 text-yellow-800 border-yellow-100';
-                    case 'heart': return 'bg-rose-50 text-rose-600 border-rose-100';
-                    case 'scissors': return 'bg-cyan-50 text-cyan-600 border-cyan-100';
-                    case 'music': return 'bg-violet-50 text-violet-600 border-violet-100';
-                    default: return 'bg-emerald-50 text-emerald-600 border-emerald-100';
+                    case 'crown': return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20';
+                    case 'zap': return 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20';
+                    case 'heart': return 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20';
+                    case 'scissors': return 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border-cyan-500/20';
+                    case 'music': return 'bg-violet-500/10 text-violet-600 dark:text-violet-400 border-violet-500/20';
+                    default: return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20';
                   }
                 };
 
@@ -202,8 +202,8 @@ export default async function UserProfilePage({
 
       <div>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-brand-dark flex items-center gap-2">
-            <Music size={20} className="text-brand-accent" />
+          <h2 className="text-lg font-bold text-m3-on-surface flex items-center gap-2">
+            <Music size={20} className="text-m3-primary" />
             Uploaded Ringtones
           </h2>
           <SortControl />
@@ -216,8 +216,8 @@ export default async function UserProfilePage({
             ))}
           </div>
         ) : (
-          <div className="text-center py-12 border border-dashed border-brand-border rounded-2xl bg-brand-wash/30">
-            <p className="text-zinc-500 font-medium">No approved ringtones yet.</p>
+          <div className="text-center py-12 border border-dashed border-m3-outline-variant/40 rounded-2xl bg-m3-surface-container-low">
+            <p className="text-m3-on-surface-variant font-medium">No approved ringtones yet.</p>
           </div>
         )}
       </div>

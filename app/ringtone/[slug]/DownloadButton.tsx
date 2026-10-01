@@ -5,6 +5,7 @@ import { Download, CheckCircle2, Sparkles } from 'lucide-react';
 import { Ringtone } from '@/types';
 import { generateRingtoneFilename } from '@/lib/utils';
 import { hapticFeedback, hapticPatterns } from '@/lib/haptics';
+import { useToast } from '@/context/ToastContext';
 
 interface DownloadButtonProps {
     ringtone: Ringtone;
@@ -15,6 +16,7 @@ interface DownloadButtonProps {
 }
 
 export default function DownloadButton({ ringtone, onDownload, className = '', variant = 'default', downloadCount }: DownloadButtonProps) {
+    const { showToast } = useToast();
     const [isDownloading, setIsDownloading] = useState(false);
     const [showSuccess, setShowSuccess] = useState(false);
     const [isIOS, setIsIOS] = useState(false);
@@ -121,10 +123,12 @@ export default function DownloadButton({ ringtone, onDownload, className = '', v
 
             hapticFeedback(hapticPatterns.success);
             setShowSuccess(true);
+            showToast('Ringtone saved! 🎵', 'success');
             setTimeout(() => setShowSuccess(false), 5000);
 
         } catch (error) {
             console.error('Download failed', error);
+            showToast('Download failed. Please try again', 'error');
             setProgress(null);
         } finally {
             setIsDownloading(false);
@@ -158,43 +162,43 @@ export default function DownloadButton({ ringtone, onDownload, className = '', v
                 type="button"
                 onClick={handleSmartDownload}
                 disabled={isDownloading}
-                className={`group relative w-full overflow-hidden rounded-full font-bold transition-all duration-200 flex items-center justify-center gap-2 active:scale-98 cursor-pointer shadow-xs ${
+                className={`group relative w-full overflow-hidden rounded-full font-bold transition-all duration-200 flex items-center justify-center gap-2 active:scale-98 cursor-pointer ${
                     isThumb
                         ? 'h-10 sm:h-11 px-3 sm:px-4 text-xs sm:text-sm'
-                        : 'h-10 px-4 sm:px-5 text-xs sm:text-sm'
+                        : 'h-11 px-4 sm:px-5 text-sm sm:text-base'
                 } ${
                     showSuccess
-                        ? 'bg-m3-primary text-m3-on-primary border border-m3-primary'
+                        ? 'bg-emerald-600 text-white border border-emerald-600 shadow-md'
                         : isDownloading
-                            ? 'bg-m3-surface-container-high text-m3-on-surface-variant border border-m3-outline-variant/40 cursor-not-allowed'
-                            : 'bg-m3-surface-container-low hover:bg-m3-surface-container text-m3-primary border border-m3-primary'
+                            ? 'bg-m3-surface-container-high text-m3-on-surface border border-m3-outline-variant/60 cursor-not-allowed'
+                            : 'bg-m3-primary hover:bg-m3-primary/90 text-m3-on-primary shadow-md hover:shadow-lg active:scale-98'
                 }`}
                 aria-label={showSuccess ? 'Downloaded ringtone' : `Download Ringtone (${formatCount(displayDownloads)})`}
             >
                 {/* Progress bar fill — smooth transition */}
                 {isDownloading && (
                     <span
-                        className="absolute inset-y-0 left-0 bg-m3-primary/15 transition-all duration-300 ease-out"
+                        className="absolute inset-y-0 left-0 bg-m3-primary/20 transition-all duration-300 ease-out"
                         style={{ width: progress !== null ? `${progress}%` : '0%' }}
                     />
                 )}
 
                 {/* Indeterminate shimmer when progress is null */}
                 {isDownloading && progress === null && (
-                    <span className="absolute inset-0 bg-linear-to-r from-transparent via-m3-primary/15 to-transparent animate-[shimmer_1.2s_ease-in-out_infinite]" />
+                    <span className="absolute inset-0 bg-linear-to-r from-transparent via-m3-primary/20 to-transparent animate-[shimmer_1.2s_ease-in-out_infinite]" />
                 )}
 
                 {/* Button content */}
                 <span className="relative z-10 flex items-center justify-center gap-1.5 sm:gap-2">
                     {showSuccess ? (
                         <>
-                            <CheckCircle2 size={16} className="text-m3-on-primary animate-in zoom-in" />
+                            <CheckCircle2 size={18} className="text-white animate-in zoom-in" />
                             <span>Saved!</span>
                         </>
                     ) : isDownloading ? (
                         <>
                             <div className="w-4 h-4 border-2 border-m3-primary/30 border-t-m3-primary rounded-full animate-spin shrink-0" />
-                            <span className="tabular-nums text-xs sm:text-sm text-m3-primary font-semibold">
+                            <span className="tabular-nums text-xs sm:text-sm text-m3-on-surface font-semibold">
                                 {progress !== null
                                     ? `${progress}%`
                                     : elapsed > 1
@@ -204,10 +208,10 @@ export default function DownloadButton({ ringtone, onDownload, className = '', v
                         </>
                     ) : (
                         <>
-                            <Download size={16} className="transition-transform group-hover:-translate-y-0.5 text-m3-primary" />
-                            <span className="tracking-tight text-m3-primary font-semibold">Download</span>
+                            <Download size={18} className="transition-transform group-hover:-translate-y-0.5 text-m3-on-primary shrink-0" />
+                            <span className="tracking-tight text-m3-on-primary font-bold">Download</span>
                             {displayDownloads > 0 && (
-                                <span className="text-[11px] font-semibold tabular-nums px-2 py-0.5 rounded-full bg-m3-primary/10 text-m3-primary leading-none">
+                                <span className="text-xs font-bold tabular-nums px-2.5 py-0.5 rounded-full bg-black/15 dark:bg-white/20 text-m3-on-primary leading-none">
                                     {formatCount(displayDownloads)}
                                 </span>
                             )}

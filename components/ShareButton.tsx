@@ -4,6 +4,7 @@ import { Share2, Check } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { hapticFeedback, hapticPatterns } from '@/lib/haptics';
+import { useToast } from '@/context/ToastContext';
 
 interface ShareButtonProps {
     title: string;
@@ -15,6 +16,7 @@ interface ShareButtonProps {
 
 export default function ShareButton({ title, text, url, className = '', variant = 'default' }: ShareButtonProps) {
     const [copied, setCopied] = useState(false);
+    const { showToast } = useToast();
 
     const handleShare = async () => {
         const shareUrl = url || window.location.href;
@@ -44,10 +46,12 @@ export default function ShareButton({ title, text, url, className = '', variant 
         try {
             await navigator.clipboard.writeText(shareUrl);
             setCopied(true);
+            showToast('Link copied to clipboard! 📋', 'success');
             hapticFeedback(hapticPatterns.selection);
             setTimeout(() => setCopied(false), 2000);
         } catch (err) {
             console.error('Failed to copy', err);
+            showToast('Failed to copy link', 'error');
         }
     };
 

@@ -349,7 +349,7 @@ export default function NameRingtone() {
     return (
         <main className="pb-20">
             <div className="mb-2">
-                <Link href="/tools" className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-900 font-bold text-xs uppercase tracking-wider mb-4">
+                <Link href="/tools" className="inline-flex items-center gap-2 text-m3-on-surface-variant hover:text-m3-on-surface font-bold text-xs uppercase tracking-wider mb-4">
                     <ArrowLeft size={16} /> Back to Tools
                 </Link>
             </div>
@@ -358,17 +358,17 @@ export default function NameRingtone() {
                 <header className="mb-8 flex flex-col items-center">
                     <div className="flex items-center gap-2 mb-1">
                         <Sparkles className="text-rose-500" size={18} />
-                        <h1 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Name Ringtone</h1>
+                        <h1 className="text-xl font-black text-m3-on-surface uppercase tracking-tighter">Name Ringtone</h1>
                     </div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Custom Generator</p>
+                    <p className="text-[10px] font-bold text-m3-on-surface-variant uppercase tracking-widest">Custom Generator</p>
                 </header>
 
                 <div className="space-y-6">
                     {/* STEP 1: NAME & LANGUAGE */}
-                    <section className="bg-white rounded-4xl p-6 shadow-sm border border-slate-100 space-y-8">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6 border-b border-slate-50">
+                    <section className="bg-m3-surface-container-low rounded-4xl p-6 shadow-sm border border-m3-outline-variant/30 space-y-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6 border-b border-m3-outline-variant/20">
                             <div className="space-y-3">
-                                <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                                <h3 className="text-[11px] font-black text-m3-on-surface uppercase tracking-widest flex items-center gap-2">
                                     <div className="w-5 h-5 bg-rose-500 text-white rounded-md flex items-center justify-center text-[9px]">1</div>
                                     Choose Language
                                 </h3>
@@ -376,10 +376,10 @@ export default function NameRingtone() {
                                     <select
                                         value={lang}
                                         onChange={(e) => toggleLang(e.target.value)}
-                                        className="w-full h-14 pl-12 pr-10 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-black text-slate-900 appearance-none focus:outline-none focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 transition-all cursor-pointer group-hover:bg-white"
+                                        className="w-full h-14 pl-12 pr-10 bg-m3-surface-container border border-m3-outline-variant/30 rounded-2xl text-sm font-black text-m3-on-surface appearance-none focus:outline-none focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 transition-all cursor-pointer group-hover:bg-m3-surface-container-high"
                                     >
                                         {languages.map(l => (
-                                            <option key={l.id} value={l.id}>
+                                            <option key={l.id} value={l.id} className="bg-m3-surface text-m3-on-surface">
                                                 {l.name} {l.native ? `(${l.native}${l.glish ? ` / ${l.glish}` : ''})` : ''}
                                             </option>
                                         ))}
@@ -387,7 +387,7 @@ export default function NameRingtone() {
                                     <div className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center text-rose-500 pointer-events-none">
                                         <Type size={18} />
                                     </div>
-                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400 group-hover:text-rose-500 transition-colors">
+                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-m3-on-surface-variant group-hover:text-rose-500 transition-colors">
                                         <ChevronRight size={16} className="rotate-90" />
                                     </div>
                                 </div>
@@ -397,7 +397,7 @@ export default function NameRingtone() {
 
                         <div className="space-y-4">
                             <div className="flex items-center justify-between">
-                                <h3 className="text-[11px] font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                                <h3 className="text-[11px] font-black text-m3-on-surface uppercase tracking-widest flex items-center gap-2">
                                     <div className="w-5 h-5 bg-rose-500 text-white rounded-md flex items-center justify-center text-[9px]">2</div>
                                     Your Custom Message
                                 </h3>
@@ -411,7 +411,7 @@ export default function NameRingtone() {
                                             placeholder="Enter your name or custom call message..."
                                             value={customMessage}
                                             onChange={(e) => handleMessageChange(e.target.value)}
-                                            className="w-full px-6 py-4 bg-white border border-slate-200 rounded-4xl text-base font-bold text-slate-900 placeholder:text-slate-300 focus:outline-none focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 transition-all resize-none shadow-sm"
+                                            className="w-full px-6 py-4 bg-m3-surface-container border border-m3-outline-variant/30 rounded-4xl text-base font-bold text-m3-on-surface placeholder:text-m3-outline focus:outline-none focus:ring-4 focus:ring-rose-500/10 focus:border-rose-500 transition-all resize-none shadow-sm"
                                         />
                                         <div className="absolute right-4 bottom-4 flex items-center gap-2">
                                             {lang !== 'en' && customMessage.trim() && detectLanguage(customMessage) === 'en' && (
@@ -424,10 +424,10 @@ export default function NameRingtone() {
                                     </div>
                                 </div>
                                 <div className="w-full md:w-56 flex flex-col gap-2">
-                                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-2">Quick Templates</h3>
+                                    <h3 className="text-[10px] font-black text-m3-on-surface-variant uppercase tracking-widest px-2">Quick Templates</h3>
                                     <div className="flex md:flex-wrap overflow-x-auto md:overflow-x-visible pb-2 md:pb-0 gap-2 scrollbar-none">
                                         {(templates[lang as keyof typeof templates] || templates.en).map((msg, idx) => (
-                                            <button key={idx} onClick={() => setCustomMessage(msg.text)} className="whitespace-nowrap px-4 py-2 bg-white border border-slate-100 rounded-xl text-[10px] font-bold text-slate-600 hover:border-rose-500 hover:text-rose-500 transition-all shrink-0 text-center">
+                                            <button key={idx} onClick={() => setCustomMessage(msg.text)} className="whitespace-nowrap px-4 py-2 bg-m3-surface-container border border-m3-outline-variant/30 rounded-xl text-[10px] font-bold text-m3-on-surface-variant hover:border-rose-500 hover:text-rose-500 hover:bg-m3-surface-container-high transition-all shrink-0 text-center">
                                                 {msg.category}
                                             </button>
                                         ))}
@@ -478,26 +478,26 @@ export default function NameRingtone() {
                     </div>
 
                     {/* STEP 5: BACKGROUND MUSIC */}
-                    <section className="bg-white rounded-4xl p-6 shadow-sm border border-slate-100 space-y-4">
+                    <section className="bg-m3-surface-container-low rounded-4xl p-6 shadow-sm border border-m3-outline-variant/30 space-y-4">
                         <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 bg-indigo-50 text-indigo-500 rounded-lg flex items-center justify-center text-[10px] font-black">03</div>
-                            <h2 className="text-xs font-black text-slate-900 uppercase tracking-widest">Pick Your Mood</h2>
+                            <div className="w-6 h-6 bg-indigo-500/10 text-indigo-400 rounded-lg flex items-center justify-center text-[10px] font-black">03</div>
+                            <h2 className="text-xs font-black text-m3-on-surface uppercase tracking-widest">Pick Your Mood</h2>
                         </div>
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                             {backgroundTracks.map((track) => (
                                 <button
                                     key={track.id}
                                     onClick={() => setSelectedMusic(track)}
-                                    className={`relative group h-16 rounded-2xl border transition-all overflow-hidden flex flex-col items-center justify-center gap-1 ${selectedMusic.id === track.id ? 'border-slate-900 bg-white ring-2 ring-slate-900/5' : 'border-slate-100 bg-slate-50 hover:border-slate-200'}`}
+                                    className={`relative group h-16 rounded-2xl border transition-all overflow-hidden flex flex-col items-center justify-center gap-1 ${selectedMusic.id === track.id ? 'border-m3-primary bg-m3-surface-container-high ring-2 ring-m3-primary/10' : 'border-m3-outline-variant/30 bg-m3-surface-container hover:bg-m3-surface-container-high'}`}
                                 >
                                     <div className={`w-1.5 h-1.5 rounded-full ${track.color} mb-0.5`} />
-                                    <span className={`text-[10px] font-black uppercase tracking-tight ${selectedMusic.id === track.id ? 'text-slate-900' : 'text-slate-500'}`}>{track.name}</span>
-                                    {selectedMusic.id === track.id && <div className="absolute top-1 right-1"><CheckCircle2 size={10} className="text-slate-900" /></div>}
+                                    <span className={`text-[10px] font-black uppercase tracking-tight ${selectedMusic.id === track.id ? 'text-m3-on-surface' : 'text-m3-on-surface-variant'}`}>{track.name}</span>
+                                    {selectedMusic.id === track.id && <div className="absolute top-1 right-1"><CheckCircle2 size={10} className="text-m3-primary" /></div>}
                                 </button>
                             ))}
-                            <button onClick={() => setIsBgmModalOpen(true)} className="h-16 rounded-2xl border border-dashed border-slate-200 bg-slate-50 hover:border-indigo-500 transition-all flex flex-col items-center justify-center gap-1">
-                                <Search size={14} className="text-slate-400" />
-                                <span className="text-[10px] font-black uppercase tracking-tight text-slate-400 text-center leading-none">Choose from<br />Site Library</span>
+                            <button onClick={() => setIsBgmModalOpen(true)} className="h-16 rounded-2xl border border-dashed border-m3-outline-variant/40 bg-m3-surface-container hover:border-indigo-500 hover:bg-m3-surface-container-high transition-all flex flex-col items-center justify-center gap-1">
+                                <Search size={14} className="text-m3-on-surface-variant" />
+                                <span className="text-[10px] font-black uppercase tracking-tight text-m3-on-surface-variant text-center leading-none">Choose from<br />Site Library</span>
                             </button>
                         </div>
                     </section>
@@ -552,10 +552,10 @@ export default function NameRingtone() {
             </div>
 
             {/* INFO SECTION */}
-            <div className="mt-12 p-8 bg-slate-100/50 rounded-[3rem] border border-slate-200/50 text-center max-w-xl mx-auto">
-                <Music className="mx-auto text-slate-300 mb-4" size={32} />
-                <h3 className="text-sm font-black text-slate-900 mb-2 uppercase tracking-tight">Professional Quality</h3>
-                <p className="text-[11px] text-slate-500 font-medium leading-relaxed max-w-xs mx-auto">
+            <div className="mt-12 p-8 bg-m3-surface-container-low rounded-[3rem] border border-m3-outline-variant/30 text-center max-w-xl mx-auto">
+                <Music className="mx-auto text-m3-outline mb-4" size={32} />
+                <h3 className="text-sm font-black text-m3-on-surface mb-2 uppercase tracking-tight">Professional Quality</h3>
+                <p className="text-[11px] text-m3-on-surface-variant font-medium leading-relaxed max-w-xs mx-auto">
                     Combine ultra-realistic AI voices with high-fidelity studio background music. Perfect for personalized ringtones.
                 </p>
             </div>
@@ -564,26 +564,26 @@ export default function NameRingtone() {
             {
                 isBgmModalOpen && (
                     <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-300">
-                        <div className="w-full max-w-lg bg-white rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col max-h-[80vh]">
-                            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-                                <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest">Site Library</h2>
-                                <button onClick={() => setIsBgmModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors"><X size={20} className="text-slate-400" /></button>
+                        <div className="w-full max-w-lg bg-m3-surface-container rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col max-h-[80vh] border border-m3-outline-variant/30">
+                            <div className="p-6 border-b border-m3-outline-variant/20 flex items-center justify-between">
+                                <h2 className="text-sm font-black text-m3-on-surface uppercase tracking-widest">Site Library</h2>
+                                <button onClick={() => setIsBgmModalOpen(false)} className="p-2 hover:bg-m3-surface-container-high rounded-full transition-colors"><X size={20} className="text-m3-on-surface-variant" /></button>
                             </div>
-                            <div className="p-6 bg-slate-50 border-b border-slate-100">
+                            <div className="p-6 bg-m3-surface-container-low border-b border-m3-outline-variant/20">
                                 <div className="relative">
                                     <input
                                         type="text"
                                         placeholder="Search songs or movies..."
                                         value={bgmSearch}
                                         onChange={(e) => setBgmSearch(e.target.value)}
-                                        className="w-full h-12 pl-12 pr-6 bg-white border border-slate-200 rounded-2xl text-xs font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                                        className="w-full h-12 pl-12 pr-6 bg-m3-surface-container border border-m3-outline-variant/30 rounded-2xl text-xs font-bold text-m3-on-surface placeholder:text-m3-outline focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
                                     />
-                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-m3-on-surface-variant" size={18} />
                                 </div>
                             </div>
                             <div className="flex-1 overflow-y-auto p-4 space-y-2">
                                 {isLoadingLibrary ? (
-                                    <div className="flex flex-col items-center justify-center py-12 gap-3 text-slate-400">
+                                    <div className="flex flex-col items-center justify-center py-12 gap-3 text-m3-on-surface-variant">
                                         <Loader2 className="animate-spin" size={24} />
                                         <span className="text-[10px] font-bold uppercase tracking-widest">Accessing Vault...</span>
                                     </div>
@@ -596,21 +596,21 @@ export default function NameRingtone() {
                                                     setSelectedMusic({ id: r.id, name: r.title, file: r.audioUrl, color: 'bg-indigo-500', shadow: 'shadow-indigo-500/20', gradient: 'from-indigo-500 to-blue-600' });
                                                     setIsBgmModalOpen(false);
                                                 }}
-                                                className="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100 rounded-2xl border border-slate-100 transition-all text-left group"
+                                                className="flex items-center gap-3 p-3 bg-m3-surface-container-low hover:bg-m3-surface-container-high rounded-2xl border border-m3-outline-variant/20 transition-all text-left group"
                                             >
-                                                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform"><Music size={16} className="text-indigo-500" /></div>
+                                                <div className="w-10 h-10 bg-m3-surface-container-highest rounded-xl flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform"><Music size={16} className="text-indigo-500" /></div>
                                                 <div className="flex-1">
-                                                    <h4 className="text-[11px] font-black text-slate-900 leading-tight line-clamp-1">{r.title}</h4>
-                                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">{r.movieName || 'Single'}</p>
+                                                    <h4 className="text-[11px] font-black text-m3-on-surface leading-tight line-clamp-1">{r.title}</h4>
+                                                    <p className="text-[9px] font-bold text-m3-on-surface-variant uppercase tracking-tight">{r.movieName || 'Single'}</p>
                                                 </div>
-                                                <ChevronRight size={12} className="text-slate-300" />
+                                                <ChevronRight size={12} className="text-m3-outline" />
                                             </button>
                                         ))}
                                     </div>
                                 ) : (
                                     <div className="text-center py-8">
-                                        <Music className="mx-auto text-slate-200 mb-2" size={32} />
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">No matches found</p>
+                                        <Music className="mx-auto text-m3-outline mb-2" size={32} />
+                                        <p className="text-[10px] font-black text-m3-on-surface-variant uppercase tracking-widest">No matches found</p>
                                     </div>
                                 )}
                             </div>

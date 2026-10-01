@@ -98,7 +98,7 @@ export default function PullToRefresh({ children }: { children: React.ReactNode 
           transition: isRefreshing ? 'top 0.3s ease-out' : 'none'
         }}
       >
-        <div className="bg-white/90 backdrop-blur-md rounded-full p-2.5 shadow-xl border border-zinc-200 text-brand-blue ring-4 ring-brand-blue/5">
+        <div className="bg-m3-surface-container/90 backdrop-blur-md rounded-full p-2.5 shadow-xl border border-m3-outline-variant/30 text-m3-primary ring-4 ring-m3-primary/10">
           <RefreshCw 
             size={22} 
             className={`${isRefreshing ? 'animate-spin' : ''}`}

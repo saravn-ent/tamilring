@@ -120,87 +120,87 @@ export default function DMCAForm() {
             </div>
 
             {/* DMCA Form */}
-            <div className="bg-white border border-brand-border rounded-3xl p-6 md:p-8 space-y-6 shadow-sm">
+            <div className="bg-m3-surface-container-low border border-m3-outline-variant/30 rounded-3xl p-6 md:p-8 space-y-6 shadow-sm">
                 <div>
-                    <h2 className="text-2xl font-black text-brand-dark mb-1 tracking-tight">Submit Takedown Request</h2>
-                    <p className="text-zinc-500 text-sm font-medium">Fill out the details below to generate a formal DMCA notice.</p>
+                    <h2 className="text-2xl font-display font-black text-m3-on-surface mb-1 tracking-tight">Submit Takedown Request</h2>
+                    <p className="text-m3-on-surface-variant text-sm font-medium">Fill out the details below to generate a formal DMCA notice.</p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                        <label className="text-xs font-black text-zinc-500 uppercase tracking-wider ml-1">Full Name</label>
+                        <label className="text-xs font-black text-m3-on-surface-variant uppercase tracking-wider ml-1">Full Name</label>
                         <input
                             type="text"
                             name="name"
                             value={formData.name}
                             onChange={handleChange}
                             disabled={isSubmitting}
-                            className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:ring-2 focus:ring-brand-accent/20 focus:border-brand-accent outline-none transition-all placeholder:text-zinc-400 font-medium disabled:opacity-50"
+                            className="w-full bg-m3-surface-container border border-m3-outline-variant/40 rounded-xl px-4 py-3 text-m3-on-surface focus:ring-2 focus:ring-m3-primary/20 focus:border-m3-primary outline-none transition-all placeholder:text-m3-outline font-medium disabled:opacity-50"
                             placeholder="Copyright Owner or Agent Name"
                         />
                     </div>
                     <div className="space-y-2">
-                        <label className="text-xs font-black text-zinc-500 uppercase tracking-wider ml-1">Email Address</label>
+                        <label className="text-xs font-black text-m3-on-surface-variant uppercase tracking-wider ml-1">Email Address</label>
                         <input
                             type="email"
                             name="email"
                             value={formData.email}
                             onChange={handleChange}
                             disabled={isSubmitting}
-                            className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:ring-2 focus:ring-brand-accent/20 focus:border-brand-accent outline-none transition-all placeholder:text-zinc-400 font-medium disabled:opacity-50"
+                            className="w-full bg-m3-surface-container border border-m3-outline-variant/40 rounded-xl px-4 py-3 text-m3-on-surface focus:ring-2 focus:ring-m3-primary/20 focus:border-m3-primary outline-none transition-all placeholder:text-m3-outline font-medium disabled:opacity-50"
                             placeholder="Where can we contact you?"
                         />
                     </div>
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-xs font-black text-zinc-500 uppercase tracking-wider ml-1">Phone Number</label>
+                    <label className="text-xs font-black text-m3-on-surface-variant uppercase tracking-wider ml-1">Phone Number</label>
                     <input
                         type="tel"
                         name="phone"
                         value={formData.phone}
                         onChange={handleChange}
                         disabled={isSubmitting}
-                        className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:ring-2 focus:ring-brand-accent/20 focus:border-brand-accent outline-none transition-all placeholder:text-zinc-400 font-medium disabled:opacity-50"
+                        className="w-full bg-m3-surface-container border border-m3-outline-variant/40 rounded-xl px-4 py-3 text-m3-on-surface focus:ring-2 focus:ring-m3-primary/20 focus:border-m3-primary outline-none transition-all placeholder:text-m3-outline font-medium disabled:opacity-50"
                         placeholder="Contact number"
                     />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-xs font-black text-zinc-500 uppercase tracking-wider ml-1">Identify Copyrighted Work</label>
+                    <label className="text-xs font-black text-m3-on-surface-variant uppercase tracking-wider ml-1">Identify Copyrighted Work</label>
                     <textarea
                         name="workDescription"
                         value={formData.workDescription}
                         onChange={handleChange}
                         disabled={isSubmitting}
                         rows={3}
-                        className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:ring-2 focus:ring-brand-accent/20 focus:border-brand-accent outline-none transition-all placeholder:text-zinc-400 font-medium resize-none disabled:opacity-50"
+                        className="w-full bg-m3-surface-container border border-m3-outline-variant/40 rounded-xl px-4 py-3 text-m3-on-surface focus:ring-2 focus:ring-m3-primary/20 focus:border-m3-primary outline-none transition-all placeholder:text-m3-outline font-medium resize-none disabled:opacity-50"
                         placeholder="Describe the copyrighted work (e.g., 'Song Name by Artist Name' or link to original work)."
                     />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-xs font-black text-zinc-500 uppercase tracking-wider ml-1">Infringing Material URL(s)</label>
+                    <label className="text-xs font-black text-m3-on-surface-variant uppercase tracking-wider ml-1">Infringing Material URL(s)</label>
                     <textarea
                         name="infringingUrls"
                         value={formData.infringingUrls}
                         onChange={handleChange}
                         disabled={isSubmitting}
                         rows={4}
-                        className="w-full bg-brand-wash border border-brand-border rounded-xl px-4 py-3 text-brand-dark focus:ring-2 focus:ring-brand-accent/20 focus:border-brand-accent outline-none transition-all font-mono text-xs placeholder:text-zinc-400 disabled:opacity-50"
+                        className="w-full bg-m3-surface-container border border-m3-outline-variant/40 rounded-xl px-4 py-3 text-m3-on-surface focus:ring-2 focus:ring-m3-primary/20 focus:border-m3-primary outline-none transition-all font-mono text-xs placeholder:text-m3-outline disabled:opacity-50"
                         placeholder="https://tamilring.in/ringtone/..."
                     />
-                    <p className="text-xs text-zinc-500 ml-1 font-medium">Please provide direct links to the content you want removed.</p>
+                    <p className="text-xs text-m3-outline ml-1 font-medium">Please provide direct links to the content you want removed.</p>
                 </div>
 
-                <div className="pt-6 border-t border-brand-border space-y-4">
+                <div className="pt-6 border-t border-m3-outline-variant/30 space-y-4">
                     {errorMessage && (
-                        <div className="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-medium border border-red-100 flex items-center gap-2">
+                        <div className="bg-red-500/10 text-red-600 dark:text-red-400 p-4 rounded-xl text-sm font-medium border border-red-500/20 flex items-center gap-2">
                             <span className="font-bold">Error:</span> {errorMessage}
                         </div>
                     )}
 
-                    <label className="flex items-start gap-3 cursor-pointer group bg-brand-wash/50 p-4 rounded-xl border border-transparent hover:border-brand-border transition-colors">
+                    <label className="flex items-start gap-3 cursor-pointer group bg-m3-surface-container p-4 rounded-xl border border-transparent hover:border-m3-outline-variant/30 transition-colors">
                         <div className="relative flex items-center pt-0.5">
                             <input
                                 type="checkbox"
@@ -210,15 +210,15 @@ export default function DMCAForm() {
                                 disabled={isSubmitting}
                                 className="peer sr-only"
                             />
-                            <div className="w-5 h-5 border-2 border-zinc-300 rounded-md bg-white peer-checked:bg-brand-accent peer-checked:border-brand-accent transition-colors"></div>
-                            <CircleCheckBig size={12} className="absolute inset-0 m-auto text-white opacity-0 peer-checked:opacity-100 pointer-events-none" />
+                            <div className="w-5 h-5 border-2 border-m3-outline rounded-md bg-m3-surface-container-high peer-checked:bg-m3-primary peer-checked:border-m3-primary transition-colors"></div>
+                            <CircleCheckBig size={12} className="absolute inset-0 m-auto text-m3-on-primary opacity-0 peer-checked:opacity-100 pointer-events-none" />
                         </div>
-                        <span className="text-sm text-zinc-600 font-medium group-hover:text-brand-dark transition-colors leading-snug">
+                        <span className="text-sm text-m3-on-surface-variant font-medium group-hover:text-m3-on-surface transition-colors leading-snug">
                             I have a good faith belief that the use of the material in the manner complained of is not authorized by the copyright owner, its agent, or the law.
                         </span>
                     </label>
 
-                    <label className="flex items-start gap-3 cursor-pointer group bg-brand-wash/50 p-4 rounded-xl border border-transparent hover:border-brand-border transition-colors">
+                    <label className="flex items-start gap-3 cursor-pointer group bg-m3-surface-container p-4 rounded-xl border border-transparent hover:border-m3-outline-variant/30 transition-colors">
                         <div className="relative flex items-center pt-0.5">
                             <input
                                 type="checkbox"
@@ -228,10 +228,10 @@ export default function DMCAForm() {
                                 disabled={isSubmitting}
                                 className="peer sr-only"
                             />
-                            <div className="w-5 h-5 border-2 border-zinc-300 rounded-md bg-white peer-checked:bg-brand-accent peer-checked:border-brand-accent transition-colors"></div>
-                            <CircleCheckBig size={12} className="absolute inset-0 m-auto text-white opacity-0 peer-checked:opacity-100 pointer-events-none" />
+                            <div className="w-5 h-5 border-2 border-m3-outline rounded-md bg-m3-surface-container-high peer-checked:bg-m3-primary peer-checked:border-m3-primary transition-colors"></div>
+                            <CircleCheckBig size={12} className="absolute inset-0 m-auto text-m3-on-primary opacity-0 peer-checked:opacity-100 pointer-events-none" />
                         </div>
-                        <span className="text-sm text-zinc-600 font-medium group-hover:text-brand-dark transition-colors leading-snug">
+                        <span className="text-sm text-m3-on-surface-variant font-medium group-hover:text-m3-on-surface transition-colors leading-snug">
                             The information in this notification is accurate, and under penalty of perjury, I am authorized to act on behalf of the owner of an exclusive right that is allegedly infringed.
                         </span>
                     </label>
@@ -242,16 +242,16 @@ export default function DMCAForm() {
                         type="button"
                         onClick={handleSubmit}
                         disabled={!isFormValid || isSubmitting}
-                        className={`w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg active:scale-[0.98] ${isFormValid && !isSubmitting
-                            ? 'bg-brand-dark text-white hover:bg-neutral-800 shadow-brand-dark/20'
-                            : 'bg-zinc-100 text-zinc-400 cursor-not-allowed shadow-none'
+                        className={`w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] cursor-pointer ${isFormValid && !isSubmitting
+                            ? 'bg-m3-primary text-m3-on-primary hover:bg-m3-primary/90'
+                            : 'bg-m3-surface-container-highest text-m3-outline cursor-not-allowed shadow-none'
                             }`}
                     >
                         {isSubmitting ? <Loader2 size={20} className="animate-spin" /> : <Shield size={20} />}
                         <span>{isSubmitting ? 'Submitting Report...' : 'Submit Takedown Notice'}</span>
                         {!isSubmitting && isFormValid && <ArrowRight size={18} />}
                     </button>
-                    <p className="text-center text-xs text-zinc-400 mt-3 font-medium">
+                    <p className="text-center text-xs text-m3-outline mt-3 font-medium">
                         By clicking submit, you agree to our Terms of Service and swear under penalty of perjury that the information provided is accurate.
                     </p>
                 </div>

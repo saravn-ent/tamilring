@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   /* =========================================================
      MATERIAL DESIGN 3 (M3) DESIGN SYSTEM TOKENS
@@ -82,6 +84,7 @@
 }
 
 :root {
+  color-scheme: light;
   --background: #FCF8FC;
   --foreground: #1E1A22;
 
@@ -129,6 +132,7 @@
 .dark,
 :root.dark,
 html.dark {
+  color-scheme: dark;
   --background: #15111D;
   --foreground: #E8E0EE;
 
@@ -231,6 +235,7 @@ html.dark {
     animation: shimmer 2s infinite linear;
   }
 
+  .dark &::after,
   [data-theme='dark'] &::after {
     background: linear-gradient(
       90deg,

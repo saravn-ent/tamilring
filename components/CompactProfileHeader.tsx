@@ -29,10 +29,10 @@ export default function CompactProfileHeader({
     ringCount
 }: CompactProfileHeaderProps) {
     return (
-        <div className="bg-white border-b border-zinc-200 transition-all duration-300">
+        <div className="bg-m3-surface-container-low border-b border-m3-outline-variant/30 text-m3-on-surface transition-all duration-300">
 
             {/* Top Navigation Bar - Role Centered */}
-            <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-100/50">
+            <div className="flex items-center justify-between px-3 py-2 border-b border-m3-outline-variant/20">
                 <BackButton
                     variant="minimal"
                     fallbackHref="/"
@@ -40,9 +40,9 @@ export default function CompactProfileHeader({
                 />
 
                 <div className="flex flex-col items-center">
-                    <span className="text-[10px] font-black text-brand-accent uppercase tracking-widest">{type}</span>
+                    <span className="text-[10px] font-extrabold text-m3-primary uppercase tracking-widest">{type}</span>
                     {ringCount !== undefined && (
-                        <span className="text-[9px] font-bold text-zinc-400 bg-zinc-100 px-1.5 py-0.5 rounded-full mt-0.5">
+                        <span className="text-[9px] font-semibold text-m3-outline bg-m3-surface-container-high px-2 py-0.5 rounded-full mt-0.5 tabular-nums">
                             {ringCount} {ringCount === 1 ? 'Ring' : 'Rings'}
                         </span>
                     )}
@@ -54,25 +54,25 @@ export default function CompactProfileHeader({
                             variant="icon"
                             title={shareMetadata.title}
                             text={shareMetadata.text}
-                            className="w-10 h-10 !p-0 bg-transparent hover:bg-brand-wash border-none text-zinc-400 hover:text-brand-dark rounded-full"
+                            className="w-9 h-9 !p-0 bg-transparent hover:bg-m3-surface-container border-none text-m3-outline hover:text-m3-on-surface rounded-full"
                         />
                     )}
                 </div>
             </div>
 
-            {/* Profile Content - Horizontal & Ultra Compact */}
-            <div className="px-5 py-4">
-                <div className="flex items-center gap-5">
-                    {/* Small Circular Avatar */}
+            {/* Profile Content - Horizontal & Space-Efficient */}
+            <div className="px-4 sm:px-6 py-3.5 sm:py-4">
+                <div className="flex items-center gap-4 sm:gap-5">
+                    {/* Circular Avatar */}
                     <div className="relative shrink-0">
-                        <div className="relative w-14 h-14 rounded-full border-2 border-white shadow-lg overflow-hidden bg-brand-wash ring-1 ring-brand-border">
+                        <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full border-2 border-m3-surface shadow-md overflow-hidden bg-m3-surface-container ring-1 ring-m3-outline-variant/40">
                             <ImageWithFallback
                                 src={imageUrl || undefined}
                                 alt={name}
                                 className="object-cover"
-                                fallbackClassName="bg-brand-wash text-zinc-300 flex items-center justify-center text-lg font-bold"
+                                fallbackClassName="bg-m3-surface-container text-m3-outline flex items-center justify-center text-lg font-bold"
                                 priority={true}
-                                sizes="56px"
+                                sizes="64px"
                             />
                         </div>
                         {type === 'Deity' ? (
@@ -84,11 +84,11 @@ export default function CompactProfileHeader({
 
                     {/* Information Cluster */}
                     <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                            <h1 className="text-xl font-black text-black leading-tight truncate tracking-tight">
+                        <div className="flex items-center gap-2">
+                            <h1 className="text-xl sm:text-2xl font-display font-extrabold text-m3-on-surface leading-tight truncate tracking-tight">
                                 {name}
                             </h1>
-                            <BadgeCheck size={16} className="text-blue-500 fill-blue-500/10 shrink-0" />
+                            <BadgeCheck size={18} className="text-blue-500 fill-blue-500/10 shrink-0" />
 
                             <FavoriteButton
                                 item={{
@@ -98,7 +98,7 @@ export default function CompactProfileHeader({
                                     imageUrl: imageUrl || undefined,
                                     href: type === 'Actor' ? `/actor/${encodeURIComponent(name)}` : `/artist/${encodeURIComponent(name)}`
                                 }}
-                                className="ml-1 w-7 h-7 !bg-white !text-red-500 border border-red-100 shadow-sm hover:scale-110"
+                                className="ml-1 w-8 h-8 bg-m3-surface-container border border-m3-outline-variant/40 shadow-xs hover:scale-105"
                             />
                         </div>
                     </div>

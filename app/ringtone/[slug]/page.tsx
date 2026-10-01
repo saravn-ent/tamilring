@@ -86,7 +86,7 @@ export default async function RingtonePage({ params }: Props) {
   const combinedSchema = combineSchemas(musicRecordingSchema, breadcrumbSchema);
 
   return (
-    <div className="max-w-md md:max-w-2xl lg:max-w-4xl mx-auto min-h-screen bg-background relative flex flex-col transition-colors duration-300">
+    <div className="max-w-md md:max-w-2xl lg:max-w-4xl mx-auto min-h-screen bg-background text-m3-on-surface relative flex flex-col transition-colors duration-300">
       {/* Backdrop */}
       <div className="absolute top-0 left-0 right-0 h-96 opacity-30 z-0">
         <TMDBImage
@@ -181,7 +181,7 @@ export default async function RingtonePage({ params }: Props) {
             <Link href={`/movie/${encodeURIComponent(ringtone.movie_name)}`} className="inline-flex items-center gap-1 text-m3-primary font-bold text-base hover:underline transition-colors">
               <span>{ringtone.movie_name}</span>
               {ringtone.movie_year && ringtone.movie_year.trim() !== '' ? (
-                <span className="text-m3-outline font-normal">({ringtone.movie_year})</span>
+                <span className="text-m3-on-surface-variant font-medium">({ringtone.movie_year})</span>
               ) : null}
               <ChevronRight size={16} className="text-m3-primary/70" />
             </Link>
@@ -191,44 +191,44 @@ export default async function RingtonePage({ params }: Props) {
                 <span key={idx} className="flex items-center">
                   <Link
                     href={`/artist/${encodeURIComponent(singer)}`}
-                    className="hover:underline hover:text-m3-primary transition-colors"
+                    className="hover:underline hover:text-m3-primary transition-colors text-m3-on-surface font-semibold"
                   >
                     {singer}
                   </Link>
-                  {idx < arr.length - 1 && <span className="mr-1">,</span>}
+                  {idx < arr.length - 1 && <span className="mr-1 text-m3-on-surface-variant">,</span>}
                 </span>
               ))}
             </div>
 
             {ringtone.music_director && (
-              <div className="text-m3-outline text-xs mt-1 flex flex-wrap justify-center gap-1">
-                <span>Music:</span>
+              <div className="text-m3-on-surface-variant text-xs mt-1 flex flex-wrap justify-center gap-1 font-medium">
+                <span className="text-m3-on-surface-variant">Music:</span>
                 {splitArtists(ringtone.music_director).map((md: string, idx: number, arr: string[]) => (
                   <span key={idx} className="flex items-center">
-                    <Link href={`/artist/${encodeURIComponent(md)}`} className="text-m3-on-surface-variant font-medium hover:text-m3-primary hover:underline transition-colors">{md}</Link>
-                    {idx < arr.length - 1 && <span className="mr-1">,</span>}
+                    <Link href={`/artist/${encodeURIComponent(md)}`} className="text-m3-on-surface font-semibold hover:text-m3-primary hover:underline transition-colors">{md}</Link>
+                    {idx < arr.length - 1 && <span className="mr-1 text-m3-on-surface-variant">,</span>}
                   </span>
                 ))}
               </div>
             )}
             {ringtone.movie_director && (
-              <div className="text-m3-outline text-xs mt-0.5 flex flex-wrap justify-center gap-1">
-                <span>Directed by:</span>
+              <div className="text-m3-on-surface-variant text-xs mt-0.5 flex flex-wrap justify-center gap-1 font-medium">
+                <span className="text-m3-on-surface-variant">Directed by:</span>
                 {splitArtists(ringtone.movie_director).map((dir: string, idx: number, arr: string[]) => (
                   <span key={idx} className="flex items-center">
-                    <Link href={`/artist/${encodeURIComponent(dir)}`} className="text-m3-on-surface-variant font-medium hover:text-m3-primary hover:underline transition-colors">{dir}</Link>
-                    {idx < arr.length - 1 && <span className="mr-1">,</span>}
+                    <Link href={`/artist/${encodeURIComponent(dir)}`} className="text-m3-on-surface font-semibold hover:text-m3-primary hover:underline transition-colors">{dir}</Link>
+                    {idx < arr.length - 1 && <span className="mr-1 text-m3-on-surface-variant">,</span>}
                   </span>
                 ))}
               </div>
             )}
             {ringtone.lyricist && (
-              <div className="text-m3-outline text-xs mt-0.5 flex flex-wrap justify-center gap-1">
-                <span>Lyrics:</span>
+              <div className="text-m3-on-surface-variant text-xs mt-0.5 flex flex-wrap justify-center gap-1 font-medium">
+                <span className="text-m3-on-surface-variant">Lyrics:</span>
                 {splitArtists(ringtone.lyricist).map((lyr: string, idx: number, arr: string[]) => (
                   <span key={idx} className="flex items-center">
-                    <Link href={`/artist/${encodeURIComponent(lyr)}`} className="text-m3-on-surface-variant font-medium hover:text-m3-primary hover:underline transition-colors">{lyr}</Link>
-                    {idx < arr.length - 1 && <span className="mr-1">,</span>}
+                    <Link href={`/artist/${encodeURIComponent(lyr)}`} className="text-m3-on-surface font-semibold hover:text-m3-primary hover:underline transition-colors">{lyr}</Link>
+                    {idx < arr.length - 1 && <span className="mr-1 text-m3-on-surface-variant">,</span>}
                   </span>
                 ))}
               </div>
@@ -244,7 +244,7 @@ export default async function RingtonePage({ params }: Props) {
                 <Link
                   key={tag}
                   href={`/search?q=${encodeURIComponent(tag)}`}
-                  className="px-3 py-1 rounded-full bg-m3-surface-container text-m3-outline border border-m3-outline-variant/40 text-[10px] font-medium hover:text-m3-primary hover:border-m3-primary transition-colors"
+                  className="px-3 py-1 rounded-full bg-m3-surface-container text-m3-on-surface-variant border border-m3-outline-variant/60 text-[11px] font-semibold hover:text-m3-primary hover:border-m3-primary transition-colors"
                 >
                   #{tag}
                 </Link>
@@ -252,8 +252,8 @@ export default async function RingtonePage({ params }: Props) {
             </div>
 
             {ringtone.cast_members && (
-              <div className="text-m3-outline text-[11px] mt-2 max-w-xs mx-auto">
-                Cast: {ringtone.cast_members}
+              <div className="text-m3-on-surface-variant text-xs mt-2 max-w-xs mx-auto font-medium">
+                Cast: <span className="text-m3-on-surface font-semibold">{ringtone.cast_members}</span>
               </div>
             )}
           </div>

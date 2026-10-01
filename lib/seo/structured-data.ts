@@ -30,7 +30,7 @@ export function generateOrganizationSchema() {
 }
 
 /**
- * WebSite schema with search action
+ * Base WebSite schema (SearchAction / Sitelinks Searchbox intentionally omitted)
  */
 export function generateWebSiteSchema() {
     return {
@@ -40,7 +40,6 @@ export function generateWebSiteSchema() {
         url: SITE_URL,
         description: 'Download the latest Tamil movie ringtones, BGM, and devotional songs. High-quality Tamil cinema audio for Android and iPhone.',
         inLanguage: ['en', 'ta'],
-        // Note: potentialAction (Sitelinks Searchbox) removed — deprecated by Google in late 2024
     };
 }
 
@@ -64,14 +63,20 @@ export function generateMusicRecordingSchema(ringtone: {
     const singers = ringtone.singers?.split(',').map(s => s.trim()) || [];
     const musicDirector = ringtone.music_director?.split(',').map(s => s.trim()) || [];
 
+    const singerList = ringtone.singers?.trim();
+    const mdList = ringtone.music_director?.trim();
+    const artistCredits = singerList
+        ? ` sung by ${singerList}${mdList ? `, Music by ${mdList}` : ''}`
+        : mdList ? ` Music by ${mdList}` : '';
+
     return {
         '@context': 'https://schema.org',
         '@type': 'MusicRecording',
         name: ringtone.title,
         url: `${SITE_URL}/ringtone/${ringtone.slug}`,
         description: ringtone.movie_name
-            ? `${ringtone.title} Tamil ringtone from ${ringtone.movie_name}. Free download for Android (MP3) and iPhone (M4R).`
-            : `${ringtone.title} Tamil ringtone. Free download for Android and iPhone.`,
+            ? `${ringtone.title} Tamil ringtone from ${ringtone.movie_name}${artistCredits}. Free download for Android (MP3) and iPhone (M4R).`
+            : `${ringtone.title} Tamil ringtone${artistCredits}. Free download for Android and iPhone.`,
         image: ringtone.artwork_url,
         duration: ringtone.duration ? `PT${ringtone.duration}S` : undefined,
         datePublished: ringtone.created_at,
@@ -98,7 +103,9 @@ export function generateMusicRecordingSchema(ringtone: {
             encodingFormat: 'audio/mpeg',
             duration: ringtone.duration ? `PT${ringtone.duration}S` : undefined,
             name: `${ringtone.title} Ringtone`,
-            description: `Free Tamil ringtone download — MP3 for Android, M4R for iPhone`,
+            description: ringtone.movie_name
+                ? `${ringtone.title} Tamil audio ringtone from ${ringtone.movie_name}${artistCredits}. Free MP3 & M4R audio cut.`
+                : `${ringtone.title} Tamil audio ringtone${artistCredits}. Free MP3 & M4R audio cut.`,
         } : undefined,
         interactionStatistic: [
             {
@@ -135,11 +142,13 @@ export function generateMovieSchema(movie: {
     year?: string;
     director?: string;
     music_director?: string;
+    cast?: string;
     description?: string;
-    ringtones?: Array<{ title: string; slug: string }>;
+    ringtones?: Array<{ title: string; slug: string; artwork_url?: string }>;
 }) {
-    const directors = movie.director?.split(',').map(d => d.trim()) || [];
-    const musicDirectors = movie.music_director?.split(',').map(md => md.trim()) || [];
+    const directors = movie.director?.split(',').map(d => d.trim()).filter(Boolean) || [];
+    const musicDirectors = movie.music_director?.split(',').map(md => md.trim()).filter(Boolean) || [];
+    const actors = movie.cast?.split(',').map(a => a.trim()).filter(Boolean) || [];
 
     return {
         '@context': 'https://schema.org',
@@ -160,10 +169,18 @@ export function generateMovieSchema(movie: {
             name: md,
             url: `${SITE_URL}/artist/${encodeURIComponent(md)}`,
         })),
+        ...(actors.length > 0 ? {
+            actor: actors.map(actor => ({
+                '@type': 'Person',
+                name: actor,
+                url: `${SITE_URL}/actor/${encodeURIComponent(actor)}`,
+            })),
+        } : {}),
         track: movie.ringtones?.map(ringtone => ({
             '@type': 'MusicRecording',
             name: ringtone.title,
             url: `${SITE_URL}/ringtone/${ringtone.slug}`,
+            image: ringtone.artwork_url || movie.poster_url,
         })),
     };
 }
@@ -176,17 +193,19 @@ export function generateMusicAlbumSchema(album: {
     poster_url?: string;
     year?: string;
     music_director?: string;
-    ringtones?: Array<{ title: string; slug: string; duration?: number }>;
+    ringtones?: Array<{ title: string; slug: string; duration?: number; artwork_url?: string }>;
 }) {
-    const musicDirectors = album.music_director?.split(',').map(md => md.trim()) || [];
+    const musicDirectors = album.music_director?.split(',').map(md => md.trim()).filter(Boolean) || [];
     return {
         '@context': 'https://schema.org',
         '@type': 'MusicAlbum',
-        name: album.name,
+        name: `${album.name} (Original Soundtrack)`,
         url: `${SITE_URL}/movie/${encodeURIComponent(album.name)}`,
         image: album.poster_url,
+        description: `Download ${album.name} Tamil movie songs and ringtones album${album.music_director ? ` composed by ${album.music_director}` : ''}. High-quality audio for Android and iPhone.`,
         datePublished: album.year,
         inLanguage: 'ta', // Tamil
+        numTracks: album.ringtones?.length || 0,
         byArtist: musicDirectors.map(md => ({
             '@type': 'Person',
             name: md,
@@ -196,6 +215,7 @@ export function generateMusicAlbumSchema(album: {
             '@type': 'MusicRecording',
             name: r.title,
             url: `${SITE_URL}/ringtone/${r.slug}`,
+            image: r.artwork_url || album.poster_url,
             duration: r.duration ? `PT${r.duration}S` : undefined,
         })),
     };
@@ -209,6 +229,7 @@ export function generatePersonSchema(artist: {
     image_url?: string;
     role?: 'singer' | 'music_director' | 'movie_director' | 'actor' | 'lyricist';
     description?: string;
+    url?: string;
 }) {
     const jobTitle = artist.role === 'singer'
         ? 'Playback Singer'
@@ -220,11 +241,15 @@ export function generatePersonSchema(artist: {
                     ? 'Actor'
                     : 'Lyricist';
 
+    const personUrl = artist.url
+        ? (artist.url.startsWith('http') ? artist.url : `${SITE_URL}${artist.url}`)
+        : `${SITE_URL}/artist/${encodeURIComponent(artist.name)}`;
+
     return {
         '@context': 'https://schema.org',
         '@type': 'Person',
         name: artist.name,
-        url: `${SITE_URL}/artist/${encodeURIComponent(artist.name)}`,
+        url: personUrl,
         image: artist.image_url,
         description: artist.description || `Tamil ${jobTitle}`,
         jobTitle,
@@ -277,6 +302,108 @@ export function generateItemListSchema(data: {
                 name: item.title,
                 url: `${SITE_URL}/ringtone/${item.slug}`,
                 image: item.artwork_url,
+            },
+        })),
+    };
+}
+
+/**
+ * ItemList schema for movies (e.g. Now In Theaters, Latest Releases)
+ */
+export function generateMovieItemListSchema(data: {
+    name: string;
+    description?: string;
+    items: Array<{
+        name: string;
+        year?: string;
+        poster_url?: string;
+    }>;
+}) {
+    return {
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        name: data.name,
+        description: data.description,
+        numberOfItems: data.items.length,
+        itemListElement: data.items.map((item, index) => ({
+            '@type': 'ListItem',
+            position: index + 1,
+            item: {
+                '@type': 'Movie',
+                name: item.name,
+                url: `${SITE_URL}/movie/${encodeURIComponent(item.name)}`,
+                image: item.poster_url,
+                datePublished: item.year,
+                inLanguage: 'ta',
+            },
+        })),
+    };
+}
+
+/**
+ * ItemList schema for artists/composers (e.g. Hall of Maestros, Top Singers)
+ */
+export function generateArtistItemListSchema(data: {
+    name: string;
+    description?: string;
+    items: Array<{
+        name: string;
+        image?: string;
+        role?: string;
+    }>;
+}) {
+    return {
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        name: data.name,
+        description: data.description,
+        numberOfItems: data.items.length,
+        itemListElement: data.items.map((item, index) => ({
+            '@type': 'ListItem',
+            position: index + 1,
+            item: {
+                '@type': 'Person',
+                name: item.name,
+                url: `${SITE_URL}/artist/${encodeURIComponent(item.name)}`,
+                image: item.image,
+                jobTitle: item.role || 'Music Director',
+                worksFor: {
+                    '@type': 'Organization',
+                    name: 'Tamil Film Industry',
+                },
+            },
+        })),
+    };
+}
+
+/**
+ * ItemList schema for collections/hubs (e.g. Deities, Mood Stations, Eras)
+ */
+export function generateCollectionItemListSchema(data: {
+    name: string;
+    description?: string;
+    items: Array<{
+        name: string;
+        description?: string;
+        url: string;
+        image?: string;
+    }>;
+}) {
+    return {
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        name: data.name,
+        description: data.description,
+        numberOfItems: data.items.length,
+        itemListElement: data.items.map((item, index) => ({
+            '@type': 'ListItem',
+            position: index + 1,
+            item: {
+                '@type': 'CollectionPage',
+                name: item.name,
+                description: item.description,
+                url: item.url.startsWith('http') ? item.url : `${SITE_URL}${item.url}`,
+                image: item.image,
             },
         })),
     };

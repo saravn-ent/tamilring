@@ -18,7 +18,7 @@ export default function AdminShell({ children, user }: AdminShellProps) {
     // usage of pathname in sidebar might handle active state, but shell handles visibility
 
     return (
-        <div className="min-h-screen bg-slate-50 flex">
+        <div className="min-h-screen bg-m3-surface text-m3-on-surface flex">
             {/* Sidebar */}
             <AdminSidebar
                 mobileOpen={sidebarOpen}

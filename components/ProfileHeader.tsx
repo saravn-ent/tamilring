@@ -41,48 +41,48 @@ export default function ProfileHeader({ name, type, imageUrl }: ProfileHeaderPro
     : `/artist/${encodeURIComponent(name)}`;
 
   return (
-    <div className="relative bg-white border-b border-brand-gray/50 pb-6 transition-colors duration-300">
+    <div className="relative bg-m3-surface-container-low border-b border-m3-outline-variant/30 pb-6 transition-colors duration-300">
       {/* Back Button */}
-      <Link href="/" className="absolute top-4 left-4 z-10 p-2 bg-white/50 backdrop-blur-md rounded-full text-zinc-600 hover:bg-white/80 border border-brand-gray/50 transition-colors shadow-sm">
-        <ArrowLeft size={20} />
+      <Link href="/" className="absolute top-4 left-4 z-10 p-2 bg-m3-surface/80 backdrop-blur-md rounded-full text-m3-on-surface hover:bg-m3-surface border border-m3-outline-variant/40 transition-colors shadow-xs">
+        <ArrowLeft size={18} />
       </Link>
 
       {/* Favorite Button */}
       <div className="absolute top-4 right-4 z-10">
         <FavoriteButton
           item={{ id: name, name, type, imageUrl, href }}
-          className="w-10 h-10 bg-white/50 backdrop-blur-md hover:bg-white/80 border border-brand-gray/50 text-zinc-600 shadow-sm"
+          className="w-9 h-9 bg-m3-surface/80 backdrop-blur-md hover:bg-m3-surface border border-m3-outline-variant/40 text-m3-on-surface shadow-xs"
         />
       </div>
 
-      {/* Banner / Background */}
-      <div className="h-32 w-full bg-linear-to-b from-brand-wash to-white" />
+      {/* Banner / Gradient Wash */}
+      <div className="h-32 w-full bg-linear-to-b from-m3-primary/15 via-m3-surface-container to-m3-surface-container-low" />
 
       <div className="px-6 -mt-12 flex flex-col items-center">
         {/* Avatar */}
-        <div className="relative w-28 h-28 rounded-full border-4 border-white shadow-xl shadow-brand-dark/5 overflow-hidden mb-4 bg-white">
+        <div className="relative w-28 h-28 rounded-full border-4 border-m3-surface shadow-xl overflow-hidden mb-4 bg-m3-surface-container">
           <ImageWithFallback
             src={imageUrl}
             alt={name}
             className="object-cover"
-            fallbackClassName="bg-brand-wash text-zinc-400"
+            fallbackClassName="bg-m3-surface-container text-m3-outline"
           />
         </div>
 
         {/* Info Card with Glassmorphism */}
-        <div className="w-full max-w-xs bg-white/80 backdrop-blur-md border border-brand-gray rounded-2xl p-4 mb-6 flex flex-col items-center shadow-lg shadow-brand-dark/5">
-          <h1 className="text-2xl font-bold text-black text-center mb-1 drop-shadow-sm">{name}</h1>
-          <p className="text-zinc-500 text-xs uppercase tracking-wider font-bold mb-3">{type}</p>
+        <div className="w-full max-w-xs bg-m3-surface-container/90 backdrop-blur-md border border-m3-outline-variant/40 rounded-2xl p-4 mb-5 flex flex-col items-center shadow-md">
+          <h1 className="text-2xl font-display font-extrabold text-m3-on-surface text-center mb-1">{name}</h1>
+          <p className="text-m3-primary text-xs uppercase tracking-wider font-bold mb-2">{type}</p>
         </div>
 
         {/* Join Fan Club Button */}
         <RippleWrapper
           onClick={handleJoinFanClub}
           className={`
-            relative w-full max-w-xs py-3 rounded-xl font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer
+            relative w-full max-w-xs py-3 rounded-full font-bold text-sm transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-xs active:scale-95
             ${isFan
-              ? 'bg-linear-to-r from-amber-400 to-orange-500 text-black shadow-lg shadow-orange-500/20 scale-[1.02]'
-              : 'bg-white border border-brand-accent text-brand-accent hover:bg-brand-accent/5 shadow-sm'
+              ? 'bg-linear-to-r from-amber-500 to-orange-500 text-white shadow-md shadow-orange-500/20 scale-[1.02]'
+              : 'bg-m3-primary text-m3-on-primary hover:bg-m3-primary/90'
             }
           `}
         >
@@ -93,6 +93,7 @@ export default function ProfileHeader({ name, type, imageUrl }: ProfileHeaderPro
             </>
           ) : (
             <>
+              <Flame size={18} />
               <span>Join Fan Club</span>
             </>
           )}

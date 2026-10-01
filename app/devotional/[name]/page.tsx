@@ -87,7 +87,7 @@ export default async function DeityPage({
     // Fetch top ringtones for ItemList schema (Carousel rich results)
     const { data: topRingtones } = await supabase
         .from('ringtones')
-        .select('title, slug')
+        .select('title, slug, poster_url')
         .eq('status', 'approved')
         .contains('tags', ['Devotional'])
         .eq('movie_name', deityName)
@@ -111,7 +111,11 @@ export default async function DeityPage({
     const itemListSchema = topRingtones?.length ? generateItemListSchema({
         name: `${deityName} Ringtones`,
         description: `Download Tamil devotional ringtones dedicated to ${deityName}.`,
-        items: topRingtones.map(r => ({ title: r.title, slug: r.slug })),
+        items: topRingtones.map(r => ({
+            title: r.title,
+            slug: r.slug,
+            artwork_url: r.poster_url || imageUrl || undefined,
+        })),
     }) : null;
 
     const combinedSchema = itemListSchema
@@ -133,8 +137,8 @@ export default async function DeityPage({
                 ringCount={ringCount}
             />
 
-            {/* Sticky Controls Bar - Minimal, no View Toggle as it's not needed for Deities usually */}
-            <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-brand-border px-4 py-3 shadow-md flex items-center justify-end gap-2">
+            {/* Sticky Controls Bar - Minimal */}
+            <div className="sticky top-0 z-30 bg-m3-surface/90 backdrop-blur-md border-b border-m3-outline-variant/30 px-4 py-2.5 shadow-xs flex items-center justify-end gap-2">
                 <SortControl />
             </div>
 
