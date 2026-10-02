@@ -106,3 +106,13 @@ export interface DmcaRequest {
   admin_notes?: string;
   created_at: string;
 }
+
+export interface SuggestionItem {
+  id: string;
+  type: 'ringtone' | 'movie' | 'artist' | 'actor';
+  title: string;
+  subtitle: string;
+  url: string;
+  poster_url?: string;
+  ringtone?: Ringtone;
+}

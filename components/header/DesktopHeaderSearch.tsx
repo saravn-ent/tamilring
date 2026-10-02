@@ -17,7 +17,7 @@ import {
     TrendingUp,
 } from 'lucide-react';
 import Link from 'next/link';
-import { SuggestionItem } from '@/lib/searchEngine';
+import type { SuggestionItem } from '@/types';
 import { usePlayer } from '@/context/PlayerContext';
 import { hapticFeedback, hapticPatterns } from '@/lib/haptics';
 import { getImageUrl } from '@/lib/tmdb';

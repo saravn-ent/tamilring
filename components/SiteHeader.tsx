@@ -5,7 +5,6 @@ import { useMounted } from '@/lib/hooks/use-mounted';
 import { useRouter, usePathname } from 'next/navigation';
 import { Sparkles, Loader2, Sun, Moon } from 'lucide-react';
 import { useTheme } from 'next-themes';
-import { supabase } from '@/lib/supabaseClient';
 import Link from 'next/link';
 import { hapticFeedback, hapticPatterns } from '@/lib/haptics';
 
@@ -59,6 +58,7 @@ export default function SiteHeader() {
       setLoading(true);
       hapticFeedback(hapticPatterns.selection);
 
+      const { supabase } = await import('@/lib/supabaseClient');
       const { count } = await supabase
         .from('ringtones')
         .select('*', { count: 'exact', head: true })

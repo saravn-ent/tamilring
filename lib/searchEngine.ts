@@ -1,6 +1,8 @@
 import { supabase } from '@/lib/supabaseClient';
-import { Ringtone } from '@/types';
+import { Ringtone, SuggestionItem } from '@/types';
 import { ERAS, INSTRUMENTS, MOODS } from '@/lib/constants';
+
+export type { SuggestionItem };
 
 export interface SearchMovie {
     movie_name: string;
@@ -35,15 +37,6 @@ export interface SearchResults {
     matchedMood?: string;
 }
 
-export interface SuggestionItem {
-    id: string;
-    type: 'ringtone' | 'movie' | 'artist' | 'actor';
-    title: string;
-    subtitle: string;
-    url: string;
-    poster_url?: string;
-    ringtone?: Ringtone;
-}
 
 // Kollywood & Tamil Music aliases to dramatically improve discovery
 export const TAMIL_SEARCH_ALIASES: Record<string, string[]> = {
