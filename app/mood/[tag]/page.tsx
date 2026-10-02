@@ -52,14 +52,14 @@ export default async function MoodPage({
     .from('ringtones')
     .select('*', { count: 'exact', head: true })
     .eq('status', 'approved')
-    .eq('mood', tag);
+    .contains('tags', [tag]);
 
   // Fetch top ringtones for ItemList schema (Carousel rich results)
   const { data: topRingtones } = await supabase
     .from('ringtones')
     .select('title, slug, poster_url')
     .eq('status', 'approved')
-    .eq('mood', tag)
+    .contains('tags', [tag])
     .order('downloads', { ascending: false })
     .limit(10);
 

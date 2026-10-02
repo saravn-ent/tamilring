@@ -11,13 +11,7 @@ const SITE_URL = `https://${HOST}`;
 
 // Load env vars
 if (fs.existsSync('.env.local')) {
-  const envConfig = fs.readFileSync('.env.local', 'utf8');
-  envConfig.split('\n').forEach((line) => {
-    const [key, value] = line.split('=');
-    if (key && value && !process.env[key]) {
-      process.env[key.trim()] = value.trim();
-    }
-  });
+  require('dotenv').config({ path: '.env.local' });
 }
 
 async function main() {

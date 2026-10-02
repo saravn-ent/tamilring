@@ -34,7 +34,7 @@ export default function TrendingList({ trending }: TrendingListProps) {
                                     key={ringtone.id}
                                     ringtone={ringtone}
                                     rank={rank}
-                                    priority={rank <= 3}
+                                    priority={false}
                                 />
                             );
                         })}

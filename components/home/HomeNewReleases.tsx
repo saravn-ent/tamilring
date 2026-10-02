@@ -12,6 +12,7 @@ export interface NewRelease {
     movie_year: string;
     ringtone_count: number;
     music_director?: string | null;
+    movie_director?: string | null;
 }
 
 const getNewReleases = unstable_cache(
@@ -19,7 +20,7 @@ const getNewReleases = unstable_cache(
         // Fetch current and recent theatrical releases (2024+) with approved posters
         let query = supabase
             .from('ringtones')
-            .select('movie_name, poster_url, movie_year, music_director, created_at, likes, downloads')
+            .select('movie_name, poster_url, movie_year, music_director, movie_director, created_at, likes, downloads')
             .eq('status', 'approved')
             .not('poster_url', 'is', null)
             .neq('poster_url', '');
@@ -43,7 +44,7 @@ const getNewReleases = unstable_cache(
         if (dataToProcess.length < 6) {
             let fallbackQuery = supabase
                 .from('ringtones')
-                .select('movie_name, poster_url, movie_year, music_director, created_at, likes, downloads')
+                .select('movie_name, poster_url, movie_year, music_director, movie_director, created_at, likes, downloads')
                 .eq('status', 'approved')
                 .not('poster_url', 'is', null)
                 .neq('poster_url', '');
@@ -63,7 +64,7 @@ const getNewReleases = unstable_cache(
 
         if (dataToProcess.length === 0) return [];
 
-        // Group by movie_name → pick the highest quality poster, composer, and aggregate engagement
+        // Group by movie_name → pick the highest quality poster, composer, director, and aggregate engagement
         const movieMap = new Map<string, NewRelease & { score: number }>();
 
         for (const r of dataToProcess) {
@@ -79,6 +80,9 @@ const getNewReleases = unstable_cache(
                 if (!item.music_director && r.music_director) {
                     item.music_director = r.music_director;
                 }
+                if (!item.movie_director && r.movie_director) {
+                    item.movie_director = r.movie_director;
+                }
                 // Prefer high-res tmdb poster if available
                 if (!item.poster_url.includes('tmdb.org') && r.poster_url.includes('tmdb.org')) {
                     item.poster_url = r.poster_url;
@@ -89,6 +93,7 @@ const getNewReleases = unstable_cache(
                     poster_url: r.poster_url,
                     movie_year: r.movie_year || '',
                     music_director: r.music_director || null,
+                    movie_director: r.movie_director || null,
                     ringtone_count: 1,
                     score: 20 + likes * 5 + downloads,
                 });
@@ -106,15 +111,16 @@ const getNewReleases = unstable_cache(
         });
 
         // Return top 10 unique theatrical movies
-        return sorted.slice(0, 10).map(({ movie_name, poster_url, movie_year, ringtone_count, music_director }) => ({
+        return sorted.slice(0, 10).map(({ movie_name, poster_url, movie_year, ringtone_count, music_director, movie_director }) => ({
             movie_name,
             poster_url,
             movie_year,
             ringtone_count,
             music_director,
+            movie_director,
         }));
     },
-    ['new-theatrical-releases-v3'],
+    ['new-theatrical-releases-v4'],
     { revalidate: 3600, tags: ['new-releases', 'theaters', 'recent'] }
 );
 
@@ -130,6 +136,8 @@ export default async function HomeNewReleases({ lang }: { lang: string }) {
             name: r.movie_name,
             year: r.movie_year,
             poster_url: r.poster_url,
+            director: r.movie_director || undefined,
+            music_director: r.music_director || undefined,
         })),
     });
 

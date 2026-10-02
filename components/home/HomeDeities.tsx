@@ -162,6 +162,7 @@ export default async function HomeDeities({ lang }: { lang: string }) {
                     <Link
                         key={idx}
                         href={`/devotional/${encodeURIComponent(deity.name)}`}
+                        prefetch={false}
                         className="snap-start shrink-0 flex flex-col items-center gap-1.5 w-[72px] sm:w-20 group md:w-full"
                     >
                         <div className="relative w-16 h-16 sm:w-18 sm:h-18 rounded-full overflow-hidden shadow-2xs group-hover:shadow-md transition-all group-hover:scale-105 duration-300 border-2 border-m3-surface ring-2 ring-m3-outline-variant/40 group-hover:ring-m3-primary bg-m3-surface-container">
@@ -172,6 +173,8 @@ export default async function HomeDeities({ lang }: { lang: string }) {
                                     fill
                                     className="object-cover"
                                     sizes="72px"
+                                    loading="lazy"
+                                    fetchPriority="low"
                                 />
                             ) : (
                                 <div className="w-full h-full bg-m3-primary-container text-m3-on-primary-container flex items-center justify-center">
@@ -183,7 +186,7 @@ export default async function HomeDeities({ lang }: { lang: string }) {
                             <p className="text-[11px] font-bold text-m3-on-surface truncate w-full px-0.5 group-hover:text-m3-primary transition-colors">
                                 {deity.name}
                             </p>
-                            <span className="text-[9px] text-m3-outline font-medium block mt-0.2">
+                            <span className="text-[9px] text-m3-on-surface-variant font-medium block mt-0.2">
                                 {deity.count} Songs
                             </span>
                         </div>

@@ -15,7 +15,7 @@ export default function AudioTrustBadge() {
                         </div>
                         <div className="text-left min-w-0">
                             <p className="text-[11px] sm:text-xs font-bold text-m3-on-surface leading-tight truncate">iPhone Native</p>
-                            <p className="text-[9px] sm:text-[10px] text-m3-outline leading-tight truncate">Direct .m4r ringtones</p>
+                            <p className="text-[9px] sm:text-[10px] text-m3-on-surface-variant leading-tight truncate">Direct .m4r ringtones</p>
                         </div>
                     </div>
 
@@ -26,7 +26,7 @@ export default function AudioTrustBadge() {
                         </div>
                         <div className="text-left min-w-0">
                             <p className="text-[11px] sm:text-xs font-bold text-m3-on-surface leading-tight truncate">Android Ready</p>
-                            <p className="text-[9px] sm:text-[10px] text-m3-outline leading-tight truncate">1-tap .mp3 downloads</p>
+                            <p className="text-[9px] sm:text-[10px] text-m3-on-surface-variant leading-tight truncate">1-tap .mp3 downloads</p>
                         </div>
                     </div>
 
@@ -37,7 +37,7 @@ export default function AudioTrustBadge() {
                         </div>
                         <div className="text-left min-w-0">
                             <p className="text-[11px] sm:text-xs font-bold text-m3-on-surface leading-tight truncate">Studio Mastered</p>
-                            <p className="text-[9px] sm:text-[10px] text-m3-outline leading-tight truncate">Tuned for speakers</p>
+                            <p className="text-[9px] sm:text-[10px] text-m3-on-surface-variant leading-tight truncate">Tuned for speakers</p>
                         </div>
                     </div>
 
@@ -48,7 +48,7 @@ export default function AudioTrustBadge() {
                         </div>
                         <div className="text-left min-w-0">
                             <p className="text-[11px] sm:text-xs font-bold text-m3-on-surface leading-tight truncate">Zero Spam</p>
-                            <p className="text-[9px] sm:text-[10px] text-m3-outline leading-tight truncate">No redirects or ads</p>
+                            <p className="text-[9px] sm:text-[10px] text-m3-on-surface-variant leading-tight truncate">No redirects or ads</p>
                         </div>
                     </div>
                 </div>

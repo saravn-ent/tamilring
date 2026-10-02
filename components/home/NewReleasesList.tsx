@@ -11,6 +11,7 @@ export interface NewRelease {
     movie_year: string;
     ringtone_count: number;
     music_director?: string | null;
+    movie_director?: string | null;
 }
 
 interface NewReleasesListProps {
@@ -26,6 +27,7 @@ export default function NewReleasesList({ releases }: NewReleasesListProps) {
                 <Link
                     key={release.movie_name}
                     href={`/movie/${encodeURIComponent(release.movie_name)}`}
+                    prefetch={false}
                     className="snap-start shrink-0 w-[98px] sm:w-[110px] md:w-full group cursor-pointer block text-left transition-all duration-300"
                 >
                     {/* 2:3 Full Vertical Cinema Movie Poster */}
@@ -36,7 +38,7 @@ export default function NewReleasesList({ releases }: NewReleasesListProps) {
                             alt={release.movie_name}
                             fallbackAlt={release.movie_name}
                             fill
-                            priority={idx < 4}
+                            priority={false}
                             sizes="(max-width: 640px) 98px, (max-width: 1024px) 110px, 14vw"
                             quality={75}
                             className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
@@ -61,10 +63,10 @@ export default function NewReleasesList({ releases }: NewReleasesListProps) {
 
                     {/* Movie Metadata Below Artwork */}
                     <div className="px-0.5">
-                        <h4 className="text-xs font-bold text-m3-on-surface line-clamp-1 leading-tight group-hover:text-m3-primary transition-colors tracking-tight">
+                        <h3 className="text-xs font-bold text-m3-on-surface line-clamp-1 leading-tight group-hover:text-m3-primary transition-colors tracking-tight">
                             {release.movie_name}
-                        </h4>
-                        <p className="text-[10px] text-m3-outline truncate mt-0.5 font-medium leading-tight">
+                        </h3>
+                        <p className="text-[10px] text-m3-on-surface-variant truncate mt-0.5 font-medium leading-tight">
                             {release.music_director || 'Tamil Cinema'}
                         </p>
                     </div>

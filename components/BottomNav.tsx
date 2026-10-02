@@ -1,6 +1,5 @@
 'use client';
 
-import { useMounted } from '@/lib/hooks/use-mounted';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Home, User, MessageSquare, Sparkles, Search } from 'lucide-react';
@@ -10,7 +9,6 @@ import { hapticFeedback, hapticPatterns } from '@/lib/haptics';
 export default function BottomNav() {
   const pathname = usePathname();
   const { t } = useLanguage();
-  const mounted = useMounted();
 
   if (pathname?.startsWith('/admin')) return null;
 
@@ -27,13 +25,6 @@ export default function BottomNav() {
     { href: '/profile', icon: User, label: t('profile') },
   ];
 
-  if (!mounted) {
-    return (
-      <div className="fixed bottom-0 left-0 right-0 z-100 bg-m3-surface-container border-t border-m3-outline-variant/30 h-14 md:hidden">
-        <div className="flex justify-between items-center h-14 max-w-md mx-auto px-4" />
-      </div>
-    );
-  }
 
   return (
     <nav 
@@ -50,6 +41,7 @@ export default function BottomNav() {
             <Link
               key={item.href}
               href={item.href}
+              prefetch={false}
               onClick={() => hapticFeedback(hapticPatterns.selection)}
               className="group relative flex flex-col items-center justify-center gap-0.5 transition-all duration-200 flex-1 h-full py-1 touch-manipulation"
             >

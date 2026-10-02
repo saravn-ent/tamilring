@@ -1,607 +1,864 @@
 'use client';
 
-import { useState, useEffect, Suspense, useRef } from 'react';
-import { Search, Loader2, ChevronDown, Check } from 'lucide-react';
-import { supabase } from '@/lib/supabaseClient';
-import RingtoneCard from '@/components/RingtoneCard';
+import React, { useState, useEffect, useRef, useCallback, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { splitArtists, fuzzySearchPattern } from '@/lib/utils';
-import { sanitizeSearchQuery } from '@/lib/sanitize';
-import TMDBImage from './TMDBImage';
-import { MOODS, ERAS, INSTRUMENTS } from '@/lib/constants';
+import {
+    Clock,
+    X,
+    ChevronDown,
+    Check,
+    Film,
+    Mic,
+    User,
+    Sparkles,
+    Loader2,
+    TrendingUp,
+} from 'lucide-react';
+import RingtoneCard from '@/components/RingtoneCard';
+import TMDBImage from '@/components/TMDBImage';
 import NoResults from '@/components/NoResults';
-import { hapticFeedback } from '@/lib/haptics';
-import { logSearch } from '@/app/actions/ringtones';
-import BackButton from '@/components/BackButton';
-import { Ringtone } from '@/types';
 import { M3SearchBar, M3Chip, M3Card } from '@/components/ui/m3';
+import { Ringtone } from '@/types';
+import { MOODS, ERAS, INSTRUMENTS } from '@/lib/constants';
+import { hapticFeedback, hapticPatterns } from '@/lib/haptics';
+import { logSearch } from '@/app/actions/ringtones';
+import { SearchMovie, SearchArtist, SearchActor } from '@/lib/searchEngine';
 
-interface SearchMovie {
-    movie_name: string;
-    movie_year: string;
-    poster_url: string;
-    likes?: number;
+const RECENT_SEARCHES_KEY = 'tamilring_recent_searches';
+const MAX_RECENT_SEARCHES = 8;
+
+const TRENDING_TAGS = [
+    'Leo',
+    'Jailer',
+    'Anirudh',
+    'A.R. Rahman',
+    'Mass BGM',
+    'Love Melody',
+    'Violin',
+    '90s Hits',
+    'Rajinikanth',
+    'Yuvan',
+];
+
+interface SearchData {
+    ringtones: Ringtone[];
+    movies: SearchMovie[];
+    artists: SearchArtist[];
+    actors: SearchActor[];
+    totalRingtones: number;
+    hasMore: boolean;
+    matchedEra?: string;
+    matchedInstrument?: string;
+    matchedMood?: string;
 }
 
-interface SearchArtist {
-    name: string;
-}
-
-
-
-
-function SearchContent() {
+function SearchPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const [query, setQuery] = useState(searchParams.get('q') || '');
+
+    // URL state
+    const urlQuery = searchParams.get('q') || '';
+    const urlTab = (searchParams.get('tab') || 'all') as 'all' | 'ringtones' | 'movies' | 'artists' | 'actors';
+    const urlSort = (searchParams.get('sort') || 'downloads') as 'downloads' | 'recent' | 'likes' | 'year_desc' | 'year_asc';
+    const assignTo = searchParams.get('assignTo') || undefined;
+
+    // Local Search State
+    const [query, setQuery] = useState(urlQuery);
+    const [activeTab, setActiveTab] = useState<'all' | 'ringtones' | 'movies' | 'artists' | 'actors'>(urlTab);
+    const [sortBy, setSortBy] = useState<'downloads' | 'recent' | 'likes' | 'year_desc' | 'year_asc'>(urlSort);
+    const [page, setPage] = useState(1);
     const [loading, setLoading] = useState(false);
-
-
-    // Sorting State
-    const [sortBy, setSortBy] = useState<'recent' | 'downloads' | 'likes' | 'year_desc' | 'year_asc'>('downloads');
+    const [loadingMore, setLoadingMore] = useState(false);
     const [isSortOpen, setIsSortOpen] = useState(false);
     const sortDropdownRef = useRef<HTMLDivElement>(null);
 
-    // Close dropdown when clicking outside
+    // Results State
+    const [results, setResults] = useState<SearchData>({
+        ringtones: [],
+        movies: [],
+        artists: [],
+        actors: [],
+        totalRingtones: 0,
+        hasMore: false,
+    });
+
+    // Defaults for Browse mode (empty query)
+    const [defaults, setDefaults] = useState<{
+        ringtones: Ringtone[];
+        movies: SearchMovie[];
+        artists: SearchArtist[];
+        actors: SearchActor[];
+    }>({
+        ringtones: [],
+        movies: [],
+        artists: [],
+        actors: [],
+    });
+
+    // Recent Searches State
+    const [recentSearches, setRecentSearches] = useState<string[]>([]);
+
+    // 1. Load Recent Searches from localStorage on mount
+    useEffect(() => {
+        try {
+            const saved = localStorage.getItem(RECENT_SEARCHES_KEY);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed)) {
+                    setRecentSearches(parsed.slice(0, MAX_RECENT_SEARCHES));
+                }
+            }
+        } catch (e) {
+            console.error('Failed to read recent searches:', e);
+        }
+    }, []);
+
+    const saveRecentSearch = useCallback((searchTerm: string) => {
+        const clean = searchTerm.trim();
+        if (!clean || clean.length < 2) return;
+
+        setRecentSearches((prev) => {
+            const filtered = prev.filter((item) => item.toLowerCase() !== clean.toLowerCase());
+            const updated = [clean, ...filtered].slice(0, MAX_RECENT_SEARCHES);
+            try {
+                localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
+            } catch (e) {
+                console.error('Failed to save recent search:', e);
+            }
+            return updated;
+        });
+    }, []);
+
+    const removeRecentSearch = (e: React.MouseEvent, termToRemove: string) => {
+        e.stopPropagation();
+        setRecentSearches((prev) => {
+            const updated = prev.filter((t) => t !== termToRemove);
+            try {
+                localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(updated));
+            } catch (err) {
+                console.error('Failed to update recent searches:', err);
+            }
+            return updated;
+        });
+    };
+
+    const clearAllRecentSearches = () => {
+        setRecentSearches([]);
+        try {
+            localStorage.removeItem(RECENT_SEARCHES_KEY);
+        } catch (err) {
+            console.error('Failed to clear recent searches:', err);
+        }
+    };
+
+    // 2. Fetch Browse Mode Defaults (once on mount)
+    useEffect(() => {
+        const fetchDefaults = async () => {
+            try {
+                const res = await fetch('/api/search?defaults=true');
+                const data = await res.json();
+                if (data.success) {
+                    setDefaults({
+                        ringtones: data.ringtones || [],
+                        movies: data.movies || [],
+                        artists: data.artists || [],
+                        actors: data.actors || [],
+                    });
+                }
+            } catch (e) {
+                console.error('Failed to fetch browse defaults:', e);
+            }
+        };
+        fetchDefaults();
+    }, []);
+
+    // 3. Close Sort Dropdown on outside click
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target as Node)) {
                 setIsSortOpen(false);
             }
         };
-
         if (isSortOpen) {
             document.addEventListener('mousedown', handleClickOutside);
         }
-
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
+        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, [isSortOpen]);
 
-    // Results State
-    const [results, setResults] = useState<{
-        ringtones: Ringtone[];
-        movies: SearchMovie[];
-        artists: SearchArtist[];
-    }>({ ringtones: [], movies: [], artists: [] });
+    // 4. Synchronize URL query parameters smoothly without reloading
+    const syncURL = useCallback((q: string, tab: string, sort: string) => {
+        const params = new URLSearchParams();
+        if (q.trim()) params.set('q', q.trim());
+        if (tab !== 'all') params.set('tab', tab);
+        if (sort !== 'downloads') params.set('sort', sort);
+        if (assignTo) params.set('assignTo', assignTo);
 
-    const [activeTab, setActiveTab] = useState<'all' | 'ringtones' | 'movies' | 'artists'>(
-        searchParams.get('hideSearch') ? 'ringtones' : 'all'
-    );
+        const newUrl = params.toString() ? `/search?${params.toString()}` : '/search';
+        window.history.replaceState({ ...window.history.state, as: newUrl, url: newUrl }, '', newUrl);
+    }, [assignTo]);
 
-    // Fetch defaults (Trending)
-    const [defaults, setDefaults] = useState<{ movies: SearchMovie[], artists: SearchArtist[] }>({ movies: [], artists: [] });
-
+    // 5. Main Search Fetcher (Debounced)
     useEffect(() => {
-        // Fetch browsing data once on mount
-        const fetchDefaults = async () => {
-            const { data: movies } = await supabase
-                .from('ringtones')
-                .select('movie_name, movie_year, poster_url, likes')
-                .eq('status', 'approved')
-                .not('audio_url', 'is', null)
-                .neq('audio_url', '')
-                .not('poster_url', 'is', null)
-                .neq('poster_url', '')
-                .order('likes', { ascending: false })
-                .limit(20);
+        const cleanQ = query.trim();
 
-            const uniqueMovies = new Map();
-            movies?.forEach(m => {
-                if (!uniqueMovies.has(m.movie_name)) uniqueMovies.set(m.movie_name, m);
+        if (!cleanQ) {
+            setLoading(false);
+            setResults({
+                ringtones: [],
+                movies: [],
+                artists: [],
+                actors: [],
+                totalRingtones: 0,
+                hasMore: false,
             });
+            syncURL('', activeTab, sortBy);
+            return;
+        }
 
-            // Top Artists (Singers + MDs)
-            const { data: artists } = await supabase
-                .from('ringtones')
-                .select('singers, music_director')
-                .eq('status', 'approved')
-                .limit(50);
+        setLoading(true);
+        setPage(1);
 
-            const artistCounts = new Map<string, number>();
-            artists?.forEach(r => {
-                splitArtists(r.singers || '').forEach((s: string) => artistCounts.set(s, (artistCounts.get(s) || 0) + 1));
-                splitArtists(r.music_director || '').forEach((s: string) => artistCounts.set(s, (artistCounts.get(s) || 0) + 1));
-            });
+        const timer = setTimeout(async () => {
+            try {
+                const params = new URLSearchParams({
+                    q: cleanQ,
+                    tab: activeTab,
+                    sort: sortBy,
+                    page: '1',
+                    limit: '24',
+                });
 
-            const topArtists = Array.from(artistCounts.entries())
-                .sort((a, b) => b[1] - a[1])
-                .slice(0, 10)
-                .map(([name]) => ({ name }));
+                const res = await fetch(`/api/search?${params.toString()}`);
+                const data = await res.json();
 
-            setDefaults({ movies: Array.from(uniqueMovies.values()), artists: topArtists });
-        };
-        fetchDefaults();
-    }, []);
-
-    useEffect(() => {
-        // Clear results immediately
-
-        const delayDebounceFn = setTimeout(async () => {
-            if (query.length > 0) {
-
-                let newResults: { ringtones: Ringtone[]; movies: SearchMovie[]; artists: SearchArtist[]; } = { ringtones: [], movies: [], artists: [] };
-
-                const matchedEra = ERAS.find(e => e.label.toLowerCase() === query.toLowerCase());
-
-                const fetchRingtones = async () => {
-                    // SECURITY: Sanitize user input to prevent SQL injection
-                    const safeQuery = sanitizeSearchQuery(query);
-
-                    let dbQuery = supabase
-                        .from('ringtones')
-                        .select('*')
-                        .eq('status', 'approved')
-                        .not('audio_url', 'is', null)
-                        .neq('audio_url', '')
-                        .not('poster_url', 'is', null)
-                        .neq('poster_url', '');
-
-                    // Text Search Logic: Relaxed for better "related" results on typos
-                    const parts = safeQuery.split(/\s+/).filter(p => p.length > 0);
-
-                    if (matchedEra) {
-                        // Era Filtering
-                        dbQuery = dbQuery
-                            .gte('movie_year', matchedEra.startYear)
-                            .lte('movie_year', matchedEra.endYear);
-                    } else if (parts.length > 0) {
-                        // Multi-word fuzzy search
-                        const conditions = parts.map(p => {
-                            const fp = fuzzySearchPattern(p);
-                            return `title.ilike.${fp},movie_name.ilike.${fp},singers.ilike.${fp},music_director.ilike.${fp}`;
-                        }).join(',');
-                        dbQuery = dbQuery.or(conditions);
-                    } else {
-                        // Single keyword fuzzy search
-                        const fp = fuzzySearchPattern(safeQuery);
-                        dbQuery = dbQuery.or(`title.ilike.${fp},movie_name.ilike.${fp},singers.ilike.${fp},music_director.ilike.${fp}`);
-                    }
-
-                    // Apply Sorting
-                    if (sortBy === 'recent') {
-                        dbQuery = dbQuery.order('created_at', { ascending: false });
-                    } else if (sortBy === 'likes') {
-                        dbQuery = dbQuery.order('likes', { ascending: false });
-                    } else if (sortBy === 'year_desc') {
-                        dbQuery = dbQuery.order('movie_year', { ascending: false });
-                    } else if (sortBy === 'year_asc') {
-                        dbQuery = dbQuery.order('movie_year', { ascending: true });
-                    } else {
-                        // Default to downloads
-                        dbQuery = dbQuery.order('downloads', { ascending: false });
-                    }
-
-                    const { data } = await dbQuery.limit(30); // Increased limit for broader related results
-                    return data || [];
-                };
-
-                const fetchMovies = async () => {
-                    // SECURITY: Sanitize user input to prevent SQL injection
-                    const safeQuery = sanitizeSearchQuery(query);
-
-                    let dbQuery = supabase
-                        .from('ringtones')
-                        .select('movie_name, movie_year, poster_url')
-                        .eq('status', 'approved');
-
-                    if (matchedEra) {
-                        dbQuery = dbQuery
-                            .gte('movie_year', matchedEra.startYear)
-                            .lte('movie_year', matchedEra.endYear)
-                            .limit(50);
-                    } else {
-                        const parts = safeQuery.split(/\s+/).filter(p => p.length > 0);
-                        if (parts.length > 0) {
-                            const conditions = parts.map(p => `movie_name.ilike.${fuzzySearchPattern(p)}`).join(',');
-                            dbQuery = dbQuery.or(conditions).limit(30);
-                        } else {
-                            dbQuery = dbQuery.ilike('movie_name', fuzzySearchPattern(safeQuery)).limit(20);
-                        }
-                    }
-
-                    const { data } = await dbQuery;
-
-                    const uniqueMovies = new Map();
-                    data?.forEach(item => {
-                        if (!uniqueMovies.has(item.movie_name)) uniqueMovies.set(item.movie_name, item);
+                if (data.success) {
+                    setResults({
+                        ringtones: data.ringtones || [],
+                        movies: data.movies || [],
+                        artists: data.artists || [],
+                        actors: data.actors || [],
+                        totalRingtones: data.totalRingtones || 0,
+                        hasMore: Boolean(data.hasMore),
+                        matchedEra: data.matchedEra,
+                        matchedInstrument: data.matchedInstrument,
+                        matchedMood: data.matchedMood,
                     });
-                    return Array.from(uniqueMovies.values());
-                };
-
-                const fetchArtists = async () => {
-                    if (matchedEra) {
-                        return [];
-                    }
-
-                    // SECURITY: Sanitize user input to prevent SQL injection
-                    const safeQuery = sanitizeSearchQuery(query);
-
-                    const parts = safeQuery.split(/\s+/).filter(p => p.length > 0);
-                    const conditions = parts.length > 0
-                        ? parts.map(p => {
-                            const fp = fuzzySearchPattern(p);
-                            return `singers.ilike.${fp},music_director.ilike.${fp}`;
-                        }).join(',')
-                        : (function () {
-                            const fp = fuzzySearchPattern(safeQuery);
-                            return `singers.ilike.${fp},music_director.ilike.${fp}`;
-                        })();
-
-                    const { data } = await supabase
-                        .from('ringtones')
-                        .select('singers, music_director')
-                        .eq('status', 'approved')
-                        .or(conditions)
-                        .limit(30);
-
-                    const allArtists = new Set<string>();
-                    data?.forEach(r => {
-                        splitArtists(r.singers || '').forEach(s => allArtists.add(s));
-                        splitArtists(r.music_director || '').forEach(s => allArtists.add(s));
-                    });
-                    return Array.from(allArtists)
-                        .filter(s => s.toLowerCase().includes(safeQuery.toLowerCase()))
-                        .map(s => ({ name: s }))
-                        .slice(0, 10);
-                };
-
-                if (activeTab === 'all') {
-                    const [r, m, a] = await Promise.all([fetchRingtones(), fetchMovies(), fetchArtists()]);
-                    newResults = { ringtones: r as Ringtone[], movies: m as SearchMovie[], artists: a as SearchArtist[] };
-                } else if (activeTab === 'ringtones') {
-                    newResults.ringtones = await fetchRingtones() as Ringtone[];
-                } else if (activeTab === 'movies') {
-                    newResults.movies = await fetchMovies() as SearchMovie[];
-                } else if (activeTab === 'artists') {
-                    newResults.artists = await fetchArtists() as SearchArtist[];
+                    saveRecentSearch(cleanQ);
                 }
-
-                setResults(newResults);
+            } catch (error) {
+                console.error('Search fetch error:', error);
+            } finally {
                 setLoading(false);
-            } else {
-                setLoading(false); // Ensure loading is false if query is short
             }
-        }, 300); // Reduced debounce for snappier feel
 
-        return () => clearTimeout(delayDebounceFn);
-    }, [query, activeTab, sortBy]);
+            syncURL(cleanQ, activeTab, sortBy);
+        }, 250);
 
-    // Search Logging (Debounced 2s to capture final intent)
+        return () => clearTimeout(timer);
+    }, [query, activeTab, sortBy, syncURL, saveRecentSearch]);
+
+    // 6. Log search intent (debounced 2s)
     useEffect(() => {
+        if (!query.trim() || query.trim().length <= 2) return;
         const timer = setTimeout(() => {
-            if (query && query.length > 2) {
-                logSearch(query);
-            }
-        }, 2000); // Only log after 2s of inactivity
+            logSearch(query.trim());
+        }, 2000);
         return () => clearTimeout(timer);
     }, [query]);
 
-    const hasResults = results.ringtones.length > 0 || results.movies.length > 0 || results.artists.length > 0;
-    const matchedEra = ERAS.find(e => e.label.toLowerCase() === query.toLowerCase());
-    const matchedInstrument = INSTRUMENTS.find(i => i.query.toLowerCase() === query.toLowerCase() || i.label.toLowerCase() === query.toLowerCase());
-    const isSpecialSearch = searchParams.get('hideSearch') && (matchedEra || matchedInstrument);
+    // 7. Load More Pagination
+    const handleLoadMore = async () => {
+        if (loadingMore || !results.hasMore) return;
 
-    const tabs = ['all', 'ringtones', 'movies', 'artists'].filter(tab => {
-        if (matchedEra && tab === 'artists') return false;
-        return true;
-    });
+        setLoadingMore(true);
+        const nextPage = page + 1;
+
+        try {
+            const params = new URLSearchParams({
+                q: query.trim(),
+                tab: activeTab,
+                sort: sortBy,
+                page: String(nextPage),
+                limit: '24',
+            });
+
+            const res = await fetch(`/api/search?${params.toString()}`);
+            const data = await res.json();
+
+            if (data.success && Array.isArray(data.ringtones)) {
+                setResults((prev) => ({
+                    ...prev,
+                    ringtones: [...prev.ringtones, ...data.ringtones],
+                    hasMore: Boolean(data.hasMore),
+                }));
+                setPage(nextPage);
+            }
+        } catch (e) {
+            console.error('Failed to load more results:', e);
+        } finally {
+            setLoadingMore(false);
+        }
+    };
+
+    const hasResults =
+        results.ringtones.length > 0 ||
+        results.movies.length > 0 ||
+        results.artists.length > 0 ||
+        results.actors.length > 0;
+
+    const tabs: Array<{ id: 'all' | 'ringtones' | 'movies' | 'artists' | 'actors'; label: string; count?: number }> = [
+        { id: 'all', label: 'All' },
+        { id: 'ringtones', label: 'Ringtones', count: query.trim() ? results.totalRingtones : defaults.ringtones.length },
+        { id: 'movies', label: 'Movies', count: query.trim() ? results.movies.length : defaults.movies.length },
+        { id: 'artists', label: 'Artists', count: query.trim() ? results.artists.length : defaults.artists.length },
+        { id: 'actors', label: 'Actors', count: query.trim() ? results.actors.length : defaults.actors.length },
+    ];
 
     return (
-        <div className="max-w-md md:max-w-4xl lg:max-w-6xl mx-auto min-h-screen bg-background text-foreground pb-24">
-            {isSpecialSearch && (
-                <div className="p-6 pt-8 bg-linear-to-b from-m3-surface-container-high/40 to-transparent">
-                    <h1 className="text-3xl font-bold text-m3-on-surface capitalize tracking-tight">
-                        {matchedEra ? matchedEra.label : matchedInstrument?.label}
-                    </h1>
-                    <p className="text-m3-on-surface-variant text-sm mt-1 font-medium">
-                        Best {matchedEra ? matchedEra.label : matchedInstrument?.label} Ringtones
-                    </p>
-                </div>
-            )}
-
-            <div className="px-4 pt-3 pb-1 mb-4 flex items-center gap-3">
-                {searchParams.get('hideSearch') ? (
-                    <BackButton fallbackHref="/" className="shrink-0" />
-                ) : (
-                    <div className="w-full">
-                        <M3SearchBar
-                            value={query}
-                            onChange={(e) => {
-                                setQuery(e.target.value);
-                                setLoading(true);
-                            }}
-                            onClear={() => {
-                                setQuery('');
-                            }}
-                            showBackButton={true}
-                            onBack={() => {
-                                if (typeof window !== 'undefined' && window.history.length > 1) {
-                                    router.back();
-                                } else {
-                                    router.push('/');
-                                }
-                            }}
-                            placeholder="Search songs, artists, BGM, movies..."
-                            loading={loading}
-                            autoFocus
-                        />
-                    </div>
-                )}
+        <div className="max-w-4xl lg:max-w-5xl mx-auto min-h-screen px-3 sm:px-6 pt-3 pb-32">
+            {/* Top Search Input Bar */}
+            <div className="mb-4">
+                <M3SearchBar
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onClear={() => setQuery('')}
+                    showBackButton={true}
+                    onBack={() => {
+                        if (typeof window !== 'undefined' && window.history.length > 1) {
+                            router.back();
+                        } else {
+                            router.push('/');
+                        }
+                    }}
+                    placeholder="Search songs, movies, artists, actors..."
+                    loading={loading}
+                    autoFocus
+                />
             </div>
 
-            {/* M3 Filter Chips Tabs (Always Visible) */}
-            {!searchParams.get('hideSearch') && (
-                <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide px-4">
-                    {tabs.map((tab) => (
+            {/* Filter Tabs */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 mb-6 scrollbar-hide -mx-1 px-1">
+                {tabs.map((tab) => {
+                    const isSelected = activeTab === tab.id;
+                    return (
                         <M3Chip
-                            key={tab}
+                            key={tab.id}
                             variant="filter"
-                            label={tab.charAt(0).toUpperCase() + tab.slice(1)}
-                            selected={activeTab === tab}
+                            label={tab.count !== undefined && tab.count > 0 ? `${tab.label} (${tab.count})` : tab.label}
+                            selected={isSelected}
                             onClick={() => {
-                                hapticFeedback(10);
-                                setActiveTab(tab as 'all' | 'ringtones' | 'movies' | 'artists');
+                                hapticFeedback(hapticPatterns.selection);
+                                setActiveTab(tab.id);
+                                syncURL(query, tab.id, sortBy);
                             }}
+                            className="h-8 text-xs font-semibold shrink-0 cursor-pointer"
                         />
-                    ))}
-                </div>
-            )}
+                    );
+                })}
+            </div>
 
-            {query.length > 0 ? (
-                /* ... SEARCH RESULTS ... */
-                <div className="space-y-8 px-4 sm:px-0">
-                    {/* Sort Options (Visible mostly when browsing categories) */}
-                    {(activeTab === 'all' || activeTab === 'ringtones') && (
-                        <div className="flex justify-end mb-4 relative z-20">
+            {/* ACTIVE SEARCH RESULTS */}
+            {query.trim().length > 0 ? (
+                <div className="space-y-8">
+                    {/* Header: Result count feedback & Sort Control */}
+                    <div className="flex flex-wrap items-center justify-between gap-3 pb-1 border-b border-m3-outline-variant/20">
+                        <div>
+                            <p className="text-xs font-semibold text-m3-on-surface-variant">
+                                Results for <span className="text-m3-primary font-bold">&ldquo;{query}&rdquo;</span>
+                                {results.totalRingtones > 0 && (
+                                    <span className="ml-1.5 text-m3-outline">
+                                        ({results.totalRingtones} ringtone{results.totalRingtones === 1 ? '' : 's'})
+                                    </span>
+                                )}
+                            </p>
+                        </div>
+
+                        {/* Sort Dropdown (Visible on 'all' and 'ringtones' tabs) */}
+                        {(activeTab === 'all' || activeTab === 'ringtones') && results.ringtones.length > 0 && (
                             <div className="relative" ref={sortDropdownRef}>
                                 <button
+                                    type="button"
                                     onClick={() => setIsSortOpen(!isSortOpen)}
-                                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-m3-surface-container border border-m3-outline-variant/40 text-xs font-semibold text-m3-on-surface hover:bg-m3-surface-container-high transition-all shadow-xs cursor-pointer"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-m3-surface-container border border-m3-outline-variant/30 text-xs font-semibold text-m3-on-surface hover:bg-m3-surface-container-high transition-colors cursor-pointer"
                                 >
-                                    <span>Sort:</span>
-                                    <span className="text-m3-primary font-bold">
-                                        {sortBy === 'recent' ? 'Recently Added' :
-                                            sortBy === 'likes' ? 'Most Liked' :
-                                                sortBy === 'year_desc' ? 'Year: Newest' :
-                                                    sortBy === 'year_asc' ? 'Year: Oldest' :
-                                                        'Most Downloaded'}
+                                    <span className="text-m3-outline text-[11px]">Sort:</span>
+                                    <span className="text-m3-primary font-bold text-[11px]">
+                                        {sortBy === 'recent'
+                                            ? 'Recently Added'
+                                            : sortBy === 'likes'
+                                                ? 'Most Liked'
+                                                : sortBy === 'year_desc'
+                                                    ? 'Year: Newest'
+                                                    : sortBy === 'year_asc'
+                                                        ? 'Year: Oldest'
+                                                        : 'Most Downloaded'}
                                     </span>
                                     <ChevronDown
-                                        size={14}
+                                        size={13}
                                         className={`transition-transform duration-200 ${isSortOpen ? 'rotate-180' : ''}`}
                                     />
                                 </button>
 
                                 {isSortOpen && (
-                                    <div className="absolute right-0 mt-2 w-56 bg-m3-surface-container-high border border-m3-outline-variant/50 rounded-2xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50">
-                                        <div className="py-1">
-                                            {[
-                                                { id: 'recent', label: 'Recently Added' },
-                                                { id: 'downloads', label: 'Most Downloaded' },
-                                                { id: 'likes', label: 'Most Liked' },
-                                                { id: 'year_desc', label: 'Year: Newest' },
-                                                { id: 'year_asc', label: 'Year: Oldest' }
-                                            ].map((opt) => (
-                                                <button
-                                                    key={opt.id}
-                                                    onClick={() => {
-                                                        hapticFeedback(10);
-                                                        setSortBy(opt.id as 'recent' | 'downloads' | 'likes' | 'year_desc' | 'year_asc');
-                                                        setIsSortOpen(false);
-                                                    }}
-                                                    className={`w-full flex items-center justify-between px-4 py-3 text-sm font-medium transition-colors cursor-pointer ${sortBy === opt.id
-                                                        ? 'bg-m3-secondary-container text-m3-on-secondary-container font-semibold'
+                                    <div className="absolute right-0 mt-2 w-52 bg-m3-surface-container-high border border-m3-outline-variant/40 rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 z-50 divide-y divide-m3-outline-variant/20">
+                                        {[
+                                            { id: 'downloads', label: 'Most Downloaded' },
+                                            { id: 'recent', label: 'Recently Added' },
+                                            { id: 'likes', label: 'Most Liked' },
+                                            { id: 'year_desc', label: 'Year: Newest' },
+                                            { id: 'year_asc', label: 'Year: Oldest' },
+                                        ].map((opt) => (
+                                            <button
+                                                key={opt.id}
+                                                type="button"
+                                                onClick={() => {
+                                                    hapticFeedback(hapticPatterns.selection);
+                                                    setSortBy(opt.id as typeof sortBy);
+                                                    setIsSortOpen(false);
+                                                }}
+                                                className={`w-full flex items-center justify-between px-3.5 py-2.5 text-xs font-medium transition-colors cursor-pointer ${
+                                                    sortBy === opt.id
+                                                        ? 'bg-m3-secondary-container text-m3-on-secondary-container font-bold'
                                                         : 'text-m3-on-surface hover:bg-m3-surface-container-highest'
-                                                        } border-b border-m3-outline-variant/20 last:border-0`}
-                                                >
-                                                    <span>{opt.label}</span>
-                                                    {sortBy === opt.id && (
-                                                        <Check size={16} className="text-m3-primary" />
-                                                    )}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    )}
-                        {loading ? (
-                            /* SKELETONS */
-                            <div className="animate-pulse space-y-8">
-                                {/* Movie Skeleton */}
-                                {(activeTab === 'all' || activeTab === 'movies') && (
-                                    <div className="space-y-3">
-                                        <div className="h-4 w-20 bg-m3-surface-container-highest rounded-md ml-1" />
-                                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                                            {[1, 2, 3, 4].map(i => (
-                                                <div key={i} className="aspect-2/3 bg-m3-surface-container rounded-2xl border border-m3-outline-variant/30" />
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-                                {/* Ringtone Skeleton */}
-                                {(activeTab === 'all' || activeTab === 'ringtones') && (
-                                    <div className="space-y-3">
-                                        <div className="h-4 w-24 bg-m3-surface-container-highest rounded-md ml-1" />
-                                        {[1, 2, 3].map(i => (
-                                            <div key={i} className="h-20 bg-m3-surface-container-low rounded-2xl border border-m3-outline-variant/30" />
+                                                }`}
+                                            >
+                                                <span>{opt.label}</span>
+                                                {sortBy === opt.id && <Check size={14} className="text-m3-primary" />}
+                                            </button>
                                         ))}
                                     </div>
                                 )}
                             </div>
-                        ) : hasResults ? (
-                            <>
-                                {/* Movies Section */}
-                                {(activeTab === 'all' || activeTab === 'movies') && results.movies.length > 0 && (
-                                    <section className="animate-in fade-in slide-in-from-bottom-2 duration-500">
-                                        <h3 className="font-bold text-m3-outline text-xs uppercase tracking-wider mb-3 px-1">
-                                            {ERAS.find(e => e.label.toLowerCase() === query.toLowerCase()) ? `${query} Movies` : (activeTab === 'all' ? 'Movies' : 'Matching Movies')}
-                                        </h3>
-                                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                                            {results.movies.map((item, idx) => (
-                                                <Link href={`/movie/${encodeURIComponent(item.movie_name)}`} key={idx} className="flex flex-col gap-2 p-2 bg-m3-surface-container-low rounded-2xl border border-m3-outline-variant/40 hover:bg-m3-surface-container hover:shadow-md transition-all group">
-                                                    <div className="relative w-full aspect-2/3 bg-m3-surface-container rounded-xl overflow-hidden shrink-0">
-                                                        <TMDBImage
-                                                            path={item.poster_url}
-                                                            alt={item.movie_name}
-                                                            fill
-                                                            className="object-cover group-hover:scale-110 transition-transform duration-500"
-                                                        />
-                                                    </div>
-                                                    <div>
-                                                        <p className="font-bold text-m3-on-surface text-sm truncate group-hover:text-m3-primary transition-colors">{item.movie_name}</p>
-                                                        <p className="text-[10px] text-m3-outline">{item.movie_year}</p>
-                                                    </div>
-                                                </Link>
-                                            ))}
-                                        </div>
-                                    </section>
-                                )}
-
-                                {/* Artists Section */}
-                                {(activeTab === 'all' || activeTab === 'artists') && results.artists.length > 0 && (
-                                    <section className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-100">
-                                        <h3 className="font-bold text-m3-outline text-xs uppercase tracking-wider mb-3 px-1">Artists</h3>
-                                        <div className="flex flex-wrap gap-3">
-                                            {results.artists.map((item, idx) => (
-                                                <Link href={`/artist/${encodeURIComponent(item.name)}`} key={idx} className="flex items-center gap-3 pr-4 pl-2 py-2 bg-m3-surface-container-low rounded-full border border-m3-outline-variant/40 hover:border-m3-primary hover:bg-m3-surface-container transition-all">
-                                                    <div className="w-8 h-8 rounded-full bg-m3-primary-container flex items-center justify-center text-m3-on-primary-container font-bold text-xs">
-                                                        {item.name.charAt(0)}
-                                                    </div>
-                                                    <p className="font-medium text-m3-on-surface text-sm">{item.name}</p>
-                                                </Link>
-                                            ))}
-                                        </div>
-                                    </section>
-                                )}
-
-                                {/* Ringtones Section */}
-                                {(activeTab === 'all' || activeTab === 'ringtones') && results.ringtones.length > 0 && (
-                                    <section className="animate-in fade-in slide-in-from-bottom-2 duration-500 delay-200">
-                                        {!isSpecialSearch && (
-                                            <h3 className="font-bold text-m3-outline text-xs uppercase tracking-wider mb-3 px-1">Ringtones</h3>
-                                        )}
-                                        <div className="space-y-3 md:grid md:grid-cols-2 md:space-y-0 md:gap-4">
-                                            {results.ringtones.map((item) => (
-                                                <RingtoneCard key={item.id} ringtone={item} assignTo={searchParams.get('assignTo') || undefined} />
-                                            ))}
-                                        </div>
-                                    </section>
-                                )}
-                            </>
-                        ) : (
-                            <NoResults query={query} />
                         )}
                     </div>
-                ) : (
-                    /* BROWSE MODE (Empty Query) */
-                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 px-4 sm:px-0">
-                        {activeTab === 'all' && (
-                            <>
-                                {/* Browse by Mood */}
-                                <section>
-                                    <h2 className="text-[11px] font-bold text-m3-outline uppercase tracking-wider mb-3 px-1">Browse by Mood</h2>
-                                    <div className="flex flex-wrap gap-2 px-1">
-                                        {MOODS.map((mood) => (
-                                            <M3Chip
-                                                key={mood}
-                                                variant="assist"
-                                                href={`/mood/${mood.toLowerCase()}`}
-                                                label={mood}
-                                                onClick={() => hapticFeedback(10)}
-                                                className="h-9 px-4 text-xs font-semibold"
-                                            />
-                                        ))}
-                                    </div>
-                                </section>
 
-                                {/* Browse by Era */}
+                    {/* Skeletons while fetching */}
+                    {loading ? (
+                        <div className="space-y-6 animate-pulse">
+                            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
+                                {[1, 2, 3, 4].map((i) => (
+                                    <div key={i} className="aspect-2/3 bg-m3-surface-container rounded-2xl" />
+                                ))}
+                            </div>
+                            <div className="space-y-3">
+                                {[1, 2, 3, 4].map((i) => (
+                                    <div key={i} className="h-20 bg-m3-surface-container-low rounded-2xl" />
+                                ))}
+                            </div>
+                        </div>
+                    ) : hasResults ? (
+                        <>
+                            {/* Matching Movies Section */}
+                            {(activeTab === 'all' || activeTab === 'movies') && results.movies.length > 0 && (
                                 <section>
-                                    <h2 className="text-[11px] font-bold text-m3-outline uppercase tracking-wider mb-3 px-1">Browse by Era</h2>
-                                    <div className="grid grid-cols-3 md:grid-cols-6 gap-2 sm:gap-3">
-                                        {ERAS.map((era) => (
+                                    <h3 className="text-xs font-bold text-m3-outline uppercase tracking-wider mb-3 px-1 flex items-center gap-1.5">
+                                        <Film size={13} /> Movies ({results.movies.length})
+                                    </h3>
+                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                                        {results.movies.map((movie, idx) => (
                                             <Link
-                                                key={era.label}
-                                                href={`/search?q=${encodeURIComponent(era.label)}&hideSearch=true`}
-                                                onClick={() => hapticFeedback(15)}
-                                                className="block"
+                                                key={idx}
+                                                href={`/movie/${encodeURIComponent(movie.movie_name)}`}
+                                                className="group flex flex-col p-2 bg-m3-surface-container-low hover:bg-m3-surface-container rounded-2xl border border-m3-outline-variant/30 transition-all"
                                             >
-                                                <M3Card
-                                                    variant="outlined"
-                                                    interactive
-                                                    className="h-16 sm:h-18 flex flex-col items-center justify-center bg-m3-surface-container-low hover:bg-m3-surface-container border-m3-outline-variant/40 hover:border-m3-primary/50 text-center group"
-                                                >
-                                                    <span className="text-base sm:text-lg font-bold text-m3-on-surface group-hover:text-m3-primary tracking-tight transition-colors">
-                                                        {era.label}
-                                                    </span>
-                                                    <span className="text-[10px] font-medium text-m3-outline group-hover:text-m3-on-surface-variant transition-colors">
-                                                        Hits
-                                                    </span>
-                                                </M3Card>
+                                                <div className="relative w-full aspect-2/3 bg-m3-surface-container rounded-xl overflow-hidden shrink-0 border border-m3-outline-variant/30">
+                                                    {movie.poster_url ? (
+                                                        <TMDBImage
+                                                            path={movie.poster_url}
+                                                            alt={movie.movie_name}
+                                                            fill
+                                                            className="object-cover group-hover:scale-105 transition-transform duration-300"
+                                                            size="w342"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center text-m3-outline">
+                                                            <Film size={24} />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div className="mt-2 min-w-0">
+                                                    <p className="text-xs font-semibold text-m3-on-surface group-hover:text-m3-primary truncate transition-colors">
+                                                        {movie.movie_name}
+                                                    </p>
+                                                    <p className="text-[10px] text-m3-outline">{movie.movie_year || 'Movie'}</p>
+                                                </div>
                                             </Link>
                                         ))}
                                     </div>
                                 </section>
+                            )}
 
-                            </>
-                        )}
+                            {/* Matching Artists Section */}
+                            {(activeTab === 'all' || activeTab === 'artists') && results.artists.length > 0 && (
+                                <section>
+                                    <h3 className="text-xs font-bold text-m3-outline uppercase tracking-wider mb-3 px-1 flex items-center gap-1.5">
+                                        <Mic size={13} /> Artists & Composers ({results.artists.length})
+                                    </h3>
+                                    <div className="flex flex-wrap gap-2.5">
+                                        {results.artists.map((artist, idx) => (
+                                            <Link
+                                                key={idx}
+                                                href={`/artist/${encodeURIComponent(artist.name)}`}
+                                                className="flex items-center gap-2.5 px-3 py-2 bg-m3-surface-container-low hover:bg-m3-surface-container rounded-full border border-m3-outline-variant/30 transition-all group"
+                                            >
+                                                <div className="w-7 h-7 rounded-full bg-m3-primary-container text-m3-on-primary-container text-xs font-bold flex items-center justify-center shrink-0">
+                                                    {artist.name.charAt(0)}
+                                                </div>
+                                                <span className="text-xs font-medium text-m3-on-surface group-hover:text-m3-primary transition-colors">
+                                                    {artist.name}
+                                                </span>
+                                                {artist.role && (
+                                                    <span className="text-[10px] text-m3-outline bg-m3-surface-container px-1.5 py-0.5 rounded-md">
+                                                        {artist.role}
+                                                    </span>
+                                                )}
+                                            </Link>
+                                        ))}
+                                    </div>
+                                </section>
+                            )}
 
-                        {/* Default Populated Content for Specific Tabs */}
-                        {activeTab === 'movies' && (
-                            <section>
-                                <h3 className="font-bold text-m3-outline text-xs uppercase tracking-wider mb-3 px-1">Popular Movies</h3>
-                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                                    {defaults.movies.map((item, idx) => (
-                                        <Link href={`/movie/${encodeURIComponent(item.movie_name)}`} key={idx} className="flex flex-col gap-2 p-2 bg-m3-surface-container-low rounded-2xl border border-m3-outline-variant/40 hover:bg-m3-surface-container hover:shadow-md transition-all group">
-                                            <div className="relative w-full aspect-2/3 bg-m3-surface-container rounded-xl overflow-hidden shrink-0">
+                            {/* Matching Actors Section */}
+                            {(activeTab === 'all' || activeTab === 'actors') && results.actors.length > 0 && (
+                                <section>
+                                    <h3 className="text-xs font-bold text-m3-outline uppercase tracking-wider mb-3 px-1 flex items-center gap-1.5">
+                                        <User size={13} /> Cast & Actors ({results.actors.length})
+                                    </h3>
+                                    <div className="flex flex-wrap gap-2.5">
+                                        {results.actors.map((actor, idx) => (
+                                            <Link
+                                                key={idx}
+                                                href={`/actor/${encodeURIComponent(actor.name)}`}
+                                                className="flex items-center gap-2.5 px-3 py-2 bg-m3-surface-container-low hover:bg-m3-surface-container rounded-full border border-m3-outline-variant/30 transition-all group"
+                                            >
+                                                <div className="w-7 h-7 rounded-full bg-m3-secondary-container text-m3-on-secondary-container text-xs font-bold flex items-center justify-center shrink-0">
+                                                    <User size={14} />
+                                                </div>
+                                                <span className="text-xs font-medium text-m3-on-surface group-hover:text-m3-primary transition-colors">
+                                                    {actor.name}
+                                                </span>
+                                            </Link>
+                                        ))}
+                                    </div>
+                                </section>
+                            )}
+
+                            {/* Matching Ringtones Section */}
+                            {(activeTab === 'all' || activeTab === 'ringtones') && results.ringtones.length > 0 && (
+                                <section>
+                                    {activeTab === 'all' && (
+                                        <h3 className="text-xs font-bold text-m3-outline uppercase tracking-wider mb-3 px-1">
+                                            Ringtones ({results.totalRingtones})
+                                        </h3>
+                                    )}
+                                    <div className="space-y-3 sm:grid sm:grid-cols-2 sm:space-y-0 sm:gap-4">
+                                        {results.ringtones.map((item) => (
+                                            <RingtoneCard key={item.id} ringtone={item} assignTo={assignTo} />
+                                        ))}
+                                    </div>
+
+                                    {/* Load More Pagination Button */}
+                                    {results.hasMore && (
+                                        <div className="mt-8 text-center">
+                                            <button
+                                                type="button"
+                                                onClick={handleLoadMore}
+                                                disabled={loadingMore}
+                                                className="px-6 py-2.5 rounded-full bg-m3-surface-container-high hover:bg-m3-surface-container-highest border border-m3-outline-variant/40 text-xs font-bold text-m3-on-surface hover:text-m3-primary transition-all inline-flex items-center gap-2 cursor-pointer shadow-xs"
+                                            >
+                                                {loadingMore ? (
+                                                    <>
+                                                        <Loader2 size={14} className="animate-spin text-m3-primary" />
+                                                        <span>Loading more ringtones...</span>
+                                                    </>
+                                                ) : (
+                                                    <span>Load More Ringtones</span>
+                                                )}
+                                            </button>
+                                        </div>
+                                    )}
+                                </section>
+                            )}
+                        </>
+                    ) : (
+                        <NoResults query={query} onClear={() => setQuery('')} />
+                    )}
+                </div>
+            ) : (
+                /* BROWSE MODE (When Search Input is Empty) */
+                <div className="space-y-8 animate-in fade-in duration-300">
+                    {/* 1. Recent Searches (if any) */}
+                    {activeTab === 'all' && recentSearches.length > 0 && (
+                        <section className="space-y-2.5">
+                            <div className="flex items-center justify-between px-1">
+                                <h2 className="text-xs font-bold text-m3-outline uppercase tracking-wider flex items-center gap-1.5">
+                                    <Clock size={13} /> Recent Searches
+                                </h2>
+                                <button
+                                    type="button"
+                                    onClick={clearAllRecentSearches}
+                                    className="text-[11px] font-semibold text-m3-outline hover:text-m3-on-surface transition-colors cursor-pointer"
+                                >
+                                    Clear all
+                                </button>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                {recentSearches.map((term) => (
+                                    <div
+                                        key={term}
+                                        onClick={() => {
+                                            hapticFeedback(hapticPatterns.selection);
+                                            setQuery(term);
+                                        }}
+                                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-m3-surface-container border border-m3-outline-variant/30 text-xs font-medium text-m3-on-surface hover:bg-m3-surface-container-high transition-colors cursor-pointer group"
+                                    >
+                                        <Clock size={11} className="text-m3-outline" />
+                                        <span>{term}</span>
+                                        <button
+                                            type="button"
+                                            onClick={(e) => removeRecentSearch(e, term)}
+                                            className="w-4 h-4 rounded-full flex items-center justify-center text-m3-outline hover:text-m3-on-surface transition-colors ml-0.5"
+                                            aria-label={`Remove ${term}`}
+                                        >
+                                            <X size={10} />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
+                    {/* 2. Trending Kollywood Tags */}
+                    {activeTab === 'all' && (
+                        <section className="space-y-2.5">
+                            <h2 className="text-xs font-bold text-m3-outline uppercase tracking-wider px-1 flex items-center gap-1.5">
+                                <TrendingUp size={13} className="text-m3-primary" /> Trending Now
+                            </h2>
+                            <div className="flex flex-wrap gap-2">
+                                {TRENDING_TAGS.map((tag) => (
+                                    <button
+                                        key={tag}
+                                        type="button"
+                                        onClick={() => {
+                                            hapticFeedback(hapticPatterns.selection);
+                                            setQuery(tag);
+                                        }}
+                                        className="px-3.5 py-1.5 rounded-full bg-m3-surface-container-low hover:bg-m3-surface-container border border-m3-outline-variant/30 text-xs font-semibold text-m3-on-surface-variant hover:text-m3-primary transition-all cursor-pointer shadow-2xs"
+                                    >
+                                        #{tag}
+                                    </button>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
+                    {/* 3. Browse by Mood */}
+                    {activeTab === 'all' && (
+                        <section className="space-y-2.5">
+                            <h2 className="text-xs font-bold text-m3-outline uppercase tracking-wider px-1 flex items-center gap-1.5">
+                                <Sparkles size={13} /> Browse by Mood
+                            </h2>
+                            <div className="flex flex-wrap gap-2">
+                                {MOODS.map((mood) => (
+                                    <M3Chip
+                                        key={mood}
+                                        variant="assist"
+                                        href={`/mood/${mood.toLowerCase()}`}
+                                        label={mood}
+                                        className="h-8.5 px-3.5 text-xs font-semibold"
+                                    />
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
+                    {/* 4. Browse by Era */}
+                    {activeTab === 'all' && (
+                        <section className="space-y-2.5">
+                            <h2 className="text-xs font-bold text-m3-outline uppercase tracking-wider px-1">
+                                Browse by Era
+                            </h2>
+                            <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 sm:gap-3">
+                                {ERAS.map((era) => (
+                                    <button
+                                        key={era.label}
+                                        type="button"
+                                        onClick={() => {
+                                            hapticFeedback(hapticPatterns.selection);
+                                            setQuery(era.label);
+                                        }}
+                                        className="text-left cursor-pointer"
+                                    >
+                                        <M3Card
+                                            variant="outlined"
+                                            interactive
+                                            className="h-16 flex flex-col items-center justify-center bg-m3-surface-container-low hover:bg-m3-surface-container border-m3-outline-variant/30 text-center group"
+                                        >
+                                            <span className="text-base font-bold text-m3-on-surface group-hover:text-m3-primary transition-colors">
+                                                {era.label}
+                                            </span>
+                                            <span className="text-[10px] text-m3-outline">Hits</span>
+                                        </M3Card>
+                                    </button>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
+                    {/* 5. Browse by Instrument */}
+                    {activeTab === 'all' && (
+                        <section className="space-y-2.5">
+                            <h2 className="text-xs font-bold text-m3-outline uppercase tracking-wider px-1">
+                                Browse Instruments
+                            </h2>
+                            <div className="flex flex-wrap gap-2">
+                                {INSTRUMENTS.map((inst) => (
+                                    <button
+                                        key={inst.label}
+                                        type="button"
+                                        onClick={() => {
+                                            hapticFeedback(hapticPatterns.selection);
+                                            setQuery(inst.label);
+                                        }}
+                                        className="px-3 py-1.5 rounded-full bg-m3-surface-container-low hover:bg-m3-surface-container border border-m3-outline-variant/30 text-xs font-medium text-m3-on-surface hover:text-m3-primary transition-colors cursor-pointer"
+                                    >
+                                        {inst.label}
+                                    </button>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
+                    {/* POPULATED DEFAULTS FOR INDIVIDUAL TABS (PREVENTS EMPTY SCREENS!) */}
+
+                    {/* 'ringtones' tab in browse mode */}
+                    {activeTab === 'ringtones' && (
+                        <section className="space-y-4">
+                            <div className="flex items-center justify-between px-1">
+                                <h3 className="text-xs font-bold text-m3-outline uppercase tracking-wider">
+                                    Popular Ringtones ({defaults.ringtones.length})
+                                </h3>
+                            </div>
+                            <div className="space-y-3 sm:grid sm:grid-cols-2 sm:space-y-0 sm:gap-4">
+                                {defaults.ringtones.map((item) => (
+                                    <RingtoneCard key={item.id} ringtone={item} assignTo={assignTo} />
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
+                    {/* 'movies' tab in browse mode */}
+                    {activeTab === 'movies' && (
+                        <section className="space-y-4">
+                            <h3 className="text-xs font-bold text-m3-outline uppercase tracking-wider px-1">
+                                Popular Movies ({defaults.movies.length})
+                            </h3>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                                {defaults.movies.map((movie, idx) => (
+                                    <Link
+                                        key={idx}
+                                        href={`/movie/${encodeURIComponent(movie.movie_name)}`}
+                                        className="group flex flex-col p-2 bg-m3-surface-container-low hover:bg-m3-surface-container rounded-2xl border border-m3-outline-variant/30 transition-all"
+                                    >
+                                        <div className="relative w-full aspect-2/3 bg-m3-surface-container rounded-xl overflow-hidden shrink-0 border border-m3-outline-variant/30">
+                                            {movie.poster_url ? (
                                                 <TMDBImage
-                                                    path={item.poster_url}
-                                                    alt={item.movie_name}
+                                                    path={movie.poster_url}
+                                                    alt={movie.movie_name}
                                                     fill
-                                                    className="object-cover group-hover:scale-110 transition-transform duration-500"
+                                                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                                                    size="w342"
                                                 />
-                                            </div>
-                                            <div>
-                                                <p className="font-bold text-m3-on-surface text-sm truncate group-hover:text-m3-primary transition-colors">{item.movie_name}</p>
-                                                <p className="text-[10px] text-m3-outline">{item.movie_year}</p>
-                                            </div>
-                                        </Link>
-                                    ))}
-                                </div>
-                            </section>
-                        )}
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-m3-outline">
+                                                    <Film size={24} />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="mt-2 min-w-0">
+                                            <p className="text-xs font-semibold text-m3-on-surface group-hover:text-m3-primary truncate transition-colors">
+                                                {movie.movie_name}
+                                            </p>
+                                            <p className="text-[10px] text-m3-outline">{movie.movie_year || 'Movie'}</p>
+                                        </div>
+                                    </Link>
+                                ))}
+                            </div>
+                        </section>
+                    )}
 
-                        {activeTab === 'artists' && (
-                            <section>
-                                <h3 className="font-bold text-m3-outline text-xs uppercase tracking-wider mb-3 px-1">Top Artists</h3>
-                                <div className="flex flex-wrap gap-3">
-                                    {defaults.artists.map((item, idx) => (
-                                        <Link href={`/artist/${encodeURIComponent(item.name)}`} key={idx} className="flex items-center gap-3 pr-4 pl-2 py-2 bg-m3-surface-container-low rounded-full border border-m3-outline-variant/40 hover:border-m3-primary hover:bg-m3-surface-container transition-all">
-                                            <div className="w-8 h-8 rounded-full bg-m3-primary-container flex items-center justify-center text-m3-on-primary-container font-bold text-xs">
-                                                {item.name.charAt(0)}
-                                            </div>
-                                            <p className="font-medium text-m3-on-surface text-sm">{item.name}</p>
-                                        </Link>
-                                    ))}
-                                </div>
-                            </section>
-                        )}
-                    </div>
-                )}
+                    {/* 'artists' tab in browse mode */}
+                    {activeTab === 'artists' && (
+                        <section className="space-y-4">
+                            <h3 className="text-xs font-bold text-m3-outline uppercase tracking-wider px-1">
+                                Top Artists & Composers ({defaults.artists.length})
+                            </h3>
+                            <div className="flex flex-wrap gap-2.5">
+                                {defaults.artists.map((artist, idx) => (
+                                    <Link
+                                        key={idx}
+                                        href={`/artist/${encodeURIComponent(artist.name)}`}
+                                        className="flex items-center gap-2.5 px-3 py-2 bg-m3-surface-container-low hover:bg-m3-surface-container rounded-full border border-m3-outline-variant/30 transition-all group"
+                                    >
+                                        <div className="w-7 h-7 rounded-full bg-m3-primary-container text-m3-on-primary-container text-xs font-bold flex items-center justify-center shrink-0">
+                                            {artist.name.charAt(0)}
+                                        </div>
+                                        <span className="text-xs font-medium text-m3-on-surface group-hover:text-m3-primary transition-colors">
+                                            {artist.name}
+                                        </span>
+                                        {artist.role && (
+                                            <span className="text-[10px] text-m3-outline bg-m3-surface-container px-1.5 py-0.5 rounded-md">
+                                                {artist.role}
+                                            </span>
+                                        )}
+                                    </Link>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+
+                    {/* 'actors' tab in browse mode */}
+                    {activeTab === 'actors' && (
+                        <section className="space-y-4">
+                            <h3 className="text-xs font-bold text-m3-outline uppercase tracking-wider px-1">
+                                Top Kollywood Stars ({defaults.actors.length})
+                            </h3>
+                            <div className="flex flex-wrap gap-2.5">
+                                {defaults.actors.map((actor, idx) => (
+                                    <Link
+                                        key={idx}
+                                        href={`/actor/${encodeURIComponent(actor.name)}`}
+                                        className="flex items-center gap-2.5 px-3 py-2 bg-m3-surface-container-low hover:bg-m3-surface-container rounded-full border border-m3-outline-variant/30 transition-all group"
+                                    >
+                                        <div className="w-7 h-7 rounded-full bg-m3-secondary-container text-m3-on-secondary-container text-xs font-bold flex items-center justify-center shrink-0">
+                                            <User size={14} />
+                                        </div>
+                                        <span className="text-xs font-medium text-m3-on-surface group-hover:text-m3-primary transition-colors">
+                                            {actor.name}
+                                        </span>
+                                    </Link>
+                                ))}
+                            </div>
+                        </section>
+                    )}
+                </div>
+            )}
         </div>
     );
-
 }
-
 
 export default function SearchPageClient() {
     return (
-        <Suspense fallback={<div className="p-4 text-center text-zinc-500">Loading search...</div>}>
-            <SearchContent />
+        <Suspense
+            fallback={
+                <div className="max-w-4xl mx-auto px-4 py-8 text-center text-m3-outline">
+                    <Loader2 size={24} className="animate-spin mx-auto text-m3-primary mb-2" />
+                    <p className="text-xs">Loading Search...</p>
+                </div>
+            }
+        >
+            <SearchPageContent />
         </Suspense>
     );
 }

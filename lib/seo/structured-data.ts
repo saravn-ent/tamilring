@@ -159,16 +159,32 @@ export function generateMovieSchema(movie: {
         description: movie.description || `Download ${movie.name} Tamil movie ringtones. Free BGM and song ringtones for Android and iPhone.`,
         datePublished: movie.year,
         inLanguage: 'ta', // Tamil
-        director: directors.map(director => ({
-            '@type': 'Person',
-            name: director,
-            url: `${SITE_URL}/artist/${encodeURIComponent(director)}`,
-        })),
-        musicBy: musicDirectors.map(md => ({
-            '@type': 'Person',
-            name: md,
-            url: `${SITE_URL}/artist/${encodeURIComponent(md)}`,
-        })),
+        ...(directors.length > 0 ? {
+            director: directors.length === 1
+                ? {
+                    '@type': 'Person',
+                    name: directors[0],
+                    url: `${SITE_URL}/artist/${encodeURIComponent(directors[0])}`,
+                }
+                : directors.map(director => ({
+                    '@type': 'Person',
+                    name: director,
+                    url: `${SITE_URL}/artist/${encodeURIComponent(director)}`,
+                })),
+        } : {}),
+        ...(musicDirectors.length > 0 ? {
+            musicBy: musicDirectors.length === 1
+                ? {
+                    '@type': 'Person',
+                    name: musicDirectors[0],
+                    url: `${SITE_URL}/artist/${encodeURIComponent(musicDirectors[0])}`,
+                }
+                : musicDirectors.map(md => ({
+                    '@type': 'Person',
+                    name: md,
+                    url: `${SITE_URL}/artist/${encodeURIComponent(md)}`,
+                })),
+        } : {}),
         ...(actors.length > 0 ? {
             actor: actors.map(actor => ({
                 '@type': 'Person',
@@ -317,6 +333,8 @@ export function generateMovieItemListSchema(data: {
         name: string;
         year?: string;
         poster_url?: string;
+        director?: string;
+        music_director?: string;
     }>;
 }) {
     return {
@@ -325,18 +343,55 @@ export function generateMovieItemListSchema(data: {
         name: data.name,
         description: data.description,
         numberOfItems: data.items.length,
-        itemListElement: data.items.map((item, index) => ({
-            '@type': 'ListItem',
-            position: index + 1,
-            item: {
-                '@type': 'Movie',
-                name: item.name,
-                url: `${SITE_URL}/movie/${encodeURIComponent(item.name)}`,
-                image: item.poster_url,
-                datePublished: item.year,
-                inLanguage: 'ta',
-            },
-        })),
+        itemListElement: data.items.map((item, index) => {
+            const directors = (item.director || '')
+                .split(',')
+                .map(d => d.trim())
+                .filter(Boolean);
+            const musicDirectors = (item.music_director || '')
+                .split(',')
+                .map(md => md.trim())
+                .filter(Boolean);
+
+            return {
+                '@type': 'ListItem',
+                position: index + 1,
+                item: {
+                    '@type': 'Movie',
+                    name: item.name,
+                    url: `${SITE_URL}/movie/${encodeURIComponent(item.name)}`,
+                    image: item.poster_url,
+                    datePublished: item.year,
+                    inLanguage: 'ta',
+                    ...(directors.length > 0 ? {
+                        director: directors.length === 1
+                            ? {
+                                '@type': 'Person',
+                                name: directors[0],
+                                url: `${SITE_URL}/artist/${encodeURIComponent(directors[0])}`,
+                            }
+                            : directors.map(director => ({
+                                '@type': 'Person',
+                                name: director,
+                                url: `${SITE_URL}/artist/${encodeURIComponent(director)}`,
+                            })),
+                    } : {}),
+                    ...(musicDirectors.length > 0 ? {
+                        musicBy: musicDirectors.length === 1
+                            ? {
+                                '@type': 'Person',
+                                name: musicDirectors[0],
+                                url: `${SITE_URL}/artist/${encodeURIComponent(musicDirectors[0])}`,
+                            }
+                            : musicDirectors.map(md => ({
+                                '@type': 'Person',
+                                name: md,
+                                url: `${SITE_URL}/artist/${encodeURIComponent(md)}`,
+                            })),
+                    } : {}),
+                },
+            };
+        }),
     };
 }
 

@@ -26,10 +26,11 @@ const config: NextConfig = {
       { protocol: 'https', hostname: '*.r2.dev' },
       { protocol: 'https', hostname: 'pub-7adb3d7983ad4219ac5d433a25c74aac.r2.dev' },
     ],
-    deviceSizes: [640, 750, 828, 1080, 1200],
-    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    deviceSizes: [384, 640, 750, 828, 1080, 1200],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256],
+    qualities: [50, 60, 75],
     formats: ['image/webp', 'image/avif'],
-    minimumCacheTTL: 86400, // 24 hour CDN caching for images
+    minimumCacheTTL: 2592000, // 30 day CDN caching for images
   },
   async redirects() {
     return [

@@ -7,6 +7,7 @@ interface TMDBImageProps {
     fallbackAlt?: string; // Add this prop
     size?: TMDBImageSize;
     priority?: boolean;
+    fetchPriority?: 'high' | 'low' | 'auto';
     className?: string;
     fill?: boolean;
     width?: number;
@@ -25,6 +26,7 @@ export default function TMDBImage({
     fallbackAlt,
     size = 'w342',
     priority = false,
+    fetchPriority,
     className = '',
     fill = false,
     sizes,
@@ -41,6 +43,7 @@ export default function TMDBImage({
             sizes={sizes}
             quality={quality}
             priority={priority}
+            fetchPriority={fetchPriority}
             className={className}
             showIcon
         />

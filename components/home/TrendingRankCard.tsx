@@ -45,6 +45,7 @@ export default function TrendingRankCard({ ringtone, rank, priority = false }: T
     return (
         <Link
             href={`/ringtone/${ringtone.slug}`}
+            prefetch={false}
             className={`group relative flex items-center gap-2.5 sm:gap-3 p-2 rounded-2xl transition-all duration-200 cursor-pointer border text-left active:scale-[0.99] ${
                 isActive
                     ? 'bg-m3-primary/10 border-m3-primary/40 shadow-xs ring-1 ring-m3-primary/30'
@@ -97,14 +98,14 @@ export default function TrendingRankCard({ ringtone, rank, priority = false }: T
             {/* Song Meta (Title, Movie, Composer, Stats) */}
             <div className="flex-1 min-w-0 pr-1">
                 <div className="flex items-center gap-1.5">
-                    <h4 className={`text-xs sm:text-sm font-bold truncate transition-colors leading-snug ${
+                    <h3 className={`text-xs sm:text-sm font-bold truncate transition-colors leading-snug ${
                         isActive ? 'text-m3-primary' : 'text-m3-on-surface group-hover:text-m3-primary'
                     }`}>
                         {ringtone.title}
-                    </h4>
+                    </h3>
                 </div>
 
-                <p className="text-[11px] text-m3-outline truncate mt-0.5 font-medium leading-tight">
+                <p className="text-[11px] text-m3-on-surface-variant truncate mt-0.5 font-medium leading-tight">
                     {ringtone.movie_name || 'Tamil Cinema'}
                     {ringtone.music_director ? ` • ${ringtone.music_director}` : ''}
                 </p>
@@ -112,12 +113,12 @@ export default function TrendingRankCard({ ringtone, rank, priority = false }: T
                 {/* Micro Badges (Downloads / Duration / Mood) */}
                 <div className="flex items-center gap-1.5 mt-1">
                     {ringtone.downloads > 0 ? (
-                        <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-m3-outline bg-m3-surface-container-highest/70 px-1.5 py-0.5 rounded leading-none">
+                        <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-m3-on-surface-variant bg-m3-surface-container-highest/70 px-1.5 py-0.5 rounded leading-none">
                             🔥 {formatDownloads(ringtone.downloads)}
                         </span>
                     ) : null}
                     {ringtone.duration && ringtone.duration > 0 ? (
-                        <span className="text-[10px] font-semibold text-m3-outline/80 leading-none">
+                        <span className="text-[10px] font-semibold text-m3-on-surface-variant leading-none">
                             {Math.round(ringtone.duration)}s
                         </span>
                     ) : null}

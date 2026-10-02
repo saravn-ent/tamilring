@@ -15,6 +15,7 @@ interface ImageWithFallbackProps {
   fallbackText?: string;
   sizes?: string;
   priority?: boolean;
+  fetchPriority?: 'high' | 'low' | 'auto';
   quality?: number;
   loading?: 'lazy' | 'eager';
 }
@@ -30,6 +31,7 @@ export default function ImageWithFallback({
   fallbackText,
   sizes,
   priority = false,
+  fetchPriority,
   quality = 75,
   loading,
 }: ImageWithFallbackProps) {
@@ -85,12 +87,13 @@ export default function ImageWithFallback({
       fill={fill}
       sizes={sizes}
       priority={priority}
+      fetchPriority={fetchPriority || (priority ? 'high' : 'low')}
       quality={quality}
       loading={loading || (priority ? 'eager' : 'lazy')}
       className={className}
       unoptimized={shouldSkipOptimization}
-      placeholder="blur"
-      blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2UwZTBlMCIvPjwvc3ZnPg=="
+      placeholder={priority ? 'empty' : 'blur'}
+      blurDataURL={priority ? undefined : "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2UwZTBlMCIvPjwvc3ZnPg=="}
       onError={() => setError(true)}
     />
   );

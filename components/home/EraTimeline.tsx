@@ -103,6 +103,7 @@ export default function EraTimeline() {
                     <Link
                         key={era.id}
                         href={`/search?q=${encodeURIComponent(era.label)}&hideSearch=true`}
+                        prefetch={false}
                         onClick={() => hapticFeedback(hapticPatterns.selection)}
                         className="snap-start shrink-0 min-w-[155px] sm:min-w-[170px] md:min-w-0 md:w-full group block"
                     >
@@ -111,7 +112,7 @@ export default function EraTimeline() {
                                 <span className={`text-base sm:text-lg font-black tracking-tight ${era.accent.split(' ')[0]}`}>
                                     {era.label}
                                 </span>
-                                <span className="text-[10px] font-semibold text-m3-outline bg-black/10 dark:bg-white/10 px-1.5 py-0.5 rounded">
+                                <span className="text-[10px] font-semibold text-m3-on-surface-variant bg-black/10 dark:bg-white/10 px-1.5 py-0.5 rounded">
                                     {era.period}
                                 </span>
                             </div>
@@ -120,7 +121,7 @@ export default function EraTimeline() {
                                 <h3 className="text-xs sm:text-sm font-bold text-m3-on-surface group-hover:text-m3-primary transition-colors leading-tight truncate">
                                     {era.eraTitle}
                                 </h3>
-                                <p className="text-[10px] text-m3-outline truncate mt-0.5 font-medium">
+                                <p className="text-[10px] text-m3-on-surface-variant truncate mt-0.5 font-medium">
                                     {era.subtitle}
                                 </p>
                             </div>

@@ -99,11 +99,10 @@ export default function HeroSpotlight({ tracks }: HeroSpotlightProps) {
                         fallbackAlt={spotlight.title}
                         fill
                         priority
-                        sizes="100vw"
-                        quality={70}
-                        className={`object-cover object-right sm:object-center transition-all duration-700 ${
-                            isActive ? 'opacity-70 scale-105' : 'opacity-50 group-hover:scale-102 group-hover:opacity-65'
-                        }`}
+                        fetchPriority="high"
+                        sizes="(max-width: 640px) 384px, (max-width: 1024px) 95vw, 1200px"
+                        quality={60}
+                        className="object-cover object-right sm:object-center opacity-60"
                     />
                     {/* Multi-Stop Black Gradient Overlays: Rich black on left & bottom for contrast, artwork visible on right */}
                     <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/85 to-zinc-950/20 sm:to-transparent" />
@@ -125,7 +124,7 @@ export default function HeroSpotlight({ tracks }: HeroSpotlightProps) {
                                 path={spotlight.poster_url}
                                 alt={spotlight.title}
                                 fill
-                                priority
+                                priority={false}
                                 sizes="(max-width: 640px) 88px, 128px"
                                 className={`object-cover transition-transform duration-700 ${
                                     isActive ? 'scale-105' : 'group-hover/art:scale-105'
@@ -151,14 +150,14 @@ export default function HeroSpotlight({ tracks }: HeroSpotlightProps) {
 
                         {/* Track Info Beside Artwork */}
                         <div className="min-w-0 flex-1">
-                            <Link href={`/ringtone/${spotlight.slug}`} className="group/title block">
+                            <Link href={`/ringtone/${spotlight.slug}`} prefetch={false} className="group/title block">
                                 <h2 className="text-[13px] sm:text-base md:text-xl font-bold text-white tracking-tight leading-snug line-clamp-2 group-hover/title:text-m3-primary transition-colors">
                                     {spotlight.title}
                                 </h2>
                             </Link>
 
-                            <Link href={`/movie/${encodeURIComponent(spotlight.movie_name)}`} className="inline-block hover:underline">
-                                <p className="text-[11px] sm:text-xs text-zinc-300 font-semibold mt-0.5 truncate">
+                            <Link href={`/movie/${encodeURIComponent(spotlight.movie_name)}`} prefetch={false} className="inline-flex items-center min-h-[28px] py-0.5 hover:underline">
+                                <p className="text-[11px] sm:text-xs text-zinc-300 font-semibold truncate">
                                     {spotlight.movie_name || 'Tamil Cinema'}
                                 </p>
                             </Link>
@@ -200,6 +199,7 @@ export default function HeroSpotlight({ tracks }: HeroSpotlightProps) {
                         {/* Left Wing: Explore Movie Album Link */}
                         <Link
                             href={`/movie/${encodeURIComponent(spotlight.movie_name)}`}
+                            prefetch={false}
                             className="inline-flex items-center gap-1.5 h-9 sm:h-10 px-3 sm:px-4 rounded-full font-bold text-[11px] sm:text-xs text-white bg-white/15 hover:bg-white/25 border border-white/20 backdrop-blur-md transition-all duration-200 hover:scale-105 active:scale-95 shadow-xs shrink-0"
                             title={`Explore all tracks from ${spotlight.movie_name}`}
                         >

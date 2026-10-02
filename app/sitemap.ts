@@ -1,6 +1,8 @@
 import { MetadataRoute } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { ALL_COLLECTION_SLUGS } from '@/lib/collections';
+import { splitArtists } from '@/lib/utils';
+import { MOODS, DEITY_CATEGORIES } from '@/lib/constants';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 3600; // Revalidate every hour
@@ -79,6 +81,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             changeFrequency: 'monthly',
             priority: 0.7,
         },
+        // Community & Editorial
+        {
+            url: `${SITE_URL}/requests`,
+            lastModified: new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.7,
+        },
+        {
+            url: `${SITE_URL}/valentines`,
+            lastModified: new Date(),
+            changeFrequency: 'monthly',
+            priority: 0.8,
+        },
         // Legal / Info
         {
             url: `${SITE_URL}/privacy`,
@@ -121,23 +136,43 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     );
 
     try {
-        // 2. Fetch Ringtones (limit to 10000 for sitemap size)
+        // 2. Fetch Ringtones with pagination to bypass PostgREST 1000-row limit
         console.log('[Sitemap] Fetching ringtones...');
-        const { data: ringtones } = await supabase
-            .from('ringtones')
-            .select('slug, created_at')
-            .eq('status', 'approved')
-            .order('created_at', { ascending: false })
-            .limit(10000);
+        const ringtones: { slug: string; created_at: string }[] = [];
+        const pageSize = 1000;
+        let from = 0;
+        let hasMore = true;
 
-        if (ringtones) {
+        while (hasMore) {
+            const { data, error } = await supabase
+                .from('ringtones')
+                .select('slug, created_at')
+                .eq('status', 'approved')
+                .order('created_at', { ascending: false })
+                .range(from, from + pageSize - 1);
+
+            if (error || !data || data.length === 0) {
+                break;
+            }
+
+            ringtones.push(...data);
+            if (data.length < pageSize) {
+                hasMore = false;
+            } else {
+                from += pageSize;
+            }
+        }
+
+        if (ringtones.length > 0) {
             ringtones.forEach((ring) => {
-                sitemap.push({
-                    url: `${SITE_URL}/ringtone/${ring.slug}`,
-                    lastModified: new Date(ring.created_at),
-                    changeFrequency: 'weekly',
-                    priority: 0.8,
-                });
+                if (ring.slug && ring.slug.trim()) {
+                    sitemap.push({
+                        url: `${SITE_URL}/ringtone/${ring.slug.trim()}`,
+                        lastModified: new Date(ring.created_at),
+                        changeFrequency: 'weekly',
+                        priority: 0.8,
+                    });
+                }
             });
             console.log(`[Sitemap] Added ${ringtones.length} ringtones`);
         }
@@ -149,14 +184,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             .select('movie_name, created_at')
             .eq('status', 'approved')
             .not('movie_name', 'is', null)
-            .order('created_at', { ascending: false })
-            .limit(5000);
+            .order('created_at', { ascending: false });
 
         if (movieData) {
             const uniqueMovies = new Map<string, string>();
             movieData.forEach(m => {
-                if (m.movie_name && !uniqueMovies.has(m.movie_name)) {
-                    uniqueMovies.set(m.movie_name, m.created_at);
+                const name = m.movie_name?.trim();
+                if (name && !uniqueMovies.has(name)) {
+                    uniqueMovies.set(name, m.created_at);
                 }
             });
 
@@ -172,45 +207,33 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         }
 
         // 4. Fetch Artists (singers, music directors, movie directors)
+        // Uses splitArtists from lib/utils to eliminate compound names and filters out single-character junk
         console.log('[Sitemap] Fetching artists...');
         const { data: artistData } = await supabase
             .from('ringtones')
             .select('singers, music_director, movie_director, created_at')
-            .eq('status', 'approved')
-            .limit(3000);
+            .eq('status', 'approved');
 
         if (artistData) {
             const uniqueArtists = new Map<string, string>();
 
+            const addArtist = (name: string, date: string) => {
+                const trimmed = name.trim();
+                // Filter out empty or single-character placeholders (e.g. "T", "M", "N", "v")
+                if (trimmed.length > 1 && !uniqueArtists.has(trimmed)) {
+                    uniqueArtists.set(trimmed, date);
+                }
+            };
+
             artistData.forEach((row) => {
-                // Process singers
                 if (row.singers) {
-                    row.singers.split(',').forEach((singer: string) => {
-                        const name = singer.trim();
-                        if (name && !uniqueArtists.has(name)) {
-                            uniqueArtists.set(name, row.created_at);
-                        }
-                    });
+                    splitArtists(row.singers).forEach(name => addArtist(name, row.created_at));
                 }
-
-                // Process music directors
                 if (row.music_director) {
-                    row.music_director.split(',').forEach((md: string) => {
-                        const name = md.trim();
-                        if (name && !uniqueArtists.has(name)) {
-                            uniqueArtists.set(name, row.created_at);
-                        }
-                    });
+                    splitArtists(row.music_director).forEach(name => addArtist(name, row.created_at));
                 }
-
-                // Process movie directors
                 if (row.movie_director) {
-                    row.movie_director.split(',').forEach((dir: string) => {
-                        const name = dir.trim();
-                        if (name && !uniqueArtists.has(name)) {
-                            uniqueArtists.set(name, row.created_at);
-                        }
-                    });
+                    splitArtists(row.movie_director).forEach(name => addArtist(name, row.created_at));
                 }
             });
 
@@ -225,7 +248,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             console.log(`[Sitemap] Added ${uniqueArtists.size} artists`);
         }
 
-        // 5. Fetch Devotional Deities (NEW)
+        // 5. Fetch Devotional Deities
+        // Validates deity names against DEITY_CATEGORIES to exclude commercial movies tagged with Devotional
         console.log('[Sitemap] Fetching deities...');
         const { data: deityData } = await supabase
             .from('ringtones')
@@ -236,10 +260,25 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             .order('created_at', { ascending: false });
 
         if (deityData) {
+            const allAllowedDeities = Object.values(DEITY_CATEGORIES).flat();
             const uniqueDeities = new Map<string, string>();
+
             deityData.forEach(d => {
-                if (d.movie_name && !uniqueDeities.has(d.movie_name)) {
-                    uniqueDeities.set(d.movie_name, d.created_at);
+                const raw = d.movie_name?.trim();
+                if (!raw) return;
+                const lower = raw.toLowerCase();
+                const words = lower.split(/[^a-z0-9]+/).filter((w: string) => w.length > 0);
+                const compact = words.join('');
+
+                for (const deity of allAllowedDeities) {
+                    const ld = deity.toLowerCase();
+                    const ldCompact = ld.replace(/\s+/g, '');
+                    if (words.includes(ld) || lower === ld || compact === ldCompact) {
+                        if (!uniqueDeities.has(deity)) {
+                            uniqueDeities.set(deity, d.created_at);
+                        }
+                        break;
+                    }
                 }
             });
 
@@ -251,53 +290,49 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
                     priority: 0.8,
                 });
             });
-            console.log(`[Sitemap] Added ${uniqueDeities.size} deities`);
+            console.log(`[Sitemap] Added ${uniqueDeities.size} verified deities`);
         }
 
-        // 6. Fetch Moods (NEW)
+        // 6. Fetch Moods
+        // Checks all canonical moods defined in MOODS that have approved ringtones
         console.log('[Sitemap] Fetching moods...');
-        const { data: moodData } = await supabase
-            .from('ringtones')
-            .select('mood, created_at')
-            .eq('status', 'approved')
-            .not('mood', 'is', null)
-            .order('created_at', { ascending: false });
+        let moodCount = 0;
+        for (const mood of MOODS) {
+            const { data: moodRingtones } = await supabase
+                .from('ringtones')
+                .select('created_at')
+                .eq('status', 'approved')
+                .contains('tags', [mood])
+                .order('created_at', { ascending: false })
+                .limit(1);
 
-        if (moodData) {
-            const uniqueMoods = new Map<string, string>();
-            moodData.forEach(m => {
-                if (m.mood && !uniqueMoods.has(m.mood)) {
-                    uniqueMoods.set(m.mood, m.created_at);
-                }
-            });
-
-            uniqueMoods.forEach((date, mood) => {
+            if (moodRingtones && moodRingtones.length > 0) {
                 sitemap.push({
                     url: `${SITE_URL}/mood/${encodeURIComponent(mood)}`,
-                    lastModified: new Date(date),
+                    lastModified: new Date(moodRingtones[0].created_at),
                     changeFrequency: 'weekly',
                     priority: 0.7,
                 });
-            });
-            console.log(`[Sitemap] Added ${uniqueMoods.size} moods`);
+                moodCount++;
+            }
         }
+        console.log(`[Sitemap] Added ${moodCount} moods`);
 
-        // 7. Fetch Actors (NEW) — via cast_members column
+        // 7. Fetch Actors via cast_members column
         console.log('[Sitemap] Fetching actors...');
         const { data: actorData } = await supabase
             .from('ringtones')
             .select('cast_members, created_at')
             .eq('status', 'approved')
-            .not('cast_members', 'is', null)
-            .limit(2000);
+            .not('cast_members', 'is', null);
 
         if (actorData) {
             const uniqueActors = new Map<string, string>();
             actorData.forEach(row => {
                 if (row.cast_members) {
-                    row.cast_members.split(',').forEach((actor: string) => {
+                    splitArtists(row.cast_members).forEach((actor: string) => {
                         const name = actor.trim();
-                        if (name && !uniqueActors.has(name)) {
+                        if (name.length > 1 && !uniqueActors.has(name)) {
                             uniqueActors.set(name, row.created_at);
                         }
                     });

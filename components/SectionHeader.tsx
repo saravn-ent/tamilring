@@ -26,7 +26,7 @@ export default function SectionHeader({ title, subtitle, href, translationKey }:
             {displayTitle}
           </h2>
           {subtitle && (
-            <span className="text-[11px] sm:text-xs font-medium text-m3-outline hidden sm:inline">
+            <span className="text-[11px] sm:text-xs font-medium text-m3-on-surface-variant hidden sm:inline">
               {subtitle}
             </span>
           )}
@@ -36,6 +36,7 @@ export default function SectionHeader({ title, subtitle, href, translationKey }:
         <Link
           suppressHydrationWarning
           href={href}
+          prefetch={false}
           className="text-[11px] sm:text-xs font-semibold text-m3-primary hover:underline flex items-center gap-0.5 transition-colors shrink-0"
         >
           {t('viewAll')} <ChevronRight size={13} />

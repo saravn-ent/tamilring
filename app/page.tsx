@@ -1,5 +1,4 @@
 import { Suspense } from 'react';
-import dynamic from 'next/dynamic';
 import HeroSpotlightServer from '@/components/home/HeroSpotlightServer';
 import HomeTrending from '@/components/home/HomeTrending';
 import CategoryGrid from '@/components/CategoryGrid';
@@ -10,20 +9,10 @@ import { generateHomeMetadata, generateItemListSchema } from '@/lib/seo';
 import { getTrendingRingtones } from '@/app/actions/ringtones';
 import { SectionSkeleton } from '@/components/skeletons';
 
-// Dynamic Universal Homepage Components
-const HomeMaestros = dynamic<{ lang: string }>(() => import('@/components/home/HomeMaestros'), {
-  ssr: true,
-  loading: () => <SectionSkeleton type="horizontal" />
-});
-const HomeNewReleases = dynamic<{ lang: string }>(() => import('@/components/home/HomeNewReleases'), {
-  ssr: true,
-  loading: () => <SectionSkeleton type="horizontal" />
-});
-const HomeDeities = dynamic<{ lang: string }>(() => import('@/components/home/HomeDeities'), {
-  ssr: true,
-  loading: () => <SectionSkeleton type="horizontal" />
-});
-const HomeSEOContent = dynamic(() => import('@/components/home/HomeSEOContent'), { ssr: true });
+import HomeMaestros from '@/components/home/HomeMaestros';
+import HomeNewReleases from '@/components/home/HomeNewReleases';
+import HomeDeities from '@/components/home/HomeDeities';
+import HomeSEOContent from '@/components/home/HomeSEOContent';
 
 export const revalidate = 3600; // Revalidate every hour
 
@@ -62,23 +51,17 @@ export default async function Home() {
       <HeroSpotlightServer lang={lang} />
 
       {/* 2. NOW IN THEATERS & NEW DROPS (The Theatrical Wave) */}
-      <div className="lazy-section">
-        <Suspense fallback={<SectionSkeleton type="horizontal" />}>
-          <HomeNewReleases lang={lang} />
-        </Suspense>
-      </div>
+      <Suspense fallback={<SectionSkeleton type="horizontal" />}>
+        <HomeNewReleases lang={lang} />
+      </Suspense>
 
       {/* 3. TRENDING RINGTONES (Viral BGM & Interval Hits - Full 2:3 Movie Posters) */}
-      <div className="lazy-section">
-        <HomeTrending lang={lang} />
-      </div>
+      <HomeTrending lang={lang} />
 
       {/* 4. HALL OF MAESTROS (Composers: Anirudh, ARR, Raja - Circular Avatars) */}
-      <div className="lazy-section">
-        <Suspense fallback={<SectionSkeleton type="horizontal" />}>
-          <HomeMaestros lang={lang} />
-        </Suspense>
-      </div>
+      <Suspense fallback={<SectionSkeleton type="horizontal" />}>
+        <HomeMaestros lang={lang} />
+      </Suspense>
 
       {/* 5. CURATED MOOD STATIONS (Tactile Colorful Gradient Capsules) */}
       <CategoryGrid />

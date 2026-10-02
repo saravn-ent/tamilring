@@ -35,6 +35,7 @@ export default function SoundPosterCard({ ringtone, priority = false, badge }: S
     return (
         <Link
             href={`/ringtone/${ringtone.slug}`}
+            prefetch={false}
             className="snap-start shrink-0 w-[130px] sm:w-[150px] md:w-full group cursor-pointer block text-left transition-all duration-300"
         >
             {/* 2:3 Full-View Cinema Movie Poster */}
@@ -47,7 +48,7 @@ export default function SoundPosterCard({ ringtone, priority = false, badge }: S
                     fill
                     priority={priority}
                     sizes="(max-width: 640px) 130px, (max-width: 1024px) 150px, 18vw"
-                    quality={80}
+                    quality={70}
                     className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
                 />
 
@@ -114,10 +115,10 @@ export default function SoundPosterCard({ ringtone, priority = false, badge }: S
 
             {/* Song Meta Below Artwork */}
             <div className="px-0.5">
-                <h4 className="text-xs sm:text-sm font-bold text-m3-on-surface line-clamp-1 leading-snug group-hover:text-m3-primary transition-colors tracking-tight">
+                <h3 className="text-xs sm:text-sm font-bold text-m3-on-surface line-clamp-1 leading-snug group-hover:text-m3-primary transition-colors tracking-tight">
                     {ringtone.title}
-                </h4>
-                <p className="text-[11px] text-m3-outline truncate mt-0.5 font-medium leading-tight">
+                </h3>
+                <p className="text-[11px] text-m3-on-surface-variant truncate mt-0.5 font-medium leading-tight">
                     {ringtone.movie_name || 'Tamil Cinema'}
                     {ringtone.music_director ? ` • ${ringtone.music_director}` : ''}
                 </p>

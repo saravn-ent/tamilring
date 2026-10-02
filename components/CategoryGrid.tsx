@@ -126,6 +126,7 @@ export default function CategoryGrid() {
                         <Link
                             key={station.id}
                             href={station.href}
+                            prefetch={false}
                             onClick={() => hapticFeedback(hapticPatterns.selection)}
                             className="snap-start shrink-0 min-w-[150px] sm:min-w-[170px] md:min-w-0 md:w-full group block"
                         >
@@ -134,7 +135,7 @@ export default function CategoryGrid() {
                                     <div className={`w-8 h-8 rounded-xl flex items-center justify-center border shadow-xs ${station.accentColor} group-hover:scale-110 transition-transform`}>
                                         <Icon size={16} strokeWidth={2.2} />
                                     </div>
-                                    <span className="text-[10px] font-bold text-m3-outline group-hover:text-m3-primary transition-colors">
+                                    <span className="text-[10px] font-bold text-m3-on-surface-variant group-hover:text-m3-primary transition-colors">
                                         Station →
                                     </span>
                                 </div>
@@ -142,7 +143,7 @@ export default function CategoryGrid() {
                                     <h3 className="text-xs sm:text-sm font-bold text-m3-on-surface group-hover:text-m3-primary transition-colors leading-tight truncate">
                                         {t(station.translationKey) || station.label}
                                     </h3>
-                                    <p className="text-[10px] text-m3-outline truncate mt-0.5 font-medium">
+                                    <p className="text-[10px] text-m3-on-surface-variant truncate mt-0.5 font-medium">
                                         {station.subtitle}
                                     </p>
                                 </div>

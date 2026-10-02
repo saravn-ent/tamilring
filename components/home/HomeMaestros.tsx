@@ -65,6 +65,7 @@ export default async function HomeMaestros({ lang }: Props) {
                         <Link
                             key={idx}
                             href={`/artist/${encodeURIComponent(md.name)}`}
+                            prefetch={false}
                             className="snap-start shrink-0 flex flex-col items-center gap-2 w-[84px] sm:w-24 group md:w-full"
                         >
                             {/* Circular Avatar with Golden Halo Ring */}
@@ -76,7 +77,7 @@ export default async function HomeMaestros({ lang }: Props) {
                                         fallbackAlt={md.name}
                                         fill
                                         sizes="80px"
-                                        priority={idx < 4}
+                                        priority={false}
                                         className="object-cover transition-transform duration-500 group-hover:scale-110"
                                     />
                                 ) : (
@@ -91,7 +92,7 @@ export default async function HomeMaestros({ lang }: Props) {
                                 <p className="text-xs font-bold text-m3-on-surface truncate w-full group-hover:text-m3-primary transition-colors">
                                     {md.name}
                                 </p>
-                                <span className="text-[9px] text-m3-outline font-medium block truncate mt-0.5 group-hover:text-amber-500 transition-colors">
+                                <span className="text-[9px] text-m3-on-surface-variant font-medium block truncate mt-0.5 group-hover:text-amber-500 transition-colors">
                                     {honoraryTitle}
                                 </span>
                             </div>

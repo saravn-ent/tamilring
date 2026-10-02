@@ -39,6 +39,7 @@ export default function ZeptoRingtoneCard({ ringtone, priority = false, badge }:
     return (
         <Link
             href={`/ringtone/${ringtone.slug}`}
+            prefetch={false}
             className="snap-start shrink-0 w-[112px] sm:w-[126px] md:w-full group cursor-pointer block text-left"
         >
             {/* 1:1 Square Artwork Container with M3 Small Corner FAB */}
@@ -107,19 +108,19 @@ export default function ZeptoRingtoneCard({ ringtone, priority = false, badge }:
                     HQ 320k
                 </span>
                 {ringtone.likes && ringtone.likes > 0 ? (
-                    <span className="text-[9px] font-medium text-m3-outline">
+                    <span className="text-[9px] font-medium text-m3-on-surface-variant">
                         ❤️ {ringtone.likes}
                     </span>
                 ) : null}
             </div>
 
             {/* Song Title (2 Lines Max, Bold) */}
-            <h4 className="text-xs font-bold text-m3-on-surface line-clamp-2 leading-tight group-hover:text-m3-primary transition-colors">
+            <h3 className="text-xs font-bold text-m3-on-surface line-clamp-2 leading-tight group-hover:text-m3-primary transition-colors">
                 {ringtone.title}
-            </h4>
+            </h3>
 
             {/* Movie Name Subtext */}
-            <p className="text-[10px] text-m3-outline truncate mt-0.5 font-medium">
+            <p className="text-[10px] text-m3-on-surface-variant truncate mt-0.5 font-medium">
                 {ringtone.movie_name || 'Tamil BGM'}
             </p>
         </Link>

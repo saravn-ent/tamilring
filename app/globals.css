@@ -63,6 +63,7 @@
   --radius-m3-xl: 28px;
   --radius-m3-full: 9999px;
 
+  --font-jakarta: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-display: var(--font-jakarta);
   --font-sans: var(--font-jakarta);
   --animate-aurora: aurora-1 15s infinite ease-in-out;
@@ -464,7 +465,7 @@ html.dark {
   /* Optimize LCP and Layout performance for long pages */
   .lazy-section {
     content-visibility: auto;
-    contain-intrinsic-size: 1px 500px;
+    contain-intrinsic-size: auto 500px;
   }
 
   /* M3 Standard Buttons */
@@ -508,6 +509,89 @@ html.dark {
 
   .m3-card-filled {
     @apply bg-m3-surface-container rounded-2xl transition-all duration-200 hover:bg-m3-surface-container-high;
+  }
+
+  /* Audio Equalizer & Micro Animations */
+  @keyframes music-bar-1 {
+    0%, 100% { height: 4px; }
+    50% { height: 12px; }
+  }
+
+  @keyframes music-bar-2 {
+    0%, 100% { height: 8px; }
+    50% { height: 4px; }
+  }
+
+  @keyframes music-bar-3 {
+    0%, 100% { height: 12px; }
+    50% { height: 8px; }
+  }
+
+  .animate-music-bar-1 {
+    animation: music-bar-1 0.6s ease-in-out infinite;
+  }
+
+  .animate-music-bar-2 {
+    animation: music-bar-2 0.7s ease-in-out infinite;
+  }
+
+  .animate-music-bar-3 {
+    animation: music-bar-3 0.8s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0% {
+      transform: translateY(0) rotate(0deg);
+      opacity: 0;
+    }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% {
+      transform: translateY(-100vh) rotate(360deg);
+      opacity: 0;
+    }
+  }
+
+  .animate-float {
+    animation: float var(--duration, 10s) linear infinite;
+    animation-delay: var(--delay, 0s);
+  }
+
+  .glow-hover {
+    @apply transition-all duration-300;
+  }
+
+  .glow-hover:hover {
+    box-shadow: 0 0 20px rgba(249, 36, 69, 0.4);
+  }
+
+  @keyframes heart-pop {
+    0% {
+      transform: scale(0);
+      opacity: 0;
+    }
+    15% {
+      transform: scale(1.2);
+      opacity: 1;
+    }
+    30% {
+      transform: scale(0.95);
+    }
+    45% {
+      transform: scale(1.1);
+    }
+    80% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1.5);
+      opacity: 0;
+    }
+  }
+
+  .animate-heart-pop {
+    animation: heart-pop 0.8s ease-out forwards;
   }
 }
 

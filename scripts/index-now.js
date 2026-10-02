@@ -5,13 +5,7 @@ const { createClient } = require('@supabase/supabase-js');
 
 // Load env vars from .env.local if not in process.env
 if (fs.existsSync('.env.local')) {
-  const envConfig = fs.readFileSync('.env.local', 'utf8');
-  envConfig.split('\n').forEach((line) => {
-    const [key, value] = line.split('=');
-    if (key && value && !process.env[key]) {
-      process.env[key.trim()] = value.trim();
-    }
-  });
+  require('dotenv').config({ path: '.env.local' });
 }
 
 const SERVICE_ACCOUNT_FILE = './service_account.json';
@@ -75,7 +69,15 @@ async function main() {
   };
 
   if (process.env.GOOGLE_SERVICE_ACCOUNT_CREDENTIALS) {
-    authConfig.credentials = JSON.parse(process.env.GOOGLE_SERVICE_ACCOUNT_CREDENTIALS);
+    let rawCreds = process.env.GOOGLE_SERVICE_ACCOUNT_CREDENTIALS.trim();
+    if ((rawCreds.startsWith("'") && rawCreds.endsWith("'")) || (rawCreds.startsWith('"') && rawCreds.endsWith('"'))) {
+      rawCreds = rawCreds.slice(1, -1);
+    }
+    const creds = JSON.parse(rawCreds);
+    if (creds.private_key) {
+      creds.private_key = creds.private_key.replace(/\\n/g, '\n');
+    }
+    authConfig.credentials = creds;
   } else {
     authConfig.keyFile = SERVICE_ACCOUNT_FILE;
   }

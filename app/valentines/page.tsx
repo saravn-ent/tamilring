@@ -116,13 +116,19 @@ export default async function ValentinesPage() {
         CURATED_MOVIES.map(async (movie) => {
             const { data } = await supabase
                 .from('ringtones')
-                .select('poster_url, movie_year')
+                .select('poster_url, movie_year, movie_director, music_director')
                 .eq('status', 'approved')
                 .eq('movie_name', movie.name)
                 .limit(1)
                 .maybeSingle();
 
-            return data ? { ...movie, poster_url: data.poster_url, movie_year: data.movie_year } : null;
+            return data ? {
+                ...movie,
+                poster_url: data.poster_url,
+                movie_year: data.movie_year,
+                movie_director: data.movie_director,
+                music_director: data.music_director,
+            } : null;
         })
     );
 
@@ -147,6 +153,8 @@ export default async function ValentinesPage() {
             name: m.name,
             year: m.movie_year || undefined,
             poster_url: m.poster_url || undefined,
+            director: m.movie_director || undefined,
+            music_director: m.music_director || undefined,
         })),
     }) : null;
 
