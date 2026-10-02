@@ -187,7 +187,24 @@ export default function NameRingtone() {
     };
 
     useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.hidden || document.visibilityState === 'hidden') {
+                if (bgAudioRef.current && !bgAudioRef.current.paused) {
+                    bgAudioRef.current.pause();
+                }
+                if (ttsAudioRef.current && !ttsAudioRef.current.paused) {
+                    ttsAudioRef.current.pause();
+                }
+                setIsPlaying(false);
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        window.addEventListener('pagehide', handleVisibilityChange);
+
         return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            window.removeEventListener('pagehide', handleVisibilityChange);
             if (bgAudioRef.current) bgAudioRef.current.pause();
             if (ttsAudioRef.current) ttsAudioRef.current.pause();
         };

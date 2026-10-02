@@ -63,6 +63,29 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     }
   }, [currentRingtone, isPlaying]);
 
+  // Turn off background playback when screen goes black or page is backgrounded
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+
+    const handleBackgroundOrScreenOff = () => {
+      if (document.hidden || document.visibilityState === 'hidden') {
+        const audio = audioRef.current;
+        if (audio && !audio.paused) {
+          audio.pause();
+        }
+        setIsPlaying(false);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleBackgroundOrScreenOff);
+    window.addEventListener('pagehide', handleBackgroundOrScreenOff);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleBackgroundOrScreenOff);
+      window.removeEventListener('pagehide', handleBackgroundOrScreenOff);
+    };
+  }, []);
+
   // Web MediaSession API Integration (Lock Screen, Bluetooth, Notification controls)
   useEffect(() => {
     if (typeof window === 'undefined' || !('mediaSession' in navigator)) return;
@@ -88,6 +111,10 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
         navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
 
         navigator.mediaSession.setActionHandler('play', () => {
+          // Block resuming playback if screen is off/black or page is hidden
+          if (typeof document !== 'undefined' && (document.hidden || document.visibilityState === 'hidden')) {
+            return;
+          }
           setIsPlaying(true);
         });
 

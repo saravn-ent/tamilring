@@ -32,7 +32,8 @@ export async function middleware(request: NextRequest) {
   const beneficialBots = [
     'lighthouse', 'pagespeed', 'chrome-lighthouse', 'headlesschrome', 'googlebot', 'bingbot', 'yandexbot', 
     'duckduckbot', 'baiduspider', 'ia_archiver', 'facebot', 'facebookexternalhit',
-    'twitterbot', 'linkedinbot', 'slackbot', 'telegrambot', 'whatsapp', 'gtmetrix', 'speedcurve', 'ptst'
+    'twitterbot', 'linkedinbot', 'slackbot', 'telegrambot', 'whatsapp', 'gtmetrix', 'speedcurve', 'ptst',
+    'schema-markup-validator', 'schema.org'
   ];
   const isBeneficial = beneficialBots.some(bot => userAgent.includes(bot));
 

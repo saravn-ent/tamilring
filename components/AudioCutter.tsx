@@ -259,6 +259,25 @@ export default function AudioCutter({ file, initialTab, onReset, onFileChange }:
     useEffect(() => { if (ws.current && isReady) ws.current.zoom(zoom); }, [zoom, isReady]);
     useEffect(() => { if (ws.current && isReady) ws.current.setVolume(Math.min(1, volume / 100)); }, [volume, isReady]);
 
+    // Turn off background playback when screen goes black or page is backgrounded
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.hidden || document.visibilityState === 'hidden') {
+                if (ws.current && ws.current.isPlaying()) {
+                    ws.current.pause();
+                    setIsPlaying(false);
+                }
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        window.addEventListener('pagehide', handleVisibilityChange);
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            window.removeEventListener('pagehide', handleVisibilityChange);
+        };
+    }, []);
+
     const formatTimeCode = (seconds: number) => {
         const mins = Math.floor(seconds / 60);
         const secs = (seconds % 60).toFixed(1);
